@@ -14,7 +14,7 @@ type RequestOptions = { method?: string; body?: unknown; signal?: AbortSignal }
 export async function api<T>(path: string, options: RequestOptions = {}, retried = false): Promise<T> {
   const method = options.method ?? 'GET'
   const headers = new Headers({ Accept: 'application/json' })
-  if (options.body !== undefined) headers.set('Content-Type', 'application/json')
+  if (options.body !== undefined) headers.set('Content-Type', options.body instanceof Blob ? 'application/zip' : 'application/json')
   if (method !== 'GET' && method !== 'HEAD') {
     csrf ??= api<{ token: string }>('/auth/csrf').then(x => x.token).catch(error => {
       resetCsrf()
@@ -23,7 +23,7 @@ export async function api<T>(path: string, options: RequestOptions = {}, retried
     headers.set('X-CSRF-Token', await csrf)
   }
   const response = await fetch('/api' + path, { method, headers, credentials: 'same-origin',
-    signal: options.signal, body: options.body === undefined ? undefined : JSON.stringify(options.body) })
+    signal: options.signal, body: options.body instanceof Blob ? options.body : options.body === undefined ? undefined : JSON.stringify(options.body) })
   if (!response.ok) {
     const problem = await response.json().catch(() => null) as {
       title?: string; code?: string; correlationId?: string; errors?: Record<string, string[]>

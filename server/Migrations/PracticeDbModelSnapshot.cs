@@ -591,6 +591,38 @@ namespace InterviewPractice.Migrations
                     b.ToTable("QuestionVersions");
                 });
 
+            modelBuilder.Entity("InterviewPractice.ReviewComment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Answer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(90)
+                        .HasColumnType("nvarchar(90)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Slug", "Version", "At");
+
+                    b.ToTable("ReviewComments");
+                });
+
             modelBuilder.Entity("InterviewPractice.SelfAssessment", b =>
                 {
                     b.Property<Guid>("AttemptId")
@@ -979,6 +1011,15 @@ namespace InterviewPractice.Migrations
                     b.HasOne("InterviewPractice.QuestionHead", null)
                         .WithMany()
                         .HasForeignKey("Slug")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InterviewPractice.ReviewComment", b =>
+                {
+                    b.HasOne("InterviewPractice.Learner", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

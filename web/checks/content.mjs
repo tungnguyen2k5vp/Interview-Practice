@@ -90,7 +90,7 @@ if (process.argv.includes('--sources')) {
 
 const coding = exercises.filter(x => x.kind === 'coding')
 const sql = exercises.filter(x => x.kind === 'sql')
-assert.equal(coding.length, 11)
+assert.equal(coding.length, 14)
 assert.equal(sql.length, 11)
 for (const item of exercises) assert(item.version > 0 && item.testVersion > 0 && item.tests.length > 0)
 
@@ -101,6 +101,7 @@ writeFileSync(join(directory, 'ContentCheck.csproj'), [
   '<Project Sdk="Microsoft.NET.Sdk">',
   '  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>',
   '  <ItemGroup><PackageReference Include="Microsoft.Data.SqlClient" Version="' + msSqlClient + '" /></ItemGroup>',
+  '  <ItemGroup><FrameworkReference Include="Microsoft.AspNetCore.App" /></ItemGroup>',
   '</Project>',
 ].join('\n'))
 

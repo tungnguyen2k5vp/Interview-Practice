@@ -328,6 +328,18 @@ input[type="checkbox"] { accent-color: var(--primary); inline-size: 16px; block-
 .interview-finding blockquote::after { content: close-quote; }
 .interview-plan { list-style: none; padding: 0; margin: 0; }
 .interview-plan li { display: grid; grid-template-columns: 5em 1fr; gap: 8px; padding-block: 6px; }
+.lab-inputs, .lab-files { border: 0; padding: 0; margin: 0; min-width: 0; }
+.lab-files { max-height: 19rem; overflow-y: auto; }
+.lab-files legend { color: var(--muted); margin-bottom: 6px; }
+.lab-files label { display: flex; align-items: baseline; gap: 8px; padding-block: 6px; }
+.lab-files label, .lab-citation { overflow-wrap: anywhere; }
+.lab-diff { margin: 0; padding: 8px 0; min-width: 0; border: 1px solid var(--line); border-radius: 8px; }
+.lab-diff legend { margin-inline: 8px; padding-inline: 4px; }
+.lab-diff label { display: grid; grid-template-columns: 16px 24px 1fr; align-items: baseline; padding: 6px 8px; gap: 5px; }
+.lab-diff label[data-change="+"] { background: var(--accent-soft); }
+.lab-diff label[data-change="-"] { color: var(--muted); text-decoration: line-through; }
+.lab-diff label[data-chosen="true"] { outline: 2px solid var(--accent-ink); outline-offset: -2px; }
+.lab-diff code { white-space: pre-wrap; overflow-wrap: anywhere; }
 .report-item summary { display: flex; justify-content: space-between; gap: 8px; padding: 13px 16px; align-items: center; font-weight: 580; }
 .report-item summary::after { content: "+"; color: var(--primary); font: 1.25rem var(--mono); }
 .report-item[open] summary::after { content: "−"; }

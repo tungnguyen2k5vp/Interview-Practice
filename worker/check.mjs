@@ -31,9 +31,14 @@ async function check(name,fn){await fn();passed++;console.log('PASS '+name)}
 if(process.argv.includes('--catalog')){
   const privateCases=JSON.parse(readFileSync(process.env.IP_WORKER_TESTS,'utf8'))
   for(const [key,e] of exercises) {
-    const row=await grade({...cfg,instance,privateCases},{...e,action:'submit',code:e.solution,input:null},AbortSignal.timeout(150000))
+    const gradeCode=code=>grade({...cfg,instance,privateCases},{...e,action:'submit',code,input:null},AbortSignal.timeout(150000))
+    const row=await gradeCode(e.solution)
     assert.equal(row.status,'accepted',key+' '+JSON.stringify(row))
     console.log('PASS reference solution and private pack '+key)
+    if(e.tags.includes('debug-lab')){
+      assert.equal((await gradeCode(e.starter)).status,'wrong_answer',key+' buggy starter')
+      console.log('PASS starter reproduces the reported failure '+key)
+    }
   }
 }
 for(const [kind,image] of [['coding',cfg.sdk],['sql',cfg.sql]].filter(([k])=>cfg.kinds.includes(k))) {

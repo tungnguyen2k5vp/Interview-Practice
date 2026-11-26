@@ -1,4 +1,4 @@
-param([switch]$AiFixture, [switch]$Migration, [switch]$Upgrade, [switch]$OnlyUpgrade)
+param([switch]$AiFixture, [switch]$Migration, [switch]$Upgrade, [switch]$OnlyUpgrade, [switch]$LiveGitHub)
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $serverDir = Join-Path $repo 'server'
@@ -17,6 +17,7 @@ $env:IP_ADMIN_PASSWORD = $env:Admin__Password
 $env:Ai__Provider = 'Disabled'
 $env:Runner__IsolationVerified = 'false'
 $env:IP_AI_FIXTURE = '0'
+$env:IP_LIVE_GITHUB = if ($LiveGitHub) { '1' } else { '0' }
 $api = $null
 $provider = $null
 try {

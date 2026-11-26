@@ -1,0 +1,339 @@
+[
+  {
+    "slug": "orders-summary",
+    "version": 1,
+    "title": "Thời gian tải bảng đơn hàng",
+    "file": "Orders.cs",
+    "context": "Một trang trả về tối đa 100 đơn hàng. Trước thay đổi, tổng tiền được chiếu ngay trong truy vấn.",
+    "diff": [
+      " var orders = await db.Orders.Take(100).ToListAsync(ct);",
+      " foreach (var order in orders)",
+      " {",
+      "+    var prices = await db.Lines.Where(x => x.OrderId == order.Id).Select(x => x.Price).ToListAsync(ct);",
+      "+    totals[order.Id] = prices.Sum();",
+      " }"
+    ],
+    "lines": [
+      4
+    ],
+    "severity": "major",
+    "cause": "Mỗi đơn phát sinh một lần truy cập database.",
+    "otherCause": "Danh sách 100 đơn làm mất thứ tự khi duyệt trong bộ nhớ.",
+    "repair": "Chiếu tổng tiền theo đơn trong SQL hoặc lấy theo lô.",
+    "otherRepair": "Thêm AsNoTracking vào từng truy vấn giá.",
+    "check": "Đếm câu lệnh SQL cho trang một đơn và một trăm đơn, rồi kiểm tra tổng của đơn không có dòng."
+  },
+  {
+    "slug": "search-binding",
+    "version": 1,
+    "title": "Thay đổi hợp đồng tìm kiếm",
+    "file": "Search.cs",
+    "context": "SearchSql là thủ tục dựng truy vấn từ chuỗi điều kiện. Hợp đồng SearchByName nhận riêng giá trị tên.",
+    "diff": [
+      "-return await search.SearchByNameAsync(name, ct);",
+      "+var filter = BuildFreeformFilter(name);",
+      "+return await search.SearchSqlAsync(filter, ct);"
+    ],
+    "lines": [
+      1,
+      2
+    ],
+    "severity": "critical",
+    "cause": "Văn bản do người dùng nhập đi vào phần cấu trúc điều kiện SQL.",
+    "otherCause": "Truy vấn không bất đồng bộ vì trả về Task.",
+    "repair": "Dùng hợp đồng truy vấn tham số hóa và kiểm tra tên cột theo allowlist nếu cần.",
+    "otherRepair": "Chỉ giới hạn độ dài chuỗi tìm kiếm.",
+    "check": "Kiểm tra câu lệnh dùng tham số có kiểu và tên hợp lệ chứa dấu nháy vẫn tìm đúng."
+  },
+  {
+    "slug": "invoice-owner",
+    "version": 1,
+    "title": "Xem hóa đơn trong API",
+    "file": "Invoices.cs",
+    "context": "Mỗi hóa đơn thuộc một khách hàng. Endpoint yêu cầu đăng nhập và nhận mã hóa đơn từ route.",
+    "diff": [
+      " var customer = identity.CustomerId;",
+      "-return await invoices.ForCustomer(customer).FindAsync(id, ct);",
+      "+return await invoices.FindAsync(id, ct);"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "critical",
+    "cause": "Lần đọc bỏ điều kiện quyền sở hữu tài nguyên.",
+    "otherCause": "Định dạng mã hóa đơn không đủ dài.",
+    "repair": "Giới hạn truy vấn theo khách hàng hoặc kiểm tra quyền tài nguyên trước khi trả dữ liệu.",
+    "otherRepair": "Chuyển mã số thành GUID nhưng giữ nguyên truy vấn.",
+    "check": "Kiểm tra một người đọc được hóa đơn của mình và không đọc được hóa đơn của khách khác."
+  },
+  {
+    "slug": "lock-order",
+    "version": 1,
+    "title": "Hai đường chuyển tồn kho",
+    "file": "Inventory.cs",
+    "context": "Luồng nhận hàng khóa kho nguồn rồi kho đích. Đường hoàn hàng chạy đồng thời.",
+    "diff": [
+      " void ReturnStock(Bin source, Bin destination)",
+      " {",
+      "+    lock (destination.Gate)",
+      "+    lock (source.Gate)",
+      "         MoveBack(source, destination);",
+      " }"
+    ],
+    "lines": [
+      3,
+      4
+    ],
+    "severity": "major",
+    "cause": "Hai luồng có thể giữ hai khóa theo thứ tự ngược nhau.",
+    "otherCause": "Lock không bảo đảm nhìn thấy thay đổi sau khi thoát.",
+    "repair": "Dùng một thứ tự khóa ổn định theo định danh kho ở cả hai đường.",
+    "otherRepair": "Tăng thời gian chờ của request để hai luồng tự hoàn thành.",
+    "check": "Theo dõi hai thao tác đối chiều và kiểm tra tổng tồn kho sau khi cả hai kết thúc."
+  },
+  {
+    "slug": "reservation-race",
+    "version": 1,
+    "title": "Giữ chỗ cuối cùng",
+    "file": "Booking.cs",
+    "context": "API nhận nhiều yêu cầu cho một sự kiện. seats là state chung cho các request.",
+    "diff": [
+      " if (seats > 0)",
+      " {",
+      "+    seats -= 1;",
+      "     return Reserved;",
+      " }"
+    ],
+    "lines": [
+      1,
+      3
+    ],
+    "severity": "major",
+    "cause": "Kiểm tra và giảm chỗ trống là hai thao tác riêng.",
+    "otherCause": "So sánh với 0 cần chuyển thành so sánh chuỗi.",
+    "repair": "Gộp điều kiện và cập nhật vào cùng thao tác nguyên tử ở nơi sở hữu tồn kho.",
+    "otherRepair": "Thay biến số nguyên bằng volatile và giữ nguyên hai bước.",
+    "check": "Gửi đồng thời hai yêu cầu khi còn một chỗ. Đúng một yêu cầu được nhận."
+  },
+  {
+    "slug": "event-owner",
+    "version": 1,
+    "title": "Vòng đời trang thống kê",
+    "file": "Widget.cs",
+    "context": "Event bus sống suốt vòng đời ứng dụng, còn widget tạo và đóng nhiều lần.",
+    "diff": [
+      " public void Open() => bus.Changed += Refresh;",
+      "-public void Dispose() => bus.Changed -= Refresh;",
+      "+public void Dispose() => rows.Clear();"
+    ],
+    "lines": [
+      1,
+      2
+    ],
+    "severity": "major",
+    "cause": "Bus tiếp tục giữ tham chiếu tới widget thông qua handler.",
+    "otherCause": "List.Clear luôn giữ tất cả phần tử trong heap.",
+    "repair": "Hủy đăng ký đúng handler khi widget đóng.",
+    "otherRepair": "Gọi GC.Collect sau khi xóa các dòng.",
+    "check": "Đóng widget rồi phát sự kiện. Handler cũ không chạy, widget có thể được thu hồi."
+  },
+  {
+    "slug": "scope-worker",
+    "version": 1,
+    "title": "Bộ xử lý đơn hàng nền",
+    "file": "Startup.cs",
+    "context": "OrderProcessor giữ DbContext theo scope. Hệ thống xử lý một batch mỗi chu kỳ.",
+    "diff": [
+      " services.AddDbContext<OrdersDb>();",
+      "-services.AddScoped<OrderProcessor>();",
+      "+services.AddSingleton<OrderProcessor>();"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "Singleton giữ phụ thuộc scoped qua nhiều đơn vị công việc.",
+    "otherCause": "DbContext bị tạo lại cho từng thực thể EF.",
+    "repair": "Tạo và giải phóng scope riêng cho mỗi batch, resolve processor trong scope.",
+    "otherRepair": "Đăng ký DbContext singleton để hai lifetime khớp.",
+    "check": "Bật validate scopes và kiểm tra hai batch sử dụng hai context khác nhau."
+  },
+  {
+    "slug": "await-handler",
+    "version": 1,
+    "title": "Gửi thư xác nhận",
+    "file": "Notify.cs",
+    "context": "Caller cần biết thao tác gửi thư lúc nào hoàn tất và phải ghi nhận lỗi gửi.",
+    "diff": [
+      "-public async Task NotifyAsync(Order o)",
+      "+public async void NotifyAsync(Order o)",
+      " {",
+      "     await mail.SendAsync(o.Email);",
+      " }"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Caller thiếu Task để chờ hoặc nhận lỗi bất đồng bộ.",
+    "otherCause": "Tên phương thức kết thúc bằng Async nên runtime tự tạo thread.",
+    "repair": "Trả Task và await ở caller, hoặc trả kết quả xếp hàng có định danh.",
+    "otherRepair": "Bao lời gọi bằng try/catch ở caller và giữ async void.",
+    "check": "Dùng mail sender báo lỗi sau await và xác nhận caller nhận được lỗi."
+  },
+  {
+    "slug": "request-cancel",
+    "version": 1,
+    "title": "Hủy báo cáo dài",
+    "file": "Reports.cs",
+    "context": "Client có thể rời trang khi xuất báo cáo. Driver database hỗ trợ CancellationToken.",
+    "diff": [
+      " var token = http.RequestAborted;",
+      "-return await query.ToListAsync(token);",
+      "+return await query.ToListAsync(CancellationToken.None);"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "Công việc database bị tách khỏi tín hiệu hủy request.",
+    "otherCause": "ToListAsync luôn tải từng hàng đồng bộ.",
+    "repair": "Truyền token xuyên suốt truy vấn và các bước I/O phía sau.",
+    "otherRepair": "Kiểm tra token một lần trước khi bắt đầu truy vấn.",
+    "check": "Hủy trong lúc I/O đang chờ, kiểm tra query nhận cancellation và tài nguyên được giải phóng."
+  },
+  {
+    "slug": "repeated-enumeration",
+    "version": 1,
+    "title": "Đối chiếu danh sách khách hàng",
+    "file": "Import.cs",
+    "context": "customers là List lớn trong bộ nhớ và được đối chiếu với hàng nghìn mã nhập vào.",
+    "diff": [
+      " foreach (var row in imported)",
+      " {",
+      "+    if (customers.Any(c => c.Id == row.CustomerId))",
+      "         Accept(row);",
+      " }"
+    ],
+    "lines": [
+      3
+    ],
+    "severity": "moderate",
+    "cause": "Mỗi dòng nhập có thể duyệt toàn bộ danh sách khách hàng.",
+    "otherCause": "Any luôn duyệt toàn bộ dù đã gặp kết quả.",
+    "repair": "Lập HashSet mã khách một lần rồi tra Contains.",
+    "otherRepair": "Thay Any bằng Count(predicate) > 0 trong vòng lặp.",
+    "check": "Đo với hai danh sách lớn và kiểm tra mã trùng, mã thiếu vẫn xử lý đúng."
+  },
+  {
+    "slug": "split-commit",
+    "version": 1,
+    "title": "Ghi số dư và giao dịch",
+    "file": "Payments.cs",
+    "context": "Số dư và bút toán phải cùng tồn tại dù kết nối lỗi ở bất kỳ bước nào.",
+    "diff": [
+      " wallet.Balance -= amount;",
+      "+await db.SaveChangesAsync(ct);",
+      " db.Entries.Add(entry);",
+      " await db.SaveChangesAsync(ct);"
+    ],
+    "lines": [
+      2,
+      4
+    ],
+    "severity": "critical",
+    "cause": "Hai lần commit có thể để lại số dư mới mà thiếu bút toán.",
+    "otherCause": "Entity Framework bỏ qua mọi thay đổi sau lần Save đầu.",
+    "repair": "Dùng cùng một SaveChanges hoặc bao toàn bộ cập nhật trong transaction.",
+    "otherRepair": "Thử lại riêng bước ghi bút toán trong mọi trường hợp.",
+    "check": "Gây lỗi kiểm thử trước khi ghi bút toán và xác nhận dữ liệu không bị ghi một nửa."
+  },
+  {
+    "slug": "cache-before-commit",
+    "version": 1,
+    "title": "Giá sản phẩm trên cache",
+    "file": "Prices.cs",
+    "context": "Một tiến trình cập nhật giá, tiến trình khác đọc cache-aside và nạp lại từ DB khi miss.",
+    "diff": [
+      "+await cache.RemoveAsync(key, ct);",
+      " product.Price = newPrice;",
+      " await db.SaveChangesAsync(ct);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Độc giả có thể nạp giá cũ vào cache trước lúc commit.",
+    "otherCause": "RemoveAsync luôn xóa ngẫu nhiên nhiều khóa cùng prefix.",
+    "repair": "Vô hiệu hóa sau commit và bảo đảm retry hoặc đối soát khi xóa thất bại.",
+    "otherRepair": "Tăng TTL để giảm số lần cache miss.",
+    "check": "Kiểm tra thứ tự miss–đọc DB–commit và chính sách sửa cache lỗi thời."
+  },
+  {
+    "slug": "report-responsibilities",
+    "version": 1,
+    "title": "Lớp kết xuất báo cáo",
+    "file": "Export.cs",
+    "context": "Yêu cầu xuất báo cáo chuyển từ định dạng PDF duy nhất sang nhiều định dạng và kênh gửi.",
+    "diff": [
+      " public byte[] Export(Report r)",
+      " {",
+      "+    smtp.Send(r.Owner, RenderPdf(r));",
+      "     return RenderPdf(r);",
+      " }"
+    ],
+    "lines": [
+      3,
+      4
+    ],
+    "severity": "moderate",
+    "cause": "Kết xuất dữ liệu nay đồng thời gửi thư và render hai lần.",
+    "otherCause": "Mọi phương thức trả byte[] đều cần async.",
+    "repair": "Tách gửi khỏi render và dùng lại kết quả của một lần render.",
+    "otherRepair": "Đổi tên Export thành SendAndExport để giữ nguyên cách gọi.",
+    "check": "Kiểm tra xuất hai lần không tự gửi thư, và gửi lại không làm thay đổi file đã tạo."
+  },
+  {
+    "slug": "qty-validation",
+    "version": 1,
+    "title": "Đặt số lượng hàng",
+    "file": "Cart.cs",
+    "context": "Quantity là số nguyên do người dùng cung cấp. Miền nghiệp vụ cho phép 1–99 sản phẩm.",
+    "diff": [
+      "-if (qty is < 1 or > 99) return Invalid();",
+      "+if (qty > 99) return Invalid();",
+      " cart.Add(product, qty);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Miền giá trị chưa chặn số lượng dưới 1.",
+    "otherCause": "Integer không thể biểu diễn số âm.",
+    "repair": "Kiểm tra cả hai biên trước khi sửa giỏ, giữ ràng buộc miền ở domain.",
+    "otherRepair": "Ép số lượng về trị tuyệt đối trước khi cộng.",
+    "check": "Kiểm thử 0, 1, 99, 100 và giá trị âm. Giỏ không đổi sau đầu vào lỗi."
+  },
+  {
+    "slug": "retry-tests",
+    "version": 1,
+    "title": "Thay đổi test cho job retry",
+    "file": "DeliveryTests.cs",
+    "context": "Worker được phép nhận lại cùng message. Tác dụng phụ phải được ghi đúng một lần.",
+    "diff": [
+      " await worker.Handle(message);",
+      "-await worker.Handle(message);",
+      " Assert.Single(deliveries);"
+    ],
+    "lines": [
+      1,
+      2
+    ],
+    "severity": "moderate",
+    "cause": "Test chỉ đi qua lần xử lý đầu nên bỏ yêu cầu lặp cùng message.",
+    "otherCause": "Assert.Single làm test phụ thuộc thứ tự phần tử.",
+    "repair": "Khôi phục lần giao cùng ID và kiểm tra trạng thái bền sau hai lần xử lý.",
+    "otherRepair": "Tăng timeout kiểm thử để job có nhiều thời gian.",
+    "check": "Tách test happy path và redelivery, xác minh cùng message chỉ gây một tác dụng phụ."
+  }
+]

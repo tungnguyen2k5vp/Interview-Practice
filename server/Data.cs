@@ -210,6 +210,16 @@ internal sealed class ExerciseSubmission
     public string? Result { get; set; }
 }
 
+internal sealed class ReviewComment
+{
+    public Guid Id { get; init; }
+    public string UserId { get; init; } = "";
+    public string Slug { get; init; } = "";
+    public int Version { get; init; }
+    public DateTimeOffset At { get; init; }
+    public string Answer { get; init; } = "";
+}
+
 internal sealed class ExternalPractice
 {
     public string UserId { get; init; } = "";
@@ -235,6 +245,7 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
     public DbSet<ExerciseDraft> ExerciseDrafts => Set<ExerciseDraft>();
     public DbSet<ExerciseSubmission> ExerciseSubmissions => Set<ExerciseSubmission>();
     public DbSet<ExternalPractice> ExternalPractice => Set<ExternalPractice>();
+    public DbSet<ReviewComment> ReviewComments => Set<ReviewComment>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -286,10 +297,11 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
         b.Entity<ExerciseSubmission>().Property(x => x.Status).HasMaxLength(24);
         b.Entity<ExerciseSubmission>().Property(x => x.Action).HasMaxLength(12);
         b.Entity<ExternalPractice>().HasKey(x => new { x.UserId, x.Slug });
+        b.Entity<ReviewComment>().HasIndex(x => new { x.UserId, x.Slug, x.Version, x.At });
 
-        foreach (var type in new[] { typeof(StudyState), typeof(Attempt), typeof(StudySession), typeof(InterviewSession), typeof(Note), typeof(ExerciseDraft), typeof(ExerciseSubmission), typeof(ExternalPractice) })
+        foreach (var type in new[] { typeof(StudyState), typeof(Attempt), typeof(StudySession), typeof(InterviewSession), typeof(Note), typeof(ExerciseDraft), typeof(ExerciseSubmission), typeof(ExternalPractice), typeof(ReviewComment) })
             b.Entity(type).HasOne(typeof(Learner)).WithMany().HasForeignKey("UserId");
-        foreach (var type in new[] { typeof(QuestionHead), typeof(QuestionVersion), typeof(StudyState), typeof(Attempt), typeof(ExerciseDraft), typeof(ExerciseSubmission), typeof(ExternalPractice) })
+        foreach (var type in new[] { typeof(QuestionHead), typeof(QuestionVersion), typeof(StudyState), typeof(Attempt), typeof(ExerciseDraft), typeof(ExerciseSubmission), typeof(ExternalPractice), typeof(ReviewComment) })
             b.Entity(type).Property<string>("Slug").HasMaxLength(90);
     }
 

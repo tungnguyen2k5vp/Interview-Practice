@@ -28,6 +28,7 @@ function program(e, code) {
 async function runCsharp(cfg, e, code, args, signal) {
   const encoded = [program(e,code),JSON.stringify(args)].map(s=>Buffer.from(s).toString('base64')).join('\n')+'\n'
   const flags = [...restrictions(cfg.instance),'-i','-e','HOME=/tmp','-e','DOTNET_PROCESSOR_COUNT=1','-e','DOTNET_EnableDiagnostics=0','-e','DOTNET_CLI_TELEMETRY_OPTOUT=1']
+  if(e.topic==='aspnet') flags.push('-e','IP_ASPNET=1')
   return isolated(cfg.sdk,{flags,command:['/bin/sh','-c',compile]},async name=>{
     const r = await docker(['start','-ai',name],{input:encoded,signal,timeout:12000})
     if (r.code===87 || await checked(['inspect','--format','{{.State.OOMKilled}}',name]) === 'true') throw new Verdict('memory_limit')

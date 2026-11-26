@@ -1,5 +1,15 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 5 · Ba lab thực hành
+
+Phỏng vấn dự án nhận GitHub công khai hoặc ZIP 2 MiB. Người dùng chọn tối đa 12 tệp, mỗi tệp 96 KiB. Máy chủ kiểm tra định danh archive bằng SHA-256, giới hạn 2.000 mục và tổng kích thước sau giải nén 32 MiB. Nó đọc trong bộ nhớ, chỉ gọi host codeload đã định, tắt chuyển hướng, lọc tệp bí mật và trả về ký hiệu, đường dẫn, số dòng cùng câu hỏi biên soạn. Phần phân tích dùng quy tắc, không thực thi mã hay gọi AI.
+
+Code Review có 15 tình huống với diff, chọn dòng, severity, nguyên nhân, phương án sửa, nhận xét tự do và đối chiếu rubric. Tự luận giữ nguyên cho người học tự đối chiếu. Migration tăng dần `20261126144657_PracticalReviews` chỉ thêm bảng và index. Lượt học tạo bằng bản Phase 4 vẫn giữ nguyên câu trả lời, tự đánh giá, rubric và ngày ôn sau migration. Bản xuất và xóa tài khoản bao gồm review.
+
+Debugging Lab thêm ba bài sửa mã C# và ASP.NET Core. Cả ba starter trả Wrong Answer, cả ba lời giải đạt public/hidden tests. Đã chạy 25/25 lời giải, bảy nhóm kiểm định worker, 111 ca nội dung và đối chiếu 67 URL tài liệu. Đã kiểm tra nâng bộ test riêng từ 22 lên 25 mà vẫn giữ nguyên dữ liệu cũ.
+
+Build .NET/React, ESLint và Impeccable đạt. Chrome/SQL Server đạt **24 nhóm khi tắt AI** (gồm GitHub thật) và **26 nhóm với provider fixture**. Đã kiểm tra quyền truy cập review, khóa nộp trùng, dẫn dòng trong ZIP, phiên bản bài và ba lab qua sáu kích thước ở hai theme. [Review trên điện thoại](docs/qa/code-review-390.png) · [Review trên desktop](docs/qa/code-review-1440.png) · [Import dự án](docs/qa/project-390-dark.png)
+
 ## V2 · Phase 4 · Phỏng vấn và luyện lại
 
 Ba hình thức gồm bộ câu biên soạn, AI hướng dẫn và AI mô phỏng. Mỗi phiên AI cần đồng ý gửi nội dung và chọn trần 1–4 lượt. API lưu câu trả lời và giữ ngân sách trước khi gọi provider, giới hạn sáu lần gọi/tài khoản/giờ trên mỗi tiến trình. Tối đa một câu đào sâu cho mỗi câu chính. AI chọn hướng hỏi nguyên nhân, ví dụ, thay giả định hoặc đối chiếu phát biểu trước. Máy chủ kiểm tra trích dẫn nguyên văn và chỉ phát câu hỏi từ khuôn đã biên soạn. Thiếu cấu hình, hết thời gian, quota hay lỗi schema đều có fallback. Phiên mô phỏng giữ kín nhận xét trong API và bản xuất cá nhân khi đang thi.

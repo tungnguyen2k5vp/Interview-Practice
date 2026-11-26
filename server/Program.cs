@@ -66,6 +66,8 @@ builder.Services.AddRateLimiter(x =>
     x.AddPolicy("runner", http => RateLimitPartition.GetFixedWindowLimiter(
         http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "guest",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
+    x.AddPolicy("project", http => RateLimitPartition.GetFixedWindowLimiter(http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "guest",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 24, Window = TimeSpan.FromMinutes(1) }));
 });
 builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() =>
 {
@@ -78,8 +80,10 @@ builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() =
     return handler;
 });
 builder.Services.AddSingleton<RunnerGateway>();
+builder.Services.AddHttpClient("public-github").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });
 builder.Services.AddHostedService<RunnerSync>();
 builder.Services.AddSingleton<ExerciseCatalog>();
+builder.Services.AddSingleton<CodeReviews>();
 builder.Services.AddSingleton<KnowledgeChecks>();
 builder.Services.AddScoped<Catalog>();
 builder.Services.AddScoped<Practice>();
@@ -137,6 +141,8 @@ KnowledgeChecks.Map(api);
 StudySessions.Map(api);
 Learning.Map(api);
 Interviews.Map(api);
+ProjectInterview.Map(api);
+CodeReviews.Map(api);
 ExerciseCatalog.Map(api);
 RunnerGateway.Map(api);
 AiFeedback.Map(api);

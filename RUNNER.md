@@ -39,7 +39,9 @@ npm.cmd run build --prefix web
 powershell -NoProfile -File web/checks/worker.ps1
 ```
 
-Lệnh cuối dùng OpenSSL để tạo chứng chỉ QA một ngày, chỉ API QA tin chứng chỉ này. Nó tạo bộ đề riêng cho 22 phiên bản, chạy kiểm định Docker, khởi động worker HTTPS trên 5099 và API trên 5098, dùng Chrome để nộp C# rồi đối chiếu submission T-SQL ngay cả sau khi đóng trang. Chứng chỉ hệ thống và tài khoản cá nhân không tham gia. Để chạy mọi lời giải tham khảo qua worker, đặt IP_WORKER_TESTS tới bộ test riêng rồi chạy `node worker/check.mjs --catalog`.
+Lệnh cuối dùng OpenSSL để tạo chứng chỉ QA một ngày, chỉ API QA tin chứng chỉ này. Nó tạo bộ đề riêng cho 25 phiên bản, chạy kiểm định Docker, khởi động worker HTTPS trên 5099 và API trên 5098, dùng Chrome để nộp C# rồi đối chiếu submission T-SQL ngay cả sau khi đóng trang. Để chạy mọi lời giải và tái hiện lỗi từ ba starter của Debugging Lab, đặt IP_WORKER_TESTS tới bộ test riêng rồi chạy `node worker/check.mjs --catalog`.
+
+Khi nâng cấp worker đã có bộ test riêng, chạy `node worker/prepare-tests.mjs <tệp-mới> <tệp-hiện-tại>`. Công cụ sao chép các bộ cũ theo khóa slug/version/testVersion và sinh ca cho phiên bản mới. Trỏ IP_WORKER_TESTS sang tệp mới sau khi kiểm tra. Cả hai tệp phải ở ngoài web root.
 
 Máy staging cần cấu hình biến môi trường trước khi khởi động.
 

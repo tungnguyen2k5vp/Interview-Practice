@@ -411,6 +411,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             notes = await db.Notes.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
             study = await db.StudyStates.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
             exercises = await db.ExerciseDrafts.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
+            codeReviews = await db.ReviewComments.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
             submissions = await db.ExerciseSubmissions.AsNoTracking().Where(x => x.UserId == owner)
                 .Select(x => new { x.Id, x.Slug, x.Version, x.TestVersion, x.Action, x.Assisted, x.RequestedAt, x.Status, x.Result }).ToArrayAsync(ct),
             external = await db.ExternalPractice.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct)

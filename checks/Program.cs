@@ -1,6 +1,7 @@
 using InterviewPractice;
 
 if (args.SequenceEqual(["--runner-sync"])) { await RunnerSyncCheck.Run(); return; }
+if (args.SequenceEqual(["--project-import"])) { await ProjectImportCheck.Run(); return; }
 
 var first = new DateOnly(2026, 11, 1);
 RecallEvent Hit(int days, int quality = 5, bool verified = true) => new(first.AddDays(days), quality, verified);

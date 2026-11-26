@@ -1,6 +1,6 @@
 # 04. .NET Interview Practice
 
-Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 94 câu Việt–Anh, 11 chủ đề, 11 bài C#, 11 bài T-SQL và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
+Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 94 câu Việt–Anh, 11 chủ đề, 14 bài C#, 11 bài T-SQL, 15 tình huống code review và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
 
 ## Học và theo dõi tiến độ
 
@@ -11,6 +11,8 @@
 - Trong Phỏng vấn thử có thể chuẩn bị theo CV/JD, nhận dạng kỹ năng và chọn chủ đề. Trình duyệt xử lý văn bản dán hoặc tệp TXT UTF-8 và giải phóng dữ liệu khi bấm xóa hoặc rời trang. Trình duyệt hỗ trợ Web Speech có thể đọc đề và nhập lời nói. Người dùng sửa transcript trước khi nộp và có thể bật ghi âm để nghe lại trong trang đang mở.
 
 ## Chạy local
+
+Trong **Phỏng vấn thực hành**, người học chọn repository GitHub công khai hoặc ZIP tối đa 2 MiB. Chọn tối đa 12 tệp để tạo câu hỏi dẫn tới dòng mã cụ thể. Phần phân tích chạy theo quy tắc trên máy chủ trong bộ nhớ. Code Review lưu nhận xét theo tài khoản, tình huống và phiên bản. Debugging Lab có ba starter tái hiện lỗi, test công khai và test riêng khi bật worker.
 
 Cần .NET SDK 10, Node.js 24 và một instance SQL Server. Cấu hình Development mặc định kết nối SQL Server tại localhost bằng Windows Authentication và dùng cơ sở dữ liệu InterviewPractice.
 
@@ -90,15 +92,18 @@ dotnet build server --no-restore
 npm.cmd run test:content --prefix web
 ~~~
 
-test:content kiểm định 94 bản ghi câu hỏi, 52 bài vận dụng và 22 bài thực hành. 97 ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
+test:content kiểm định 94 bản ghi câu hỏi, 52 bài vận dụng và 25 bài thực hành. 111 ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
 
 Trên Windows, sau khi build frontend, chạy các lệnh sau từ thư mục dự án. Hai lượt QA dùng Chrome đã cài, cơ sở dữ liệu InterviewPractice_QA, tài khoản thử nghiệm và tiến trình loopback tạm. Lần chạy sau phải bắt đầu sau khi lần trước đã kết thúc.
 
 ~~~powershell
 dotnet run --project checks/LearningChecks.csproj -c Release
+dotnet run --project checks -c Release -- --project-import
 powershell -NoProfile -File web/checks/qa.ps1 -Upgrade
 powershell -NoProfile -File web/checks/qa.ps1 -AiFixture -Upgrade
 ~~~
+
+Thêm `-LiveGitHub` khi chạy `qa.ps1 -Upgrade` để kiểm tra tải repository công khai và lấy dẫn dòng trực tiếp qua GitHub. Suite thường dùng một ZIP tạo từ các tệp được Git theo dõi.
 
 Để kiểm tra nâng cấp dữ liệu cũ, chạy `node web/checks/migration.mjs before` với `IP_BASE` trỏ tới bản trước trên DB QA. Sau đó dùng `web/checks/qa.ps1 -Migration` trên cùng DB. Tài khoản QA dùng mật khẩu ngẫu nhiên lưu tạm trong .artifacts. Suite xóa tài khoản và fixture sau khi đối chiếu. Kiểm tra đồng bộ verdict bằng `dotnet run --project checks -c Release -- --runner-sync` trên SQL Server local, database riêng InterviewPractice_Runner_QA.
 

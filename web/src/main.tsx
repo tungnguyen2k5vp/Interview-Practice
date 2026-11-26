@@ -5,6 +5,7 @@ import type { LucideIcon } from 'lucide-react'
 import '@fontsource-variable/lexend'
 const AdminRoute = lazy(() => import('./Admin').then(m => ({default: m.AdminRoute})))
 const Preparation = lazy(() => import('./Preparation').then(m => ({default: m.Preparation})))
+const Labs = lazy(() => import('./Labs').then(m => ({default: m.Labs})))
 import { Bank } from './Bank'
 import { DashboardPage } from './Dashboard'
 import { ExerciseList, ExerciseRoute } from './Exercises'
@@ -25,6 +26,7 @@ const main: NavItem[] = [
   { path: '/coding', title: 'Coding', icon: Braces },
   { path: '/sql', title: 'SQL', icon: Database },
   { path: '/phong-van', title: 'Phỏng vấn thử', icon: Mic },
+  { path: '/thuc-hanh', title: 'Phỏng vấn thực hành', icon: Code2 },
 ]
 const personal: NavItem[] = [
   { path: '/on-tap', title: 'Ôn tập', icon: RotateCcw },
@@ -64,6 +66,7 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
     case '': return <DashboardPage />
     case 'lo-trinh': return <Roadmap />
     case 'chuan-bi': return <Preparation />
+    case 'thuc-hanh': return <Labs mode={params.get('mode')==='debug'?'debug':params.get('mode')==='review'?'review':'project'}/>
     case 'phien-hoc': return slug ? <StudyRoute key={slug} id={slug} params={params} /> : <StudyStart initial={params.get('mode') ?? 'new'} />
     case 'cau-hoi': return slug ? <PracticeRoute slug={slug} /> : <Bank params={params} />
     case 'luot-luyen': return slug ? <AttemptRoute id={slug} /> : <NotFound />

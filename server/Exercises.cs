@@ -13,7 +13,8 @@ internal sealed record PreviewTable(string Name, PreviewColumn[] Columns, string
 internal sealed record ExerciseContent(
     string Slug, string Kind, string Title, string Difficulty, string Topic, string[] Tags, int Version, int TestVersion, string Runtime, int Minutes,
     string Description, string Input, string Output, string[] Constraints, Example[] Examples, Example[] Tests,
-    string Starter, string Hint, string Solution, string Explanation, string Complexity, string? Schema, string? Dataset, string? Expected, bool? Ordered);
+    string Starter, string Hint, string Solution, string Explanation, string Complexity, string? Schema, string? Dataset, string? Expected, bool? Ordered,
+    string? Reproduce = null);
 
 /// <summary>Tóm tắt bài tập và bản nháp cá nhân.</summary>
 internal sealed record ExerciseCard(string Slug, string Kind, string Title, string Difficulty, string Topic, string[] Tags,
@@ -25,7 +26,7 @@ internal sealed record ExerciseDraftResponse(int Revision, string Text, DateTime
 /// <summary>Dữ liệu dùng trong không gian làm bài coding hoặc SQL.</summary>
 internal sealed record ExerciseResponse(ExerciseCard Card, int TestVersion, string Description, string Input, string Output,
     string[] Constraints, Example[] Examples, Example[] Tests, string Starter, string? Schema, string? Dataset, string? Expected, bool? Ordered,
-    string? Hint, ExerciseReference? Reference, ExerciseDraftResponse? Draft, int[] SavedVersions, bool RunnerAvailable, PreviewTable[]? Tables);
+    string? Hint, ExerciseReference? Reference, ExerciseDraftResponse? Draft, int[] SavedVersions, bool RunnerAvailable, PreviewTable[]? Tables, string? Reproduce);
 
 /// <summary>Lời giải và giải thích độ phức tạp.</summary>
 internal sealed record ExerciseReference(string Code, string Explanation, string Complexity);
@@ -108,7 +109,7 @@ internal sealed class ExerciseCatalog
         return new(Card(e, draft, last), e.TestVersion, e.Description, e.Input, e.Output, e.Constraints, e.Examples, e.Tests, e.Starter,
             e.Schema, e.Dataset, e.Expected, e.Ordered, draft?.HintSeen is true ? e.Hint : null,
             draft?.SolutionSeen is true ? new(e.Solution, e.Explanation, e.Complexity) : null, draft is null ? null : Draft(draft),
-            drafts.Select(x => x.Version).OrderDescending().ToArray(), await runner.Available(e.Kind, ct), previews.GetValueOrDefault($"{slug}@{e.Version}"));
+            drafts.Select(x => x.Version).OrderDescending().ToArray(), await runner.Available(e.Kind, ct), previews.GetValueOrDefault($"{slug}@{e.Version}"), e.Reproduce);
     }
 
     private async Task<ExerciseDraftResponse> Save(string slug, int version, ExerciseSaveRequest request, string owner,

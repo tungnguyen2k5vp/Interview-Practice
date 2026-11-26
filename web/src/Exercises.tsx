@@ -112,7 +112,7 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
   const runs = useRuns(slug, version, Boolean(userId), data.runnerAvailable, draft.text)
   const [width, setWidth] = useState(42)
   return <div className="page exercise-page">
-    <PageTitle title={card.title} back={['/' + kind, exerciseName[kind]]} />
+    <PageTitle title={card.title} back={data.reproduce ? ['/thuc-hanh?mode=debug', 'Debugging Lab'] : ['/' + kind, exerciseName[kind]]} />
     <div className="metadata"><Difficulty value={card.difficulty} /><span>{card.runtime}</span><span>{card.minutes} phút</span>
       <span>Bài v{version} · {kind === 'sql' ? 'Dữ liệu' : 'Test'} v{data.testVersion}</span>
       <label className="split-control">Độ rộng đề bài <input type="range" min={30} max={60} value={width} onChange={e => setWidth(Number(e.target.value))}/></label></div>
@@ -122,6 +122,7 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
     <div className="exercise-layout" data-view={view} style={{'--problem-size': width + '%'} as React.CSSProperties}>
       <section className="panel content-panel stack exercise-problem">
         <h2>Đề bài</h2><p>{data.description}</p>
+        {data.reproduce && <div className="brief-block"><h3>Tái hiện lỗi</h3><p>{data.reproduce}</p></div>}
         <div className="brief-block"><h3>Đầu vào</h3><p>{data.input}</p><h3>Đầu ra</h3><p>{data.output}</p></div>
         <div><h3>Ràng buộc</h3><ul>{data.constraints.map(x => <li key={x}>{x}</li>)}</ul></div>
         {data.schema && <details className="details" open><summary>Schema</summary><CodeBlock language="T-SQL">{data.schema}</CodeBlock></details>}

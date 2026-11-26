@@ -1,14 +1,17 @@
 import { randomInt, randomBytes } from 'node:crypto'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { exercises } from './grader.mjs'
 
-const destination=process.argv[2]
-if(!destination) throw new Error('Usage: node worker/prepare-tests.mjs <private file outside the web root>')
+const [destination,previous,...extra]=process.argv.slice(2)
+if(!destination || extra.length) throw new Error('Usage: node worker/prepare-tests.mjs <new private file> [previous private file]')
 const id=randomInt(1000,50000), n=randomInt(10,90), m=randomInt(100,200)
 const word=randomBytes(6).toString('hex')
 const codes=[word+'b',word,word+'c',word]
 const sample=(args,expected)=>({input:args.map(x=>JSON.stringify(x)).join(', '),output:JSON.stringify(expected)})
 const coding={
+  'debug-api-segments':sample(['/api'+word],false),
+  'debug-retry-delay':sample([n,randomInt(32,200),m],m),
+  'debug-copy-buffer':sample([[m,0,n],randomInt(4,15)],[m,0,n]),
   'frequency-map':sample([codes],[codes[0],codes[2]]),
   'balanced-delimiters':sample([word+'{[(x)]}('],false),
   'unique-window':sample(['aa'+word+'b'],Math.max(...[...('aa'+word+'b')].map((_,i)=> {
@@ -36,8 +39,13 @@ const sql={
   'stock-threshold-crossings':`INSERT #Stock VALUES (${id},1,5),(${id},3,3);`,
   'unbilled-work':`INSERT #Shifts VALUES (${id},1),(${id+1},1); INSERT #Bills VALUES (${id},${id+1},0);`
 }
-const pack={}
+const pack=previous ? JSON.parse(readFileSync(previous,'utf8')) : {}
+if(!pack || typeof pack!=='object' || Array.isArray(pack)) throw new Error('Invalid previous private test pack')
 for(const [key,e] of exercises) {
+  if(Object.hasOwn(pack,key)){
+    if(!Array.isArray(pack[key]) || !pack[key].length) throw new Error('Invalid existing cases for '+key)
+    continue
+  }
   const fixture=e.kind==='coding'?coding[e.slug]:sql[e.slug]&&{dataset:e.dataset+'\n'+sql[e.slug]}
   if(!fixture || e.version!==1 || e.testVersion!==1) throw new Error('Add a private variant for '+key)
   pack[key]=[fixture]

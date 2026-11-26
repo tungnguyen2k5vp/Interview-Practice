@@ -71,7 +71,7 @@ try {
     assert.equal(dashboard.topics.length, 11)
     assert.equal((await send(context.request, '/interview-presets')).length, 7)
     assert.deepEqual(await send(context.request, '/questions/technologies'), ['.NET 10', 'EF Core 10', 'SQL Server 2022'])
-    assert.equal((await send(context.request, '/exercises?kind=coding')).length, 11)
+    assert.equal((await send(context.request, '/exercises?kind=coding')).length, 14)
     assert.equal((await send(context.request, '/exercises?kind=sql')).length, 11)
     const question = await send(context.request, '/questions/di-lifetimes')
     assert.equal(question.reference, undefined)

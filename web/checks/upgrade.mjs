@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { chromium } from 'playwright'
+import { checkLabs } from './labs.mjs'
 
 const baseURL = process.env.IP_BASE ?? 'http://127.0.0.1:5096'
 assert(['localhost','127.0.0.1'].includes(new URL(baseURL).hostname))
@@ -382,10 +383,13 @@ try {
     state=await act('answer','QA advance');assert.equal(state.current.aiState,'quota')
     assert.equal(state.stage,'followup')
   })
+  await check('scoped project ZIP, source lines, fifteen review rubrics, account history and editable debugging labs', () =>
+    checkLabs({page,client,peer,send,screenshots}))
   await check('render six widths, both themes, keyboard focus and real browser controls', async () => {
     const routes=[['dashboard','/'],['bank','/cau-hoi'],['practice','/cau-hoi/integer-division'],['coding','/coding/frequency-map'],
       ['sql','/sql/customer-orders'],['interview','/phong-van'],['report','/luot-luyen/'+attempt.id],['roadmap','/lo-trinh'],
       ['reviews','/on-tap'],['progress','/tien-do'],['study','/phien-hoc'],['cv','/chuan-bi'],
+      ['project','/thuc-hanh'],['review-lab','/thuc-hanh?mode=review'],['debug-lab','/thuc-hanh?mode=debug'],
       ['mock-active','/phong-van/'+liveMock],['mock-report','/phong-van/'+reportMock],['transfer','/luot-luyen/'+transferId]]
     for(const width of [360,390,768,1024,1440,1920]){
       await page.setViewportSize({width,height:width<700?820:930})

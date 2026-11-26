@@ -104,6 +104,7 @@ export type Exercise = {
   card: ExerciseCard; testVersion: number; description: string; input: string; output: string; constraints: string[]; examples: Example[]
   tests: Example[]; starter: string; schema?: string; dataset?: string; expected?: string; ordered?: boolean
   hint?: string; reference?: { code: string; explanation: string; complexity: string }; draft?: ExerciseDraft; savedVersions: number[]; runnerAvailable: boolean
+  reproduce?: string
 }
 export type ExternalPractice = {
   link: { slug: string; number: number; name: string; url: string; difficulty: string; tags: string[]; checkedOn: string }
