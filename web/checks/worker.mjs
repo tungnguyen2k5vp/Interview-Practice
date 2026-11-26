@@ -18,10 +18,16 @@ async function api(path,method='GET',data) {
 try {
   await api('/auth/register','POST',{displayName:'Worker QA',email:randomUUID()+'@example.test',password})
   const e=exercises.get('overlapping-bookings@1@1')
+  const placement=await api('/placement','POST',{id:randomUUID(),level:'intern'})
+  assert.equal(placement.coding.slug,e.slug)
   assert.equal((await api('/exercises/'+e.slug)).runnerAvailable,true)
   await api('/exercises/'+e.slug+'/1/draft','PUT',{revision:0,text:e.solution})
   const page=await ctx.newPage()
-  await page.goto('/coding/'+e.slug)
+  for (const item of placement.items) {
+    await api('/practice/questions/'+item.slug+'/submit','POST',{cursor:{id:randomUUID(),revision:0,version:item.version},language:'vi',skip:true,activeSeconds:0,studySessionId:placement.id})
+  }
+  await page.goto('/phien-hoc/'+placement.id)
+  await page.getByRole('link',{name:'Mở bài code đầu vào'}).click()
   await page.getByRole('button',{name:'Submit',exact:true}).click()
   await page.getByText('Đạt',{exact:true}).waitFor({timeout:60000})
   const shots=resolve(import.meta.dirname,'../../.impeccable/review')
@@ -36,6 +42,9 @@ try {
   assert.equal((await api('/exercises/'+e.slug)).card.progress,'independent')
   const history='/runner/'+e.slug+'/1/jobs'
   const [submitted]=(await api(history)).items
+  const placementState=await api('/study-sessions/'+placement.id)
+  assert.equal(placementState.coding.submission,submitted.id)
+  assert.equal(placementState.codingResult.status,'accepted')
   assert.equal(submitted.status,'accepted');assert(!submitted.output && !submitted.rows)
   await page.getByLabel('Đầu vào tùy chỉnh').fill('1, 4, 4, 5')
   await page.getByRole('button',{name:'Run',exact:true}).click()

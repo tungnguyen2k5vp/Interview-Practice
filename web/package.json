@@ -17,7 +17,9 @@
     "@codemirror/legacy-modes": "^6.5.3",
     "@fontsource-variable/lexend": "^5.2.0",
     "@uiw/react-codemirror": "^4.25.0",
+    "@zip.js/zip.js": "2.25.0",
     "lucide-react": "^0.577.0",
+    "pdfjs-dist": "6.5.438",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },

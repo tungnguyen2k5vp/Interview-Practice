@@ -1,5 +1,13 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 6 · Cá nhân hóa
+
+Ba bài đầu vào cố định phiên bản cho Intern, Fresher và Junior lưu kết quả theo tài khoản. Khi có worker, người học có thể nộp tiếp phần C# sau bốn câu lý thuyết. Báo cáo nhận đúng ID submission. Cây kỹ năng mở từng câu cùng bằng chứng và tiên quyết. Dùng cấu trúc JSON mới riêng cho placement, giữ định dạng các phiên V1 và V2 trước đó.
+
+Đã kiểm tra DOCX thật và PDF do Chrome tạo, xem trước, lưu/mở/xóa tự nguyện và xác nhận văn bản tài liệu không đi vào request API. Bài đầu vào có lượt đúng lẫn sai và chống đọc chéo tài khoản. Đã thử ghi âm, tạm dừng, tiếp tục, đọc lại blob và xóa với microphone giả lập của Chrome. Chưa đo độ chính xác nhận dạng trên micro vật lý. Bản publish phục vụ PDF worker với MIME `text/javascript`.
+
+Chrome/SQL Server đạt 25 nhóm với AI tắt và 27 nhóm với AI fixture. Detector Impeccable không báo lỗi. Đã rà ảnh thật ở desktop và mobile. [Cây kỹ năng trên điện thoại](docs/qa/skills-390-dark.png) · [Cây kỹ năng trên desktop](docs/qa/skills-1440-light.png) · [CV/JD trên điện thoại](docs/qa/cv-390-light.png)
+
 ## V2 · Phase 5 · Ba lab thực hành
 
 Phỏng vấn dự án nhận GitHub công khai hoặc ZIP 2 MiB. Người dùng chọn tối đa 12 tệp, mỗi tệp 96 KiB. Máy chủ kiểm tra định danh archive bằng SHA-256, giới hạn 2.000 mục và tổng kích thước sau giải nén 32 MiB. Nó đọc trong bộ nhớ, chỉ gọi host codeload đã định, tắt chuyển hướng, lọc tệp bí mật và trả về ký hiệu, đường dẫn, số dòng cùng câu hỏi biên soạn. Phần phân tích dùng quy tắc, không thực thi mã hay gọi AI.

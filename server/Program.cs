@@ -139,6 +139,7 @@ Catalog.Map(api);
 Practice.Map(api);
 KnowledgeChecks.Map(api);
 StudySessions.Map(api);
+Placement.Map(api);
 Learning.Map(api);
 Interviews.Map(api);
 ProjectInterview.Map(api);

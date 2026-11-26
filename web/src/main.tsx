@@ -6,6 +6,7 @@ import '@fontsource-variable/lexend'
 const AdminRoute = lazy(() => import('./Admin').then(m => ({default: m.AdminRoute})))
 const Preparation = lazy(() => import('./Preparation').then(m => ({default: m.Preparation})))
 const Labs = lazy(() => import('./Labs').then(m => ({default: m.Labs})))
+const Skills = lazy(() => import('./Skills').then(m => ({default: m.Skills})))
 import { Bank } from './Bank'
 import { DashboardPage } from './Dashboard'
 import { ExerciseList, ExerciseRoute } from './Exercises'
@@ -65,7 +66,8 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
   switch (page) {
     case '': return <DashboardPage />
     case 'lo-trinh': return <Roadmap />
-    case 'chuan-bi': return <Preparation />
+    case 'ky-nang': return <Skills />
+    case 'chuan-bi': return <PreparationForUser />
     case 'thuc-hanh': return <Labs mode={params.get('mode')==='debug'?'debug':params.get('mode')==='review'?'review':'project'}/>
     case 'phien-hoc': return slug ? <StudyRoute key={slug} id={slug} params={params} /> : <StudyStart initial={params.get('mode') ?? 'new'} />
     case 'cau-hoi': return slug ? <PracticeRoute slug={slug} /> : <Bank params={params} />
@@ -83,6 +85,11 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
 }
 function NotFound() {
   return <div className="panel"><Empty title="Không tìm thấy trang" detail="Đường dẫn có thể đã đổi." action={<ActionLink href="/">Về tổng quan</ActionLink>} /></div>
+}
+
+function PreparationForUser() {
+  const {user,ready}=useSession()
+  return ready ? <Preparation key={user?.id??'guest'}/> : <Loading/>
 }
 
 function App() {

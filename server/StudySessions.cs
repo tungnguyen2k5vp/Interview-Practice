@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace InterviewPractice;
 
 internal sealed record StartStudy(Guid Id, string Mode, int Minutes, string? Topic);
-internal sealed record StudyItem(string Slug, int Version, string Title, int Minutes);
+internal sealed record StudyItem(string Slug, int Version, string Title, int Minutes, string? Topic=null);
 
 internal static class StudySessions
 {
@@ -34,7 +34,7 @@ internal static class StudySessions
         await db.StudySessions.FromSqlInterpolated($"SELECT * FROM [StudySessions] WITH (UPDLOCK, ROWLOCK) WHERE [Id]={id} AND [UserId]={owner}")
             .SingleOrDefaultAsync(ct) ?? throw ApiProblem.Missing();
 
-    internal static StudyItem[] Plan(StudySession session) => DataJson.Read<StudyItem[]>(session.Plan);
+    internal static StudyItem[] Plan(StudySession session) => session.Mode=="placement" ? DataJson.Read<PlacementPlan>(session.Plan).Items : DataJson.Read<StudyItem[]>(session.Plan);
 
     private static async Task<IResult> Start(StartStudy request, ClaimsPrincipal user, PracticeDb db, Catalog catalog, TimeProvider clock, CancellationToken ct)
     {
@@ -104,14 +104,19 @@ internal static class StudySessions
         return await View(row, db, ct);
     }
 
-    private static async Task<IResult> View(StudySession row, PracticeDb db, CancellationToken ct)
+    internal static async Task<IResult> View(StudySession row, PracticeDb db, CancellationToken ct)
     {
         var attempts = await (from a in db.Attempts where a.UserId == row.UserId && a.StudySessionId == row.Id
             join s in db.Assessments on a.Id equals s.AttemptId into ratings from s in ratings.DefaultIfEmpty()
             join state in db.StudyStates on new { a.UserId, a.Slug } equals new { state.UserId, state.Slug }
-            select new { a.Id, a.Slug, a.Outcome, a.Correct, a.HintSeen, a.AnswerSeen, a.ActiveSeconds, state.Due, Rating = s == null ? null : s.Rating })
+            join check in db.KnowledgeChecks on a.Id equals check.AttemptId into checks from k in checks.DefaultIfEmpty()
+            select new { a.Id, a.Slug, a.Outcome, a.Correct, a.HintSeen, a.AnswerSeen, a.ActiveSeconds, state.Due, Rating = s == null ? null : s.Rating,
+                Transfer = k == null || k.Assisted ? null : k.Correct })
             .ToDictionaryAsync(a => a.Slug, ct);
-        return TypedResults.Ok(new { row.Id, row.Mode, row.Minutes, row.StartedAt, row.EndedAt,
-            items = Plan(row).Select(i => new { i.Slug, i.Version, i.Title, i.Minutes, attempt = attempts.GetValueOrDefault(i.Slug) }) });
+        var placement = row.Mode=="placement" ? DataJson.Read<PlacementPlan>(row.Plan) : null;
+        var codingResult = placement?.Coding?.Submission is { } job ? await db.ExerciseSubmissions.AsNoTracking().Where(j=>
+            j.Id==job && j.UserId==row.UserId && j.Action=="submit").Select(j=>new{j.Status,j.Assisted}).SingleOrDefaultAsync(ct) : null;
+        return TypedResults.Ok(new { row.Id, row.Mode, row.Minutes, row.StartedAt, row.EndedAt, level=placement?.Level, coding=placement?.Coding, codingResult,
+            items = Plan(row).Select(i => new { i.Slug, i.Version, i.Title, i.Minutes, i.Topic, attempt = attempts.GetValueOrDefault(i.Slug) }) });
     }
 }

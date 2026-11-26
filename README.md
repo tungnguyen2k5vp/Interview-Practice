@@ -8,7 +8,9 @@
 - Lịch ôn dùng biến thể SM-2 theo ngày địa phương, có xét độ khó, khoảng cách giữa lần ôn, kết quả khách quan, tự đánh giá, trợ giúp và nhận xét kỹ thuật AI nếu có. Có thể đặt ngày ôn thủ công và chuyển về lịch tự động bằng cách xóa ngày.
 - Sau khi nộp tự luận, làm bài vận dụng trước khi xem gợi ý, đáp án hoặc phản hồi AI để ghi nhận bằng chứng độc lập. Một lần đúng xác nhận phần kiến thức được hỏi. Mức thành thạo cần ba ngày kiểm chứng trong một chuỗi kéo dài ít nhất bảy ngày. Lượt sai, cần trợ giúp hoặc bằng chứng hết hạn khiến người học cần kiểm chứng lại. Ngày học của lượt mới được chốt theo múi giờ tại thời điểm nộp.
 - Trang lộ trình có các mốc 7/14/30/60/90 ngày và tùy chỉnh, đưa lý thuyết, ôn tập, code, SQL hoặc mock vào quỹ thời gian. Báo cáo 7/30 ngày lấy từ lịch sử thật. Tổng kết phiên cho phép mở lại từng lượt và so sánh với câu trả lời trước trên cùng phiên bản.
-- Trong Phỏng vấn thử có thể chuẩn bị theo CV/JD, nhận dạng kỹ năng và chọn chủ đề. Trình duyệt xử lý văn bản dán hoặc tệp TXT UTF-8 và giải phóng dữ liệu khi bấm xóa hoặc rời trang. Trình duyệt hỗ trợ Web Speech có thể đọc đề và nhập lời nói. Người dùng sửa transcript trước khi nộp và có thể bật ghi âm để nghe lại trong trang đang mở.
+- Trong **Lộ trình → Cây kỹ năng và kiểm tra đầu vào**, chọn Intern, Fresher hoặc Junior. Mỗi bộ có bốn câu theo phiên bản. Phần code xuất hiện khi worker sẵn sàng. Kết quả chỉ ra câu có bằng chứng độc lập và chủ đề cần kiểm chứng thêm.
+- Trong **Phỏng vấn thử → Chuẩn bị theo CV và JD**, dán văn bản hoặc mở TXT UTF-8, PDF có chữ, DOCX tối đa 2 MiB. Duyệt và sửa phần trích xuất trước khi dùng. CV, JD và checklist chỉ lưu trên thiết bị khi bấm lưu. Có thể mở lại hoặc xóa tại trang này.
+- Web Speech hỗ trợ đọc đề và nhập lời nói tùy trình duyệt. Có thể sửa transcript trước khi nộp. Ghi âm để nghe lại là lựa chọn riêng, có tạm dừng, tiếp tục và xóa bản ghi.
 
 ## Chạy local
 

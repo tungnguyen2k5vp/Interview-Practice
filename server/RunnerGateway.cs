@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InterviewPractice;
 
-internal sealed record RunRequest(Guid Id, string Action, string Code, string? Input);
+internal sealed record RunRequest(Guid Id, string Action, string Code, string? Input, Guid? PlacementId = null);
 internal sealed record RunRow(Guid Id, string Slug, int Version, string Action, string Status, DateTimeOffset At,
     string? Output, string[]? Columns, string?[][]? Rows, int? Passed, int? Total, int? Milliseconds);
 internal sealed record RunnerCapabilities(int Protocol, bool Isolated, string[] Kinds);
@@ -151,7 +151,8 @@ internal sealed class RunnerGateway(IHttpClientFactory clients, IConfiguration c
                 input.Code.Length > 32000 || input.Input?.Length > 8000 || (input.Action == "submit" && input.Input is not null))
                 throw ApiProblem.Invalid("Kiểm tra mã nguồn, thao tác và đầu vào tùy chỉnh.");
             if (!await gateway.Available(e.Kind, ct)) throw Offline();
-            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(DataJson.Write(new { slug, version, input.Action, input.Code, input.Input, e.TestVersion }))));
+            if(input.PlacementId != null && input.Action!="submit") throw ApiProblem.Invalid("Chỉ lượt nộp mới gắn với bài kiểm tra đầu vào.");
+            var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(DataJson.Write(new { slug, version, input.Action, input.Code, input.Input, e.TestVersion })+input.PlacementId?.ToString("N"))));
             await using (var tx = await db.LockLearning(user.Id(), ct))
             {
                 var saved = await db.ExerciseSubmissions.SingleOrDefaultAsync(x => x.Id == input.Id, ct);
@@ -162,6 +163,7 @@ internal sealed class RunnerGateway(IHttpClientFactory clients, IConfiguration c
                 }
                 else
                 {
+                    if(input.PlacementId is { } assessment) await Placement.Attach(db,user.Id(),assessment,e,input.Id,ct);
                     var draft = await db.ExerciseDrafts.FindAsync([user.Id(), slug, version], ct);
                     db.ExerciseSubmissions.Add(new() { Id = input.Id, UserId = user.Id(), Slug = slug, Version = version,
                         TestVersion = e.TestVersion, Action = input.Action, RequestHash = hash, RequestedAt = clock.GetUtcNow(),

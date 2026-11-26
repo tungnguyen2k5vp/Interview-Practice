@@ -74,10 +74,10 @@ export function ExerciseRoute({ kind, slug, params }: { kind: ExerciseKind; slug
   const resource = useResource<Exercise>('/exercises/' + encodeURIComponent(slug) + (version ? '?version=' + encodeURIComponent(version) : ''))
   if (resource.loading) return <Loading />
   if (!resource.data || resource.data.card.kind !== kind) return <Problem text={resource.error || 'Không tìm thấy bài tập trong khu vực này.'} retry={resource.reload} />
-  return <ExerciseWork key={slug + ':' + resource.data.card.version} initial={resource.data} userId={user?.id} />
+  return <ExerciseWork key={slug + ':' + resource.data.card.version+':'+params.get('placement')} initial={resource.data} userId={user?.id} placement={params.get('placement')??undefined} />
 }
 
-function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string }) {
+function ExerciseWork({ initial, userId, placement }: { initial: Exercise; userId?: string; placement?:string }) {
   const [data, setData] = useState(initial)
   const [view, setView] = useState('problem')
   const [reset, setReset] = useState(false)
@@ -109,10 +109,10 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
     })
   }
   const save = () => { void action.run(() => draft.flush(true)) }
-  const runs = useRuns(slug, version, Boolean(userId), data.runnerAvailable, draft.text)
+  const runs = useRuns(slug, version, Boolean(userId), data.runnerAvailable, draft.text,placement)
   const [width, setWidth] = useState(42)
   return <div className="page exercise-page">
-    <PageTitle title={card.title} back={data.reproduce ? ['/thuc-hanh?mode=debug', 'Debugging Lab'] : ['/' + kind, exerciseName[kind]]} />
+    <PageTitle title={card.title} back={placement ? ['/phien-hoc/'+encodeURIComponent(placement),'Kiểm tra đầu vào'] : data.reproduce ? ['/thuc-hanh?mode=debug', 'Debugging Lab'] : ['/' + kind, exerciseName[kind]]} />
     <div className="metadata"><Difficulty value={card.difficulty} /><span>{card.runtime}</span><span>{card.minutes} phút</span>
       <span>Bài v{version} · {kind === 'sql' ? 'Dữ liệu' : 'Test'} v{data.testVersion}</span>
       <label className="split-control">Độ rộng đề bài <input type="range" min={30} max={60} value={width} onChange={e => setWidth(Number(e.target.value))}/></label></div>

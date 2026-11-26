@@ -37,7 +37,7 @@ export function Roadmap() {
   const track = goal.track ? tracks[goal.track] : null
   return <div className="page narrow">
     <PageTitle title="Lộ trình học" description="Đi từ kiến thức nền đến ứng dụng và tình huống thực tế. Bạn có thể đổi thứ tự theo mục tiêu."
-      action={<ActionLink href="/cai-dat"><CalendarDays size={16} /> Thiết lập lịch học</ActionLink>} />
+      action={<div className="action-row"><ActionLink href="/ky-nang">Cây kỹ năng và kiểm tra đầu vào</ActionLink><ActionLink href="/cai-dat"><CalendarDays size={16} /> Thiết lập lịch học</ActionLink></div>} />
     {(topics.loading || dashboard.loading) && <Loading />}
     <Problem text={topics.error || dashboard.error || action.error} retry={topics.error ? topics.reload : dashboard.error ? dashboard.reload : undefined} />
     {user && <section className="panel content-panel"><Field label="Chọn lộ trình"><select value={goal.track ?? ''} disabled={action.busy || !today}

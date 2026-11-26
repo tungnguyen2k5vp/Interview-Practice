@@ -7,7 +7,7 @@ import { runStatuses as status } from './types'
 type Job = { id: string; action: string; status: string; at: string; output?: string; columns?: string[]; rows?: (string | null)[][]
   passed?: number; total?: number; milliseconds?: number }
 
-export function useRuns(slug: string, version: number, signedIn: boolean, available: boolean, code: string) {
+export function useRuns(slug: string, version: number, signedIn: boolean, available: boolean, code: string, placement?:string) {
   const enabled = signedIn && available
   const base = '/runner/' + slug + '/' + version + '/jobs'
   const [input, setInput] = useState('')
@@ -44,7 +44,8 @@ export function useRuns(slug: string, version: number, signedIn: boolean, availa
     void action.run(async () => {
       const payload = JSON.stringify([operation, code, operation === 'run' ? input : null])
       if (key.current.payload !== payload) key.current = { id: crypto.randomUUID(), payload }
-      const row = await api<Job>(base, {method:'POST',body:{id:key.current.id, action:operation, code, input:operation === 'run' ? input : null}})
+      const row = await api<Job>(base, {method:'POST',body:{id:key.current.id, action:operation, code, input:operation === 'run' ? input : null,
+        placementId:operation==='submit'?placement:undefined}})
       key.current.payload = ''; setJob(row); setPage(1); history.reload()
     })
   }

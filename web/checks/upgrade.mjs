@@ -5,10 +5,11 @@ import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { chromium } from 'playwright'
 import { checkLabs } from './labs.mjs'
+import { checkPersonalization } from './personalization.mjs'
 
 const baseURL = process.env.IP_BASE ?? 'http://127.0.0.1:5096'
 assert(['localhost','127.0.0.1'].includes(new URL(baseURL).hostname))
-const browser = await chromium.launch({channel: process.env.IP_BROWSER || undefined})
+const browser = await chromium.launch({channel: process.env.IP_BROWSER || undefined,args:['--use-fake-device-for-media-stream']})
 const users = []
 const screenshots = resolve(import.meta.dirname, '../../.impeccable/review')
 await mkdir(screenshots, {recursive:true})
@@ -110,12 +111,13 @@ try {
     await page.getByLabel('CV của bạn').fill('Dự án: SamplePrivateMarker\nC# và SQL')
     await page.getByLabel('Mô tả công việc (JD)').fill('C# SQL Redis')
     await page.getByText('JD yêu cầu · CV chưa đề cập',{exact:true}).waitFor()
-    await page.getByLabel('Đọc CV từ tệp .txt').setInputFiles({name:'cv.pdf',mimeType:'application/pdf',buffer:Buffer.from('not text')})
-    await page.getByText(/Chọn tệp .txt UTF-8/).waitFor()
+    await page.getByLabel('Đọc CV từ TXT, PDF hoặc DOCX').setInputFiles({name:'cv.pdf',mimeType:'application/pdf',buffer:Buffer.from('not text')})
+    await page.getByText('Nội dung tệp không khớp định dạng.').waitFor()
     await page.getByRole('link',{name:/Tạo phiên theo kỹ năng/}).click()
     assert(await page.getByRole('checkbox',{name:'Hệ thống phân tán',exact:true}).isChecked())
     await page.goto('/chuan-bi')
-    await page.getByLabel('Đọc CV từ tệp .txt').setInputFiles({name:'cv.txt',mimeType:'text/plain',buffer:Buffer.from('Dự án: SamplePrivateMarker\nSQL')})
+    await page.getByLabel('Đọc CV từ TXT, PDF hoặc DOCX').setInputFiles({name:'cv.txt',mimeType:'text/plain',buffer:Buffer.from('Dự án: SamplePrivateMarker\nSQL')})
+    await page.getByRole('button',{name:'Dùng nội dung này'}).click()
     await page.getByRole('heading',{name:'Câu hỏi về dự án'}).waitFor()
     await page.getByRole('button',{name:'Xóa CV và JD'}).click()
     assert.equal(await page.getByLabel('CV của bạn').inputValue(),'')
@@ -147,6 +149,16 @@ try {
     await page.goto('/phong-van/'+first.session.id)
     await page.getByText('Phỏng vấn bằng giọng nói',{exact:true}).click()
     await page.getByText(/Trình duyệt này chưa hỗ trợ/).waitFor()
+    await ctx.grantPermissions(['microphone'],{origin:baseURL})
+    await page.getByRole('button',{name:'Cho phép ghi âm để nghe lại'}).click()
+    await page.getByRole('button',{name:'Tạm dừng ghi âm'}).click()
+    await page.getByRole('button',{name:'Tiếp tục ghi âm'}).click()
+    await page.getByRole('button',{name:'Dừng ghi âm',exact:true}).click()
+    const audio=page.getByLabel('Nghe lại câu trả lời')
+    await audio.waitFor()
+    assert(await audio.evaluate(async el=>(await (await fetch(el.src)).blob()).size>0))
+    await page.getByRole('button',{name:'Xóa bản ghi'}).click()
+    assert.equal(await audio.count(),0)
     await page.getByRole('textbox',{name:'Câu trả lời',exact:true}).fill('A relay can retry.')
     await page.getByRole('button',{name:'Gửi câu trả lời'}).click()
     await page.getByRole('heading',{name:'Câu hỏi đào sâu',exact:true}).waitFor()
@@ -385,11 +397,13 @@ try {
   })
   await check('scoped project ZIP, source lines, fifteen review rubrics, account history and editable debugging labs', () =>
     checkLabs({page,client,peer,send,screenshots}))
+  await check('local PDF and DOCX extraction, consent and deletion, placement levels and prerequisite navigation', () =>
+    checkPersonalization({page,ctx,peer,send}))
   await check('render six widths, both themes, keyboard focus and real browser controls', async () => {
     const routes=[['dashboard','/'],['bank','/cau-hoi'],['practice','/cau-hoi/integer-division'],['coding','/coding/frequency-map'],
       ['sql','/sql/customer-orders'],['interview','/phong-van'],['report','/luot-luyen/'+attempt.id],['roadmap','/lo-trinh'],
       ['reviews','/on-tap'],['progress','/tien-do'],['study','/phien-hoc'],['cv','/chuan-bi'],
-      ['project','/thuc-hanh'],['review-lab','/thuc-hanh?mode=review'],['debug-lab','/thuc-hanh?mode=debug'],
+      ['project','/thuc-hanh'],['review-lab','/thuc-hanh?mode=review'],['debug-lab','/thuc-hanh?mode=debug'],['skills','/ky-nang'],
       ['mock-active','/phong-van/'+liveMock],['mock-report','/phong-van/'+reportMock],['transfer','/luot-luyen/'+transferId]]
     for(const width of [360,390,768,1024,1440,1920]){
       await page.setViewportSize({width,height:width<700?820:930})

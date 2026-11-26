@@ -196,7 +196,8 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
             var plan = StudySessions.Plan(session);
             if (previous is not null || session.EndedAt is not null || !plan.Any(i => i.Slug == slug && i.Version == request.Cursor.Version))
                 throw ApiProblem.Conflict("Câu này đã được nộp, phiên đã kết thúc hoặc phiên bản đề đã đổi.");
-            if (await db.Attempts.CountAsync(a => a.UserId == owner && a.StudySessionId == sessionId, ct) + 1 == plan.Length)
+            if ((session.Mode != "placement" || DataJson.Read<PlacementPlan>(session.Plan).Coding is null) &&
+                await db.Attempts.CountAsync(a => a.UserId == owner && a.StudySessionId == sessionId, ct) + 1 == plan.Length)
                 finishing = session;
         }
         var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, request.StudySessionId);
