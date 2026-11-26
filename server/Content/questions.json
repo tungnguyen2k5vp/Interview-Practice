@@ -1,0 +1,1833 @@
+[
+  {
+    "slug": "value-reference",
+    "content": {
+      "title": "Value type và reference type",
+      "topic": "csharp",
+      "subtopic": "Kiểu dữ liệu",
+      "tags": [
+        "struct",
+        "class"
+      ],
+      "format": "compare",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Hai biến struct được gán cho nhau. Làm tương tự với một class. Sửa một trường qua biến thứ hai ảnh hưởng thế nào?",
+      "englishPrompt": "Compare assigning a struct and assigning a class instance to another variable. What changes when you mutate a field?",
+      "context": "",
+      "code": null,
+      "hint": "Đặt hai đối tượng cùng tuổi rồi đổi tuổi qua biến thứ hai.",
+      "followUp": "Nếu struct giữ List<string> thì hai bản sao quan sát gì khi thêm phần tử?",
+      "englishFollowUp": "If the struct contains a List<string>, what do the copies observe after an item is added?",
+      "outline": [
+        "value copy",
+        "shared reference",
+        "ngữ cảnh lưu trữ"
+      ],
+      "shortAnswer": "Gán struct tạo bản sao giá trị. Gán class sao chép tham chiếu đến cùng đối tượng, nên cập nhật thuộc tính có thể thấy qua cả hai biến. Gán lại biến tham chiếu là thao tác riêng. Vị trí stack hay heap phụ thuộc ngữ cảnh.",
+      "explanation": "Một struct có trường kiểu class vẫn sao chép giá trị của trường, tức là sao chép tham chiếu. Trường của đối tượng trên heap và giá trị boxing là các ví dụ value type không nằm đơn giản trên stack.",
+      "alternative": "Dùng immutable record hoặc readonly struct nếu cần tránh hiệu ứng sửa chung.",
+      "trap": "Cho rằng mọi struct nằm trên stack hoặc mọi phép gán class tạo đối tượng mới.",
+      "rubric": [
+        "Giải thích đúng value copy và shared reference.",
+        "Nêu quan hệ giữa shared reference và ngữ cảnh lưu trữ trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến ngữ cảnh lưu trữ.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối value copy với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "record-equality",
+    "content": {
+      "title": "Equality của class, record và struct",
+      "topic": "csharp",
+      "subtopic": "Equality",
+      "tags": [
+        "record",
+        "equality",
+        "hash code"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Hai record Customer có cùng Id và hai List<string> khác instance nhưng giống phần tử. Equality mặc định có trả true không?",
+      "englishPrompt": "Two Customer records have the same ID and two distinct List<string> instances with the same elements. Are the records equal by default?",
+      "context": "",
+      "code": null,
+      "hint": "Equality của record áp dụng phép so sánh của từng member.",
+      "followUp": "Nếu thêm trailing metadata không thuộc identity, bạn giữ equality ổn định bằng cách nào?",
+      "englishFollowUp": "How would you keep equality stable if metadata is not part of identity?",
+      "outline": [
+        "member equality",
+        "so sánh list",
+        "hợp đồng hash"
+      ],
+      "shortAnswer": "Record dùng equality theo giá trị của các member. Với List<T>, mặc định là so sánh tham chiếu, nên hai list khác instance không bằng nhau. Class thông thường dùng reference equality nếu không override, còn struct có giá trị equality theo kiểu triển khai.",
+      "explanation": "Nếu tự override, đối tượng bằng nhau cần có cùng hash code. Đổi member ảnh hưởng đến hash khi đối tượng đang là key có thể làm việc tra cứu hỏng.",
+      "alternative": "So sánh tường minh bằng SequenceEqual, hoặc dùng comparer định nghĩa riêng cho khóa.",
+      "trap": "Giả định record tự so sánh sâu mọi collection.",
+      "rubric": [
+        "Giải thích đúng member equality và so sánh list.",
+        "Nêu quan hệ giữa so sánh list và hợp đồng hash trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến hợp đồng hash.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối member equality với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "nullable-contract",
+    "content": {
+      "title": "Nullable reference types tại biên API",
+      "topic": "csharp",
+      "subtopic": "Nullability",
+      "tags": [
+        "nullable",
+        "validation"
+      ],
+      "format": "debug",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Vì sao tín hiệu string không nullable không đủ để tin rằng trường JSON từ client luôn có giá trị?",
+      "englishPrompt": "Why does a non-nullable string annotation not by itself make incoming JSON trustworthy?",
+      "context": "",
+      "code": null,
+      "hint": "Xét riêng cảnh báo trình biên dịch và dữ liệu khi chạy.",
+      "followUp": "Khi PATCH, bạn phân biệt bỏ qua trường và yêu cầu xóa giá trị như thế nào?",
+      "englishFollowUp": "For PATCH, how would you distinguish an omitted field from an explicit null?",
+      "outline": [
+        "phân tích tĩnh",
+        "validation runtime",
+        "null và missing"
+      ],
+      "shortAnswer": "Nullable reference types giúp compiler phân tích luồng gán null, chủ yếu qua cảnh báo. Dữ liệu từ client, reflection hoặc code cũ vẫn có thể đưa null. DTO cần validation tại biên và phải trả lỗi rõ ràng cho trường thiếu.",
+      "explanation": "Sự khác nhau giữa trường bị bỏ qua, null và chuỗi rỗng có ý nghĩa khi thiết kế PATCH. Các tùy chọn serializer có thể củng cố một phần hợp đồng.",
+      "alternative": "Dùng kiểu nullable ở DTO và chuyển sang kiểu miền khi đã kiểm tra, hoặc cấu hình serializer và validation tương ứng.",
+      "trap": "Rải toán tử ! để che cảnh báo mà không kiểm tra dữ liệu.",
+      "rubric": [
+        "Giải thích đúng phân tích tĩnh và validation runtime.",
+        "Nêu quan hệ giữa validation runtime và null và missing trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến null và missing.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối phân tích tĩnh với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "exceptions-boundary",
+    "content": {
+      "title": "Exception, kết quả nghiệp vụ và hủy",
+      "topic": "csharp",
+      "subtopic": "Exceptions",
+      "tags": [
+        "exception",
+        "logging"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Một dịch vụ gọi upstream. Hãy chọn cách xử lý hết hàng, lỗi mạng và hủy request. Điều gì được ghi log?",
+      "englishPrompt": "A service calls an upstream API. How would you handle out-of-stock, a network failure, and request cancellation? What would you log?",
+      "context": "",
+      "code": null,
+      "hint": "Ba trường hợp có ngữ nghĩa khác nhau.",
+      "followUp": "Nếu upstream đã tạo đơn nhưng client timeout, xử lý retry ra sao?",
+      "englishFollowUp": "If the upstream created an order but the client timed out, how do you retry safely?",
+      "outline": [
+        "kết quả nghiệp vụ",
+        "hủy hợp tác",
+        "retry an toàn"
+      ],
+      "shortAnswer": "Hết hàng là kết quả kinh doanh có thể dự kiến, nên trả kết quả miền. Lỗi mạng có thể phát sinh exception và được ánh xạ ở biên API với log có correlation. Hủy theo token cần được truyền tiếp và tách khỏi lỗi hạ tầng khi báo cáo.",
+      "explanation": "Chỉ retry lỗi tạm thời khi thao tác an toàn và trong ngân sách. Dùng throw; khi phát lại exception cùng stack; tránh log trùng ở mọi lớp.",
+      "alternative": "Result type cho lỗi dự kiến hoặc đối tượng lỗi miền rõ ràng đều dùng được.",
+      "trap": "Catch tất cả rồi trả 200 hoặc log payload riêng tư.",
+      "rubric": [
+        "Giải thích đúng kết quả nghiệp vụ và hủy hợp tác.",
+        "Nêu quan hệ giữa hủy hợp tác và retry an toàn trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến retry an toàn.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối kết quả nghiệp vụ với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "generics-gc",
+    "content": {
+      "title": "Generics, boxing và cấp phát",
+      "topic": "csharp",
+      "subtopic": "Khởi tạo & GC",
+      "tags": [
+        "generics",
+        "boxing",
+        "GC"
+      ],
+      "format": "concept",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "Vì sao thay ArrayList bằng List<int> có thể giảm cấp phát? Bạn kiểm tra điều gì trước khi tối ưu GC?",
+      "englishPrompt": "Why can replacing ArrayList with List<int> reduce allocations? What would you measure before optimizing GC?",
+      "context": "",
+      "code": null,
+      "hint": "Theo dõi cách một số nguyên được đưa vào collection.",
+      "followUp": "Một ToString và log trên mỗi item có thể ảnh hưởng kết quả đo ra sao?",
+      "englishFollowUp": "How could calling ToString and logging every item skew your measurement?",
+      "outline": [
+        "boxing",
+        "generic collection",
+        "đo đạc"
+      ],
+      "shortAnswer": "ArrayList giữ object, nên thêm int sẽ boxing thành đối tượng và đọc có thể cần unbox. List<int> có backing array giữ trực tiếp các giá trị int. Đo allocation rate, loại allocation, GC pause và throughput trước khi đổi, rồi so cùng workload.",
+      "explanation": "Generics không đảm bảo mọi đường gọi tránh boxing. Ép value type sang interface hoặc object vẫn có thể boxing. List còn có chi phí tăng dung lượng và bộ nhớ giữ lại.",
+      "alternative": "Cấp trước capacity khi biết kích thước. Dùng ArrayPool có thể hữu ích nếu đã đo áp lực allocation và quản lý vòng đời cẩn thận.",
+      "trap": "Kết luận GC là nguyên nhân duy nhất chỉ vì quá trình có nhiều bộ nhớ.",
+      "rubric": [
+        "Giải thích đúng boxing và generic collection.",
+        "Nêu quan hệ giữa generic collection và đo đạc trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến đo đạc.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối boxing với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "invariants",
+    "content": {
+      "title": "Encapsulation và invariant của đơn hàng",
+      "topic": "oop",
+      "subtopic": "Encapsulation",
+      "tags": [
+        "encapsulation",
+        "invariant"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Làm sao bảo vệ invariant rằng đơn đã hủy không thể nhận thêm sản phẩm?",
+      "englishPrompt": "How would you enforce the invariant that a cancelled order cannot receive additional items?",
+      "context": "",
+      "code": null,
+      "hint": "Xem ai được sửa danh sách và trạng thái trắng.",
+      "followUp": "Hai request AddItem và Cancel tới cùng lúc thì cần bảo vệ ở đâu?",
+      "englishFollowUp": "Where should you enforce this when AddItem and Cancel arrive concurrently?",
+      "outline": [
+        "invariant",
+        "biên thay đổi",
+        "đồng thời"
+      ],
+      "shortAnswer": "Giữ collection mutable bên trong aggregate, cung cấp cách đọc rõ ràng và đưa thay đổi qua AddItem hoặc Cancel. Mỗi thao tác kiểm tra invariant và trả lỗi có ngữ nghĩa. Bảo vệ cả tải lại và ghi cạnh tranh nếu có nhiều request.",
+      "explanation": "Chỉ private set trạng thái chưa đủ nếu trả đúng instance List cho caller. Một IReadOnlyList có thể chỉ là giao diện, chưa chắc dữ liệu không sửa được từ lối khác.",
+      "alternative": "Dùng immutable aggregate hay copy snapshot với đánh đổi cấp phát.",
+      "trap": "Kiểm tra trạng thái chỉ ở controller rồi mở setter trong domain.",
+      "rubric": [
+        "Giải thích đúng invariant và biên thay đổi.",
+        "Nêu quan hệ giữa biên thay đổi và đồng thời trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến đồng thời.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối invariant với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "interface-abstract",
+    "content": {
+      "title": "Interface hay abstract class?",
+      "topic": "oop",
+      "subtopic": "Abstraction",
+      "tags": [
+        "interface",
+        "abstract class"
+      ],
+      "format": "compare",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Bạn có hai kiểu gửi thông báo dùng chung hợp đồng, nhưng chỉ một số implementation cần chia sẻ vòng đời. Chọn interface hay abstract class?",
+      "englishPrompt": "Two notification senders share a contract; only some implementations need common lifecycle behavior. Would you use an interface or an abstract class?",
+      "context": "",
+      "code": null,
+      "hint": "Tách hợp đồng caller cần khỏi mã chia sẻ.",
+      "followUp": "Làm sao đưa vào implementation ghi log giả khi unit test?",
+      "englishFollowUp": "How would you plug in a fake logger or sender during a unit test?",
+      "outline": [
+        "hợp đồng",
+        "state dùng chung",
+        "composition"
+      ],
+      "shortAnswer": "Interface phù hợp khi caller cần một hợp đồng và các implementation có thể không cùng họ. Abstract class phù hợp khi một nhóm cùng chia sẻ invariant, state hoặc quy trình mặc định. Chọn dựa trên hợp đồng mà client dùng và chi phí coupling.",
+      "explanation": "Một lớp chỉ kế thừa một base class nhưng có thể implement nhiều interface. Default interface method không biến interface thành nơi giữ state từng instance.",
+      "alternative": "Dùng interface tại biên và composition để chia sẻ transport hoặc retry.",
+      "trap": "Tạo base class cho mọi implementation chỉ để tiết kiệm vài dòng.",
+      "rubric": [
+        "Giải thích đúng hợp đồng và state dùng chung.",
+        "Nêu quan hệ giữa state dùng chung và composition trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến composition.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối hợp đồng với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "inheritance-lsp",
+    "content": {
+      "title": "Polymorphism và tính thay thế",
+      "topic": "oop",
+      "subtopic": "SOLID",
+      "tags": [
+        "polymorphism",
+        "LSP"
+      ],
+      "format": "debug",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Một implementation kẹp giới hạn tiền khác base contract mà không báo lỗi. Khi nào đây là vi phạm tính thay thế?",
+      "englishPrompt": "An implementation silently clamps a money limit differently from the base contract. When does that violate substitutability?",
+      "context": "",
+      "code": null,
+      "hint": "Đặt mình vào caller đang dựa vào hậu điều kiện.",
+      "followUp": "Viết một contract test nhỏ cho ca này như thế nào?",
+      "englishFollowUp": "What small contract test would catch this deviation?",
+      "outline": [
+        "hợp đồng hành vi",
+        "hậu điều kiện",
+        "contract test"
+      ],
+      "shortAnswer": "Subtype cần giữ lời hứa của abstraction, gồm điều kiện đầu vào, hậu điều kiện và invariant mà caller quan sát. Nếu hợp đồng nói lưu đúng giá trị hợp lệ mà implementation lặng lẽ làm tròn, caller có thể mất tính đúng dù code vẫn compile.",
+      "explanation": "LSP nói về hành vi. Test cùng contract trên tất cả implementation hữu ích hơn kiểm tra xem có kế thừa hay không.",
+      "alternative": "Tách abstraction theo capability, hoặc khai báo rõ rounding trong hợp đồng chung nếu phù hợp mọi caller.",
+      "trap": "Coi mọi interface được implement là có thể thay thế an toàn.",
+      "rubric": [
+        "Giải thích đúng hợp đồng hành vi và hậu điều kiện.",
+        "Nêu quan hệ giữa hậu điều kiện và contract test trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến contract test.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối hợp đồng hành vi với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "composition-discounts",
+    "content": {
+      "title": "Composition cho chính sách tính phí",
+      "topic": "oop",
+      "subtopic": "Composition",
+      "tags": [
+        "strategy",
+        "composition"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Thiết kế tính phí có thể đổi công thức theo kênh bán và thử nghiệm mà không tạo cây kế thừa lớn.",
+      "englishPrompt": "Design pricing that switches rules by sales channel and supports experimentation without a growing inheritance tree.",
+      "context": "",
+      "code": null,
+      "hint": "Nêu quy tắc nào đổi độc lập.",
+      "followUp": "Nếu hai chính sách cùng áp dụng, bạn định nghĩa thứ tự và audit ra sao?",
+      "englishFollowUp": "If two policies apply, how do you define order and make the result auditable?",
+      "outline": [
+        "quy tắc thay đổi",
+        "thứ tự ghép",
+        "testability"
+      ],
+      "shortAnswer": "Đưa phần thay đổi thành pricing strategy và giữ quy trình chung ở một dịch vụ dùng composition. Strategy nhận ngữ cảnh rõ ràng và trả breakdown để audit. Chọn bằng cấu hình hoặc mapping tường minh từ kênh.",
+      "explanation": "Định nghĩa thứ tự khi ghép nhiều quy tắc, chiết khấu, thuế và làm tròn. Test cùng fixture cho chính sách và tích hợp với biên thanh toán.",
+      "alternative": "Một hàm thuần hoặc switch nhỏ đủ khi chỉ có hai công thức đơn giản và ít đổi.",
+      "trap": "Tăng abstraction trước khi có hai hành vi khác nhau hoặc làm tròn ngẫu nhiên ở mỗi lớp.",
+      "rubric": [
+        "Giải thích đúng quy tắc thay đổi và thứ tự ghép.",
+        "Nêu quan hệ giữa thứ tự ghép và testability trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến testability.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối quy tắc thay đổi với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "testable-clock",
+    "content": {
+      "title": "Thiết kế dịch vụ dễ kiểm thử",
+      "topic": "oop",
+      "subtopic": "Dependency inversion",
+      "tags": [
+        "DIP",
+        "TimeProvider"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Một service hết hạn voucher dựa vào DateTime.Now và gửi email trực tiếp. Chọn ranh giới để kiểm thử ổn định.",
+      "englishPrompt": "A voucher expiry service uses DateTime.Now and sends email directly. What boundaries would make it reliably testable?",
+      "context": "",
+      "code": null,
+      "hint": "Phần chính sách nên xác định được kết quả từ đầu vào.",
+      "followUp": "Bạn sẽ kiểm thử thời điểm đúng phút hết hạn thế nào?",
+      "englishFollowUp": "How would you test behavior exactly at the expiration boundary?",
+      "outline": [
+        "nguồn thời gian",
+        "biên I/O",
+        "mốc hết hạn"
+      ],
+      "shortAnswer": "Tách quyết định hết hạn khỏi I/O. Cấp thời gian qua TimeProvider hoặc tham số cho hàm thuần. Đặt email sau biên gửi thông báo và kiểm thử bằng fake port. Xác định timezone ở ranh giới lịch nghiệp vụ.",
+      "explanation": "Kiểm thử đúng sát mốc hết hạn và điều kiện inclusive. Để tránh mất thông báo khi DB commit nhưng bước gửi thất bại, có thể dùng outbox khi có yêu cầu độ tin cậy.",
+      "alternative": "Nếu chỉ tính ngày, truyền DateOnly trực tiếp có thể gọn hơn dependency riêng.",
+      "trap": "Dùng sleep và đồng hồ máy thật trong unit test.",
+      "rubric": [
+        "Giải thích đúng nguồn thời gian và biên I/O.",
+        "Nêu quan hệ giữa biên I/O và mốc hết hạn trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến mốc hết hạn.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối nguồn thời gian với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "deferred-execution",
+    "content": {
+      "title": "Deferred execution trong LINQ",
+      "topic": "linq",
+      "subtopic": "LINQ",
+      "tags": [
+        "LINQ",
+        "deferred execution"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Tạo Where trên một List, thêm phần tử vào List rồi enumerate hai lần. Kết quả phản ánh thời điểm nào?",
+      "englishPrompt": "Create a Where query over a List, append an item, then enumerate twice. Which version of the data is observed?",
+      "context": "",
+      "code": null,
+      "hint": "So sánh tạo truy vấn với ToList.",
+      "followUp": "Nếu mỗi enumerate là một truy vấn DB, bạn tránh chạy hai lần ra sao?",
+      "englishFollowUp": "How would you avoid running the same database query twice?",
+      "outline": [
+        "thời điểm enumerate",
+        "materialization",
+        "tác động truy vấn"
+      ],
+      "shortAnswer": "Where thường defer, mỗi lần enumerate đọc nguồn và chạy lại predicate. ToList thực thi ngay tại chỗ và giữ kết quả đã materialize. Thay đổi giữa các lần enumerate có thể đổi kết quả.",
+      "explanation": "Danh sách snapshot không sao chép sâu đối tượng. Sửa danh sách trong lúc đang enumerate có thể làm enumerator invalid. Với IQueryable, mỗi enumerate có thể gửi truy vấn tới DB.",
+      "alternative": "Materialize một lần nếu cần trả lại đúng tập đã đo, hoặc tiếp tục streaming nếu ưu tiên bộ nhớ.",
+      "trap": "Nhầm rằng Where sao chép toàn bộ lập tức.",
+      "rubric": [
+        "Giải thích đúng thời điểm enumerate và materialization.",
+        "Nêu quan hệ giữa materialization và tác động truy vấn trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến tác động truy vấn.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối thời điểm enumerate với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/linq/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "enumerable-queryable",
+    "content": {
+      "title": "IEnumerable và IQueryable",
+      "topic": "linq",
+      "subtopic": "LINQ provider",
+      "tags": [
+        "IQueryable",
+        "SQL translation"
+      ],
+      "format": "compare",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Vì sao vị trí đặt ToListAsync hoặc AsEnumerable có thể làm cùng bộ lọc tốn nhiều dữ liệu?",
+      "englishPrompt": "Why can the position of ToListAsync or AsEnumerable make an otherwise similar filter transfer much more data?",
+      "context": "",
+      "code": null,
+      "hint": "Xác định phía nào thi hành predicate.",
+      "followUp": "Bạn sẽ giữ paging ở server khi cần định dạng riêng ở client ra sao?",
+      "englishFollowUp": "How do you keep paging on the server while formatting results on the client?",
+      "outline": [
+        "provider",
+        "ranh giới client",
+        "kiểm tra SQL"
+      ],
+      "shortAnswer": "IQueryable biểu diễn biểu thức để provider như EF dịch truy vấn. ToListAsync materialize. Sau AsEnumerable, các operator tiếp theo thường chạy ở client khi enumerate. Lọc và project phần dịch được trước ranh giới giúp giảm dữ liệu.",
+      "explanation": "Provider có thể không hỗ trợ dịch một API. Kiểm tra SQL sinh ra và kế hoạch truy vấn. Client-side có thể cần khi cần logic đặc thù và tập dữ liệu đã thu nhỏ.",
+      "alternative": "Một computed column hoặc viết biểu thức dịch được là lựa chọn khi filter client quá đắt.",
+      "trap": "Xem mọi LINQ là SQL hoặc cho rằng AsEnumerable chạy query ngay.",
+      "rubric": [
+        "Giải thích đúng provider và ranh giới client.",
+        "Nêu quan hệ giữa ranh giới client và kiểm tra SQL trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến kiểm tra SQL.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối provider với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/performance/efficient-querying",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "async-io",
+    "content": {
+      "title": "Async I/O và xử lý CPU",
+      "topic": "linq",
+      "subtopic": "Async/await",
+      "tags": [
+        "Task",
+        "I/O",
+        "CPU"
+      ],
+      "format": "compare",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Một endpoint gọi DB và nén ảnh. Khi nào async giải phóng worker thread, và khi nào cần kiểm soát concurrency riêng?",
+      "englishPrompt": "An endpoint queries a database and compresses an image. When does async free a worker thread, and when should concurrency be limited separately?",
+      "context": "",
+      "code": null,
+      "hint": "Xác định công việc đang đợi và công việc đang tính.",
+      "followUp": "Hai lệnh I/O độc lập có thể chạy song song trên cùng DbContext không?",
+      "englishFollowUp": "Can two independent I/O calls run concurrently on the same EF Core DbContext?",
+      "outline": [
+        "I/O wait",
+        "CPU bound",
+        "ngân sách concurrency"
+      ],
+      "shortAnswer": "API I/O async thực sự cho phép thread phục vụ việc khác trong lúc đợi. Nén là CPU-bound, vẫn chiếm CPU. Task.Run không tăng tài nguyên server trong request tràn tải. Đo và giới hạn công việc CPU nặng hoặc đưa sang hàng đợi nền.",
+      "explanation": "Tiếp tục async không mặc định chạy song song. Blocking .Result và .Wait có thể làm starvation dưới tải. Dùng async xuyên call stack khi có I/O hỗ trợ.",
+      "alternative": "Xử lý CPU inline nếu nhỏ và đã đo; giới hạn task song song nếu chạy nền.",
+      "trap": "Gắn async vào hàm CPU rồi cho rằng có throughput miễn phí.",
+      "rubric": [
+        "Giải thích đúng I/O wait và CPU bound.",
+        "Nêu quan hệ giữa CPU bound và ngân sách concurrency trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến ngân sách concurrency.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối I/O wait với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "cancellation",
+    "content": {
+      "title": "Truyền CancellationToken xuyên lớp",
+      "topic": "linq",
+      "subtopic": "Cancellation",
+      "tags": [
+        "RequestAborted",
+        "cancellation"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Khi client hủy request tra cứu, bạn đưa tín hiệu hủy qua HTTP client và EF như thế nào?",
+      "englishPrompt": "When a client aborts a lookup request, how would you propagate cancellation through an HTTP client and EF Core?",
+      "context": "",
+      "code": null,
+      "hint": "Xét I/O và điểm không thể đảo ngược.",
+      "followUp": "Nếu token bị hủy đúng lúc commit thành công, làm sao xác nhận trạng thái?",
+      "englishFollowUp": "If the token is cancelled while a commit succeeds, how do you reconcile the outcome?",
+      "outline": [
+        "truyền token",
+        "hủy hợp tác",
+        "biên commit"
+      ],
+      "shortAnswer": "Nhận token của request tại endpoint, truyền tới service và phương thức async của provider. Kết hợp deadline nội bộ nếu cần, phân biệt hủy người gọi với timeout upstream. Hủy là hợp tác và không đảm bảo dừng lập tức.",
+      "explanation": "Nếu thao tác có tác dụng ngoài hệ thống đã commit, không ngụ ý hủy đã rollback. Chọn biên rõ cho cancel và đối chiếu kết quả thao tác idempotent.",
+      "alternative": "Một tác vụ nền độc lập có thể dùng token vòng đời của worker sau khi job được ghi bền.",
+      "trap": "Tạo token mới bỏ qua RequestAborted hoặc log mọi cancellation là lỗi nghiêm trọng.",
+      "rubric": [
+        "Giải thích đúng truyền token và hủy hợp tác.",
+        "Nêu quan hệ giữa hủy hợp tác và biên commit trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến biên commit.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối truyền token với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "when-all",
+    "content": {
+      "title": "Task.WhenAll và lỗi cạnh tranh",
+      "topic": "linq",
+      "subtopic": "Concurrency",
+      "tags": [
+        "WhenAll",
+        "exceptions",
+        "throughput"
+      ],
+      "format": "debug",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "Một request gọi 200 URL đồng thời bằng WhenAll. Bạn giới hạn chi phí và ghi nhận lỗi của từng URL bằng cách nào?",
+      "englishPrompt": "A request starts 200 URL fetches with WhenAll. How would you bound resource use and report failures per URL?",
+      "context": "",
+      "code": null,
+      "hint": "WhenAll tổng hợp task, còn việc bắt đầu task do code gọi.",
+      "followUp": "Nếu lỗi một URL không được ảnh hưởng URL còn lại, kiểu kết quả nào phù hợp?",
+      "englishFollowUp": "What result shape would represent one URL failing without failing the rest?",
+      "outline": [
+        "bounded concurrency",
+        "lỗi từng task",
+        "timeout"
+      ],
+      "shortAnswer": "Giới hạn mức đồng thời bằng worker hoặc Parallel.ForEachAsync với token và thời hạn. Mỗi thao tác giữ kết quả theo URL và lỗi có kiểm soát. Khi await WhenAll, exception được ném có thể là một trong nhiều lỗi; xem Task.Exception hoặc thu kết quả từng task.",
+      "explanation": "Xử lý back pressure, pool kết nối và quota upstream. Không dùng cùng DbContext cho việc song song. Thứ tự kết quả phải có hợp đồng rõ.",
+      "alternative": "Chia lô nhỏ rồi await từng lô nếu tải không lớn và chấp nhận đợi theo batch.",
+      "trap": "Khởi động toàn bộ task rồi bọc WhenAll và cho rằng đã có giới hạn.",
+      "rubric": [
+        "Giải thích đúng bounded concurrency và lỗi từng task.",
+        "Nêu quan hệ giữa lỗi từng task và timeout trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến timeout.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối bounded concurrency với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "di-lifetimes",
+    "content": {
+      "title": "Vòng đời Dependency Injection",
+      "topic": "aspnet",
+      "subtopic": "DI lifetimes",
+      "tags": [
+        "DI",
+        "Scoped",
+        "Singleton",
+        "Transient"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Phân biệt Transient, Scoped và Singleton trong ASP.NET Core. Vì sao Singleton không nên giữ DbContext được đăng ký Scoped?",
+      "englishPrompt": "Compare transient, scoped, and singleton services in ASP.NET Core. Why should a singleton not capture a scoped DbContext?",
+      "context": "Đoạn đăng ký bên dưới dùng trong một API nhận đồng thời nhiều yêu cầu.",
+      "code": "builder.Services.AddDbContext<AppDbContext>();\nbuilder.Services.AddScoped<IOrderStore, OrderStore>();\nbuilder.Services.AddSingleton<CacheWarmup>();",
+      "hint": "Suy nghĩ theo request và vòng đời của container.",
+      "followUp": "Bạn tổ chức vòng đời DbContext thế nào trong BackgroundService chạy nhiều job?",
+      "englishFollowUp": "How would you manage the DbContext lifetime in a BackgroundService processing multiple jobs?",
+      "outline": [
+        "vòng đời",
+        "captive dependency",
+        "scope mỗi job"
+      ],
+      "shortAnswer": "Transient tạo instance mỗi lần resolve. Scoped chia sẻ instance trong một scope, thường là một request. Singleton chia sẻ từ root container. Giữ DbContext scoped trong singleton kéo dài vòng đời và có thể làm nhiều request dùng chung một context không thread-safe.",
+      "explanation": "Với background worker singleton, tạo scope cho từng đơn vị công việc hoặc dùng IDbContextFactory rồi dispose đúng lúc. Scope validation bắt được một số captive dependencies. Singleton có mutable state cần đồng bộ hoặc bỏ state.",
+      "alternative": "Để service dùng DbContext cũng có scoped lifetime, nếu caller sống cùng scope.",
+      "trap": "Giả định scoped là mỗi thread hoặc singleton có thể giữ dữ liệu request.",
+      "rubric": [
+        "Giải thích đúng vòng đời và captive dependency.",
+        "Nêu quan hệ giữa captive dependency và scope mỗi job trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến scope mỗi job.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối vòng đời với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/dependency-injection?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "middleware-order",
+    "content": {
+      "title": "Thứ tự middleware và endpoint",
+      "topic": "aspnet",
+      "subtopic": "Middleware",
+      "tags": [
+        "pipeline",
+        "authorization"
+      ],
+      "format": "read",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "API log được request nhưng exception handler không bắt lỗi từ middleware chạy trước nó. Giải thích và bố trí lại pipeline có authentication và authorization.",
+      "englishPrompt": "The API logs requests, but the exception handler misses an upstream middleware exception. Explain why and order the authentication and authorization middleware.",
+      "context": "",
+      "code": null,
+      "hint": "Một middleware có thể không gọi next.",
+      "followUp": "Đặt static files trước auth có ý nghĩa gì cho file riêng tư?",
+      "englishFollowUp": "What does placing static files before authentication mean for private files?",
+      "outline": [
+        "chiều pipeline",
+        "vị trí handler",
+        "authn và authz"
+      ],
+      "shortAnswer": "Middleware chạy chiều vào theo đăng ký, chiều ra đảo ngược với các thành phần đã gọi next. Xử lý exception cần bao bọc các đoạn có thể lỗi. Đặt authentication trước authorization và để authorization nhận metadata của endpoint sau routing.",
+      "explanation": "Static files có thể short-circuit. Đặt log/correlation để ghi được trạng thái cuối cùng, đi cùng xử lý exception. ASP.NET Core tối thiểu có thể tự thêm một số middleware, hãy xác nhận thứ tự khi cần.",
+      "alternative": "Endpoint filter phù hợp cho logic theo endpoint; middleware phù hợp yêu cầu xuyên pipeline.",
+      "trap": "Bắt lỗi ở cuối pipeline và chờ nó bắt lỗi đã phát ở đầu.",
+      "rubric": [
+        "Giải thích đúng chiều pipeline và vị trí handler.",
+        "Nêu quan hệ giữa vị trí handler và authn và authz trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến authn và authz.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối chiều pipeline với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/middleware/?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "options-validation",
+    "content": {
+      "title": "Configuration, Options và validation",
+      "topic": "aspnet",
+      "subtopic": "Options",
+      "tags": [
+        "Options",
+        "validation",
+        "config"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Giới hạn số bản ghi API lấy từ cấu hình. Làm sao bắt cấu hình sai sớm và chọn kiểu Options phù hợp?",
+      "englishPrompt": "An API reads a page-size limit from configuration. How would you reject bad configuration early and choose the right options abstraction?",
+      "context": "",
+      "code": null,
+      "hint": "Phân biệt tải ban đầu và cập nhật theo thời gian.",
+      "followUp": "IOptionsSnapshot có phù hợp để inject vào singleton không? Vì sao?",
+      "englishFollowUp": "Can IOptionsSnapshot be injected into a singleton? Why?",
+      "outline": [
+        "typed options",
+        "validation lúc khởi động",
+        "lifetime"
+      ],
+      "shortAnswer": "Bind vào options có kiểu, cấu hình validation và ValidateOnStart để phát hiện giá trị sai khi khởi động. IOptions phù hợp giá trị không đổi, IOptionsSnapshot cho snapshot scoped và IOptionsMonitor để quan sát thay đổi khi provider hỗ trợ.",
+      "explanation": "Secret đọc từ server-side store. UI và backend vẫn validate request. Data annotation hoặc validator riêng cần kiểm tra cả quan hệ giữa các trường.",
+      "alternative": "Dùng constant nếu đầu vào là một quyết định sản phẩm cố định và không có nhu cầu cấu hình.",
+      "trap": "Đọc chuỗi config ở mọi endpoint và mặc định tùy tiện khi sai.",
+      "rubric": [
+        "Giải thích đúng typed options và validation lúc khởi động.",
+        "Nêu quan hệ giữa validation lúc khởi động và lifetime trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến lifetime.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối typed options với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "resource-authorization",
+    "content": {
+      "title": "Phân quyền theo chủ sở hữu",
+      "topic": "aspnet",
+      "subtopic": "Resource authorization",
+      "tags": [
+        "authorization",
+        "ownership"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Một endpoint đọc ghi chú theo ID cho người đã đăng nhập. Bạn đảm bảo chỉ chủ sở hữu được đọc hoặc sửa ra sao?",
+      "englishPrompt": "A signed-in user can access notes by ID. How would you enforce read and edit permissions for resource owners?",
+      "context": "",
+      "code": null,
+      "hint": "Điều kiện truy vấn cần chứa thông tin lấy từ principal.",
+      "followUp": "Nếu admin chỉ biên tập nội dung, quyền nào áp dụng với ghi chú của học viên?",
+      "englishFollowUp": "If an admin only edits content, what permissions should they have on a learner's private notes?",
+      "outline": [
+        "identity chủ thể",
+        "quyền tài nguyên",
+        "kiểm thử hai người dùng"
+      ],
+      "shortAnswer": "Xác định chủ thể bằng danh tính đáng tin ở server. Lọc theo cả ID và owner, hoặc dùng resource-based authorization khi có chính sách chia sẻ. Thực thi với mọi thao tác đọc/ghi. Chọn 404 hay 403 theo hợp đồng và yêu cầu tiết lộ tồn tại.",
+      "explanation": "Không nhận owner từ body hoặc tin UI ẩn nút. Khi cập nhật, giữ điều kiện owner trong truy vấn và xử lý trường hợp bị xóa cạnh tranh. Viết test hai tài khoản.",
+      "alternative": "Dùng policy quyền tài nguyên tập trung cho quyền nhóm hoặc ủy quyền truy cập.",
+      "trap": "Chỉ kiểm tra người dùng có đăng nhập hoặc chỉ bảo vệ GET.",
+      "rubric": [
+        "Giải thích đúng identity chủ thể và quyền tài nguyên.",
+        "Nêu quan hệ giữa quyền tài nguyên và kiểm thử hai người dùng trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến kiểm thử hai người dùng.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối identity chủ thể với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authorization/resource-based?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "api-pagination-idempotency",
+    "content": {
+      "title": "Phân trang, HTTP status và idempotency",
+      "topic": "aspnet",
+      "subtopic": "REST",
+      "tags": [
+        "HTTP",
+        "cursor",
+        "idempotency"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 8,
+      "technology": ".NET 10",
+      "prompt": "Thiết kế API tạo lượt nộp chịu được retry và API lịch sử nhất quán khi có bản ghi mới xen vào.",
+      "englishPrompt": "Design a retry-safe submission creation API and history pagination that behaves predictably as new records arrive.",
+      "context": "",
+      "code": null,
+      "hint": "Tách identity thao tác ghi với thứ tự bản ghi đọc.",
+      "followUp": "Bạn xử lý hai worker đồng thời nhận cùng khóa như thế nào?",
+      "englishFollowUp": "What happens when two workers concurrently receive the same idempotency key?",
+      "outline": [
+        "khóa duy nhất",
+        "giao dịch",
+        "thứ tự ổn định"
+      ],
+      "shortAnswer": "Gán khóa idempotency trong phạm vi tài khoản và thao tác. Ràng buộc duy nhất trong DB chốt cùng giao dịch với lượt nộp. Retry payload giống trả kết quả đã có, payload khác cùng khóa báo conflict. Lịch sử dùng thứ tự ổn định gồm timestamp và ID, có thể dùng cursor.",
+      "explanation": "POST tạo mới có thể trả 201 và Location. Dữ liệu đến mới làm offset có thể trùng hoặc bỏ sót bản ghi. Cursor cần hợp đồng phạm vi và bộ lọc nhất quán.",
+      "alternative": "Offset đơn giản khi báo cáo ít thay đổi. Dùng ID do client tạo nếu ID đó có ngữ nghĩa phù hợp với thao tác.",
+      "trap": "Chỉ khóa nút ở trình duyệt hoặc phân trang bằng timestamp không có tie-breaker.",
+      "rubric": [
+        "Giải thích đúng khóa duy nhất và giao dịch.",
+        "Nêu quan hệ giữa giao dịch và thứ tự ổn định trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến thứ tự ổn định.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối khóa duy nhất với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "dbcontext-unit-of-work",
+    "content": {
+      "title": "DbContext và đơn vị công việc",
+      "topic": "efcore",
+      "subtopic": "DbContext",
+      "tags": [
+        "DbContext",
+        "tracking"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Vì sao DbContext thường scoped trong web API? Hai truy vấn độc lập có thể chạy đồng thời trên cùng context không?",
+      "englishPrompt": "Why is DbContext usually scoped in a web API? May two independent queries run concurrently on one context?",
+      "context": "",
+      "code": null,
+      "hint": "Xem ChangeTracker có state theo đơn vị công việc.",
+      "followUp": "Hai context riêng có tự chia sẻ giao dịch không?",
+      "englishFollowUp": "Do two separate contexts automatically share a transaction?",
+      "outline": [
+        "đơn vị công việc",
+        "không thread-safe",
+        "context riêng"
+      ],
+      "shortAnswer": "DbContext quản lý truy vấn, tracking và SaveChanges trong một đơn vị công việc. Nó không thread-safe. Await xong một thao tác trước khi bắt đầu thao tác khác trên cùng context, hoặc dùng context riêng khi cần song song thật.",
+      "explanation": "Database transaction, context lifetime và connection lifetime là ba khái niệm khác nhau. Lỗi nghiêm trọng của context có thể khiến phải tạo context mới.",
+      "alternative": "Dùng IDbContextFactory cho worker hoặc nhiều đơn vị công việc trong một scope.",
+      "trap": "Chia sẻ context singleton hoặc dùng Task.WhenAll trên cùng context.",
+      "rubric": [
+        "Giải thích đúng đơn vị công việc và không thread-safe.",
+        "Nêu quan hệ giữa không thread-safe và context riêng trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến context riêng.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối đơn vị công việc với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "ef-projection",
+    "content": {
+      "title": "Projection, tracking và truy vấn dư thừa",
+      "topic": "efcore",
+      "subtopic": "Query shape",
+      "tags": [
+        "Select",
+        "AsNoTracking",
+        "projection"
+      ],
+      "format": "debug",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "EF Core 10",
+      "prompt": "Endpoint chỉ cần ID, tên và số đơn của khách, nhưng Include tải toàn bộ đơn. Cách viết và cách đo tốt hơn là gì?",
+      "englishPrompt": "An endpoint needs customer ID, name, and order count but Include loads every order. How would you rewrite and measure it?",
+      "context": "",
+      "code": null,
+      "hint": "Hãy project đúng shape trả về.",
+      "followUp": "Khi nào Include hợp lý hơn projection?",
+      "englishFollowUp": "When would Include be preferable to projecting a DTO?",
+      "outline": [
+        "projection",
+        "SQL sinh ra",
+        "bằng chứng đo"
+      ],
+      "shortAnswer": "Project bằng Select sang DTO chỉ gồm ba trường, dùng aggregate Count được dịch. Không materialize entity để đếm ở client. Dùng no-tracking khi trả entity chỉ đọc. Kiểm tra SQL, số hàng/byte, execution plan và độ trễ theo mẫu.",
+      "explanation": "No-tracking không tự loại cột thừa, và projection chứa entity vẫn có thể track. Cần index phù hợp cho foreign key và nhóm chọn. Đo dưới dữ liệu có kích thước thực tế.",
+      "alternative": "SQL riêng hay view hữu ích nếu projection không dịch hoặc yêu cầu đặc thù, sau khi kiểm chứng.",
+      "trap": "Gắn AsNoTracking nhưng vẫn nạp toàn bộ graph.",
+      "rubric": [
+        "Giải thích đúng projection và SQL sinh ra.",
+        "Nêu quan hệ giữa SQL sinh ra và bằng chứng đo trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến bằng chứng đo.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối projection với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/performance/efficient-querying",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "n-plus-one",
+    "content": {
+      "title": "N+1, Include và split query",
+      "topic": "efcore",
+      "subtopic": "Loading",
+      "tags": [
+        "N+1",
+        "Include",
+        "AsSplitQuery"
+      ],
+      "format": "debug",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "EF Core 10",
+      "prompt": "Danh sách 60 đơn phát 61 truy vấn, nhưng Include hai collection làm tăng số hàng. Chẩn đoán và chọn cách tải dữ liệu.",
+      "englishPrompt": "A 60-order list produces 61 queries; including two collections then inflates row counts. How would you diagnose and choose a loading approach?",
+      "context": "",
+      "code": null,
+      "hint": "Số truy vấn và số hàng là hai phép đo khác nhau.",
+      "followUp": "Bạn xác minh không còn N+1 trên một request cụ thể ra sao?",
+      "englishFollowUp": "How would you verify that one request no longer exhibits N+1?",
+      "outline": [
+        "số query",
+        "nhân chéo",
+        "đánh đổi nhất quán"
+      ],
+      "shortAnswer": "Log command và xem navigation nào tải trên mỗi vòng lặp. Dùng projection nếu màn hình chỉ cần một phần dữ liệu. Nếu cần cả graph, đánh giá Include và split query theo cardinality, lượt mạng và tính nhất quán giữa các câu lệnh.",
+      "explanation": "Hai collection cùng cấp có thể nhân số hàng trong một JOIN. Split tránh nhân chéo nhưng có thể thấy dữ liệu thay đổi giữa các câu lệnh. Kiểm tra phiên bản EF và kết quả trong giao dịch phù hợp.",
+      "alternative": "Tải lô liên quan theo danh sách khóa khi cần kiểm soát shape riêng.",
+      "trap": "Thay mọi Include bằng split query mà không đo hoặc kiểm tra kết quả.",
+      "rubric": [
+        "Giải thích đúng số query và nhân chéo.",
+        "Nêu quan hệ giữa nhân chéo và đánh đổi nhất quán trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến đánh đổi nhất quán.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối số query với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "migration-rollout",
+    "content": {
+      "title": "Migration cho bảng đang có dữ liệu",
+      "topic": "efcore",
+      "subtopic": "Migrations",
+      "tags": [
+        "migration",
+        "rollout",
+        "schema"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Cần thêm cột bắt buộc vào bảng lớn đang nhận ghi từ hai phiên bản ứng dụng. Thiết kế triển khai theo bước.",
+      "englishPrompt": "A large live table needs a required column while two app versions may write concurrently. Plan a staged rollout.",
+      "context": "",
+      "code": null,
+      "hint": "Xem pha nào hai phiên bản đều đọc và ghi được.",
+      "followUp": "Nếu không thể suy ra giá trị cũ, bạn xử lý các bản ghi cũ thế nào?",
+      "englishFollowUp": "What should happen to historical rows when the new value cannot be inferred?",
+      "outline": [
+        "tương thích",
+        "backfill",
+        "constraint"
+      ],
+      "shortAnswer": "Bổ sung schema tương thích trước, ví dụ cột nullable hoặc default hợp lệ. Triển khai luồng ghi mới, backfill theo lô và kiểm tra dữ liệu. Chỉ áp constraint sau khi client cũ tương thích hoặc đã ngừng ghi. Xem SQL script, lock, log và khả năng rollback.",
+      "explanation": "EF migration mô tả thay đổi vật lý; scaffold không biết ý nghĩa nghiệp vụ của dữ liệu. Chuẩn bị sao lưu và thử trên dữ liệu gần production. Tránh dùng EnsureDeleted để xử lý lệch.",
+      "alternative": "Dùng script deployment xem trước hoặc migration bundle tùy quyền vận hành.",
+      "trap": "Thêm NOT NULL vào bảng lớn rồi rollback bằng cách xóa dữ liệu.",
+      "rubric": [
+        "Giải thích đúng tương thích và backfill.",
+        "Nêu quan hệ giữa backfill và constraint trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến constraint.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối tương thích với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "optimistic-concurrency",
+    "content": {
+      "title": "Optimistic concurrency và rowversion",
+      "topic": "efcore",
+      "subtopic": "Concurrency",
+      "tags": [
+        "concurrency",
+        "rowversion",
+        "transaction"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Hai người sửa cùng hồ sơ. Giải thích cách EF Core phát hiện ghi đè và chọn phản hồi khi có xung đột.",
+      "englishPrompt": "Two people edit the same record. Explain how EF Core detects a lost update and how the API should respond to a conflict.",
+      "context": "",
+      "code": null,
+      "hint": "Token đọc lúc mở hồ sơ đi theo request update.",
+      "followUp": "Thay đổi hai trường khác nhau có thể tự merge với điều kiện gì?",
+      "englishFollowUp": "Under which conditions could concurrent changes to different fields be merged safely?",
+      "outline": [
+        "token cũ",
+        "không có hàng cập nhật",
+        "cách phục hồi"
+      ],
+      "shortAnswer": "Cấu hình concurrency token, ví dụ rowversion trên SQL Server. Truy vấn update kiểm tra khóa và token cũ. Không có hàng cập nhật thì xử lý DbUpdateConcurrencyException. Trả 409 hoặc 412 tùy hợp đồng, cho người dùng tải lại hoặc merge.",
+      "explanation": "Trong API disconnected, client gửi token đã đọc. Nếu load lại bản mới mà bỏ token client, giao diện vẫn ghi đè. Transaction giữ nhất quán của nhiều thay đổi nhưng không thay thế hợp đồng sửa đồng thời.",
+      "alternative": "Dùng token ứng dụng nếu provider không có rowversion, hoặc retry tự động với thao tác có thể áp lại an toàn.",
+      "trap": "Catch lỗi và set token mới rồi overwrite không thông báo.",
+      "rubric": [
+        "Giải thích đúng token cũ và không có hàng cập nhật.",
+        "Nêu quan hệ giữa không có hàng cập nhật và cách phục hồi trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến cách phục hồi.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối token cũ với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "join-duplicates",
+    "content": {
+      "title": "JOIN và dữ liệu trùng",
+      "topic": "sql",
+      "subtopic": "JOIN",
+      "tags": [
+        "JOIN",
+        "cardinality",
+        "duplicate"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "SQL Server 2022",
+      "prompt": "Khách có 2 đơn. Mỗi đơn có 3 khoản thanh toán. JOIN ba bảng rồi SUM tổng tiền đơn cho khách cho ra gì? Sửa thế nào?",
+      "englishPrompt": "One customer has two orders, each with three payments. What happens if you join all three tables and sum order amounts, and how do you fix it?",
+      "context": "Orders lưu tổng tiền đơn. Payments lưu các giao dịch thanh toán của từng đơn.",
+      "code": null,
+      "hint": "Đếm số hàng sau JOIN trước khi SUM.",
+      "followUp": "Giữ khách không có đơn và trả số đơn 0 như thế nào?",
+      "englishFollowUp": "How do you retain customers without orders and report zero orders?",
+      "outline": [
+        "grain",
+        "fan-out",
+        "tổng hợp đúng grain"
+      ],
+      "shortAnswer": "Sau JOIN, mỗi đơn lặp theo số payment phù hợp. SUM tiền đơn theo tập join sẽ tính mỗi đơn ba lần. Tổng hợp ở grain của đơn trước rồi mới nối, hoặc dùng EXISTS nếu chỉ lọc có thanh toán.",
+      "explanation": "Không dùng SUM(DISTINCT Amount) để khử lặp vì hai đơn khác nhau có thể cùng Amount. Nếu khách không có đơn, LEFT JOIN và cách đếm NULL cần đúng hợp đồng.",
+      "alternative": "Pre-aggregate từng bảng theo OrderId và join kết quả đã thu gọn.",
+      "trap": "Dùng DISTINCT trên số tiền hoặc bỏ JOIN rồi mất điều kiện thanh toán.",
+      "rubric": [
+        "Giải thích đúng grain và fan-out.",
+        "Nêu quan hệ giữa fan-out và tổng hợp đúng grain trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến tổng hợp đúng grain.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối grain với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "sql-null",
+    "content": {
+      "title": "NULL và điều kiện ba giá trị",
+      "topic": "sql",
+      "subtopic": "NULL",
+      "tags": [
+        "NULL",
+        "NOT IN",
+        "COALESCE"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Tại sao NOT IN có thể không trả hàng nào khi truy vấn con có NULL? Đề xuất cách diễn đạt ý định.",
+      "englishPrompt": "Why can NOT IN return no rows when the subquery contains NULL? Show how to express the intended exclusion.",
+      "context": "",
+      "code": null,
+      "hint": "So sánh một giá trị với NULL cho kết quả gì?",
+      "followUp": "Nếu khóa ngoài cũng NULL, NOT EXISTS sẽ giữ hay loại hàng theo mẫu nào?",
+      "englishFollowUp": "How does NOT EXISTS treat an outer NULL key under an equality predicate?",
+      "outline": [
+        "three-valued logic",
+        "NOT EXISTS",
+        "quy tắc NULL"
+      ],
+      "shortAnswer": "SQL có TRUE, FALSE và UNKNOWN. So sánh thường với NULL ra UNKNOWN. NOT IN cần các so sánh bất đẳng đều đúng nên một NULL có thể khiến hàng không match bị loại ở WHERE. NOT EXISTS với điều kiện nối thường diễn đạt nghĩa không có hàng phù hợp tốt hơn.",
+      "explanation": "Định nghĩa cách xử lý NULL của cả khóa ở ngoài và trong. COUNT(column) bỏ NULL, COUNT(*) đếm hàng. IS NULL dùng để kiểm tra trực tiếp NULL.",
+      "alternative": "Lọc NULL trong truy vấn con nếu điều đó giữ đúng semantics của bài.",
+      "trap": "So sánh bằng = NULL hoặc dùng COALESCE tới giá trị có thể trùng.",
+      "rubric": [
+        "Giải thích đúng three-valued logic và NOT EXISTS.",
+        "Nêu quan hệ giữa NOT EXISTS và quy tắc NULL trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến quy tắc NULL.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối three-valued logic với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "window-order",
+    "content": {
+      "title": "Window function và thứ tự xác định",
+      "topic": "sql",
+      "subtopic": "Window functions",
+      "tags": [
+        "ROW_NUMBER",
+        "PARTITION BY",
+        "ORDER BY"
+      ],
+      "format": "read",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": "SQL Server 2022",
+      "prompt": "Lấy giao dịch mới nhất cho mỗi tài khoản khi nhiều giao dịch có cùng CreatedAt. Làm sao kết quả xác định và có thứ tự đầu ra?",
+      "englishPrompt": "Return the latest transaction per account when several transactions share CreatedAt. How do you make both selection and output order deterministic?",
+      "context": "",
+      "code": null,
+      "hint": "ORDER BY trong cửa sổ có ảnh hưởng gì đến kết quả cuối?",
+      "followUp": "Nếu muốn giữ mọi giao dịch đồng hạng mới nhất, chọn hàm nào?",
+      "englishFollowUp": "Which window function would you use to retain every transaction tied for latest?",
+      "outline": [
+        "window partition",
+        "tie-breaker",
+        "ORDER BY ngoài"
+      ],
+      "shortAnswer": "Dùng ROW_NUMBER theo PARTITION BY AccountId, ORDER BY CreatedAt DESC, Id DESC khi Id là khóa phân định. Lọc rn = 1 ở CTE hoặc subquery. Nếu đầu ra cần thứ tự, thêm ORDER BY ở SELECT ngoài cùng.",
+      "explanation": "RANK giữ đồng hạng khi chỉ dùng thời điểm. Truy vấn con không đảm bảo thứ tự cho lần SELECT khác. Chọn tie-breaker theo nghiệp vụ và kiểm tra index phù hợp.",
+      "alternative": "Dùng APPLY với TOP(1) trên index thích hợp nếu phù hợp shape và kế hoạch.",
+      "trap": "Cho rằng ROW_NUMBER chỉ theo CreatedAt luôn cho cùng hàng hoặc ngoài cùng tự có thứ tự.",
+      "rubric": [
+        "Giải thích đúng window partition và tie-breaker.",
+        "Nêu quan hệ giữa tie-breaker và ORDER BY ngoài trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến ORDER BY ngoài.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối window partition với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "index-plan",
+    "content": {
+      "title": "Index, execution plan và selectivity",
+      "topic": "sql",
+      "subtopic": "Indexes",
+      "tags": [
+        "indexes",
+        "execution plan",
+        "predicates"
+      ],
+      "format": "debug",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "API tìm đơn theo CustomerId và khoảng CreatedAt chậm. Bạn đo và cân nhắc thứ tự cột index như thế nào?",
+      "englishPrompt": "An order lookup by CustomerId and CreatedAt range is slow. What would you measure, and how would you choose index key order?",
+      "context": "",
+      "code": null,
+      "hint": "So sánh điều kiện bằng với điều kiện khoảng.",
+      "followUp": "Khi filter CreatedAt mà không có CustomerId, index trên có còn hợp lý không?",
+      "englishFollowUp": "Is the same index suitable for filtering CreatedAt without CustomerId?",
+      "outline": [
+        "logical reads",
+        "sargability",
+        "chi phí index"
+      ],
+      "shortAnswer": "Kiểm tra actual execution plan, logical reads, cardinality ước tính/thực tế và tham số. Index thường cân nhắc cột equality trước cột range cho shape này. Giữ predicate sargable, ví dụ so sánh timestamp với khoảng thay vì bọc hàm trên cột.",
+      "explanation": "Scan có thể hợp lý với tập trả về lớn. Cover bằng INCLUDE có chi phí lưu trữ/ghi. Xác minh index hiệu quả bằng workload và tham số đại diện, tránh chạy đánh giá production không kiểm soát.",
+      "alternative": "Thay shape hoặc giới hạn phân trang khi truy vấn cần trả quá nhiều hàng.",
+      "trap": "Tạo index cho mọi cột hoặc đánh giá chỉ từ chữ seek/scan.",
+      "rubric": [
+        "Giải thích đúng logical reads và sargability.",
+        "Nêu quan hệ giữa sargability và chi phí index trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến chi phí index.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối logical reads với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "isolation-deadlock",
+    "content": {
+      "title": "Isolation, locking và deadlock",
+      "topic": "sql",
+      "subtopic": "Transactions",
+      "tags": [
+        "isolation",
+        "locking",
+        "deadlock"
+      ],
+      "format": "debug",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 8,
+      "technology": "SQL Server 2022",
+      "prompt": "Hai giao dịch cập nhật cùng hai tài khoản theo thứ tự đảo nhau và thỉnh thoảng một giao dịch bị hủy. Phân tích và khắc phục.",
+      "englishPrompt": "Two transfers update the same pair of accounts in opposite orders, and one is occasionally aborted. How would you diagnose and mitigate it?",
+      "context": "",
+      "code": null,
+      "hint": "Hãy mô tả vòng chờ thay vì chỉ thời gian giữ khóa.",
+      "followUp": "Isolation dùng versioning có loại bỏ deadlock giữa hai thao tác ghi không?",
+      "englishFollowUp": "Does a row-versioning isolation level eliminate write/write deadlocks?",
+      "outline": [
+        "vòng chờ",
+        "thứ tự khóa",
+        "retry có điều kiện"
+      ],
+      "shortAnswer": "Deadlock là vòng chờ tài nguyên, khác blocking đơn thuần. Đọc deadlock graph để thấy process và index/row liên quan. Dùng thứ tự truy cập nhất quán, transaction ngắn và index phù hợp. Retry giao dịch bị chọn làm victim chỉ khi idempotent và có giới hạn.",
+      "explanation": "Snapshot có thể giảm tranh chấp đọc/ghi, nhưng ghi/ghi vẫn có thể tranh chấp. Chọn isolation theo anomaly cần ngăn và đo ảnh hưởng. Tính chuyển khoản cần atomic và kiểm tra invariant.",
+      "alternative": "Tuần tự hóa truy cập theo khóa nghiệp vụ khi tần suất thấp và chi phí concurrency chấp nhận được.",
+      "trap": "Thêm NOLOCK cho giao dịch tiền hoặc retry mọi lỗi vô hạn.",
+      "rubric": [
+        "Giải thích đúng vòng chờ và thứ tự khóa.",
+        "Nêu quan hệ giữa thứ tự khóa và retry có điều kiện trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến retry có điều kiện.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối vòng chờ với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-reference?view=sql-server-ver16",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "hash-frequency",
+    "content": {
+      "title": "Hash map và tần suất",
+      "topic": "algorithms",
+      "subtopic": "Array & Hash map",
+      "tags": [
+        "array",
+        "Dictionary",
+        "frequency"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Cho danh sách mã sách, tìm mã xuất hiện đúng một lần theo thứ tự nhập. Chọn cấu trúc và giải thích độ phức tạp.",
+      "englishPrompt": "Given a list of book IDs, find IDs occurring exactly once in input order. Choose a data structure and explain complexity.",
+      "context": "",
+      "code": null,
+      "hint": "Có thể đếm trước rồi duyệt lại nguồn dữ liệu.",
+      "followUp": "Nếu chỉ có một lượt đọc, bạn lưu thông tin thứ tự tối thiểu gì?",
+      "englishFollowUp": "What minimal ordering metadata would you keep for a single-pass input stream?",
+      "outline": [
+        "đếm",
+        "thứ tự",
+        "phân tích n và k"
+      ],
+      "shortAnswer": "Duyệt một lần để đếm bằng Dictionary, lần hai duyệt mảng gốc và lấy phần tử count = 1 để giữ thứ tự. Với hash thông thường, thời gian kỳ vọng O(n), bộ nhớ phụ O(k), k là số mã khác nhau.",
+      "explanation": "Nguồn chỉ enumerate được một lần có thể phải giữ dữ liệu hoặc đổi hợp đồng thứ tự. Chọn StringComparer theo quy tắc so mã rõ, chú ý null.",
+      "alternative": "Sort rồi quét từng nhóm có thể hợp lý nếu bộ nhớ hạn chế và được thay đổi thứ tự.",
+      "trap": "Dùng HashSet nhưng mất số lần xuất hiện.",
+      "rubric": [
+        "Giải thích đúng đếm và thứ tự.",
+        "Nêu quan hệ giữa thứ tự và phân tích n và k trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến phân tích n và k.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối đếm với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/collections/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "two-pointers",
+    "content": {
+      "title": "Two pointers và invariant",
+      "topic": "algorithms",
+      "subtopic": "Array",
+      "tags": [
+        "two pointers",
+        "sorted array"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Mảng đã sắp tăng, tìm cặp có tổng bằng T. Giải thích vì sao bỏ một đầu trong mỗi bước không bỏ lỡ đáp án.",
+      "englishPrompt": "Find a pair summing to T in a sorted array. Explain why discarding one end each step preserves a possible answer.",
+      "context": "",
+      "code": null,
+      "hint": "Xét tổng với đầu bên kia lớn nhất hoặc nhỏ nhất.",
+      "followUp": "Nếu có duplicate và cần đếm mọi cặp chỉ số, thuật toán đổi thế nào?",
+      "englishFollowUp": "How would you adapt it to count all index pairs when duplicates exist?",
+      "outline": [
+        "invariant",
+        "điều kiện dừng",
+        "overflow"
+      ],
+      "shortAnswer": "Đặt l tại đầu, r tại cuối. Nếu tổng nhỏ hơn T, mọi cặp dùng l và một phần tử trong khoảng còn lại đều quá nhỏ, nên tăng l. Nếu lớn hơn thì giảm r. Dừng khi l >= r. Thời gian O(n), bộ nhớ O(1).",
+      "explanation": "Dùng kiểu rộng hơn cho tổng nếu int có thể tràn. Giữ r khác l, định nghĩa khi có nhiều cặp và chỉ số cần giữ.",
+      "alternative": "Nếu mảng chưa sắp và phải giữ chỉ số gốc, dùng hash map hoặc sort kèm index.",
+      "trap": "Giảm nhầm đầu khi tổng nhỏ hoặc dùng cùng một phần tử hai lần.",
+      "rubric": [
+        "Giải thích đúng invariant và điều kiện dừng.",
+        "Nêu quan hệ giữa điều kiện dừng và overflow trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến overflow.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối invariant với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/collections/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "sliding-window",
+    "content": {
+      "title": "Sliding window và điều kiện co cửa sổ",
+      "topic": "algorithms",
+      "subtopic": "Sliding window",
+      "tags": [
+        "sliding window",
+        "strings"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Tìm độ dài chuỗi con dài nhất không lặp ký tự. Nêu cách di chuyển biên trái và ý nghĩa của ký tự Unicode.",
+      "englishPrompt": "Find the longest substring with no repeated characters. Explain how the left boundary moves and what a character means for Unicode text.",
+      "context": "",
+      "code": null,
+      "hint": "Biên trái có được đi lùi khi gặp ký tự ngoài cửa sổ không?",
+      "followUp": "Ví dụ abba sẽ phát hiện lỗi biên trái như thế nào?",
+      "englishFollowUp": "How does the input abba expose a bug in the left-boundary update?",
+      "outline": [
+        "invariant",
+        "biên trái không lùi",
+        "đơn vị ký tự"
+      ],
+      "shortAnswer": "Lưu vị trí cuối mỗi ký tự. Khi gặp lại, tăng left lên max(left, last + 1). Sau cập nhật, cửa sổ không lặp, nên lấy chiều dài tốt nhất ở mỗi right. O(n) thời gian kỳ vọng và O(k) bộ nhớ.",
+      "explanation": "char C# là đơn vị UTF-16. Nếu bài coi ký tự là Unicode scalar thì enumerate Rune; nếu theo grapheme cluster, phải đổi cách tách. Chỉ số phải cùng đơn vị với độ dài yêu cầu.",
+      "alternative": "Dùng HashSet với vòng co cửa sổ, mỗi phần tử thêm/xóa tối đa một lần.",
+      "trap": "Lùi left hoặc chia chuỗi theo char khi đặc tả yêu cầu grapheme.",
+      "rubric": [
+        "Giải thích đúng invariant và biên trái không lùi.",
+        "Nêu quan hệ giữa biên trái không lùi và đơn vị ký tự trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến đơn vị ký tự.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối invariant với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/collections/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "binary-search-boundary",
+    "content": {
+      "title": "Binary search cho ranh giới",
+      "topic": "algorithms",
+      "subtopic": "Binary search",
+      "tags": [
+        "binary search",
+        "monotonic invariant"
+      ],
+      "format": "debug",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Tìm chỉ số đầu tiên làm predicate đơn điệu trả true. Trình bày quy ước khoảng và trường hợp mọi phần tử false.",
+      "englishPrompt": "Find the first index whose monotone predicate is true. Describe the interval convention and all-false case.",
+      "context": "",
+      "code": null,
+      "hint": "Xác định n là vị trí sentinel ngoài mảng.",
+      "followUp": "Predicate có thể false, true rồi false. Vì sao phương pháp không còn đúng?",
+      "englishFollowUp": "Why does the algorithm fail if the predicate changes false to true and then back to false?",
+      "outline": [
+        "monotonic",
+        "invariant nửa mở",
+        "biên n"
+      ],
+      "shortAnswer": "Giữ khoảng [lo, hi) ứng viên với hi ban đầu n. Nếu predicate(mid) true thì hi = mid, nếu false thì lo = mid + 1. Khi lo == hi, đó là ranh giới; n nghĩa là không có true. Tính mid an toàn theo lo + (hi-lo)/2.",
+      "explanation": "Chỉ áp dụng khi predicate đơn điệu theo thứ tự. Với generic comparator cần giữ cùng tiêu chuẩn sort. Kiểm tra mảng rỗng, true tất cả và mốc cuối.",
+      "alternative": "Dùng BinarySearch thư viện khi chỉ cần một phần tử bằng khóa và không cần first match.",
+      "trap": "Dùng lo = mid ở khoảng hai ứng viên gây lặp vô hạn hoặc đọc index n.",
+      "rubric": [
+        "Giải thích đúng monotonic và invariant nửa mở.",
+        "Nêu quan hệ giữa invariant nửa mở và biên n trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến biên n.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối monotonic với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/collections/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "graph-shortest",
+    "content": {
+      "title": "Queue, đồ thị và đường đi ngắn",
+      "topic": "algorithms",
+      "subtopic": "Graphs",
+      "tags": [
+        "BFS",
+        "queue",
+        "graph"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "Trên đồ thị không trọng số có chu trình, tìm số cạnh ít nhất từ S đến T và khôi phục đường đi.",
+      "englishPrompt": "In an unweighted graph with cycles, find the fewest-edge path from S to T and reconstruct it.",
+      "context": "",
+      "code": null,
+      "hint": "Thứ tự FIFO duyệt theo tầng.",
+      "followUp": "Nếu đồ thị có cạnh trọng số 0 và 1, bạn đổi cấu trúc dữ liệu nào?",
+      "englishFollowUp": "If edges have only weights zero and one, how could you change the frontier data structure?",
+      "outline": [
+        "duyệt theo tầng",
+        "visited",
+        "parent"
+      ],
+      "shortAnswer": "Dùng BFS với queue, đánh dấu visited khi enqueue và ghi parent ở lần thấy đầu tiên. Mỗi tầng thêm một cạnh nên lần tới đầu tiên đã có khoảng cách tối thiểu. Lần ngược parent từ T. Với adjacency list, O(V+E) thời gian, O(V) bộ nhớ phụ.",
+      "explanation": "Nếu trọng số không đồng đều, BFS không tối ưu tổng chi phí. Thảo luận cạnh có hướng và node không tới được. Khi S == T, trả đường đi một node và 0 cạnh.",
+      "alternative": "Dijkstra cho trọng số không âm, hoặc BFS hai chiều nếu đồ thị và biên tìm phù hợp.",
+      "trap": "Dùng DFS khẳng định đường đầu tiên ngắn nhất hoặc đánh dấu visited quá muộn.",
+      "rubric": [
+        "Giải thích đúng duyệt theo tầng và visited.",
+        "Nêu quan hệ giữa visited và parent trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến parent.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối duyệt theo tầng với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/collections/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "test-boundary",
+    "content": {
+      "title": "Unit test và integration test",
+      "topic": "testing",
+      "subtopic": "Test strategy",
+      "tags": [
+        "unit test",
+        "integration test"
+      ],
+      "format": "compare",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Bạn viết hai loại test nào để kiểm tra giảm giá theo quy tắc và API thực sự lưu một đơn đúng?",
+      "englishPrompt": "Which tests would you write to cover a discount rule and confirm that the API actually persists an order?",
+      "context": "",
+      "code": null,
+      "hint": "Phân biệt logic thuần với kiểm tra hợp đồng biên.",
+      "followUp": "Khi nào test integration cần dùng đúng SQL Server?",
+      "englishFollowUp": "When should an integration test run against SQL Server itself?",
+      "outline": [
+        "hành vi thuần",
+        "biên integration",
+        "provider phù hợp"
+      ],
+      "shortAnswer": "Dùng unit test chạy nhanh với đầu vào/đầu ra rõ cho quy tắc giảm giá, gồm biên làm tròn. Dùng integration test cho route, validation, auth và ghi DB với provider cần bảo đảm. Dữ liệu test độc lập và có xác nhận trạng thái thực.",
+      "explanation": "Test in-memory xác nhận một số logic nhưng khác SQL về constraint, transaction, NULL và collation. Chọn test double ở I/O không phải đối tượng cần kiểm tra.",
+      "alternative": "Contract test với upstream khi cần bảo đảm schema mà không gọi production.",
+      "trap": "Mock DbSet rồi kết luận đã kiểm chứng SQL Server.",
+      "rubric": [
+        "Giải thích đúng hành vi thuần và biên integration.",
+        "Nêu quan hệ giữa biên integration và provider phù hợp trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến provider phù hợp.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối hành vi thuần với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "slow-api",
+    "content": {
+      "title": "Điều tra API chậm",
+      "topic": "testing",
+      "subtopic": "Vận hành",
+      "tags": [
+        "profiling",
+        "tracing",
+        "latency"
+      ],
+      "format": "experience",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "p95 của API gấp ba sau deploy, p50 gần như ổn định. Trình bày thứ tự kiểm tra và cách xác nhận nguyên nhân.",
+      "englishPrompt": "API p95 triples after deployment while p50 stays about the same. Describe your investigation and how you would verify the cause.",
+      "context": "",
+      "code": null,
+      "hint": "Xem cohort, traffic và timing từng phần của request.",
+      "followUp": "Nếu chỉ DB span p95 tăng, so sánh execution plan và workload ra sao?",
+      "englishFollowUp": "If only database span p95 grows, how would you compare plans and workload?",
+      "outline": [
+        "phân đoạn",
+        "bằng chứng trace",
+        "xác minh trước/sau"
+      ],
+      "shortAnswer": "Xác nhận dữ liệu theo route, thời gian và tải. Dùng trace/correlation để tách DB, remote, CPU, queue và retry. So phiên bản và tham số đầu vào ở nhóm chậm. Thử giả thuyết có kiểm soát rồi đo cả latency, lỗi và tài nguyên trước/sau.",
+      "explanation": "p95 nhạy với phân bố và cỡ mẫu. Một trace hiếm không đủ để kết luận. Nếu ảnh hưởng người dùng lớn, cân nhắc giảm tải hay rollback theo điều kiện vận hành.",
+      "alternative": "Dùng profiling có lấy mẫu hoặc replay trên staging với dữ liệu đã được xử lý riêng tư.",
+      "trap": "Thêm cache trước khi biết phần nào tăng hoặc ghi toàn bộ payload nhạy cảm.",
+      "rubric": [
+        "Giải thích đúng phân đoạn và bằng chứng trace.",
+        "Nêu quan hệ giữa bằng chứng trace và xác minh trước/sau trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến xác minh trước/sau.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối phân đoạn với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/performance/efficient-querying",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "logs-correlation",
+    "content": {
+      "title": "Logging có cấu trúc và correlation",
+      "topic": "testing",
+      "subtopic": "Observability",
+      "tags": [
+        "logging",
+        "trace",
+        "privacy"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Thiết kế log để theo một lần tạo hóa đơn qua API và worker khi không thể ghi thông tin khách hàng nhạy cảm.",
+      "englishPrompt": "Design logs to trace invoice creation across an API and worker without recording sensitive customer information.",
+      "context": "",
+      "code": null,
+      "hint": "Dùng định danh kỹ thuật truyền xuyên ranh giới.",
+      "followUp": "Khi trace bị sampling, bạn vẫn hỗ trợ đối chiếu lỗi người dùng thế nào?",
+      "englishFollowUp": "How would you support user-facing error correlation when traces are sampled?",
+      "outline": [
+        "correlation",
+        "structured fields",
+        "bảo vệ dữ liệu"
+      ],
+      "shortAnswer": "Ghi structured events gồm correlation/trace ID, operation, trạng thái, thời lượng và lỗi đã phân loại. Truyền ngữ cảnh vào job; tránh email, token, số thẻ hoặc toàn bộ request. Dùng log để tìm một lượt và metric để theo dõi phân bố.",
+      "explanation": "Đặt retention và quyền đọc phù hợp. Tránh đưa ID cardinality cao thành metric label. Với tracing sampling, giữ chiến lược cho lỗi hoặc request chậm theo khả năng.",
+      "alternative": "Dùng trace distributed kết hợp log với Activity khi runtime hỗ trợ và cần nhiều dịch vụ.",
+      "trap": "Log secrets để debug hoặc ép mọi event lên Error.",
+      "rubric": [
+        "Giải thích đúng correlation và structured fields.",
+        "Nêu quan hệ giữa structured fields và bảo vệ dữ liệu trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến bảo vệ dữ liệu.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối correlation với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "cache-design",
+    "content": {
+      "title": "Thiết kế cache cho dữ liệu hay đổi",
+      "topic": "testing",
+      "subtopic": "System design",
+      "tags": [
+        "cache",
+        "invalidation",
+        "concurrency"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "Catalog đọc nhiều nhưng giá đổi. Hãy nêu tiêu chí cache, thời gian chấp nhận stale và cách chống thundering herd.",
+      "englishPrompt": "A read-heavy catalog has changing prices. What should be cached, for how long, and how would you avoid a thundering herd?",
+      "context": "",
+      "code": null,
+      "hint": "Tách dữ liệu hiển thị với giá dùng để giao dịch.",
+      "followUp": "Thiết kế fallback khi cache hỏng mà DB không chịu tải trực tiếp ra sao?",
+      "englishFollowUp": "How would you fall back during a cache outage without overloading the database?",
+      "outline": [
+        "freshness",
+        "phạm vi key",
+        "herd"
+      ],
+      "shortAnswer": "Xác định freshness theo nghiệp vụ. Cache-aside cho đọc catalog có TTL và invalidation khi cập nhật. Tách key theo tenant/ngữ cảnh cần thiết. Chặn herd bằng hợp nhất yêu cầu hoặc refresh có jitter. Giá lúc giao dịch phải xác thực theo nguồn có thẩm quyền.",
+      "explanation": "Xem hành vi khi cache lỗi hoặc dữ liệu đổi giữa lúc đọc và ghi cache. Chỉ theo dõi hit rate chưa đủ; cần latency, load nguồn và stale rate nếu đo được.",
+      "alternative": "Cache tại ứng dụng phù hợp một instance; cache phân tán chỉ sau khi chịu được invalidation và chi phí vận hành.",
+      "trap": "Cache chung dữ liệu riêng tư hoặc mặc định TTL thay thế tính đúng giá.",
+      "rubric": [
+        "Giải thích đúng freshness và phạm vi key.",
+        "Nêu quan hệ giữa phạm vi key và herd trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến herd.",
+        "Trả lời đúng trọng tâm và dùng một ví dụ để kết nối freshness với tình huống."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "project-star",
+    "content": {
+      "title": "Trình bày dự án theo STAR",
+      "topic": "testing",
+      "subtopic": "Kinh nghiệm",
+      "tags": [
+        "STAR",
+        "evidence",
+        "communication"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": null,
+      "prompt": "Kể một lần bạn xử lý lỗi hoặc cải thiện một luồng. Nêu đúng phần bạn làm, cách đo và điều bạn sẽ làm khác.",
+      "englishPrompt": "Describe a time you fixed a bug or improved a workflow. Explain your contribution, how you measured the result, and what you would change.",
+      "context": "",
+      "code": null,
+      "hint": "Chọn một sự kiện thật và tách bối cảnh khỏi hành động.",
+      "followUp": "Có một quyết định bạn đã cân nhắc và loại bỏ. Vì sao?",
+      "englishFollowUp": "What alternative did you consider, and why did you decide against it?",
+      "outline": [
+        "tình huống thật",
+        "đóng góp cá nhân",
+        "bằng chứng"
+      ],
+      "shortAnswer": "Mô tả ngắn tình huống và mục tiêu. Đi sâu vào bước bạn đã làm, giả thuyết, cách thử và lựa chọn. Kết thúc bằng kết quả quan sát được và điều học được. Nếu chưa có số đo, nói rõ bằng chứng bạn thực sự có.",
+      "explanation": "Đề có thể dùng dự án học tập, bài nhóm hoặc công việc. Phân biệt vai trò của nhóm với đóng góp cá nhân và giữ dữ liệu bảo mật.",
+      "alternative": "Dùng cấu trúc vấn đề, quyết định, kết quả nếu kể lại mạch lạc hơn.",
+      "trap": "Bịa KPI hoặc nói chung chung bằng chúng tôi cho toàn bộ hành động.",
+      "rubric": [
+        "Giải thích đúng tình huống thật và đóng góp cá nhân.",
+        "Nêu quan hệ giữa đóng góp cá nhân và bằng chứng trong tình huống của đề.",
+        "Làm rõ một điều kiện áp dụng, edge case hoặc phương án liên quan đến bằng chứng.",
+        "Tổ chức câu chuyện theo bối cảnh, phần việc của bạn, kết quả và điều rút ra."
+      ],
+      "source": "https://careers.microsoft.com/v2/global/en/hiring-tips/interview-tips",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "linked-splice",
+    "content": {
+      "title": "Chèn và xóa trên danh sách liên kết",
+      "topic": "algorithms",
+      "subtopic": "Linked list",
+      "tags": [
+        "Linked list",
+        "Node",
+        "Complexity"
+      ],
+      "format": "compare",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Vì sao xóa một nút đã biết trong LinkedList<T> có thể O(1), trong khi xóa theo giá trị vẫn có thể O(n)? So sánh với List<T>.",
+      "englishPrompt": "Why is removing a known LinkedList<T> node O(1), while finding and removing a value can still take O(n)? Compare with List<T>.",
+      "context": "",
+      "code": null,
+      "hint": "Xác định đã có node hay mới có giá trị.",
+      "followUp": "Nếu chỉ có con trỏ đến node của danh sách đơn, điều gì thay đổi khi đó là node cuối?",
+      "englishFollowUp": "If you only have a node pointer in a singly linked list, what changes when it is the tail?",
+      "outline": [
+        "Node đã biết",
+        "Chi phí tìm",
+        "Locality và vị trí"
+      ],
+      "shortAnswer": "LinkedList<T> của .NET liên kết hai chiều. Khi có đúng node thuộc danh sách, cần đổi vài liên kết để xóa. Tìm node theo giá trị vẫn duyệt tuần tự. List<T> tra theo chỉ số nhanh nhưng phải dịch phần sau khi xóa ở giữa.",
+      "explanation": "Danh sách liên kết có chi phí node và locality kém hơn mảng. Xóa đầu/cuối là trường hợp riêng. Với danh sách liên kết đơn, biết node hiện tại chưa đủ để thay liên kết của nút đứng trước một cách tổng quát.",
+      "alternative": "Chọn List<T> cho duyệt và truy cập theo chỉ số. Queue<T> hữu ích cho hàng đợi FIFO.",
+      "trap": "So sánh chi phí xóa nút đã biết với xóa theo giá trị như thể cùng đầu vào.",
+      "rubric": [
+        "Nêu được Node đã biết và áp dụng đúng vào đề.",
+        "Giải thích Chi phí tìm bằng các bước có thể kiểm tra.",
+        "Làm rõ Locality và vị trí cùng một giới hạn hoặc đánh đổi.",
+        "Dùng một ví dụ cụ thể và kết luận trực tiếp cho câu hỏi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.linkedlist-1?view=net-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "tree-height",
+    "content": {
+      "title": "Chiều cao cây và giới hạn đệ quy",
+      "topic": "algorithms",
+      "subtopic": "Tree & Recursion",
+      "tags": [
+        "Tree",
+        "Recursion",
+        "Stack"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Tính chiều cao cây nhị phân theo số nút trên đường dài nhất. Cây trống cao 0. Cần thay đổi gì nếu cây lệch chứa 100.000 nút?",
+      "englishPrompt": "Compute the height of a binary tree in nodes, with empty height 0. What changes if the tree is skewed and contains 100,000 nodes?",
+      "context": "",
+      "code": null,
+      "hint": "Chiều cao nút được suy ra từ hai cây con.",
+      "followUp": "Nếu dữ liệu đầu vào không bảo đảm là cây, cần phát hiện trường hợp gì?",
+      "englishFollowUp": "What should you detect when the input is not guaranteed to be a tree?",
+      "outline": [
+        "Base case",
+        "Độ sâu cây",
+        "Stack hoặc queue"
+      ],
+      "shortAnswer": "Base case cho null là 0. Với node tồn tại, tính 1 + max(height(left), height(right)). Mỗi node thăm một lần. Đệ quy dùng stack theo chiều cao, nên cây lệch rất sâu có thể vượt stack. Dùng stack tường minh lưu node và độ sâu hoặc BFS theo từng tầng.",
+      "explanation": "BFS dùng bộ nhớ theo bề rộng, có thể lớn với cây cân bằng. DFS tường minh theo hình cây và cách đẩy node, đưa state ra bộ nhớ heap. Giả thiết đầu vào là cây không chu trình.",
+      "alternative": "Nếu đầu vào là đồ thị có thể có chu trình thì xác minh hợp đồng hoặc theo dõi visited.",
+      "trap": "Cho rằng tại mỗi thời điểm stack luôn O(log n) hoặc dùng độ sâu cạnh lẫn số nút.",
+      "rubric": [
+        "Nêu được Base case và áp dụng đúng vào đề.",
+        "Giải thích Độ sâu cây bằng các bước có thể kiểm tra.",
+        "Làm rõ Stack hoặc queue cùng một giới hạn hoặc đánh đổi.",
+        "Dùng một ví dụ cụ thể và kết luận trực tiếp cho câu hỏi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.insufficientexecutionstackexception?view=net-10.0",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "dp-minimum-coins",
+    "content": {
+      "title": "Quy hoạch động đổi xu",
+      "topic": "algorithms",
+      "subtopic": "Dynamic programming",
+      "tags": [
+        "DP",
+        "State",
+        "Recurrence"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "Có các mệnh giá nguyên dương, mỗi loại dùng không giới hạn. Tìm số đồng ít nhất để đạt tổng T, hoặc báo không thể. Vì sao luôn chọn đồng lớn nhất có thể sai?",
+      "englishPrompt": "Given unlimited coins of positive integer denominations, find the fewest coins totalling T or report that it is impossible. Why can a largest-first strategy fail?",
+      "context": "",
+      "code": null,
+      "hint": "Định nghĩa dp[i] theo tổng nhỏ hơn i. Thử mệnh giá 1, 3, 4 với T = 6.",
+      "followUp": "Bạn truy vết một tập đồng tạo ra nghiệm tối ưu bằng cách nào?",
+      "englishFollowUp": "How would you reconstruct one optimal choice of coins?",
+      "outline": [
+        "Trạng thái và cơ sở",
+        "Công thức chuyển",
+        "Không có nghiệm"
+      ],
+      "shortAnswer": "Đặt dp[0] = 0. Với mỗi tổng i tăng dần, lấy min(dp[i - coin] + 1) từ trạng thái đạt được. Nếu dp[T] vẫn là sentinel thì không thể. Với {1,3,4} và T = 6, tham lam cho 4+1+1, còn 3+3 tốt hơn.",
+      "explanation": "Thời gian O(Tk), bộ nhớ O(T) với k mệnh giá. Kiểm tra T bằng 0, không có mệnh giá và phép cộng sentinel. Lưu coin đã chọn khi cần truy vết.",
+      "alternative": "BFS trên các tổng thích hợp khi mỗi bước thêm một đồng có cùng chi phí và không vượt T.",
+      "trap": "Khởi tạo mọi dp bằng 0 hoặc áp dụng chứng minh tham lam của một hệ mệnh giá cho mọi bộ.",
+      "rubric": [
+        "Nêu được Trạng thái và cơ sở và áp dụng đúng vào đề.",
+        "Giải thích Công thức chuyển bằng các bước có thể kiểm tra.",
+        "Làm rõ Không có nghiệm cùng một giới hạn hoặc đánh đổi.",
+        "Dùng một ví dụ cụ thể và kết luận trực tiếp cho câu hỏi."
+      ],
+      "source": "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/resources/lecture-19-dynamic-programming-i-fibonacci-shortest-paths/",
+      "checkedOn": "2026-11-25"
+    }
+  },
+  {
+    "slug": "sql-constraints",
+    "content": {
+      "title": "Giữ toàn vẹn khóa và dữ liệu trùng",
+      "topic": "sql",
+      "subtopic": "Constraints",
+      "tags": [
+        "UNIQUE",
+        "Foreign key",
+        "Concurrency"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": "SQL Server 2022",
+      "prompt": "Hai request cùng thấy email chưa tồn tại, rồi cùng INSERT. Chọn cách giữ email duy nhất và giải thích.\nA. Kiểm tra SELECT rồi INSERT\nB. Ràng buộc UNIQUE và xử lý xung đột ghi\nC. Dùng DISTINCT khi hiển thị",
+      "englishPrompt": "Two requests both see that an email is absent and then try to insert it. Which design enforces uniqueness, and why?\nA. SELECT before INSERT\nB. A UNIQUE constraint and write-conflict handling\nC. DISTINCT on reads",
+      "context": "",
+      "code": null,
+      "hint": "Cách nào được DB thực thi khi có hai giao dịch đồng thời?",
+      "followUp": "Nếu mỗi tenant có thể dùng lại email, ràng buộc thay đổi ra sao?",
+      "englishFollowUp": "If email only needs to be unique within a tenant, how should the constraint change?",
+      "outline": [
+        "Ràng buộc UNIQUE",
+        "Kiểm tra cạnh tranh",
+        "Khóa chính và khóa ngoại"
+      ],
+      "shortAnswer": "Chọn B. Ràng buộc UNIQUE được cơ sở dữ liệu thực thi khi ghi, kể cả khi hai request đọc cùng trạng thái. API có thể kiểm tra sớm để phản hồi dễ hiểu và cần xử lý xung đột ghi. Foreign key bảo đảm tham chiếu tới khóa hợp lệ theo chính sách xóa đã chọn.",
+      "explanation": "Khóa chính tạo định danh hàng. UNIQUE áp quy tắc phụ như email đã chuẩn hóa. Cần quyết định ca, collation, NULL và dữ liệu cũ trước migration. Chỉ khóa duy nhất trên trường đúng với quy tắc nghiệp vụ.",
+      "alternative": "Giao dịch serializable có thể giữ điều kiện qua đọc/ghi nếu đúng provider, với chi phí locking và cần xử lý retry.",
+      "trap": "Dùng DISTINCT để che dữ liệu đã bị ghi trùng hoặc cho rằng validation giao diện giải quyết race.",
+      "rubric": [
+        "Nêu được Ràng buộc UNIQUE và áp dụng đúng vào đề.",
+        "Giải thích Kiểm tra cạnh tranh bằng các bước có thể kiểm tra.",
+        "Làm rõ Khóa chính và khóa ngoại cùng một giới hạn hoặc đánh đổi.",
+        "Dùng một ví dụ cụ thể và kết luận trực tiếp cho câu hỏi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver16",
+      "checkedOn": "2026-11-25"
+    }
+  }
+]

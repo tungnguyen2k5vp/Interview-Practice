@@ -1,0 +1,11 @@
+bin/
+obj/
+node_modules/
+dist/
+server/wwwroot/
+.artifacts/
+.impeccable/review/
+appsettings.Local.json
+.env
+*.user
+*.log

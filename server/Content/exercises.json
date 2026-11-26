@@ -1,0 +1,595 @@
+[
+  {
+    "slug": "frequency-map",
+    "kind": "coding",
+    "title": "Mã xuất hiện đúng một lần",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "Array",
+      "Dictionary"
+    ],
+    "minutes": 12,
+    "description": "Một thư viện nhận các mã sách theo thứ tự quét. Trả về những mã chỉ xuất hiện đúng một lần, theo thứ tự xuất hiện trong danh sách.",
+    "input": "Mảng codes gồm mã sách. Các mã dùng ký tự ASCII và phân biệt hoa/thường.",
+    "output": "Mảng mã xuất hiện đúng một lần.",
+    "constraints": [
+      "0 ≤ codes.Length ≤ 100.000.",
+      "Mỗi mã có 1–24 ký tự ASCII.",
+      "Giữ nguyên thứ tự đầu vào và không sửa mảng."
+    ],
+    "examples": [
+      {
+        "input": "[\"A2\",\"K7\",\"A2\",\"P4\"]",
+        "output": "[\"K7\",\"P4\"]",
+        "explanation": "A2 xuất hiện hai lần, K7 đứng trước P4."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Mảng rỗng."
+      },
+      {
+        "input": "[\"x\",\"X\",\"x\",\"Y\",\"Y\"]",
+        "output": "[\"X\"]",
+        "explanation": "Phân biệt hoa/thường."
+      },
+      {
+        "input": "[\"1\",\"1\"]",
+        "output": "[]",
+        "explanation": "Mọi mã bị lặp."
+      }
+    ],
+    "starter": "public static string[] UniqueCodes(string[] codes)\n{\n    // Viết lời giải ở đây.\n    return [];\n}",
+    "hint": "Đếm trước, sau đó duyệt lại chính mảng đầu vào.",
+    "solution": "public static string[] UniqueCodes(string[] codes)\n{\n    var counts = new Dictionary<string, int>(StringComparer.Ordinal);\n    foreach (var code in codes)\n        counts[code] = counts.GetValueOrDefault(code) + 1;\n\n    return codes.Where(code => counts[code] == 1).ToArray();\n}",
+    "explanation": "Lượt đầu ghi tần suất theo mã. Lượt sau giữ nguyên thứ tự vì đọc lại mảng đầu vào, chỉ chọn mã có tần suất một.",
+    "complexity": "O(n) kỳ vọng về thời gian và O(k) bộ nhớ phụ cho k mã khác nhau, chưa tính kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "balanced-delimiters",
+    "kind": "coding",
+    "title": "Kiểm tra dấu ngoặc",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "Stack",
+      "String"
+    ],
+    "minutes": 15,
+    "description": "Kiểm tra dấu ngoặc lồng nhau trong biểu thức. Các ký tự bên ngoài (), [] và {} được bỏ qua.",
+    "input": "Chuỗi ASCII expression.",
+    "output": "true nếu mọi dấu đóng có dấu mở cùng loại đúng vị trí và mọi dấu mở được đóng.",
+    "constraints": [
+      "0 ≤ expression.Length ≤ 100.000.",
+      "Bỏ qua ký tự không phải dấu ngoặc."
+    ],
+    "examples": [
+      {
+        "input": "\"f([x]+{y})\"",
+        "output": "true",
+        "explanation": "Các cặp đóng theo thứ tự ngược dấu mở."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"([)]\"",
+        "output": "false",
+        "explanation": "Cặp trong bị đóng sai loại."
+      },
+      {
+        "input": "\"\"",
+        "output": "true",
+        "explanation": "Chuỗi rỗng hợp lệ."
+      },
+      {
+        "input": "\")a(\"",
+        "output": "false",
+        "explanation": "Dấu đóng xuất hiện trước dấu mở."
+      }
+    ],
+    "starter": "public static bool IsBalanced(string expression)\n{\n    return false;\n}",
+    "hint": "So dấu đóng với dấu mở chưa được ghép gần nhất.",
+    "solution": "public static bool IsBalanced(string expression)\n{\n    var stack = new Stack<char>();\n    foreach (char c in expression)\n    {\n        if (c is '(' or '[' or '{')\n        {\n            stack.Push(c);\n            continue;\n        }\n        var opening = c switch { ')' => '(', ']' => '[', '}' => '{', _ => '\\0' };\n        if (opening != '\\0' && (!stack.TryPop(out var last) || opening != last))\n            return false;\n    }\n    return stack.Count == 0;\n}",
+    "explanation": "Stack luôn chứa các dấu mở chưa được ghép. Nếu gặp dấu đóng mà stack rỗng hoặc đỉnh khác loại, biểu thức sai. Kết thúc với stack trống.",
+    "complexity": "O(n) thời gian và O(n) bộ nhớ trong trường hợp xấu nhất.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "unique-window",
+    "kind": "coding",
+    "title": "Đoạn liên tiếp không lặp",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "Sliding window",
+      "ASCII"
+    ],
+    "minutes": 20,
+    "description": "Tìm độ dài lớn nhất của một đoạn liên tiếp không chứa ký tự lặp. Bài này dùng ASCII nên mỗi ký tự ứng với một đơn vị char.",
+    "input": "Chuỗi ASCII text.",
+    "output": "Độ dài lớn nhất, hoặc 0 với chuỗi rỗng.",
+    "constraints": [
+      "0 ≤ text.Length ≤ 200.000.",
+      "So sánh ký tự phân biệt hoa/thường."
+    ],
+    "examples": [
+      {
+        "input": "\"abba\"",
+        "output": "2",
+        "explanation": "ab và ba có độ dài 2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"\"",
+        "output": "0",
+        "explanation": "Cửa sổ rỗng."
+      },
+      {
+        "input": "\"abcabcbb\"",
+        "output": "3",
+        "explanation": "Lặp nhiều lần."
+      },
+      {
+        "input": "\"aA abc\"",
+        "output": "5",
+        "explanation": "Giữ dấu cách và phân biệt hoa/thường."
+      }
+    ],
+    "starter": "public static int LongestUnique(string text)\n{\n    return 0;\n}",
+    "hint": "Lưu vị trí gần nhất của mỗi ký tự. Biên trái chỉ được tăng.",
+    "solution": "public static int LongestUnique(string text)\n{\n    int[] last = new int[128];\n    Array.Fill(last, -1);\n    int left = 0, best = 0;\n    for (int right = 0; right < text.Length; right++)\n    {\n        char c = text[right];\n        left = Math.Max(left, last[c] + 1);\n        last[c] = right;\n        best = Math.Max(best, right - left + 1);\n    }\n    return best;\n}",
+    "explanation": "Khi c xuất hiện lần nữa, chỉ thu hẹp biên trái nếu lần cũ nằm trong cửa sổ. Sau cập nhật, đoạn từ left đến right không có ký tự lặp.",
+    "complexity": "O(n) thời gian. O(1) bộ nhớ phụ với bảng ASCII 128 phần tử.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "merge-ranges",
+    "kind": "coding",
+    "title": "Gộp khung giờ giao nhau",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "Sort",
+      "Intervals"
+    ],
+    "minutes": 20,
+    "description": "Một lịch có nhiều khoảng đóng [start, end]. Gộp các khoảng nếu chúng có điểm chung. Khoảng kết thúc đúng điểm bắt đầu của khoảng tiếp theo được gộp.",
+    "input": "Mảng ranges, mỗi hàng là [start, end].",
+    "output": "Các khoảng rời nhau theo start tăng dần.",
+    "constraints": [
+      "0 ≤ ranges.Length ≤ 100.000.",
+      "-10⁹ ≤ start ≤ end ≤ 10⁹.",
+      "Các khoảng [1,2] và [3,4] rời nhau."
+    ],
+    "examples": [
+      {
+        "input": "[[8,10],[2,4],[4,6]]",
+        "output": "[[2,6],[8,10]]",
+        "explanation": "Hai khoảng chung điểm 4."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có khung giờ."
+      },
+      {
+        "input": "[[1,9],[2,3],[8,12]]",
+        "output": "[[1,12]]",
+        "explanation": "Giao nhau bắc cầu."
+      },
+      {
+        "input": "[[1,2],[3,4]]",
+        "output": "[[1,2],[3,4]]",
+        "explanation": "Hai khoảng kề nhau không có phần giao."
+      }
+    ],
+    "starter": "public static int[][] MergeRanges(int[][] ranges)\n{\n    return [];\n}",
+    "hint": "Sau khi sắp theo start, khoảng mới chỉ có thể giao với khoảng cuối đã gộp.",
+    "solution": "public static int[][] MergeRanges(int[][] ranges)\n{\n    var merged = new List<int[]>();\n    foreach (var range in ranges.OrderBy(r => r[0]))\n    {\n        if (merged.Count == 0 || range[0] > merged[^1][1])\n            merged.Add([range[0], range[1]]);\n        else\n            merged[^1][1] = Math.Max(merged[^1][1], range[1]);\n    }\n    return merged.ToArray();\n}",
+    "explanation": "Sắp theo đầu trái. Nếu khoảng mới bắt đầu sau khoảng cuối, mọi khoảng đã có đều rời nó. Nếu có giao nhau, dùng đầu phải lớn hơn.",
+    "complexity": "O(n log n) thời gian và O(n) cho thứ tự đã sắp cùng kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "first-true",
+    "kind": "coding",
+    "title": "Tìm mốc đầu tiên đạt điều kiện",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "Binary search",
+      "Invariant"
+    ],
+    "minutes": 16,
+    "description": "Dãy đơn điệu chứa một đoạn false, theo sau bởi đoạn true. Tìm vị trí true đầu tiên bằng số lần đọc theo logarit.",
+    "input": "Mảng boolean flags. false không xuất hiện sau true.",
+    "output": "Chỉ số 0-based của true đầu tiên, hoặc -1 nếu không có.",
+    "constraints": [
+      "0 ≤ flags.Length ≤ 1.000.000.",
+      "Dùng O(log n) lần đọc với n ≥ 2."
+    ],
+    "examples": [
+      {
+        "input": "[false,false,true,true]",
+        "output": "2",
+        "explanation": "Vị trí 2 là lần true đầu tiên."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "-1",
+        "explanation": "Rỗng."
+      },
+      {
+        "input": "[false,false,false]",
+        "output": "-1",
+        "explanation": "Không có true."
+      },
+      {
+        "input": "[true,true]",
+        "output": "0",
+        "explanation": "Ranh giới ở đầu."
+      },
+      {
+        "input": "[false,false,true]",
+        "output": "2",
+        "explanation": "Ranh giới ở cuối."
+      }
+    ],
+    "starter": "public static int FindFirstTrue(bool[] flags)\n{\n    return -1;\n}",
+    "hint": "Dùng vị trí flags.Length làm sentinel khi không thấy true.",
+    "solution": "public static int FindFirstTrue(bool[] flags)\n{\n    int lo = 0, hi = flags.Length;\n    while (lo < hi)\n    {\n        int mid = lo + (hi - lo) / 2;\n        if (flags[mid]) hi = mid;\n        else lo = mid + 1;\n    }\n    return lo == flags.Length ? -1 : lo;\n}",
+    "explanation": "Mọi chỉ số trước lo đã biết false. hi là biên trên của vị trí true đầu tiên hoặc vị trí ngoài mảng. Hai biên hội tụ tại ranh giới.",
+    "complexity": "O(log n) thời gian và O(1) bộ nhớ phụ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "hop-count",
+    "kind": "coding",
+    "title": "Số chặng ít nhất giữa hai trạm",
+    "difficulty": "hard",
+    "topic": "algorithms",
+    "tags": [
+      "Graph",
+      "BFS",
+      "Queue"
+    ],
+    "minutes": 25,
+    "description": "Các trạm được nối bằng tuyến một chiều. Tìm số tuyến ít nhất để đi từ source đến target.",
+    "input": "n trạm từ 0 tới n−1, mảng edges gồm cặp [from,to], số source và target.",
+    "output": "Số cạnh ít nhất hoặc -1 nếu không tới được.",
+    "constraints": [
+      "1 ≤ n ≤ 100.000. Tối đa 200.000 cạnh.",
+      "Có thể có cạnh lặp, chu trình và self-loop.",
+      "source và target thuộc 0..n−1."
+    ],
+    "examples": [
+      {
+        "input": "4, [[0,1],[1,2],[0,3],[3,2]], 0, 2",
+        "output": "2",
+        "explanation": "Hai đường đều cần hai chặng."
+      }
+    ],
+    "tests": [
+      {
+        "input": "3, [[0,1],[1,0]], 0, 2",
+        "output": "-1",
+        "explanation": "Đồ thị có chu trình, đích biệt lập."
+      },
+      {
+        "input": "1, [], 0, 0",
+        "output": "0",
+        "explanation": "Đã ở đích."
+      },
+      {
+        "input": "2, [[1,0]], 0, 1",
+        "output": "-1",
+        "explanation": "Cạnh có hướng."
+      }
+    ],
+    "starter": "public static int FewestHops(int n, int[][] edges, int source, int target)\n{\n    return -1;\n}",
+    "hint": "Queue FIFO duyệt từng tầng khoảng cách. Đánh dấu khi đưa trạm vào queue.",
+    "solution": "public static int FewestHops(int n, int[][] edges, int source, int target)\n{\n    var next = new List<int>?[n];\n    foreach (var edge in edges)\n        (next[edge[0]] ??= []).Add(edge[1]);\n\n    var distance = new int[n];\n    Array.Fill(distance, -1);\n    distance[source] = 0;\n    var queue = new Queue<int>();\n    queue.Enqueue(source);\n    while (queue.TryDequeue(out int current))\n    {\n        if (current == target) return distance[current];\n        if (next[current] is not { } adjacent) continue;\n        foreach (int node in adjacent)\n        {\n            if (distance[node] >= 0) continue;\n            distance[node] = distance[current] + 1;\n            queue.Enqueue(node);\n        }\n    }\n    return -1;\n}",
+    "explanation": "BFS thăm các trạm theo khoảng cách tăng dần. Lần đầu đánh dấu một trạm cho khoảng cách ngắn nhất. Mỗi trạm chỉ vào queue một lần.",
+    "complexity": "O(n+m) thời gian và bộ nhớ kể cả danh sách kề.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "customer-orders",
+    "kind": "sql",
+    "title": "Số đơn theo từng khách hàng",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "LEFT JOIN",
+      "COUNT",
+      "NULL"
+    ],
+    "minutes": 15,
+    "description": "Tạo báo cáo số đơn đã thanh toán của từng khách, gồm cả khách có 0 đơn. Hai khách có thể trùng tên.",
+    "input": "#Customers và #Orders. Một khách có thể có nhiều đơn cùng giá.",
+    "output": "customer_id, customer_name, paid_orders. Sắp theo customer_id tăng dần.",
+    "constraints": [
+      "Giữ tất cả khách hàng.",
+      "Chỉ tính đơn có status = 'paid'.",
+      "Gom nhóm theo mã khách."
+    ],
+    "schema": "CREATE TABLE #Customers (id int PRIMARY KEY, name nvarchar(60) NOT NULL);\nCREATE TABLE #Orders (id int PRIMARY KEY, customer_id int NOT NULL, status varchar(12) NOT NULL, amount int NOT NULL);",
+    "dataset": "INSERT #Customers VALUES (1, N'An'), (2, N'Bình'), (3, N'An');\nINSERT #Orders VALUES (11,1,'paid',40), (12,1,'paid',40), (13,1,'pending',20), (14,2,'pending',60);",
+    "expected": "customer_id | customer_name | paid_orders\n1           | An            | 2\n2           | Bình          | 0\n3           | An            | 0",
+    "examples": [
+      {
+        "input": "Khách 1 có hai đơn paid cùng giá và một đơn pending.",
+        "output": "paid_orders = 2",
+        "explanation": "Số đơn dựa trên ID đơn, giữ các đơn khác nhau có cùng giá."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Khách chỉ có đơn pending hoặc không có đơn.",
+        "output": "Một hàng cho mỗi khách với paid_orders = 0.",
+        "explanation": "Kiểm tra LEFT JOIN và COUNT cột nullable."
+      }
+    ],
+    "starter": "SELECT c.id AS customer_id, c.name AS customer_name\nFROM #Customers AS c;\n",
+    "hint": "Đặt điều kiện status trong ON và đếm khóa đơn.",
+    "solution": "SELECT c.id AS customer_id, c.name AS customer_name, COUNT(o.id) AS paid_orders\nFROM #Customers AS c\nLEFT JOIN #Orders AS o ON o.customer_id = c.id AND o.status = 'paid'\nGROUP BY c.id, c.name\nORDER BY c.id;",
+    "explanation": "Điều kiện ON giữ hàng bổ sung NULL cho khách thiếu đơn hợp lệ. COUNT(o.id) bỏ hàng NULL đó.",
+    "complexity": "Một phép nối và một phép gom nhóm. Index trên khóa nối hỗ trợ khi tập dữ liệu lớn.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "department-salary",
+    "kind": "sql",
+    "title": "Lương trung bình theo phòng",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "GROUP BY",
+      "AVG",
+      "NULL"
+    ],
+    "minutes": 15,
+    "description": "Tính lương trung bình cho mỗi phòng ban. Lương NULL là chưa khai báo; phòng trống vẫn xuất hiện.",
+    "input": "#Departments và #Staff. Salary dùng decimal(12,2).",
+    "output": "department_id, staff_count, average_salary decimal(12,2). Thứ tự hàng tùy ý.",
+    "constraints": [
+      "Đếm tất cả nhân viên, gồm lương NULL.",
+      "AVG bỏ NULL. Nếu mọi lương đều NULL hoặc phòng trống, trả NULL."
+    ],
+    "schema": "CREATE TABLE #Departments (id int PRIMARY KEY, name nvarchar(30));\nCREATE TABLE #Staff (id int PRIMARY KEY, department_id int, salary decimal(12,2) NULL);",
+    "dataset": "INSERT #Departments VALUES (1,N'API'), (2,N'QA'), (3,N'Ops');\nINSERT #Staff VALUES (1,1,1200.00), (2,1,1500.00), (3,1,NULL), (4,2,NULL);",
+    "expected": "department_id | staff_count | average_salary\n1             | 3           | 1350.00\n2             | 1           | NULL\n3             | 0           | NULL",
+    "examples": [
+      {
+        "input": "Phòng API có 2 lương và 1 lương NULL.",
+        "output": "3 nhân viên, trung bình 1350.00",
+        "explanation": "NULL không đi vào mẫu số của AVG."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Phòng chỉ có nhân viên với lương NULL.",
+        "output": "staff_count = 1, average_salary = NULL",
+        "explanation": "Đếm id riêng với tổng hợp salary."
+      }
+    ],
+    "starter": "SELECT d.id AS department_id\nFROM #Departments AS d;\n",
+    "hint": "COUNT(s.id) và AVG(s.salary) xử lý NULL theo hai mục đích khác nhau.",
+    "solution": "SELECT d.id AS department_id, COUNT(s.id) AS staff_count,\n       CAST(AVG(s.salary) AS decimal(12,2)) AS average_salary\nFROM #Departments AS d\nLEFT JOIN #Staff AS s ON s.department_id = d.id\nGROUP BY d.id;",
+    "explanation": "Đếm khóa nhân viên và AVG chỉ qua lương đã có. LEFT JOIN giữ phòng trống. Ép kiểu đầu ra theo đặc tả.",
+    "complexity": "Gom nhóm sau phép nối. Với tập lớn có thể xem xét tổng hợp trước theo phòng ban.",
+    "ordered": false,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "daily-totals",
+    "kind": "sql",
+    "title": "Ngày đạt ngưỡng doanh thu",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "CTE",
+      "Aggregation",
+      "Duplicates"
+    ],
+    "minutes": 18,
+    "description": "Tính tổng tiền đã thanh toán cho mỗi cửa hàng và ngày. Trả các nhóm có tổng ít nhất 100.",
+    "input": "#Receipts gồm receipt_id, store_id, paid_at, amount và status.",
+    "output": "store_id, paid_date kiểu date, daily_total. Sắp theo paid_date rồi store_id tăng dần.",
+    "constraints": [
+      "Chỉ tính status = 'paid'.",
+      "Nhiều hóa đơn bằng tiền vẫn được cộng riêng.",
+      "paid_at trong bộ dữ liệu này dùng cùng một múi giờ."
+    ],
+    "schema": "CREATE TABLE #Receipts (receipt_id int PRIMARY KEY, store_id int NOT NULL, paid_at datetime2 NOT NULL, amount int NOT NULL, status varchar(12) NOT NULL);",
+    "dataset": "INSERT #Receipts VALUES (1,10,'2026-03-01T09:15:00',50,'paid'), (2,10,'2026-03-01T10:00:00',50,'paid'), (3,10,'2026-03-02T09:00:00',70,'paid'), (4,20,'2026-03-01T12:00:00',110,'paid'), (5,10,'2026-03-02T10:00:00',80,'void');",
+    "expected": "store_id | paid_date  | daily_total\n10       | 2026-03-01 | 100\n20       | 2026-03-01 | 110",
+    "examples": [
+      {
+        "input": "Cửa hàng 10 ngày 01 có hai hóa đơn 50.",
+        "output": "daily_total = 100",
+        "explanation": "Ngưỡng lấy ≥ 100, không dùng SUM DISTINCT."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Cửa hàng 10 ngày 02 có paid 70 và void 80.",
+        "output": "Không có hàng ngày 02.",
+        "explanation": "Hóa đơn hủy bị lọc trước tổng hợp."
+      }
+    ],
+    "starter": ";WITH Daily AS (\n    SELECT store_id, CAST(paid_at AS date) AS paid_date\n    FROM #Receipts\n)\nSELECT * FROM Daily;\n",
+    "hint": "Đưa CAST(paid_at AS date) vào nhóm, sau đó áp ngưỡng trên tổng.",
+    "solution": ";WITH Daily AS (\n    SELECT store_id, CAST(paid_at AS date) AS paid_date, SUM(amount) AS daily_total\n    FROM #Receipts\n    WHERE status = 'paid'\n    GROUP BY store_id, CAST(paid_at AS date)\n)\nSELECT store_id, paid_date, daily_total\nFROM Daily\nWHERE daily_total >= 100\nORDER BY paid_date, store_id;",
+    "explanation": "Lọc hóa đơn rồi tổng hợp tại grain cửa hàng/ngày. CTE đặt tên cho kết quả; mức tổng được lọc ở truy vấn ngoài.",
+    "complexity": "Đọc các hàng phù hợp và gom nhóm, sau đó sắp các nhóm được trả.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "latest-payment",
+    "kind": "sql",
+    "title": "Thanh toán mới nhất mỗi đơn",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "ROW_NUMBER",
+      "Window",
+      "Tie-breaker"
+    ],
+    "minutes": 20,
+    "description": "Chọn đúng một thanh toán mới nhất cho mỗi đơn có giao dịch. Nếu bằng processed_at, chọn ID cao hơn.",
+    "input": "#Payments có khóa payment_id, order_id và processed_at.",
+    "output": "order_id, payment_id, amount. Sắp theo order_id tăng dần.",
+    "constraints": [
+      "Chỉ giữ các đơn xuất hiện trong #Payments.",
+      "Tie-breaker là payment_id giảm dần."
+    ],
+    "schema": "CREATE TABLE #Payments (payment_id int PRIMARY KEY, order_id int NOT NULL, processed_at datetime2 NOT NULL, amount int NOT NULL);",
+    "dataset": "INSERT #Payments VALUES (5,201,'2026-03-01T10:00:00',40), (6,201,'2026-03-01T10:00:00',60), (7,201,'2026-02-28T10:00:00',99), (8,202,'2026-03-02T08:00:00',80);",
+    "expected": "order_id | payment_id | amount\n201      | 6          | 60\n202      | 8          | 80",
+    "examples": [
+      {
+        "input": "Đơn 201 có ID 5 và 6 cùng thời điểm, ID 7 ở ngày trước.",
+        "output": "Chọn ID 6.",
+        "explanation": "Dùng thời điểm trước, ID chỉ phân định khi bằng nhau."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Một đơn có đúng một giao dịch.",
+        "output": "Giao dịch đó xuất hiện một lần.",
+        "explanation": "Một partition có một hàng."
+      }
+    ],
+    "starter": "SELECT order_id, payment_id, amount\nFROM #Payments;\n",
+    "hint": "ROW_NUMBER theo từng order_id cần hai cột sắp xếp.",
+    "solution": ";WITH Ranked AS (\n    SELECT order_id, payment_id, amount,\n           ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY processed_at DESC, payment_id DESC) AS rn\n    FROM #Payments\n)\nSELECT order_id, payment_id, amount\nFROM Ranked\nWHERE rn = 1\nORDER BY order_id;",
+    "explanation": "ROW_NUMBER chọn duy nhất một hàng trong mỗi đơn, và sắp cuối theo hợp đồng đầu ra.",
+    "complexity": "Window cần thứ tự theo đơn và hai khóa phân hạng. Index cùng thứ tự có thể giảm việc sắp xếp.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "unassigned-tickets",
+    "kind": "sql",
+    "title": "Phiếu chưa từng được phân công",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "NOT EXISTS",
+      "NULL",
+      "Anti join"
+    ],
+    "minutes": 17,
+    "description": "Tìm phiếu không có bản ghi phân công cho một người cụ thể. Bản ghi nháp có agent_id NULL không được tính là đã phân công. Dataset chứa một dòng nháp chưa có ticket_id.",
+    "input": "#Tickets và #Assignments. ticket_id và agent_id trong #Assignments có thể NULL.",
+    "output": "ticket_id, title. Thứ tự hàng tùy ý.",
+    "constraints": [
+      "Phiếu chỉ có bản ghi nháp vẫn phải xuất hiện.",
+      "Dòng phân công chưa gắn phiếu không tác động phiếu khác."
+    ],
+    "schema": "CREATE TABLE #Tickets (id int PRIMARY KEY, title nvarchar(45) NOT NULL);\nCREATE TABLE #Assignments (id int PRIMARY KEY, ticket_id int NULL, agent_id int NULL);",
+    "dataset": "INSERT #Tickets VALUES (1,N'Kết nối'), (2,N'In báo cáo'), (3,N'Đổi mật khẩu');\nINSERT #Assignments VALUES (1,1,88), (2,2,NULL), (3,NULL,90);",
+    "expected": "ticket_id | title\n2         | In báo cáo\n3         | Đổi mật khẩu",
+    "examples": [
+      {
+        "input": "Phiếu 2 có một dòng với agent_id NULL.",
+        "output": "Phiếu 2 xuất hiện.",
+        "explanation": "Dòng nháp chưa phân cho người xử lý."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Có phân công với ticket_id NULL và agent_id hợp lệ.",
+        "output": "Không phiếu nào bị loại chỉ vì dòng này.",
+        "explanation": "NULL trong subquery dễ làm NOT IN sai nghĩa."
+      }
+    ],
+    "starter": "SELECT t.id AS ticket_id, t.title\nFROM #Tickets AS t;\n",
+    "hint": "Kiểm tra không có hàng phù hợp bằng NOT EXISTS, với agent_id IS NOT NULL.",
+    "solution": "SELECT t.id AS ticket_id, t.title\nFROM #Tickets AS t\nWHERE NOT EXISTS (\n    SELECT 1\n    FROM #Assignments AS a\n    WHERE a.ticket_id = t.id AND a.agent_id IS NOT NULL\n);",
+    "explanation": "Chỉ loại phiếu khi tồn tại một khóa ticket bằng phiếu hiện tại và đã có agent. So sánh với khóa NULL không tạo match.",
+    "complexity": "Anti semi join theo khóa ticket. Có thể hỗ trợ bằng index khóa ticket với predicate tương ứng.",
+    "ordered": false,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "product-sales",
+    "kind": "sql",
+    "title": "Đơn trong tháng và chỉ mục",
+    "difficulty": "hard",
+    "topic": "sql",
+    "tags": [
+      "SARGable",
+      "Date range",
+      "Index"
+    ],
+    "minutes": 22,
+    "description": "Trả các đơn đã giao thuộc cửa hàng 8 trong tháng 3/2026. Viết điều kiện thời gian để SQL Server có thể dùng khoảng tìm kiếm trên chỉ mục đề xuất.",
+    "input": "#Shipments, chỉ mục IX_Shipments_Store_Shipped trên (store_id, shipped_at). Thời điểm lưu UTC.",
+    "output": "id, shipped_at, total. Sắp theo shipped_at rồi id tăng dần.",
+    "constraints": [
+      "Khoảng nửa mở từ 2026-03-01T00:00:00 tới trước 2026-04-01T00:00:00.",
+      "Giữ chính xác phần lẻ giây. Không bọc shipped_at trong hàm khi lọc."
+    ],
+    "schema": "CREATE TABLE #Shipments (id int PRIMARY KEY, store_id int NOT NULL, shipped_at datetime2 NOT NULL, total int NOT NULL);\nCREATE INDEX IX_Shipments_Store_Shipped ON #Shipments(store_id, shipped_at);",
+    "dataset": "INSERT #Shipments VALUES (1,8,'2026-02-28T23:59:59',10), (2,8,'2026-03-01T00:00:00',20), (3,8,'2026-03-31T23:59:59.9000000',30), (4,8,'2026-04-01T00:00:00',40), (5,9,'2026-03-10T10:00:00',50);",
+    "expected": "id | shipped_at                  | total\n2  | 2026-03-01T00:00:00.0000000 | 20\n3  | 2026-03-31T23:59:59.9000000 | 30",
+    "examples": [
+      {
+        "input": "Đơn lúc đúng 00:00 ngày 01/04.",
+        "output": "Không xuất hiện.",
+        "explanation": "Cận trên của khoảng là exclusive."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Đơn ngày 31/03 có phần lẻ giây .9000000.",
+        "output": "Xuất hiện.",
+        "explanation": "Không cần quy ước 23:59:59 là mốc cuối ngày."
+      }
+    ],
+    "starter": "SELECT id, shipped_at, total\nFROM #Shipments\nWHERE store_id = 8;\n",
+    "hint": "So sánh trực tiếp cột timestamp với hai giới hạn cùng kiểu.",
+    "solution": "DECLARE @start datetime2 = '2026-03-01T00:00:00';\nDECLARE @end datetime2 = '2026-04-01T00:00:00';\nSELECT id, shipped_at, total\nFROM #Shipments\nWHERE store_id = 8 AND shipped_at >= @start AND shipped_at < @end\nORDER BY shipped_at, id;",
+    "explanation": "Cột store_id dùng equality và shipped_at dùng range ở cột kế. Optimizer có thể chọn seek hoặc scan tùy dữ liệu, thống kê và số hàng dự kiến.",
+    "complexity": "Xem actual plan và logical reads trên dữ liệu đại diện trước khi kết luận hiệu năng.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  }
+]

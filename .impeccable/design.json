@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-25T15:19:28.933Z",
+  "title": "Design System · .NET Interview Practice",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Indigo hành động"
+      },
+      "page": {
+        "role": "neutral",
+        "displayName": "Slate nền trang"
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Trắng bề mặt"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Tiêu đề trang",
+        "purpose": "Tên màn hình"
+      },
+      "body": {
+        "displayName": "Văn bản",
+        "purpose": "Đề bài và hướng dẫn"
+      },
+      "code": {
+        "displayName": "Mã",
+        "purpose": "Đoạn mã và ví dụ"
+      }
+    },
+    "shadows": [
+      {
+        "name": "dialog",
+        "value": "0 14px 45px #131b3b2b",
+        "purpose": "Hộp thoại trên backdrop"
+      }
+    ],
+    "motion": [
+      {
+        "name": "controls",
+        "value": "140ms ease",
+        "purpose": "Đổi màu cho trạng thái tương tác"
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "rail",
+        "value": "860px"
+      },
+      {
+        "name": "stack",
+        "value": "670px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Nút chính",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Nộp câu trả lời",
+      "html": "<button class=\"ds-button-primary\" type=\"button\">Nộp câu trả lời</button>",
+      "css": ".ds-button-primary { border: 1px solid #4f46e5; border-radius: 8px; min-height: 41px; padding: 8px 12px; background: #4f46e5; color: #fff; font: 575 .8125rem/1.25 \"Lexend Variable\",sans-serif; cursor: pointer; } .ds-button-primary:hover { background: #4338ca; } .ds-button-primary:disabled { background: #f0f2f6; color: #596479; } .ds-button-primary:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Nút phụ",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Lưu nháp",
+      "html": "<button class=\"ds-button-secondary\" type=\"button\">Lưu nháp</button>",
+      "css": ".ds-button-secondary { border: 1px solid #dce3ed; border-radius: 8px; min-height: 41px; padding: 8px 12px; background: #fff; color: #2d3954; font: 575 .8125rem/1.25 \"Lexend Variable\",sans-serif; cursor: pointer; } .ds-button-secondary:hover { background: #f7f8fd; } .ds-button-secondary:disabled { background: #f0f2f6; color: #596479; } .ds-button-secondary:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Nút gọn",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Đánh dấu",
+      "html": "<button class=\"ds-button-quiet\" type=\"button\">Đánh dấu</button>",
+      "css": ".ds-button-quiet { border: 1px solid transparent; border-radius: 8px; min-height: 41px; padding: 8px 12px; background: transparent; color: #414b68; font: 575 .8125rem/1.25 \"Lexend Variable\",sans-serif; cursor: pointer; } .ds-button-quiet:hover { background: #eceefe; } .ds-button-quiet:disabled { background: #f0f2f6; color: #596479; } .ds-button-quiet:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Nút xác nhận xóa",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Xóa ghi chú",
+      "html": "<button class=\"ds-button-danger\" type=\"button\">Xóa ghi chú</button>",
+      "css": ".ds-button-danger { border: 1px solid #b42337; border-radius: 8px; min-height: 41px; padding: 8px 12px; background: #b42337; color: #fff; font: 575 .8125rem/1.25 \"Lexend Variable\",sans-serif; cursor: pointer; } .ds-button-danger:hover { background: #941d2f; } .ds-button-danger:disabled { background: #f0f2f6; color: #596479; } .ds-button-danger:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Ô nhập",
+      "kind": "input",
+      "refersTo": "text-field",
+      "description": "Nhận dữ liệu lọc hoặc biểu mẫu",
+      "html": "<input class=\"ds-text-field\" aria-label=\"Từ khóa\" placeholder=\"Tìm câu hỏi\">",
+      "css": ".ds-text-field { min-height: 42px; padding: 8px 10px; border: 1px solid #dbe3ee; border-radius: 8px; color: #0f172a; background: #fff; } .ds-text-field:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Điều hướng hiện tại",
+      "kind": "nav",
+      "refersTo": "active-nav",
+      "description": "Hiển thị trang đang mở",
+      "html": "<a class=\"ds-active-nav\" aria-current=\"page\" href=\"/\">Tổng quan</a>",
+      "css": ".ds-active-nav { display: block; padding: 9px 10px; color: #3833a9; background: #eceefe; border-radius: 8px; text-decoration: none; font-weight: 615; } .ds-active-nav:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Nhãn chủ đề",
+      "kind": "chip",
+      "refersTo": "topic-badge",
+      "description": "Phân biệt chủ đề bằng màu và chữ",
+      "html": "<span class=\"ds-topic-badge\">ASP.NET Core</span>",
+      "css": ".ds-topic-badge { display: inline-flex; border-radius: 6px; padding: 4px 8px; background: #e8edff; color: #304eb5; font-size: .71875rem; } .ds-topic-badge:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    },
+    {
+      "name": "Panel nội dung",
+      "kind": "card",
+      "refersTo": "content-panel",
+      "description": "Chứa đề bài hoặc dữ liệu liên quan",
+      "html": "<section class=\"ds-content-panel\"><strong>Câu hỏi</strong></section>",
+      "css": ".ds-content-panel { padding: 22px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff; color: #0f172a; } .ds-content-panel:focus-visible { outline: 2px solid #5349e7; outline-offset: 3px; }"
+    }
+  ],
+  "narrative": {
+    "overview": "Giao diện sáng cho công cụ học .NET. Bề mặt trắng giữ đề bài và nội dung đang viết dễ quét. Đoạn mã đi cùng đề ở nơi giúp người học bắt đầu thao tác.",
+    "keyCharacteristics": [
+      "Giao diện sáng",
+      "Nhãn trạng thái bằng chữ",
+      "Editor thích ứng theo khung"
+    ],
+    "dos": [
+      "Dùng nhãn chữ cùng màu trạng thái.",
+      "Giữ focus thấy rõ trên cả bề mặt sáng và vùng bắt đầu luyện indigo.",
+      "Giữ số liệu từ hoạt động đã lưu và hiện trạng thái trống khi chưa có dữ liệu."
+    ]
+  }
+}
