@@ -46,17 +46,17 @@ try {
     }
     for (const mode of ['due','wrong','weak']) await send(client,'/study-sessions','POST',{id:randomUUID(),mode,minutes:10},[422])
     await send(client,'/study-sessions','POST',{id:randomUUID(),mode:'quiz',minutes:6},[400])
-    const body = {id:randomUUID(),mode:'quiz',minutes:10,topic:'sql'}
+    const body = {id:randomUUID(),mode:'quiz',minutes:30,topic:'sql'}
     const [a,b] = await Promise.all([0,1].map(()=>send(client,'/study-sessions','POST',body)))
     assert.deepEqual(a,b); session = a
     await send(peer.request,'/study-sessions/'+a.id,'GET',undefined,[404])
     await send(peer.request,'/study-sessions/'+a.id+'/finish','POST',undefined,[404])
-    assert.equal(a.items[0].slug,'sql-count-null')
+    assert(a.items.some(item=>item.slug==='sql-count-null'))
     const q = await send(client,'/questions/sql-count-null')
     assert.equal(q.choices.vi.length,3); assert(!JSON.stringify(q).includes('correctIndex'))
   })
   await check('quiz in real browser, persistent session, separate score, review after a mistake', async () => {
-    await page.goto('/phien-hoc/'+session.id)
+    await page.goto('/phien-hoc/'+session.id+'?cau='+session.items.findIndex(item=>item.slug==='sql-count-null'))
     const radio = page.getByRole('radio', {name:'3 và 0',exact:true})
     await radio.check()
     await page.getByRole('button',{name:'Lưu nháp',exact:true}).click()
@@ -73,6 +73,7 @@ try {
     for (const rated of ratings) {
       assert.equal(rated.question.card.due,due); assert.equal(rated.correct,false)
     }
+    if(session.items.length > 1) await send(client,'/study-sessions/'+session.id+'/finish','POST')
     await page.getByRole('link',{name:'Tiếp tục phiên học'}).click()
     await page.getByRole('heading',{name:'Tổng kết phiên học'}).waitFor()
     await page.getByRole('link',{name:'Tạo phiên mới'}).waitFor()

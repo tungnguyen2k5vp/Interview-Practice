@@ -1,6 +1,6 @@
 # 04. .NET Interview Practice
 
-Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 58 câu Việt–Anh, 11 chủ đề, 9 bài C#, 9 bài T-SQL và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
+Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 94 câu Việt–Anh, 11 chủ đề, 11 bài C#, 11 bài T-SQL và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
 
 ## Học và theo dõi tiến độ
 
@@ -74,7 +74,7 @@ Backend dùng Minimal APIs và EF Core. Cookie của Identity xác định tài 
 
 ## Thêm hoặc sửa nội dung
 
-- Đề mới dùng slug ổn định. Hai tệp server/Content/questions.json và server/Content/questions-batch-02.json được seed theo slug. Quản trị hỗ trợ tạo, xem trước, nhập JSON tối đa 20 câu thành nháp, phát hiện trùng, xuất JSON theo câu, sửa và xuất bản phiên bản mới.
+- Đề mới dùng slug ổn định. Catalog nạp questions.json và các module questions-batch-*.json trong server/Content, thêm các slug chưa có. Bộ bài thực hành đọc exercises.json và exercises-batch-*.json. Quản trị hỗ trợ tạo, xem trước, nhập JSON tối đa 20 câu thành nháp, phát hiện trùng, xuất JSON theo câu, sửa và xuất bản phiên bản mới.
 - Sửa câu hỏi, gợi ý, nguồn, đáp án và rubric qua Quản trị. Lưu nháp tạo phiên bản mới. Xuất bản mới thay phiên bản hiển thị. Attempt và phiên mock đã tạo tiếp tục tham chiếu phiên bản cũ.
 - Khi sửa đề, lời giải hoặc dữ liệu của bài tập, thêm bản ghi cùng slug với version tăng trong server/Content/exercises.json và giữ bản cũ. Tăng testVersion khi thay test công khai hoặc dataset. Nháp cũ có thể mở qua ?version= với phiên bản đã lưu.
 - Ngày kiểm tra nguồn ghi trong metadata. Tài liệu tham khảo và bốn tiêu chí rubric xuất hiện khi người học mở đáp án. Phần nội dung được tự biên soạn.
@@ -88,7 +88,7 @@ dotnet build server --no-restore
 npm.cmd run test:content --prefix web
 ~~~
 
-test:content kiểm định 58 bản ghi câu hỏi, biên dịch/chạy 37 ví dụ và test bài C#, 3 đoạn mã trong batch câu hỏi mới, 9 truy vấn T-SQL cùng snapshot bảng mẫu. Cần quyền truy cập SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
+test:content kiểm định 94 bản ghi câu hỏi, 52 bài vận dụng và 22 bài thực hành. 97 ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
 
 Trên Windows, sau khi build frontend, chạy các lệnh sau từ thư mục dự án. Hai lượt QA dùng Chrome đã cài, cơ sở dữ liệu InterviewPractice_QA, tài khoản thử nghiệm và tiến trình loopback tạm. Lần chạy sau phải bắt đầu sau khi lần trước đã kết thúc.
 

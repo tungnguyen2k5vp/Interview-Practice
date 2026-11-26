@@ -203,9 +203,10 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
 
     public async Task SeedAsync(CancellationToken ct)
     {
-        var path = Path.Combine(environment.ContentRootPath, "Content", "questions.json");
-        var items = DataJson.Read<SeedQuestion[]>(await File.ReadAllTextAsync(path, ct))
-            .Concat(DataJson.Read<SeedQuestion[]>(await File.ReadAllTextAsync(Path.Combine(environment.ContentRootPath, "Content", "questions-batch-02.json"), ct)));
+        var dir = Path.Combine(environment.ContentRootPath, "Content");
+        var files = Directory.GetFiles(dir, "questions-batch-*.json").Order(StringComparer.Ordinal).Prepend(Path.Combine(dir, "questions.json"));
+        var items = new List<SeedQuestion>();
+        foreach (var file in files) items.AddRange(DataJson.Read<SeedQuestion[]>(await File.ReadAllTextAsync(file, ct)));
         var existing = (await db.Questions.Select(x => x.Slug).ToArrayAsync(ct)).ToHashSet(StringComparer.Ordinal);
         foreach (var item in items.Where(x => !existing.Contains(x.Slug)))
         {

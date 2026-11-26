@@ -57,7 +57,9 @@ internal sealed class ExerciseCatalog
     {
         this.runner = runner;
         previews = DataJson.Read<Dictionary<string, PreviewTable[]>>(File.ReadAllText(Path.Combine(env.ContentRootPath, "Content", "sql-preview.json")));
-        _items = DataJson.Read<ExerciseContent[]>(File.ReadAllText(Path.Combine(env.ContentRootPath, "Content", "exercises.json")));
+        var dir = Path.Combine(env.ContentRootPath, "Content");
+        _items = Directory.GetFiles(dir, "exercises-batch-*.json").Order(StringComparer.Ordinal).Prepend(Path.Combine(dir, "exercises.json"))
+            .SelectMany(file => DataJson.Read<ExerciseContent[]>(File.ReadAllText(file))).ToArray();
         if (_items.Select(x => (x.Slug, x.Version)).Distinct().Count() != _items.Length ||
             _items.Any(x => x.Version < 1 || x.TestVersion < 1 || x.Kind is not ("coding" or "sql")))
             throw new InvalidDataException("Mỗi phiên bản bài tập phải có khóa duy nhất và thông số kiểm thử.");

@@ -1,0 +1,207 @@
+[
+  {
+    "slug": "overlapping-bookings",
+    "kind": "coding",
+    "title": "Kiểm tra hai lịch đặt phòng có giao nhau",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "interval",
+      "boundary"
+    ],
+    "minutes": 12,
+    "description": "Cho hai lượt đặt cùng một phòng. Khoảng thời gian là nửa mở [start,end). Trả về liệu hai lượt có chiếm phòng cùng lúc hay không.",
+    "input": "Bốn số nguyên startA, endA, startB, endB, tính theo phút.",
+    "output": "true khi có ít nhất một thời điểm thuộc cả hai khoảng.",
+    "constraints": [
+      "0 ≤ start < end ≤ 1440 cho mỗi lượt.",
+      "Hai lượt đến theo thứ tự bất kỳ. Không sửa đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "60, 90, 90, 120",
+        "output": "false",
+        "explanation": "Lượt tiếp theo đến đúng lúc lượt trước rời phòng."
+      }
+    ],
+    "tests": [
+      {
+        "input": "50, 100, 60, 75",
+        "output": "true",
+        "explanation": "Một khoảng chứa khoảng kia."
+      },
+      {
+        "input": "60, 90, 59, 61",
+        "output": "true",
+        "explanation": "Lượt B bắt đầu trước A, giao đúng một phút."
+      },
+      {
+        "input": "70, 90, 45, 60",
+        "output": "false",
+        "explanation": "Hai khoảng rời nhau theo thứ tự ngược."
+      },
+      {
+        "input": "0, 1440, 0, 1440",
+        "output": "true",
+        "explanation": "Hai lịch trùng hoàn toàn."
+      }
+    ],
+    "starter": "public static bool Overlap(int startA, int endA, int startB, int endB)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "So sánh thời điểm bắt đầu muộn hơn với thời điểm kết thúc sớm hơn.",
+    "solution": "public static bool Overlap(int startA, int endA, int startB, int endB)\n{\n    return Math.Max(startA, startB) < Math.Min(endA, endB);\n}",
+    "explanation": "Phần giao bắt đầu ở max(startA,startB) và kết thúc tại min(endA,endB). Nó có độ dài dương khi bất đẳng thức nghiêm ngặt đúng. Dùng <= sẽ đánh nhầm các lượt chỉ chạm biên.",
+    "complexity": "O(1) thời gian và bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "reconcile-balances",
+    "kind": "coding",
+    "title": "Đối soát số dư theo tài khoản",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "aggregation",
+      "overflow"
+    ],
+    "minutes": 18,
+    "description": "Tính số dư cuối ngày của các tài khoản được đánh số từ 0. Mỗi dòng nhập là một thay đổi có dấu. Tài khoản không phát sinh giao dịch phải có số dư 0.",
+    "input": "count, mảng accountIds và mảng changes cùng chiều dài. Mỗi cặp cùng index là một giao dịch.",
+    "output": "Mảng long[] có count số dư theo thứ tự mã tài khoản.",
+    "constraints": [
+      "0 ≤ count ≤ 100000 và có tối đa 100000 giao dịch.",
+      "Mọi mã tài khoản thuộc [0,count). Mỗi thay đổi nằm trong miền int.",
+      "Số dư có thể vượt giới hạn int. Tài khoản được phép âm."
+    ],
+    "examples": [
+      {
+        "input": "3, [2,0,2], [10,7,-3]",
+        "output": "[7,0,7]",
+        "explanation": "Tài khoản 1 chưa phát sinh. Tài khoản 2 nhận 10 rồi trừ 3."
+      }
+    ],
+    "tests": [
+      {
+        "input": "2, [], []",
+        "output": "[0,0]",
+        "explanation": "Giữ cả tài khoản chưa hoạt động."
+      },
+      {
+        "input": "1, [0,0], [2147483647,1]",
+        "output": "[2147483648]",
+        "explanation": "Cộng vào long từ đầu để tránh tràn int."
+      },
+      {
+        "input": "2, [1,1,0], [-5,2,-1]",
+        "output": "[-1,-3]",
+        "explanation": "Hai số dư âm hợp lệ."
+      },
+      {
+        "input": "0, [], []",
+        "output": "[]",
+        "explanation": "Không có tài khoản."
+      }
+    ],
+    "starter": "public static long[] ClosingBalances(int count, int[] accountIds, int[] changes)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Mã tài khoản đã liên tục. Dùng chính mã làm index trên mảng đầu ra.",
+    "solution": "public static long[] ClosingBalances(int count, int[] accountIds, int[] changes)\n{\n    var balances = new long[count];\n    for (int i = 0; i < changes.Length; i++)\n        balances[accountIds[i]] += changes[i];\n    return balances;\n}",
+    "explanation": "Khởi tạo count số dư 0, cộng từng thay đổi vào ô long tương ứng. Duyệt các tài khoản chỉ có giao dịch rồi trả Values sẽ làm thiếu tài khoản trống hoặc sai thứ tự.",
+    "complexity": "O(count + số giao dịch) thời gian, O(count) cho kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "stock-threshold-crossings",
+    "kind": "sql",
+    "title": "Lần tồn kho chuyển xuống dưới ngưỡng",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "LAG",
+      "partition"
+    ],
+    "minutes": 18,
+    "description": "Tìm các lần tồn kho từ mức ít nhất 5 chuyển xuống mức dưới 5. Mỗi mặt hàng có chuỗi quan sát riêng. Bản ghi đầu tiên của mỗi mặt hàng chưa có tiền nhiệm.",
+    "input": "#Stock(sku, seq, qty) với khóa (sku, seq), seq xác định thứ tự quan sát.",
+    "output": "sku, seq cho từng lần vượt ngưỡng theo chiều giảm, sắp theo sku rồi seq.",
+    "constraints": [
+      "Không tính một bản ghi dưới ngưỡng nếu bản ghi trước cũng dưới ngưỡng.",
+      "Không coi lịch sử của mặt hàng khác là tiền nhiệm.",
+      "seq có thể không liên tục."
+    ],
+    "schema": "CREATE TABLE #Stock(sku int NOT NULL, seq int NOT NULL, qty int NOT NULL, PRIMARY KEY(sku,seq));",
+    "dataset": "INSERT #Stock VALUES (1,1,6),(1,3,4),(1,4,2),(1,7,5),(1,8,0),(2,1,1),(2,4,8),(2,6,5),(3,2,6),(3,9,4);",
+    "expected": "sku | seq\n1 | 3\n1 | 8\n3 | 9",
+    "ordered": true,
+    "examples": [
+      {
+        "input": "Mặt hàng 1 có qty 6,4,2,5,0.",
+        "output": "(1,3), (1,8)",
+        "explanation": "Hai lần xuống ngưỡng sau khi bằng hoặc trên 5."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Mặt hàng 2 bắt đầu ở 1, rồi lên 8, về đúng 5.",
+        "output": "Không có dòng cho mặt hàng 2.",
+        "explanation": "Quan sát đầu chưa đủ căn cứ; đúng 5 vẫn trong ngưỡng."
+      }
+    ],
+    "starter": "SELECT sku, seq, qty\nFROM #Stock\nORDER BY sku, seq;",
+    "hint": "Dùng LAG trong truy vấn con, tính trên toàn chuỗi trước khi lọc.",
+    "solution": "WITH observed AS (\n    SELECT sku, seq, qty, LAG(qty) OVER(PARTITION BY sku ORDER BY seq) AS previous_qty\n    FROM #Stock\n)\nSELECT sku, seq FROM observed\nWHERE previous_qty >= 5 AND qty < 5\nORDER BY sku, seq;",
+    "explanation": "Window theo từng sku giữ tiền nhiệm thật cả khi seq bị khuyết. WHERE trên truy vấn ngoài loại hàng đầu và các lần liên tiếp đã ở dưới ngưỡng.",
+    "complexity": "Có thể đọc theo thứ tự khóa (sku,seq). Kiểm tra sort và số hàng thực tế qua execution plan.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "unbilled-work",
+    "kind": "sql",
+    "title": "Ca làm đủ điều kiện mà chưa xuất hóa đơn",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "NOT EXISTS",
+      "duplicates"
+    ],
+    "minutes": 12,
+    "description": "Liệt kê ca làm đã được duyệt và chưa có hóa đơn còn hiệu lực. Một ca có thể từng được lập nhiều hóa đơn, hóa đơn đã hủy không tính.",
+    "input": "#Shifts lưu cờ approved. #Bills lưu shift_id nullable và cờ voided.",
+    "output": "Một cột shift_id, mỗi ca đúng một lần, tăng dần theo mã.",
+    "constraints": [
+      "Chỉ approved=1 được xét.",
+      "Hóa đơn voided=0 ngăn xuất thêm.",
+      "Một hóa đơn chưa gắn ca có shift_id=NULL."
+    ],
+    "schema": "CREATE TABLE #Shifts(id int PRIMARY KEY, approved bit NOT NULL);\nCREATE TABLE #Bills(id int PRIMARY KEY, shift_id int NULL, voided bit NOT NULL);",
+    "dataset": "INSERT #Shifts VALUES (1,1),(2,1),(3,0),(4,1),(5,1);\nINSERT #Bills VALUES (10,1,1),(11,1,0),(12,2,1),(13,NULL,0),(14,4,0),(15,4,0);",
+    "expected": "shift_id\n2\n5",
+    "ordered": true,
+    "examples": [
+      {
+        "input": "Ca 2 chỉ có hóa đơn đã hủy.",
+        "output": "2",
+        "explanation": "Ca đã duyệt và vẫn có thể xuất hóa đơn."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Ca 1 có cả hóa đơn đã hủy lẫn còn hiệu lực, ca 5 chưa có hóa đơn.",
+        "output": "Giữ ca 5, loại ca 1.",
+        "explanation": "Chỉ cần một hóa đơn hiệu lực để loại ca."
+      }
+    ],
+    "starter": "SELECT s.id AS shift_id\nFROM #Shifts AS s\nORDER BY s.id;",
+    "hint": "Kiểm tra sự vắng mặt của hóa đơn hiệu lực khớp chính mã ca.",
+    "solution": "SELECT s.id AS shift_id\nFROM #Shifts AS s\nWHERE s.approved=1 AND NOT EXISTS (\n    SELECT 1 FROM #Bills AS b WHERE b.shift_id=s.id AND b.voided=0\n)\nORDER BY s.id;",
+    "explanation": "Anti-semi join loại ca có ít nhất một hóa đơn hiệu lực. Một shift_id NULL không khớp với mã ca nào. Hóa đơn trùng không nhân bản kết quả.",
+    "complexity": "Index theo (shift_id,voided) có thể hỗ trợ tìm hóa đơn khớp. Đánh giá chi phí bằng dữ liệu và plan thực tế.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  }
+]

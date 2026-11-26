@@ -1,5 +1,13 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 2 · Hai batch đã kiểm định
+
+Đã thêm 24 câu C#/LINQ, 12 câu T-SQL, hai bài C# và hai bài SQL. Ngân hàng có 94 câu chính trên 11 chủ đề, với 13 Intern, 19 Fresher, 42 Junior, 17 Middle và 3 Senior. 42 câu có đáp án lựa chọn trực tiếp, 52 câu có bài vận dụng gắn với lượt tự luận. Tổng số bài thực hành là 22 (11 C#, 11 SQL).
+
+Đã chạy toàn bộ 97 ca nội dung trên .NET 10 và SQL Server, đối chiếu preview với dataset thật và kiểm tra 67 URL nguồn HTTPS. Cả 36 đáp án mới đều được đối chiếu bằng kết quả thực thi độc lập. Kiểm tra cả hai ngôn ngữ cho đề trùng gần, khóa đáp án, slug, prerequisite và chu trình. Hai suite E2E của bản mở rộng đạt 21 và 22 nhóm.
+
+Còn 156 câu để đạt mốc 250. Cần thêm ít nhất 68 câu Intern/Fresher và 58 câu Junior. Các batch tiếp theo ưu tiên HTTP/ASP.NET Core, EF, kiến trúc và tình huống behavioral.
+
 ## V2 · Phase 1 đã kiểm chứng ngày 26/11/2026
 
 - 58 câu chính có đường kiểm chứng. Sáu câu có khóa quiz, 52 câu còn lại có tình huống vận dụng Việt–Anh chấm tại máy chủ. Đề mở được chụp theo phiên bản và xáo lựa chọn. Lượt tự luận, tự đánh giá, đánh giá AI, bài vận dụng và kết quả worker lưu riêng.

@@ -16,6 +16,6 @@ Trạng thái hợp lệ gồm queued, running, accepted, completed, compile_err
 
 ## Điều kiện vận hành
 
-Bản bàn giao để runner tắt. Docker daemon trên máy kiểm thử chưa chạy. Worker cần một môi trường dành riêng cho mã không tin cậy, quota CPU/RAM/PID/file/output/thời gian, mạng bị hạn chế và tài khoản quyền tối thiểu. Bộ chấm giữ expected output và hidden test ngoài vùng mã thí sinh đọc được. T-SQL cần database hoặc instance reset độc lập. API, SQL ứng dụng, secret và Docker socket phải ở ngoài môi trường chạy bài. Đặt cờ xác nhận cách ly sau khi kiểm thử các điều kiện này.
+Bản bàn giao để runner tắt. Đã mở Docker Desktop và xác nhận Linux Engine 29.4.3 bằng docker info. Worker cần một môi trường dành riêng cho mã không tin cậy, quota CPU/RAM/PID/file/output/thời gian, mạng bị hạn chế và tài khoản quyền tối thiểu. Bộ chấm giữ expected output và hidden test ngoài vùng mã thí sinh đọc được. T-SQL cần database hoặc instance reset độc lập. API, SQL ứng dụng, secret và Docker socket phải ở ngoài môi trường chạy bài. Đặt cờ xác nhận cách ly sau khi kiểm thử các điều kiện này.
 
 Repo đã kiểm thử trạng thái worker vắng mặt và validation phía gateway. Thực thi thật, so sánh hai submission, hủy tiến trình và giới hạn tài nguyên của worker còn chờ môi trường. [Giới hạn tài nguyên Docker](https://docs.docker.com/engine/containers/resource_constraints/)

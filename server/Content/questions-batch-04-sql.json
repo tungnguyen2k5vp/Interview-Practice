@@ -1,0 +1,714 @@
+[
+  {
+    "slug": "sql-anti-join-null",
+    "content": {
+      "title": "NOT IN với một giá trị NULL",
+      "topic": "sql",
+      "subtopic": "NOT IN với một giá trị NULL",
+      "tags": [
+        "NOT IN",
+        "NULL"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Có bao nhiêu mã vượt qua bộ lọc khi danh sách chặn chứa NULL?",
+      "englishPrompt": "How many IDs pass this filter when the blocked list contains NULL?",
+      "context": "Dịch vụ xuất file cần loại tài khoản đã bị chặn. Dữ liệu staging có một dòng thiếu mã.",
+      "code": "SELECT COUNT(*) FROM (VALUES (1),(2)) AS a(id)\nWHERE a.id NOT IN (SELECT b.id FROM (VALUES (2),(NULL)) AS b(id));",
+      "hint": "Tách các phép so sánh với 2 và với NULL.",
+      "nextHint": "Nhớ tập giá trị điều kiện mà WHERE giữ lại.",
+      "followUp": "Nếu a.id cũng nullable, hai cách viết coi mã không xác định như thế nào?",
+      "englishFollowUp": "If a.id is nullable too, how do the two formulations treat unknown IDs?",
+      "outline": [
+        "Nêu 0 bản ghi.",
+        "Phân tích UNKNOWN của mã 1.",
+        "Phân tích mã 2 đã có trong danh sách."
+      ],
+      "shortAnswer": "Kết quả 0. Với mã 1, phép so sánh với NULL là UNKNOWN. Mã 2 bị loại vì trùng.",
+      "explanation": "WHERE chỉ nhận TRUE. NOT EXISTS với điều kiện b.id=a.id chọn mã chưa khớp mà không để một NULL ở bảng chặn loại luôn các mã khác.",
+      "alternative": "Dùng NOT EXISTS khi nghiệp vụ là không có hàng khớp theo khóa.",
+      "trap": "Thấy không có giá trị bằng 1 rồi kết luận NOT IN cho TRUE.",
+      "rubric": [
+        "Nêu 0 bản ghi.",
+        "Phân tích UNKNOWN của mã 1.",
+        "Phân tích mã 2 đã có trong danh sách.",
+        "Dùng NOT EXISTS khi nghiệp vụ là không có hàng khớp theo khóa."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/in-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1",
+          "2",
+          "0"
+        ],
+        "en": [
+          "1",
+          "2",
+          "0"
+        ],
+        "correctIndex": 2
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-filter-null-side",
+    "content": {
+      "title": "Lọc phía phải sau LEFT JOIN",
+      "topic": "sql",
+      "subtopic": "Lọc phía phải sau LEFT JOIN",
+      "tags": [
+        "LEFT JOIN",
+        "WHERE"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Khách chưa thanh toán có còn được đếm khi lọc p.amount ở WHERE không?",
+      "englishPrompt": "Are customers without payments counted when p.amount is filtered in WHERE?",
+      "context": "Nhóm vận hành muốn giữ mọi khách, kể cả người không có lần trả tiền.",
+      "code": "SELECT COUNT(*) FROM (VALUES (1),(2)) c(id)\nLEFT JOIN (VALUES (1,50)) p(id,amount) ON p.id=c.id\nWHERE p.amount > 0;",
+      "hint": "Viết thủ công hàng của khách thứ hai sau JOIN.",
+      "nextHint": "So sánh NULL với số 0 ở bước WHERE.",
+      "followUp": "Nếu khách chỉ có khoản trả 0, chuyển điều kiện vào ON ảnh hưởng thế nào?",
+      "englishFollowUp": "How does moving the condition into ON affect a customer with only zero payments?",
+      "outline": [
+        "Xác định khách được giữ.",
+        "Giải thích hàng bù NULL.",
+        "Phân biệt vai trò ON và WHERE."
+      ],
+      "shortAnswer": "Chỉ còn một hàng, của khách 1. Hàng bù NULL của khách 2 không qua p.amount > 0.",
+      "explanation": "ON quyết định các cặp khớp. LEFT JOIN sinh hàng bù cho phía trái chưa khớp, rồi WHERE lọc kết quả. Để giữ tất cả khách, đặt điều kiện khoản trả hợp lệ trong ON.",
+      "alternative": "Dùng COUNT(p.id) trên mỗi khách khi cần số khoản trả hợp lệ.",
+      "trap": "Thấy LEFT JOIN và giả định mọi điều kiện sau JOIN đều giữ hàng bên trái.",
+      "rubric": [
+        "Xác định khách được giữ.",
+        "Giải thích hàng bù NULL.",
+        "Phân biệt vai trò ON và WHERE.",
+        "Dùng COUNT(p.id) trên mỗi khách khi cần số khoản trả hợp lệ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/performance/joins",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1",
+          "0",
+          "2"
+        ],
+        "en": [
+          "1",
+          "0",
+          "2"
+        ],
+        "correctIndex": 0
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-having-groups",
+    "content": {
+      "title": "Sàng nhóm hàng sau GROUP BY",
+      "topic": "sql",
+      "subtopic": "Sàng nhóm hàng sau GROUP BY",
+      "tags": [
+        "HAVING",
+        "GROUP BY"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Bao nhiêu người bán có tổng doanh số đạt ngưỡng 10?",
+      "englishPrompt": "How many sellers reach a grouped sales total of at least 10?",
+      "context": "Hệ thống thưởng tính theo tổng của mỗi người bán trong kỳ.",
+      "code": "SELECT COUNT(*) FROM (\n SELECT seller FROM (VALUES (1,6),(1,5),(2,9),(3,10)) s(seller,amount)\n GROUP BY seller HAVING SUM(amount)>=10\n) qualified;",
+      "hint": "Cộng riêng cho từng mã seller.",
+      "nextHint": "Kiểm tra ngưỡng có bao gồm đúng 10.",
+      "followUp": "Nếu trước hết cần bỏ giao dịch bị hủy, đặt bộ lọc trạng thái ở bước nào?",
+      "englishFollowUp": "Where would you exclude cancelled transactions before computing totals?",
+      "outline": [
+        "Tính đúng ba tổng.",
+        "Chọn người 1 và 3.",
+        "Phân biệt WHERE với HAVING."
+      ],
+      "shortAnswer": "Hai người bán đạt điều kiện. Người 1 có 11 và người 3 có 10.",
+      "explanation": "GROUP BY tạo nhóm trước khi HAVING xét tổng. Dùng WHERE amount >= 10 trước tổng sẽ loại hai dòng nhỏ của người 1 và thay đổi người đủ điều kiện.",
+      "alternative": "Lọc trạng thái giao dịch tại WHERE rồi mới tổng hợp.",
+      "trap": "Lọc từng giao dịch theo ngưỡng của cả nhóm.",
+      "rubric": [
+        "Tính đúng ba tổng.",
+        "Chọn người 1 và 3.",
+        "Phân biệt WHERE với HAVING.",
+        "Lọc trạng thái giao dịch tại WHERE rồi mới tổng hợp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/select-having-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1",
+          "2",
+          "3"
+        ],
+        "en": [
+          "1",
+          "2",
+          "3"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-union-all-count",
+    "content": {
+      "title": "Ghép hai luồng sự kiện bằng UNION ALL",
+      "topic": "sql",
+      "subtopic": "Ghép hai luồng sự kiện bằng UNION ALL",
+      "tags": [
+        "UNION ALL",
+        "duplicates"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Kết quả còn bao nhiêu dòng khi mã sự kiện trùng giữa hai luồng?",
+      "englishPrompt": "How many rows survive when the two event streams contain duplicate IDs?",
+      "context": "Báo cáo đối soát lưu mọi lần nhận sự kiện để điều tra retry.",
+      "code": "SELECT COUNT(*) FROM (\n SELECT id FROM (VALUES (4),(4)) a(id)\n UNION ALL\n SELECT id FROM (VALUES (4),(9)) b(id)\n) events;",
+      "hint": "Đếm riêng số hàng trong từng nhánh.",
+      "nextHint": "Đọc chính xác từ ALL.",
+      "followUp": "Nếu chỉ cần số mã sự kiện duy nhất thì bạn sẽ đổi truy vấn ra sao?",
+      "englishFollowUp": "How would you count unique event IDs instead of deliveries?",
+      "outline": [
+        "Đếm bốn lượt.",
+        "Giải thích bảo toàn bội số.",
+        "Phân biệt trùng toàn dòng và trùng khóa."
+      ],
+      "shortAnswer": "Có bốn hàng. UNION ALL giữ cả ba lần xuất hiện của mã 4 và một lần của mã 9.",
+      "explanation": "UNION yêu cầu loại dòng trùng theo toàn bộ cột chiếu. Nếu thêm timestamp, hai lần nhận cùng mã vẫn có thể thành hai dòng phân biệt. Cần xác định đúng danh tính nghiệp vụ.",
+      "alternative": "Dùng COUNT(DISTINCT id) khi yêu cầu đếm mã không NULL.",
+      "trap": "Dùng UNION như phép khử trùng theo id khi đang SELECT thêm nhiều cột.",
+      "rubric": [
+        "Đếm bốn lượt.",
+        "Giải thích bảo toàn bội số.",
+        "Phân biệt trùng toàn dòng và trùng khóa.",
+        "Dùng COUNT(DISTINCT id) khi yêu cầu đếm mã không NULL."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/set-operators-union-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "4",
+          "2",
+          "3"
+        ],
+        "en": [
+          "4",
+          "2",
+          "3"
+        ],
+        "correctIndex": 0
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-rank-gap",
+    "content": {
+      "title": "RANK và khoảng trống sau đồng hạng",
+      "topic": "sql",
+      "subtopic": "RANK và khoảng trống sau đồng hạng",
+      "tags": [
+        "RANK",
+        "DENSE_RANK"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Hạng của điểm 70 là bao nhiêu sau hai điểm 90 đồng hạng?",
+      "englishPrompt": "What rank does 70 receive after two scores of 90 tie for first place?",
+      "context": "Bảng xếp hạng thi yêu cầu người sau hai thí sinh dẫn đầu nhận hạng ba.",
+      "code": "SELECT place FROM (\n SELECT score, RANK() OVER (ORDER BY score DESC) AS place\n FROM (VALUES (90),(90),(70)) x(score)\n) ranked WHERE score=70;",
+      "hint": "Viết đủ ba vị trí theo thứ tự điểm.",
+      "nextHint": "Phân biệt số thí sinh trước với số mức điểm trước.",
+      "followUp": "Muốn hiển thị người đồng điểm theo id nhưng vẫn cùng hạng thì đặt id ở đâu?",
+      "englishFollowUp": "Where should ID be ordered to display ties consistently without breaking shared rank?",
+      "outline": [
+        "Đưa ra hạng 3.",
+        "Giải thích khoảng trống sau hòa.",
+        "So sánh với DENSE_RANK."
+      ],
+      "shortAnswer": "RANK cho các hạng 1,1,3 nên 70 đứng hạng 3.",
+      "explanation": "RANK tính theo số dòng đứng trước. DENSE_RANK đếm các mức điểm khác nhau nên sẽ cho 2. ROW_NUMBER cấp số khác nhau cho từng dòng, phải thêm khóa phụ nếu muốn tách hòa có quy tắc.",
+      "alternative": "Giữ id ở ORDER BY ngoài cùng để sắp thứ tự hiển thị.",
+      "trap": "Thêm id vào ORDER BY của RANK rồi vô tình phá điều kiện đồng hạng.",
+      "rubric": [
+        "Đưa ra hạng 3.",
+        "Giải thích khoảng trống sau hòa.",
+        "So sánh với DENSE_RANK.",
+        "Giữ id ở ORDER BY ngoài cùng để sắp thứ tự hiển thị."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/rank-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "window-order"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "3",
+          "1"
+        ],
+        "en": [
+          "2",
+          "3",
+          "1"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-lag-gap",
+    "content": {
+      "title": "Khoảng cách giữa hai lần đọc cảm biến",
+      "topic": "sql",
+      "subtopic": "Khoảng cách giữa hai lần đọc cảm biến",
+      "tags": [
+        "LAG",
+        "PARTITION BY"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Tại lần đọc thứ hai của thiết bị A, giá trị tăng bao nhiêu theo truy vấn?",
+      "englishPrompt": "At device A's second reading, what increase does this partitioned query return?",
+      "context": "Thiết bị A và B gửi số đo xen kẽ vào một bảng.",
+      "code": "SELECT val-prev FROM (\n SELECT dev,n,val,LAG(val) OVER(PARTITION BY dev ORDER BY n) AS prev\n FROM (VALUES ('A',1,10),('B',2,50),('A',3,16)) r(dev,n,val)\n) samples WHERE dev='A' AND n=3;",
+      "hint": "Tách chuỗi số đo của A ra khỏi B.",
+      "nextHint": "Xem WHERE đặt ở trong hay ngoài truy vấn window.",
+      "followUp": "Nếu hai số đo có cùng thời điểm, làm sao xác định bản ghi trước một cách lặp lại được?",
+      "englishFollowUp": "If two readings share a timestamp, how would you determine the predecessor consistently?",
+      "outline": [
+        "Xác định partition A.",
+        "Lấy đúng tiền nhiệm 10.",
+        "Tính 16-10."
+      ],
+      "shortAnswer": "Kết quả 6. Trong partition A, lần ngay trước giá trị 16 là 10.",
+      "explanation": "Window được tính trong truy vấn con trước khi lọc n=3 ở ngoài. Lọc chỉ giữ lần cuối trước khi tính LAG sẽ làm mất bản ghi tiền nhiệm.",
+      "alternative": "Thêm khóa thứ tự duy nhất như sequence của thiết bị khi timestamp trùng.",
+      "trap": "Bỏ PARTITION BY và trừ nhầm giá trị của thiết bị B.",
+      "rubric": [
+        "Xác định partition A.",
+        "Lấy đúng tiền nhiệm 10.",
+        "Tính 16-10.",
+        "Thêm khóa thứ tự duy nhất như sequence của thiết bị khi timestamp trùng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/lag-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "window-order"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "-34",
+          "16",
+          "6"
+        ],
+        "en": [
+          "-34",
+          "16",
+          "6"
+        ],
+        "correctIndex": 2
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-coalesce-aggregate",
+    "content": {
+      "title": "SUM trên tập rỗng và hàng mặc định",
+      "topic": "sql",
+      "subtopic": "SUM trên tập rỗng và hàng mặc định",
+      "tags": [
+        "SUM",
+        "COALESCE"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Khi không có giao dịch nào trong kỳ, tổng ở truy vấn trả giá trị gì?",
+      "englishPrompt": "Which total does this query return for a period with no qualifying transactions?",
+      "context": "Dashboard cần hiển thị doanh số 0 thay cho ô trống trong kỳ chưa bán hàng.",
+      "code": "SELECT COALESCE(SUM(v),0) FROM (VALUES (4),(5)) sales(v) WHERE v>100;",
+      "hint": "Xét SUM trước, COALESCE sau.",
+      "nextHint": "Phân biệt tập rỗng với tập có một bản ghi NULL.",
+      "followUp": "Muốn mọi cửa hàng có một dòng dù không có giao dịch, bảng dẫn nên là bảng nào?",
+      "englishFollowUp": "Which table should drive the query if every store must appear even with no sales?",
+      "outline": [
+        "Nêu đúng giá trị 0.",
+        "Chỉ ra SUM ban đầu là NULL.",
+        "Phân biệt đặt COALESCE trong và ngoài SUM."
+      ],
+      "shortAnswer": "Trả một dòng có giá trị 0. SUM trên tập rỗng là NULL và COALESCE đổi nó thành 0.",
+      "explanation": "Aggregate không GROUP BY vẫn có một hàng kết quả. Nếu truy vấn group theo cửa hàng và không có hàng nào, COALESCE trong SELECT không tạo thêm nhóm bị thiếu.",
+      "alternative": "Dùng danh mục cửa hàng làm phía giữ của LEFT JOIN khi cần đủ cửa hàng.",
+      "trap": "Viết SUM(COALESCE(v,0)) rồi cho rằng cách đó xử lý được cả tập đầu vào rỗng.",
+      "rubric": [
+        "Nêu đúng giá trị 0.",
+        "Chỉ ra SUM ban đầu là NULL.",
+        "Phân biệt đặt COALESCE trong và ngoài SUM.",
+        "Dùng danh mục cửa hàng làm phía giữ của LEFT JOIN khi cần đủ cửa hàng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/sum-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "NULL",
+          "0",
+          "9"
+        ],
+        "en": [
+          "NULL",
+          "0",
+          "9"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-keyset-tie",
+    "content": {
+      "title": "Trang tiếp theo khi nhiều hàng cùng thời điểm",
+      "topic": "sql",
+      "subtopic": "Trang tiếp theo khi nhiều hàng cùng thời điểm",
+      "tags": [
+        "keyset",
+        "pagination"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Sau con trỏ (10,2), khóa nào đi đầu trang tiếp theo?",
+      "englishPrompt": "After cursor (10,2), which ID starts the next page?",
+      "context": "Timeline sắp bởi tick rồi id. Hai bản ghi đầu có cùng tick.",
+      "code": "SELECT TOP(1) id FROM (VALUES (10,1),(10,2),(10,3),(11,4)) f(tick,id)\nWHERE tick>10 OR (tick=10 AND id>2)\nORDER BY tick,id;",
+      "hint": "Viết thứ tự từ điển của các cặp.",
+      "nextHint": "Xét nhánh tick bằng đúng tick của cursor.",
+      "followUp": "Nếu sắp tick giảm dần và id tăng dần, phần nào của predicate cần đảo?",
+      "englishFollowUp": "If tick is descending but ID is ascending, which comparison changes direction?",
+      "outline": [
+        "Chọn id 3.",
+        "Giải thích điều kiện khi tick hòa.",
+        "Phân biệt con trỏ mở và biên đóng."
+      ],
+      "shortAnswer": "Bản ghi (10,3) đứng sau (10,2) và trước (11,4), nên id là 3.",
+      "explanation": "Cursor phải mang đủ bộ khóa dùng để sắp. Chỉ dùng tick>10 sẽ bỏ mất id 3. Chỉ dùng id>2 không còn đúng khi thứ tự id không phản ánh thứ tự tick.",
+      "alternative": "Đổi tick thành < khi khóa đầu giảm dần, vẫn giữ id> khi khóa phụ tăng dần.",
+      "trap": "Dùng dấu >= ở khóa cuối khiến lặp lại hàng kết thúc trang trước.",
+      "rubric": [
+        "Chọn id 3.",
+        "Giải thích điều kiện khi tick hòa.",
+        "Phân biệt con trỏ mở và biên đóng.",
+        "Đổi tick thành < khi khóa đầu giảm dần, vẫn giữ id> khi khóa phụ tăng dần."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/pagination",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "window-order"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "3",
+          "4"
+        ],
+        "en": [
+          "2",
+          "3",
+          "4"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-exists-empty-projection",
+    "content": {
+      "title": "EXISTS chỉ xét sự tồn tại của hàng",
+      "topic": "sql",
+      "subtopic": "EXISTS chỉ xét sự tồn tại của hàng",
+      "tags": [
+        "EXISTS",
+        "subquery"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Biểu thức trả về 1 hay 0 khi subquery chọn một giá trị NULL?",
+      "englishPrompt": "Does EXISTS yield the true branch when its subquery selects one NULL value?",
+      "context": "Một báo cáo dùng subquery để xác nhận có ít nhất một bản ghi phù hợp.",
+      "code": "SELECT CASE WHEN EXISTS (SELECT NULL FROM (VALUES (7)) t(id) WHERE id=7) THEN 1 ELSE 0 END;",
+      "hint": "Đếm số hàng của SELECT con trước.",
+      "nextHint": "Tách số hàng khỏi số giá trị khác NULL.",
+      "followUp": "Vì sao dùng EXISTS thường diễn đạt đúng ý hơn JOIN khi chỉ cần kiểm tra có con liên quan?",
+      "englishFollowUp": "Why can EXISTS express the requirement better than JOIN when only the presence of a child matters?",
+      "outline": [
+        "Nêu nhánh 1.",
+        "Giải thích có một hàng.",
+        "Phân biệt hàng rỗng và giá trị NULL."
+      ],
+      "shortAnswer": "Trả 1. Subquery có một hàng. Nội dung NULL trong danh sách SELECT không làm hàng biến mất.",
+      "explanation": "EXISTS cần biết có dòng hay không nên thường viết SELECT 1. WHERE không khớp mới làm subquery rỗng. Điều này khác việc so sánh một giá trị bằng NULL.",
+      "alternative": "EXISTS tránh nhân bản hàng cha khi có nhiều dòng con khớp.",
+      "trap": "Đọc SELECT NULL như một bảng rỗng.",
+      "rubric": [
+        "Nêu nhánh 1.",
+        "Giải thích có một hàng.",
+        "Phân biệt hàng rỗng và giá trị NULL.",
+        "EXISTS tránh nhân bản hàng cha khi có nhiều dòng con khớp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/exists-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "1",
+          "NULL"
+        ],
+        "en": [
+          "0",
+          "1",
+          "NULL"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-nullif-ratio",
+    "content": {
+      "title": "Tỷ lệ không xác định khi mẫu số bằng 0",
+      "topic": "sql",
+      "subtopic": "Tỷ lệ không xác định khi mẫu số bằng 0",
+      "tags": [
+        "NULLIF",
+        "division"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Cột kết quả trả mã nào khi cả số lượt đúng và tổng số lượt đều là 0?",
+      "englishPrompt": "What label is returned for an empty sample when both counters are zero?",
+      "context": "Báo cáo học tập giữ trạng thái chưa có mẫu riêng với tỷ lệ đúng bằng 0.",
+      "code": "SELECT CASE WHEN 1.0*correct/NULLIF(total,0) IS NULL THEN 'NA' ELSE 'OK' END\nFROM (VALUES (0,0)) counts(correct,total);",
+      "hint": "Xét riêng giá trị của NULLIF(total,0).",
+      "nextHint": "Phân biệt 0 là số với NULL là thiếu tỷ lệ.",
+      "followUp": "Nếu correct=0 và total=3 thì giá trị tỷ lệ phải được diễn giải thế nào?",
+      "englishFollowUp": "How should a ratio of zero correct out of three attempts be interpreted?",
+      "outline": [
+        "Chọn NA.",
+        "Giải thích cách tránh chia 0.",
+        "Giữ nghĩa mẫu rỗng."
+      ],
+      "shortAnswer": "Kết quả NA. NULLIF đổi mẫu số 0 thành NULL, phép chia cho NULL trả NULL.",
+      "explanation": "Hệ số 1.0 giúp phép chia giữ phần thập phân khi mẫu số khác 0. Không có lượt thử khác với đã thử và sai hết, nên mặc định trả 0 có thể làm sai ý nghĩa dashboard.",
+      "alternative": "Hiển thị số mẫu cùng tỷ lệ để người đọc hiểu độ bao phủ.",
+      "trap": "Chỉ ép kiểu số thập phân và cho rằng như vậy sẽ ngăn lỗi chia 0.",
+      "rubric": [
+        "Chọn NA.",
+        "Giải thích cách tránh chia 0.",
+        "Giữ nghĩa mẫu rỗng.",
+        "Hiển thị số mẫu cùng tỷ lệ để người đọc hiểu độ bao phủ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/nullif-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "OK",
+          "NA",
+          "Divide by zero"
+        ],
+        "en": [
+          "OK",
+          "NA",
+          "Divide by zero"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-between-boundary",
+    "content": {
+      "title": "Biên trên của BETWEEN",
+      "topic": "sql",
+      "subtopic": "Biên trên của BETWEEN",
+      "tags": [
+        "BETWEEN",
+        "date range"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Khi lọc tick từ 10 đến 20 bằng BETWEEN, bao nhiêu tick được giữ?",
+      "englishPrompt": "How many listed ticks qualify for BETWEEN 10 AND 20?",
+      "context": "Nhật ký có bản ghi đúng vào ranh giới chia hai khoảng báo cáo.",
+      "code": "SELECT COUNT(*) FROM (VALUES (9),(10),(19),(20),(21)) x(tick) WHERE tick BETWEEN 10 AND 20;",
+      "hint": "So sánh lần lượt với điều kiện >= và <=.",
+      "nextHint": "Kiểm tra riêng hai giá trị bằng biên.",
+      "followUp": "Nếu cột có phần giây lẻ, tại sao đặt biên 23:59:59 có thể làm mất bản ghi?",
+      "englishFollowUp": "Why might an upper bound of 23:59:59 miss rows with fractional seconds?",
+      "outline": [
+        "Kể đúng ba tick.",
+        "Nêu cả hai biên đều nhận.",
+        "Giải thích đếm đôi ở điểm nối."
+      ],
+      "shortAnswer": "Có 3 tick gồm 10, 19 và 20. BETWEEN bao gồm cả hai biên.",
+      "explanation": "Hai khoảng dùng BETWEEN [10,20] và [20,30] cùng chứa 20, có thể đếm đôi khi cộng báo cáo. Với thời gian, thường chọn start <= t và t < nextStart để ghép kỳ.",
+      "alternative": "Đặt biên phải mở theo đầu kỳ tiếp theo cho báo cáo thời gian.",
+      "trap": "Coi BETWEEN là khoảng nửa mở giống cú pháp range trong C#.",
+      "rubric": [
+        "Kể đúng ba tick.",
+        "Nêu cả hai biên đều nhận.",
+        "Giải thích đếm đôi ở điểm nối.",
+        "Đặt biên phải mở theo đầu kỳ tiếp theo cho báo cáo thời gian."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/between-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "3",
+          "4"
+        ],
+        "en": [
+          "2",
+          "3",
+          "4"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-cte-visible-columns",
+    "content": {
+      "title": "Tái sử dụng phép tính trong CTE",
+      "topic": "sql",
+      "subtopic": "Tái sử dụng phép tính trong CTE",
+      "tags": [
+        "CTE",
+        "projection"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Có bao nhiêu dòng hàng có thành tiền từ 20 trở lên sau bước tính trong CTE?",
+      "englishPrompt": "How many lines meet the minimum extended price after the CTE computes it?",
+      "context": "Giao diện chỉ liệt kê các dòng đạt mức thành tiền tối thiểu.",
+      "code": "WITH lines(total) AS (\n SELECT qty*price FROM (VALUES (2,10),(3,4),(1,25)) d(qty,price)\n)\nSELECT COUNT(*) FROM lines WHERE total>=20;",
+      "hint": "Tính riêng từng tích qty*price.",
+      "nextHint": "Xét điều kiện bao gồm cả total=20.",
+      "followUp": "Nếu cần tính một lần rồi dùng qua nhiều statement, bạn sẽ cân nhắc cấu trúc nào?",
+      "englishFollowUp": "What could you use if the result must survive across several statements?",
+      "outline": [
+        "Tính 20,12,25.",
+        "Đếm đúng hai dòng.",
+        "Nêu phạm vi một statement của CTE."
+      ],
+      "shortAnswer": "Có 2 dòng đạt, với total là 20 và 25.",
+      "explanation": "CTE đặt tên một tập kết quả trong statement. Truy vấn ngoài dùng được cột total để lọc. Việc đặt tên không cam kết SQL Server sẽ vật hóa hay cache tập đó.",
+      "alternative": "Cân nhắc bảng tạm cùng index phù hợp cho dữ liệu tái sử dụng nhiều lần.",
+      "trap": "Suy ra CTE luôn tạo bảng tạm có index riêng.",
+      "rubric": [
+        "Tính 20,12,25.",
+        "Đếm đúng hai dòng.",
+        "Nêu phạm vi một statement của CTE.",
+        "Cân nhắc bảng tạm cùng index phù hợp cho dữ liệu tái sử dụng nhiều lần."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/with-common-table-expression-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1",
+          "2",
+          "3"
+        ],
+        "en": [
+          "1",
+          "2",
+          "3"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  }
+]

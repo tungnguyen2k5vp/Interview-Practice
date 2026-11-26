@@ -1,19 +1,34 @@
 import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '../..')
 const data = name => JSON.parse(readFileSync(join(root, 'server', 'Content', name + '.json'), 'utf8'))
 const original = data('questions')
 const batch = data('questions-batch-02')
-const questions = [...original, ...batch]
-const exercises = data('exercises')
+const newBatches = readdirSync(join(root,'server','Content')).filter(name => /^questions-batch-.*\.json$/.test(name) && name !== 'questions-batch-02.json')
+  .sort().flatMap(name => data(name.slice(0,-5)))
+const questions = [...original, ...batch, ...newBatches]
+const exercises = [ ...data('exercises'), ...readdirSync(join(root,'server','Content')).filter(name=>/^exercises-batch-.*\.json$/.test(name))
+  .sort().flatMap(name=>data(name.slice(0,-5))) ]
 assert.equal(original.length, 44)
 assert.equal(batch.length, 14)
 assert.equal(new Set(questions.map(x => x.slug)).size, questions.length)
 assert.equal(new Set(questions.map(x => x.content.topic)).size, 11)
 assert.equal(new Set(questions.map(x => x.content.prompt.trim().toLowerCase())).size, questions.length)
+function tokens(text) {
+  const words=text.normalize('NFC').toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? []
+  return new Set(words.slice(1).map((w,i) => words[i]+' '+w))
+}
+for (const field of ['prompt','englishPrompt']) {
+  const signatures=questions.map(q=>tokens(q.content[field]))
+  for(let i=0;i<questions.length;i++) for(let j=0;j<i;j++){
+    const a=signatures[i], b=signatures[j]
+    const common=[...a].filter(pair=>b.has(pair)).length
+    assert(2*common/(a.size+b.size) < 0.88, 'Similar '+field+': '+questions[j].slug+' / '+questions[i].slug)
+  }
+}
 const slugs = new Set(questions.map(x => x.slug))
 const knowledgeChecks = data('knowledge-checks')
 assert.equal(knowledgeChecks.length, 52)
@@ -41,13 +56,14 @@ for(const {slug,content} of questions) {
   assert(['intern','fresher','junior','mid','senior'].includes(content.level),slug)
   assert(['easy','medium','hard'].includes(content.difficulty),slug)
 }
-for (const {slug, content: c} of batch) {
+for (const {slug, content: c} of [...batch, ...newBatches]) {
   assert(c.nextHint && c.nextHint !== c.hint && c.context && c.trap && c.explanation && c.alternative, slug)
   assert(c.prerequisites.concat(c.related).every(k => k !== slug && slugs.has(k)), slug)
   assert(c.rubric.length === new Set(c.rubric).size && c.minutes >= 1 && c.minutes <= 60)
   if (c.quiz) {
     assert.equal(c.quiz.vi.length, c.quiz.en.length)
     assert(c.quiz.vi.length >= 2 && Number.isInteger(c.quiz.correctIndex) && c.quiz.vi[c.quiz.correctIndex] && c.quiz.en[c.quiz.correctIndex])
+    for (const options of [c.quiz.vi,c.quiz.en]) assert(options.every(o=>typeof o==='string' && o.trim()) && new Set(options).size===options.length, slug)
   }
 }
 for (const { content } of questions) {
@@ -56,10 +72,26 @@ for (const { content } of questions) {
   assert.equal(new URL(content.source).protocol, 'https:')
 }
 
+if (process.argv.includes('--sources')) {
+  const urls = [...new Set(questions.map(q => q.content.source))]
+  const failures = []
+  for (let i = 0; i < urls.length; i += 5) {
+    await Promise.all(urls.slice(i,i+5).map(async url => {
+      try {
+        const response = await fetch(url, {signal: AbortSignal.timeout(20000)})
+        await response.body?.cancel()
+        if (!response.ok || new URL(response.url).protocol !== 'https:') failures.push(url+' '+response.status)
+      } catch (error) { failures.push(url+' '+error.message) }
+    }))
+  }
+  assert.deepEqual(failures, [], 'Broken or unreachable source URLs')
+  console.log('PASS '+urls.length+' distinct HTTPS source links')
+}
+
 const coding = exercises.filter(x => x.kind === 'coding')
 const sql = exercises.filter(x => x.kind === 'sql')
-assert.equal(coding.length, 9)
-assert.equal(sql.length, 9)
+assert.equal(coding.length, 11)
+assert.equal(sql.length, 11)
 for (const item of exercises) assert(item.version > 0 && item.testVersion > 0 && item.tests.length > 0)
 
 const directory = join(root, '.artifacts', 'content')
@@ -91,7 +123,8 @@ for (const { solution, examples, tests, slug } of coding) {
 const sqlTypes = { 'customer-orders': ['Int32', 'String', 'Int32'], 'department-salary': ['Int32', 'Int32', 'Decimal'],
   'daily-totals': ['Int32', 'DateTime', 'Int32'], 'latest-payment': ['Int32', 'Int32', 'Int32'],
   'unassigned-tickets': ['Int32', 'String'], 'product-sales': ['Int32', 'DateTime', 'Int32'],
-  'above-team-average': ['Int32','Int32'], 'missing-sequence': ['Int32','Int32'], 'transfer-atomic': ['Int32','Int32'] }
+  'above-team-average': ['Int32','Int32'], 'missing-sequence': ['Int32','Int32'], 'transfer-atomic': ['Int32','Int32'],
+  'stock-threshold-crossings': ['Int32','Int32'], 'unbilled-work': ['Int32'] }
 const sqlCalls = sql.map(item => {
   const [header, ...rows] = item.expected.split('\n').map(line => line.split('|').map(value => value.trim()))
   const query = ['SET NOCOUNT ON;', item.schema, item.dataset, item.solution].join('\n')
@@ -103,26 +136,40 @@ const previews = sql.map(item => {
   assert(tables.length && tables.length === new Set(tables).size, item.slug)
   return 'await Preview(' + [item.slug+'@'+item.version, item.schema+'\n'+item.dataset, JSON.stringify(tables)].map(literal).join(', ') + ');'
 })
+const sqlPredictions = newBatches.filter(q => q.content.technology === 'SQL Server 2022' && q.content.code)
+const csPredictions = [...batch,...newBatches].filter(q => q.content.technology === '.NET 10' && q.content.code)
 
 const harness = [
   'using System.Globalization;',
   'using System.Text.Json;',
   'using Microsoft.Data.SqlClient;',
   'var previews = new Dictionary<string, object>();',
-  ...batch.filter(q => q.content.code).map(q => {
+  ...csPredictions.map(q => {
     const expected = { 'integer-division': '0', 'closure-for': '333', 'linq-any-empty': '(False, True)' }[q.slug]
+      ?? q.content.quiz?.en[q.content.quiz.correctIndex]
     assert.equal(typeof expected, 'string', q.slug)
     return '{ var consoleOutput = Console.Out; using var captured = new StringWriter(); Console.SetOut(captured); try {\n' +
       q.content.code + '\n} finally { Console.SetOut(consoleOutput); } Check(' + literal(q.slug) + ', captured.ToString().Trim(), ' + literal(expected) + '); }'
   }),
   ...codingCalls,
   ...sqlCalls,
+  ...sqlPredictions.map(({slug,content:c}) => 'await CheckScalar(' + [slug,c.code,c.quiz.en[c.quiz.correctIndex]].map(literal).join(', ') + ');'),
   ...previews,
   'File.WriteAllText(' + literal(join(directory,'sql-preview.json')) + ', JsonSerializer.Serialize(previews, new JsonSerializerOptions { WriteIndented = true }));',
-  'Console.WriteLine("Passed: ' + (codingCalls.length + sqlCalls.length + batch.filter(q => q.content.code).length) + ' executable checks, ' + questions.length + ' question records; Failed: 0, Skipped: 0");',
+  'Console.WriteLine("Passed: ' + (codingCalls.length + sqlCalls.length + csPredictions.length + sqlPredictions.length) + ' executable checks, ' + questions.length + ' question records; Failed: 0, Skipped: 0");',
   'static void Check(string name, string actual, string expected)',
   '{',
   '    if (actual != expected) throw new Exception($"{name}: expected {expected}, got {actual}");',
+  '}',
+  'static async Task CheckScalar(string name, string sql, string expected)',
+  '{',
+  '    await using var db = new SqlConnection("Server=localhost;Database=tempdb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5;");',
+  '    await db.OpenAsync();',
+  '    await using var query = new SqlCommand(sql, db) { CommandTimeout = 5 };',
+  '    await using var reader = await query.ExecuteReaderAsync();',
+  '    if (reader.FieldCount != 1 || !await reader.ReadAsync()) throw new Exception(name + " expected one value");',
+  '    Check(name, Convert.ToString(reader[0], CultureInfo.InvariantCulture)!, expected);',
+  '    if (await reader.ReadAsync() || await reader.NextResultAsync()) throw new Exception(name + " extra output");',
   '}',
   'static async Task CheckSql(string name, string sql, string names, string types, string expected, bool ordered)',
   '{',
