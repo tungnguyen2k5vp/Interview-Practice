@@ -43,7 +43,7 @@ dotnet user-secrets set --project server 'Admin:Password' '<mật khẩu quản 
 
 ### Nhận xét AI
 
-AI có thể bật qua OpenAI Responses API. Chọn model có Structured Outputs và khai báo ba giá trị trong server. Mỗi lượt đã nộp có nút yêu cầu riêng. Máy chủ chỉ gửi đề, câu trả lời đã nộp, rubric và tài liệu của câu. Phản hồi lưu riêng theo model, phiên bản rubric và thời điểm. Hạn mức ứng dụng là 6 yêu cầu mỗi giờ cho mỗi tài khoản trên một tiến trình.
+AI có thể bật qua OpenAI Responses API. Chọn model có Structured Outputs và khai báo ba giá trị trong server. Với bài tự luyện, người học bấm yêu cầu nhận xét sau khi nộp. Máy chủ gửi đề, câu trả lời, rubric và tài liệu của câu. Phản hồi lưu theo model, phiên bản rubric và thời điểm.
 
 ~~~powershell
 dotnet user-secrets set --project server 'Ai:Provider' 'OpenAI'
@@ -51,7 +51,9 @@ dotnet user-secrets set --project server 'Ai:Model' '<model hỗ trợ Structure
 dotnet user-secrets set --project server 'Ai:ApiKey' '<khóa API>'
 ~~~
 
-Nhận xét AI tách lỗi chuyên môn, diễn đạt và câu trả lời tham khảo. Ở bước đào sâu của phiên có hướng dẫn, người học có thể gửi câu vừa trả lời để lấy một câu hỏi theo ngữ cảnh. Server kiểm tra trích dẫn, thời gian còn lại và revision trước khi lưu. Lỗi hoặc thiếu cấu hình vẫn cho phép dùng câu đào sâu biên soạn. Các kiểm thử trong repo dùng dịch vụ fixture loopback. [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+Phỏng vấn thử mở mặc định bằng bộ câu hỏi biên soạn. Người học có thể chọn AI hướng dẫn hoặc AI mô phỏng, đồng ý gửi nội dung và đặt ngân sách 1–4 lượt. Mỗi yêu cầu mang câu hiện tại và tối đa hai trích đoạn trả lời trước. API giới hạn sáu lần gọi provider cho mỗi tài khoản trong một giờ trên mỗi tiến trình API. Phiên lưu câu trả lời và giữ chỗ ngân sách trước khi gọi. Hết giờ, chạm hạn mức, mất kết nối hoặc trích dẫn sai đều có đường tiếp tục bằng bộ câu hỏi. Phiên mô phỏng mở nhận xét và gợi ý viết lại khi kết thúc. [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+
+Báo cáo hiển thị thời gian, lượt đào sâu, kết quả theo chủ đề, rubric và trích dẫn nếu có AI. Bản viết lại lưu riêng với lời đáp gốc. Chọn **Ôn câu này** để luyện đúng phiên bản hoặc mở kế hoạch 3/7/14 ngày. So sánh chỉ hiển thị cho phiên hoàn tất có cùng điều kiện và đúng các phiên bản câu đã hỏi.
 
 ### Coding và SQL
 
@@ -65,7 +67,7 @@ Worker trong `worker/` biên dịch C# và chạy T-SQL trong container dùng m�
 | --- | --- | --- |
 | Tổng quan, lộ trình, tiến độ | Dữ liệu thật, câu cần ôn, kế hoạch buổi học, lịch sử và số mẫu. Phút luyện lấy từ đồng hồ tự luyện khi trang có focus. | server/Learning.cs, web/src/Dashboard.tsx, web/src/Learning.tsx |
 | Câu hỏi và lượt luyện | URL trực tiếp, bộ lọc, nháp theo tài khoản, tự đối chiếu, tự đánh giá và bản cải thiện. | server/Catalog.cs, server/Practice.cs, web/src/Practice.tsx |
-| Phỏng vấn thử | Hai chế độ, deadline phía server, pause, bỏ qua, kết thúc sớm và báo cáo có xuất xứ. | server/Interviews.cs, web/src/Interview.tsx |
+| Phỏng vấn thử | Bộ câu biên soạn, AI hướng dẫn và AI mô phỏng, hạn giờ phía server, báo cáo có dẫn chứng và luyện lại. | server/Interviews.cs, server/InterviewCoach.cs, web/src/Interview.tsx |
 | Coding, SQL và LeetCode | Editor, nháp theo phiên bản, tài liệu kiểm tra công khai và ghi chú tự ghi nhận. | server/Exercises.cs, server/Content/exercises.json, web/src/Exercises.tsx |
 | Tài khoản và quản trị | Identity, quyền theo owner, CSRF, xuất/xóa dữ liệu và xuất bản phiên bản câu. | server/Auth.cs, server/Data.cs, web/src/Admin.tsx |
 | Nhận xét AI | Đối chiếu lời nộp với rubric và kiểm tra trích dẫn nguyên văn trước khi lưu. | server/AiFeedback.cs |

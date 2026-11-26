@@ -5,11 +5,15 @@ import { useDraft } from './draft'
 import { Voice } from './Voice'
 import { DraftConflict, ownerKey } from './Practice'
 import { SignInGate, signInLink, useSession } from './session'
-import type { Interview, Preset } from './types'
+import type { Interview, InterviewObservation, Preset } from './types'
 import { label, labels } from './types'
 import { ActionLink, Badge, Button, CodeBlock, Dialog, Field, Link, Loading, Options, PageTitle, Problem, Ratings, RubricPanel, Segments, TopicChecks, navigate, timeText } from './ui'
 
 const presetIcons = { foundation: Braces, backend: SquareTerminal, 'problem-solving': Database }
+const modes = { offline: 'Bộ câu hỏi', 'guided-ai': 'AI hướng dẫn', 'realistic-ai': 'AI mô phỏng', guided: 'Có hướng dẫn', mock: 'Mô phỏng theo bộ câu' }
+const guided = (mode: string) => ['offline', 'guided', 'guided-ai'].includes(mode)
+const aiStates: Record<string, string> = { offline: 'AI chưa cấu hình', budget: 'Đã dùng hết ngân sách phiên', time: 'Thời gian còn lại quá ngắn',
+  quota: 'Đã chạm hạn mức AI', timeout: 'AI phản hồi quá thời gian', fallback: 'Chưa nhận được phản hồi AI hợp lệ' }
 export function InterviewSetup({ params }: { params: URLSearchParams }) {
   const presets = useResource<Preset[]>('/interview-presets')
   const dashboard = useResource<{ resume?: { label: string; path: string } }>('/dashboard')
@@ -22,7 +26,12 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
   const [difficulty, setDifficulty] = useState('')
   const [language, setLanguage] = useState('')
   const [minutes, setMinutes] = useState('15')
-  const [mode, setMode] = useState('guided')
+  const [mode, setMode] = useState('offline')
+  const [timed, setTimed] = useState(false)
+  const [consent, setConsent] = useState(false)
+  const [aiLimit, setAiLimit] = useState(2)
+  const automatic = mode !== 'offline'
+  const provider = useResource<{available: boolean}>(automatic ? '/ai/status' : null)
   const [count, setCount] = useState('')
   const [preferWeak, setPreferWeak] = useState(false)
   const startId = useRef(crypto.randomUUID())
@@ -34,8 +43,9 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
     void action.run(async () => {
       const data = await api<Interview>('/interviews', { method: 'POST', body: {
         id: startId.current, preset, level: level || goal.level || 'junior', difficulty: difficulty || null,
-        topics: topics ?? (reviewOf ? [] : current?.topics ?? []), minutes: Number(minutes), language: language || goal.language, mode, reviewOf,
-        count: count ? Number(count) : null, preferWeak,
+        topics: topics ?? (reviewOf ? [] : current?.topics ?? []), minutes: Number(minutes), language: language || goal.language,
+        mode: !automatic && timed ? 'mock' : mode, reviewOf, count: count ? Number(count) : null, preferWeak,
+        aiConsent: automatic && consent, aiLimit: automatic ? aiLimit : 0,
       } })
       navigate('/phong-van/' + data.session.id)
     })
@@ -72,11 +82,22 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
       </section>
       <section className="panel content-panel stack">
         <h2>Chế độ luyện</h2>
-        <Segments values={[[ 'guided', 'Có hướng dẫn' ], [ 'mock', 'Mô phỏng' ]]} title="Chế độ phỏng vấn" selected={mode} change={setMode} />
-        <p>{mode === 'guided' ? 'Có gợi ý và phản hồi theo từng câu. Bạn có thể tạm dừng đồng hồ.' : 'Mỗi lần hiện một câu. Đáp án và rubric mở ở báo cáo cuối. Đồng hồ chạy liên tục kể cả khi tải lại hoặc rời trang.'}</p>
-        <p className="muted small">Có tối đa một câu đào sâu biên soạn sẵn mỗi câu. Khi hết thời gian, phiên chốt ở các câu đã gửi.</p>
+        <Field label="Hình thức phỏng vấn"><select value={mode} onChange={e => { setMode(e.target.value); setConsent(false) }}>
+          {(['offline', 'guided-ai', 'realistic-ai'] as const).map(key => <option key={key} value={key}>{modes[key]}</option>)}
+        </select></Field>
+        {automatic ? <>
+          <p>{mode === 'guided-ai' ? 'AI chọn câu đào sâu từ lập luận của bạn. Mở gợi ý khi cần, rồi đối chiếu sau từng câu.'
+            : 'Đồng hồ chạy liên tục. Bạn trả lời từng câu và xem toàn bộ nhận xét khi kết thúc.'}</p>
+          <Field label="Ngân sách AI cho phiên"><select value={aiLimit} onChange={e => setAiLimit(Number(e.target.value))}>
+            {[1,2,3,4].map(n => <option key={n} value={n}>{n} lượt</option>)}</select></Field>
+          <label className="check-chip"><input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} />
+            Tôi đồng ý gửi phần trả lời hiện tại và trích đoạn tối đa hai lượt trước cho AI trong phiên này.</label>
+          <p className="small muted">{provider.data?.available === false ? 'AI chưa cấu hình. Phiên sẽ dùng câu hỏi biên soạn sẵn.'
+            : 'Mỗi lần yêu cầu AI dùng một lượt. Khi hết lượt hoặc AI gián đoạn, phiên tiếp tục bằng bộ câu hỏi.'}</p>
+        </> : <><p>{timed ? 'Luyện từ bộ câu hỏi biên soạn. Đồng hồ chạy liên tục và đáp án mở cuối phiên.' : 'Luyện từ bộ câu hỏi và câu đào sâu đã biên soạn. Bạn có thể xem gợi ý và tạm dừng.'}</p>
+          <label className="check-chip"><input type="checkbox" checked={timed} onChange={e => setTimed(e.target.checked)} />Thi tính giờ, mở đáp án cuối phiên</label></>}
         <Problem text={action.error} />
-        <Button tone="primary" disabled={!current || action.busy} onClick={start}>{action.busy ? 'Đang mở phiên…' : user ? 'Bắt đầu phỏng vấn' : 'Đăng nhập để bắt đầu'} <ArrowRight size={16} /></Button>
+        <Button tone="primary" disabled={!current || action.busy || automatic && !consent} onClick={start}>{action.busy ? 'Đang mở phiên…' : user ? 'Bắt đầu phỏng vấn' : 'Đăng nhập để bắt đầu'} <ArrowRight size={16} /></Button>
       </section>
     </div>
   </div>
@@ -121,10 +142,10 @@ function InterviewWork({ initial, owner }: { initial: Interview; owner: string }
   return <div className="page narrow">
     <PageTitle title={report ? 'Báo cáo phỏng vấn' : label('preset', session.preset)} back={['/phong-van', 'Phỏng vấn thử']}
       description={report ? label('preset', session.preset) + ' · ' + label('status', session.status)
-        : session.mode === 'guided' ? 'Luyện có hướng dẫn · Câu đào sâu biên soạn sẵn' : 'Mô phỏng phỏng vấn · Phản hồi ở cuối phiên'}
+        : modes[session.mode] + (data.aiLimit ? ' · Đã dùng ' + data.aiUsed + '/' + data.aiLimit + ' lượt AI' : '')}
       action={showTimer && <div className="session-clock"><Clock3 size={19} /><SessionTimer seconds={seconds} received={received}
         paused={session.status === 'paused'} expired={() => { setLimit(true); void reload() }} /></div>} />
-    {report ? <InterviewReport data={data} busy={action.busy} rate={rate} /> : current && <>
+    {report ? <InterviewReport data={data} busy={action.busy} rate={rate} update={update} /> : current && <>
       <div className="session-progress"><span>Câu {data.position + 1} / {data.count}</span>
         <progress max={data.count} value={data.position + 1} aria-label="Vị trí câu trong phiên" />
         <Badge tone={session.status === 'paused' ? 'amber' : 'indigo'}>{session.status === 'paused' ? 'Đã tạm dừng' : session.language === 'en' ? 'English' : 'Tiếng Việt'}</Badge>
@@ -134,6 +155,7 @@ function InterviewWork({ initial, owner }: { initial: Interview; owner: string }
         <div className="written-answer">{current.answer}</div>
         {current.followUpAnswer && <div className="written-answer">{current.followUpAnswer}</div>}
         {current.reference && <RubricPanel reference={current.reference} />}
+        {current.feedback && <Observation value={current.feedback} />}
         <Ratings rating={current.rating} busy={action.busy} change={rating => rate(data.position, rating)} />
         <div className="action-row"><Button tone="primary" disabled={action.busy || limit || session.status !== 'active'} onClick={() => void action.run(() => send('next', data.revision))}>
           {data.position + 1 === data.count ? 'Xem báo cáo' : 'Câu tiếp theo'} <ArrowRight size={16} /></Button>
@@ -212,6 +234,8 @@ function InterviewAnswer({ data, blocked, owner, send, recover }: {
       {stage === 'followup' && <Badge tone="indigo">Câu đào sâu · 1 / 1</Badge>}</div>
     <h2>{stage === 'followup' ? 'Câu hỏi đào sâu' : current.title}</h2>
     <p className="prompt-text" lang={session.language}>{current.text}</p>
+    {stage === 'followup' && current.aiState && <p className="small muted">{current.aiState === 'assessed' ? 'Câu đào sâu theo câu trả lời của bạn'
+      : aiStates[current.aiState] + ' · Đang dùng câu đào sâu biên soạn sẵn.'}</p>}
     {current.context && <p className="muted">{current.context}</p>}
     {current.code && <CodeBlock language="C#">{current.code}</CodeBlock>}
     {current.hint && <p className="notice hint">{current.hint}</p>}
@@ -229,7 +253,7 @@ function InterviewAnswer({ data, blocked, owner, send, recover }: {
       readOnly={paused || action.busy || blocked} onChange={e => draft.change(e.target.value)} placeholder={session.language === 'en' ? 'Write your answer in English…' : 'Trình bày câu trả lời của bạn…'} /></Field>
     <div className="split"><span className="small muted" role="status">{paused ? 'Đồng hồ đã dừng' : draft.stateText}</span>
       <div className="action-row">
-        {session.mode === 'guided' && !paused && stage === 'question' && !current.hint && <Button disabled={unusable} onClick={() => act('hint')}><Lightbulb size={16} /> Xin gợi ý</Button>}
+        {guided(session.mode) && !paused && stage === 'question' && !current.hint && <Button disabled={unusable} onClick={() => act('hint')}><Lightbulb size={16} /> Xin gợi ý</Button>}
         {paused ? <Button tone="primary" disabled={action.busy} onClick={() => act('resume')}><Play size={16} /> Tiếp tục</Button> : <>
           <Button tone="quiet" disabled={unusable} onClick={() => act('skip')}>Bỏ qua</Button>
           <Button tone="quiet" disabled={unusable} onClick={() => act('answer', session.language === 'en' ? "I don't know" : 'Chưa biết')}>Chưa biết</Button>
@@ -237,42 +261,110 @@ function InterviewAnswer({ data, blocked, owner, send, recover }: {
         </>}
       </div>
     </div>
-    {session.mode === 'guided' && !paused && <Button tone="quiet" disabled={unusable} onClick={() => act('pause', draft.text)}><Pause size={16} /> Tạm dừng</Button>}
+    {guided(session.mode) && !paused && <Button tone="quiet" disabled={unusable} onClick={() => act('pause', draft.text)}><Pause size={16} /> Tạm dừng</Button>}
+    {action.busy && data.aiLimit > data.aiUsed && <span className="small muted" role="status">Đang lưu và xử lý lượt trả lời…</span>}
     {draft.state === 'conflict' && <DraftConflict onServer={() => resolve(false)} onKeep={() => resolve(true)} busy={action.busy} />}
     <Problem text={action.error || (draft.state === 'error' ? draft.issue : '')} retry={action.error ? () => resolve(true) : undefined} />
   </section>
 }
 
-function InterviewReport({ data, rate, busy }: { data: Interview; rate: (index: number, rating: string) => void; busy: boolean }) {
+const findingLabels: Record<string, string> = { demonstrated: 'Kiến thức đã thể hiện', gap: 'Ý còn thiếu', misconception: 'Nhận định cần kiểm tra',
+  reasoning: 'Giải thích nguyên nhân', example: 'Ví dụ thực tế', depth: 'Chiều sâu lập luận', contradiction: 'Điểm chưa nhất quán' }
+const reviewLabels: Record<string, string> = { skipped: 'Đã bỏ qua', unanswered: 'Chưa trả lời', self: 'Tự đánh giá cần luyện',
+  assisted: 'Đã dùng gợi ý', followup: 'Chưa trả lời câu đào sâu', ai: 'AI đề nghị đối chiếu', unrated: 'Chưa đánh giá' }
+
+function Observation({ value }: { value: InterviewObservation }) {
+  return <div className="stack">
+    <h3>Nhận xét AI</h3>
+    {value.assessment.findings.map((finding, i) => <div key={i} className="interview-finding">
+      <strong>{findingLabels[finding.kind]}</strong><blockquote>{finding.quote}</blockquote><p>{finding.note}</p>
+    </div>)}
+    <details className="details"><summary>Cách diễn đạt AI đề xuất</summary><p>{value.assessment.improvedAnswer}</p></details>
+    <small className="muted">{value.model} · Nhận xét tham khảo theo lượt trả lời.</small>
+  </div>
+}
+
+function Rewrite({ saved, save }: { saved?: string; save: (text: string) => Promise<void> }) {
+  const [text, setText] = useState(saved ?? '')
+  const action = useAction()
+  return <form className="stack" onSubmit={e => { e.preventDefault(); void action.run(() => save(text)) }}>
+    <Field label="Bản viết lại của bạn"><textarea rows={3} maxLength={16000} value={text} onChange={e => setText(e.target.value)} /></Field>
+    <Button type="submit" disabled={action.busy || text.trim() === (saved ?? '')}>Lưu bản viết lại</Button><Problem text={action.error} />
+  </form>
+}
+
+function InterviewReport({ data, rate, busy, update }: { data: Interview; rate: (index: number, rating: string) => void; busy: boolean; update: (data: Interview) => void }) {
   const report = data.report ?? []
-  const next = [...report].filter(x => x.rating !== 'clear').sort((a, b) => Number(b.status === 'skipped') - Number(a.status === 'skipped')).slice(0, 3)
+  const next = report.filter(x => x.reviewReason).sort((a, b) => Number(b.reviewReason === 'ai') - Number(a.reviewReason === 'ai'))
+  const topics = [...new Set(report.filter(x => x.status !== 'unasked').map(x => x.topic))]
+  const answered = report.filter(x => x.status === 'answered').length
+  const followUps = report.filter(x => x.followUpAnswer).length
+  const action = useAction()
+  const ids = useRef(new Map<number | undefined, string>())
+  const base = '/interviews/' + data.session.id
+  const [days, setDays] = useState('7')
+  const schedule = days === '3' ? [1,2,3] : days === '7' ? [1,3,5,7] : [1,3,6,10,14]
+  const practice = (position?: number) => void action.run(async () => {
+    const id = ids.current.get(position) ?? crypto.randomUUID()
+    ids.current.set(position, id)
+    const session = await api<{id: string}>(base + '/review-session', {method:'POST', body:{id, position}})
+    navigate('/phien-hoc/' + session.id)
+  })
   return <div className="stack">
     <section className="panel content-panel stack">
-      <div className="metadata"><Badge tone="indigo"><AudioLines size={15} /> Bộ câu biên soạn</Badge><Badge>{data.session.language === 'en' ? 'English' : 'Tiếng Việt'}</Badge></div>
+      <div className="metadata"><Badge tone="green"><AudioLines size={15} /> {modes[data.session.mode]}</Badge><span>{data.session.language === 'en' ? 'English' : 'Tiếng Việt'}</span>
+        <span>{timeText(data.activeSeconds)} trong phiên</span>{data.aiLimit > 0 && <span>{data.aiUsed}/{data.aiLimit} lượt AI</span>}</div>
       <div className="report-summary">
-        <div><strong>{report.filter(x => x.status === 'answered').length}</strong><span>đã trả lời</span></div>
+        <div><strong>{answered}/{report.length}</strong><span>câu đã trả lời</span></div>
         <div><strong>{report.filter(x => x.status === 'skipped').length}</strong><span>đã bỏ qua</span></div>
-        <div><strong>{report.filter(x => x.rating).length}</strong><span>đã tự đánh giá</span></div>
+        <div><strong>{followUps}</strong><span>lượt đào sâu đã trả lời</span></div>
       </div>
-      <p className="muted">Báo cáo gồm câu trả lời đã ghi, tự đánh giá của bạn và rubric tham khảo. Các câu chưa tự chấm có nhãn Chưa đánh giá.</p>
+      {topics.length > 0 && <details className="details"><summary>Kết quả theo chủ đề</summary>
+        <ul className="lined-list">{topics.map(topic => {
+          const items = report.filter(x => x.topic === topic && x.status !== 'unasked')
+          return <li key={topic}><strong>{label('topics', topic)}</strong><span>{items.filter(x => x.status === 'answered').length}/{items.length} câu đã trả lời · {items.filter(x => x.reviewReason).length} cần ôn</span></li>
+        })}</ul></details>}
+      {data.session.status === 'completed' && <details className="details"><summary>Đối chiếu phiên trước</summary>
+        {data.previous ? <p><Link href={'/phong-van/' + data.previous.id}>Phiên ngày {new Date(data.previous.at).toLocaleDateString('vi')}</Link> cùng chế độ, ngôn ngữ, thời lượng và bộ câu.
+          {' '}{data.previous.answered} câu đã trả lời, {data.previous.followUps} lượt đào sâu, {timeText(data.previous.activeSeconds)}.</p>
+          : <p>Chưa có phiên hoàn tất cùng điều kiện và phiên bản câu hỏi trong 30 phiên tương ứng gần nhất.</p>}</details>}
     </section>
     <section className="panel content-panel stack">
-      <div className="split"><h2>Ưu tiên luyện tiếp</h2><ActionLink tone="primary" href={'/phong-van?review=' + data.session.id + '&preset=' + data.session.preset}><RotateCcw size={16} /> Tạo phiên ôn</ActionLink></div>
-      {next.length ? <ul className="lined-list">{next.map(x => <li key={x.position}><Link href={'/cau-hoi/' + x.slug}>{x.title}</Link>
-        <span>{x.rating ? label('rating', x.rating) : x.status === 'answered' ? 'Chưa đánh giá' : label('status', x.status)}</span></li>)}</ul>
-        : <p className="muted">Mọi câu trong bộ đã được bạn tự đánh giá là giải thích được.</p>}
+      <div className="split"><h2>Ưu tiên luyện tiếp</h2><ActionLink href={'/phong-van?review=' + data.session.id + '&preset=' + data.session.preset}><RotateCcw size={16} /> Tạo phiên ôn</ActionLink></div>
+      {next.length ? <>
+        <ul className="lined-list">{next.map(x => <li key={x.position}><span><strong>{x.title}</strong><br/>{reviewLabels[x.reviewReason!]}</span>
+          <Button disabled={action.busy} onClick={() => practice(x.position)} aria-label={'Ôn câu ' + x.title}>Ôn câu này</Button></li>)}</ul>
+        <details className="details"><summary>Kế hoạch sau phỏng vấn</summary><div className="stack">
+          <Segments title="Thời hạn kế hoạch" selected={days} change={setDays} values={['3','7','14'].map(d => [d, d + ' ngày'])}/>
+          <ol className="interview-plan">{schedule.map((day, i) => {
+            const batch = next.filter((_, index) => index % (schedule.length - 1) === i)
+            const titles = (batch.length ? batch : [next[i % next.length]]).map(item => item.title).join(' · ')
+            return <li key={day}><strong>Ngày {day}</strong><span>{i === schedule.length-1 ? 'Phỏng vấn lại với nhóm câu cần ôn.' :
+              (i === 0 ? 'Đối chiếu rubric' : i % 2 ? 'Trả lời lại từ trí nhớ' : 'Giải thích bằng một ví dụ mới') + ' · ' + titles}</span></li>
+          })}</ol></div></details>
+        <Button tone="primary" disabled={action.busy} onClick={() => practice()}>Luyện các câu ưu tiên <ArrowRight size={16}/></Button>
+      </> : <p className="muted">Chưa có câu nào cần ôn từ các lượt đã thực hiện.</p>}
+      <Problem text={action.error}/>
     </section>
     <section className="stack">
       <h2>Các câu trong phiên</h2>
       {report.map(x => <details className="panel report-item" key={x.position}>
-        <summary><span>{x.position + 1}. {x.title}</span><Badge tone={x.rating ? 'indigo' : 'neutral'}>{x.rating ? label('rating', x.rating) : 'Chưa đánh giá'}</Badge></summary>
+        <summary><span>{x.position + 1}. {x.title}</span><Badge tone={x.mainEntry?.observation ? 'green' : x.rating ? 'indigo' : 'neutral'}>{x.mainEntry?.observation
+          ? 'Có nhận xét AI' : x.rating ? label('rating', x.rating) : x.status === 'answered' ? 'Chưa đánh giá' : label('status', x.status)}</Badge></summary>
         <div className="content-panel stack">
           <div className="metadata"><Badge tone={x.topic}>{label('topics', x.topic)}</Badge><span>{label('status', x.status)}</span>{x.hintSeen && <span>Đã xem gợi ý</span>}</div>
           <p>{x.prompt}</p>
           {x.answer && <div className="written-answer">{x.answer}</div>}
+          {x.mainEntry && <small className="muted">Thời gian trả lời {timeText(x.mainEntry.seconds)}</small>}
+          {x.mainEntry?.observation ? <Observation value={x.mainEntry.observation}/> : x.status === 'answered' &&
+            <p className="muted small">{aiStates[x.mainEntry?.aiState ?? ''] ?? 'Chưa có đánh giá AI'}. Bạn có thể tự đối chiếu theo rubric.</p>}
           {x.followUp && <><h3>Đào sâu</h3><p>{x.followUp}</p><p className="written-answer">{x.followUpAnswer ?? (x.followUpSkipped ? 'Đã bỏ qua' : 'Chưa trả lời')}</p></>}
+          {x.followEntry && <small className="muted">Thời gian trả lời đào sâu {timeText(x.followEntry.seconds)}</small>}
+          {x.followEntry?.observation && <Observation value={x.followEntry.observation}/>}
           <RubricPanel reference={x.reference} />
           {x.status === 'answered' && <Ratings rating={x.rating} busy={busy} change={rating => rate(x.position, rating)} />}
+          {x.status === 'answered' && <Rewrite saved={x.rewrite} save={async text => update(await api<Interview>(
+            base + '/rewrites/' + x.position, {method:'PUT', body:{revision:data.revision, text}}))} />}
         </div>
       </details>)}
     </section>

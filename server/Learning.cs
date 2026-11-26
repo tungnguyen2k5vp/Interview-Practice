@@ -388,6 +388,12 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         var profile = await db.Users.Where(x => x.Id == owner).Select(x => new { x.Email, x.DisplayName }).SingleAsync(ct);
         var attempts = db.Attempts.AsNoTracking().Where(x => x.UserId == owner);
         var sessions = db.Interviews.AsNoTracking().Where(x => x.UserId == owner);
+        var interviewRows = await sessions.ToArrayAsync(ct);
+        foreach (var session in interviewRows.Where(x => x.Mode == "realistic-ai" && x.Status is "active" or "paused"))
+        {
+            var plan = DataJson.Read<InterviewPlan>(session.Plan);
+            session.Plan = DataJson.Write(plan with { Entries = null });
+        }
         var ai = await db.AiReviews.AsNoTracking().Where(x => x.Feedback != null && attempts.Any(a => a.Id == x.AttemptId))
             .Select(x => new { x.AttemptId, x.Feedback }).ToArrayAsync(ct);
         var export = new
@@ -399,7 +405,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
                 .Select(x => new { x.AttemptId, x.OpenedAt, x.AnsweredAt, x.StudyDay, x.Choice, x.Correct, x.Assisted }).ToArrayAsync(ct),
             revisions = await db.Revisions.AsNoTracking().Where(x => attempts.Any(a => a.Id == x.AttemptId)).ToArrayAsync(ct),
             aiFeedback = ai.Select(x => new { x.AttemptId, Feedback = DataJson.Read<AiResponse>(x.Feedback!) }),
-            sessions = await sessions.ToArrayAsync(ct),
+            sessions = interviewRows,
             studySessions = await db.StudySessions.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
             turns = await db.Turns.AsNoTracking().Where(x => sessions.Any(s => s.Id == x.SessionId)).ToArrayAsync(ct),
             notes = await db.Notes.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),

@@ -86,14 +86,18 @@ internal static class StudySessions
             if (remaining == 0) break;
         }
         if (plan.Count == 0) throw new ApiProblem(422, "empty_session", "Chưa có câu phù hợp với bộ lọc và thời lượng này.");
-        var row = new StudySession { Id = request.Id, UserId = owner, Mode = request.Mode, Minutes = request.Minutes,
-            StartedAt = clock.GetUtcNow(), Plan = DataJson.Write(plan) };
+        return await Save(db, new StudySession { Id = request.Id, UserId = owner, Mode = request.Mode, Minutes = request.Minutes,
+            StartedAt = clock.GetUtcNow(), Plan = DataJson.Write(plan) }, ct);
+    }
+
+    internal static async Task<IResult> Save(PracticeDb db, StudySession row, CancellationToken ct)
+    {
         db.StudySessions.Add(row);
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException)
         {
             db.ChangeTracker.Clear();
-            existing = await db.StudySessions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == request.Id && x.UserId == owner, ct);
+            var existing = await db.StudySessions.AsNoTracking().SingleOrDefaultAsync(x => x.Id == row.Id && x.UserId == row.UserId, ct);
             if (existing is null) throw;
             return await View(existing, db, ct);
         }

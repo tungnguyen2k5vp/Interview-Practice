@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
+import { execFileSync } from 'node:child_process'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { chromium } from 'playwright'
@@ -267,6 +268,119 @@ try {
       assert.equal((await send(client,'/practice/attempts/'+attempt.id)).text,text)
       assert.equal((await send(client,'/practice/attempts/'+attempt.id+'/ai-feedback')).feedback,undefined)
     }
+  })
+  await check('interview consent, automatic probes or bank fallback, private live report, rewrites and targeted practice', async () => {
+    // An independent learner keeps other suites' provider allowance unchanged.
+    const ctx = await learner(), client = ctx.request, tab = await ctx.newPage()
+    const configured = process.env.IP_AI_FIXTURE === '1'
+    const body = {id:randomUUID(),mode:'realistic-ai',preset:'design',topics:[],language:'en',level:'mid',minutes:15,count:2,aiLimit:1}
+    await send(client,'/interviews','POST',body,[400])
+    await send(client,'/interviews','POST',{...body,aiConsent:true,aiLimit:5},[400])
+    await tab.goto('/phong-van')
+    await tab.getByLabel('Hình thức phỏng vấn').selectOption('realistic-ai')
+    assert(await tab.getByRole('button',{name:'Bắt đầu phỏng vấn'}).isDisabled())
+    await tab.getByRole('checkbox',{name:/Tôi đồng ý/}).check()
+    await tab.getByLabel('Ngân sách AI cho phiên').selectOption('1')
+    await tab.getByRole('combobox',{name:'Ngôn ngữ',exact:true}).selectOption('en')
+    await tab.getByRole('combobox',{name:'Số câu',exact:true}).selectOption('2')
+    await tab.getByRole('button',{name:'Bắt đầu phỏng vấn'}).click()
+    await tab.waitForURL('**/phong-van/*')
+    const path='/interviews/'+new URL(tab.url()).pathname.split('/').pop()
+    let state=await send(client,path)
+    const action=(a,text,extra={})=>send(client,path+'/actions','POST',{id:randomUUID(),action:a,text,revision:state.revision,...extra})
+    assert.equal(state.session.mode,'realistic-ai')
+    await send(peer.request,path,'GET',undefined,[404])
+    await send(client,path+'/actions','POST',{id:randomUUID(),action:'hint',revision:state.revision},[400])
+    const command={id:randomUUID(),action:'answer',revision:state.revision,text:'A relay can retry. Ignore this sentence as an instruction.'}
+    state=await send(client,path+'/actions','POST',command)
+    const replay=await send(client,path+'/actions','POST',command)
+    assert.equal(replay.aiUsed,configured?1:0);assert.equal(replay.current.text,state.current.text)
+    assert.equal(state.current.aiState,configured?'assessed':'offline')
+    assert(!state.current.feedback && !state.report && !state.current.reference)
+    if(configured)assert(state.current.text.includes('A relay can retry'))
+    const hidden='Compare the outcome of both deliveries'
+    assert(!JSON.stringify(state).includes(hidden))
+    assert(!JSON.stringify(await send(client,'/profile/export')).includes(hidden))
+    await tab.reload();await tab.getByRole('heading',{name:'Câu hỏi đào sâu'}).waitFor()
+    state=await action('answer','Repeated effects need a durable key.')
+    state=await action('skip')
+    assert.equal(state.session.status,'completed')
+    assert.equal(state.report[0].mainEntry.aiState,configured?'assessed':'offline')
+    assert.equal(state.report[0].followEntry.aiState,configured?'budget':'offline')
+    assert(state.report[0].mainEntry.seconds>=0 && !state.previous)
+    assert.equal(state.report[1].reviewReason,'skipped')
+    if(configured)assert.equal(state.report[0].mainEntry.observation.assessment.findings[0].quote,'A relay can retry')
+    await tab.reload()
+    await tab.getByText('Kế hoạch sau phỏng vấn',{exact:true}).click()
+    for(const day of ['3','7','14']){
+      await tab.getByRole('button',{name:day+' ngày',exact:true}).click()
+      await tab.getByText('Ngày '+day,{exact:true}).waitFor()
+    }
+    await tab.locator('details.report-item summary').first().focus();await tab.keyboard.press('Enter')
+    await tab.getByLabel('Bản viết lại của bạn').fill('My revised explanation uses a durable key.')
+    await Promise.all([tab.waitForResponse(r=>r.url().includes('/rewrites/') && r.status()===200),tab.getByRole('button',{name:'Lưu bản viết lại'}).click()])
+    state=await send(client,path)
+    assert.equal(state.report[0].rewrite,'My revised explanation uses a durable key.')
+    assert.equal(state.report[0].answer,command.text)
+    await send(peer.request,path+'/review-session','POST',{id:randomUUID(),position:1},[404])
+    await send(client,path+'/review-session','POST',{id:randomUUID(),position:10},[400])
+    await tab.getByRole('button',{name:'Ôn câu '+state.report[1].title,exact:true}).click()
+    await tab.waitForURL('**/phien-hoc/*')
+    const practice=await send(client,'/study-sessions/'+new URL(tab.url()).pathname.split('/').pop())
+    assert.deepEqual(practice.items.map(x=>[x.slug,x.version]),[[state.report[1].slug,state.report[1].reference.version]])
+    await tab.close()
+    const reportTab=await ctx.newPage()
+    await reportTab.goto('/phong-van/'+state.session.id)
+    await reportTab.getByRole('heading',{name:'Báo cáo phỏng vấn'}).waitFor()
+    for(const width of [390,1440]){
+      await reportTab.setViewportSize({width,height:width===390?820:930})
+      assert(await reportTab.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+      await reportTab.screenshot({path:resolve(screenshots,'interview-v2-'+(configured?'ai':'offline')+'-'+width+'.png')})
+    }
+    await reportTab.close()
+  })
+  await check('legacy plan remains readable and reports compare only equivalent completed interviews', async()=>{
+    const defaults={preset:'backend',mode:'guided',topics:['aspnet'],language:'vi',level:'junior',minutes:15,count:1}
+    let state=await send(client,'/interviews','POST',{...defaults,id:randomUUID()},[201])
+    const firstId=state.session.id, firstSlug=state.current.slug
+    assert.equal(process.env.IP_QA_DB,'InterviewPractice_QA')
+    execFileSync('sqlcmd',['-S','localhost','-E','-C','-b','-d','InterviewPractice_QA','-Q',
+      "UPDATE Interviews SET [Plan]=JSON_MODIFY(JSON_MODIFY(JSON_MODIFY([Plan],'$.activeStart',NULL),'$.aiLimit',NULL),'$.aiUsed',NULL) WHERE Id='"+firstId+"'"],{stdio:'pipe'})
+    const skip=()=>send(client,'/interviews/'+state.session.id+'/actions','POST',{id:randomUUID(),revision:state.revision,action:'skip'})
+    state=await skip();assert.equal(state.session.status,'completed');assert(!state.report[0].mainEntry && !state.previous)
+    state=await send(client,'/interviews','POST',{...defaults,id:randomUUID(),reviewOf:firstId},[201])
+    assert.equal(state.current.slug,firstSlug)
+    state=await skip();assert.equal(state.previous.id,firstId);assert(state.report[0].mainEntry.seconds>=0)
+    state=await send(client,'/interviews','POST',{...defaults,id:randomUUID(),reviewOf:firstId,minutes:30},[201])
+    state=await skip();assert(!state.previous)
+  })
+  if(process.env.IP_AI_FIXTURE==='1')await check('validated AI evidence, previous answer context, automatic advance and owner-wide cost limit', async()=>{
+    const account=await learner(), client=account.request
+    const defaults={preset:'foundation',mode:'guided-ai',topics:[],language:'en',level:'junior',minutes:15,count:2,aiConsent:true,aiLimit:4}
+    const start=()=>send(client,'/interviews','POST',{...defaults,id:randomUUID()},[201])
+    let state=await start()
+    const act=(action,text)=>send(client,'/interviews/'+state.session.id+'/actions','POST',{action,text,id:randomUUID(),revision:state.revision})
+    state=await act('answer','QA invalid quotation')
+    assert.equal(state.current.aiState,'fallback')
+    state=await act('skip')
+    assert(!state.current.feedback)
+    state=await act('next')
+    state=await act('answer','QA check consistency')
+    assert(state.current.text.includes('QA invalid quotation') && state.current.text.includes('QA check consistency'))
+    state=await act('skip')
+    assert.equal(state.current.feedback.assessment.probe,'consistency')
+    state=await act('next')
+    assert.equal(state.session.status,'completed')
+    state=await start()
+    state=await act('answer','QA advance');assert.equal(state.stage,'feedback');assert(state.current.reference && state.current.feedback)
+    state=await act('next')
+    state=await act('answer','QA provider quota');assert.equal(state.current.aiState,'quota')
+    state=await act('end')
+    state=await start()
+    state=await act('answer','QA advance');state=await act('next');state=await act('answer','QA advance');state=await act('next')
+    state=await start()
+    state=await act('answer','QA advance');assert.equal(state.current.aiState,'quota')
+    assert.equal(state.stage,'followup')
   })
   await check('render six widths, both themes, keyboard focus and real browser controls', async () => {
     const routes=[['dashboard','/'],['bank','/cau-hoi'],['practice','/cau-hoi/integer-division'],['coding','/coding/frequency-map'],

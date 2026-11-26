@@ -1,5 +1,13 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 4 · Phỏng vấn và luyện lại
+
+Ba hình thức gồm bộ câu biên soạn, AI hướng dẫn và AI mô phỏng. Mỗi phiên AI cần đồng ý gửi nội dung và chọn trần 1–4 lượt. API lưu câu trả lời và giữ ngân sách trước khi gọi provider, giới hạn sáu lần gọi/tài khoản/giờ trên mỗi tiến trình. Tối đa một câu đào sâu cho mỗi câu chính. AI chọn hướng hỏi nguyên nhân, ví dụ, thay giả định hoặc đối chiếu phát biểu trước. Máy chủ kiểm tra trích dẫn nguyên văn và chỉ phát câu hỏi từ khuôn đã biên soạn. Thiếu cấu hình, hết thời gian, quota hay lỗi schema đều có fallback. Phiên mô phỏng giữ kín nhận xét trong API và bản xuất cá nhân khi đang thi.
+
+Báo cáo có thời gian theo lượt, câu hỏi/đáp án theo phiên bản, dẫn chứng và nhận xét AI khi có, phân tích chủ đề, gợi ý diễn đạt, bản viết lại riêng, lịch ôn 3/7/14 ngày và phiên luyện theo từng câu. So sánh tối đa 30 phiên hoàn tất gần nhất cùng preset, mode, ngôn ngữ và thời lượng, rồi lọc tiếp theo trình độ, chủ đề, ngân sách, độ khó và các cặp câu/phiên bản. Phiên V1 thiếu thời gian theo lượt vẫn đọc được. Phase này mở rộng JSON hiện có, không cần migration SQL mới.
+
+Build React/TypeScript, ESLint và .NET Release đạt. Hai lượt Chrome trên SQL Server QA đạt **23 nhóm khi tắt AI**, **25 nhóm với provider fixture**. Các ca mới kiểm tra opt-in, hạn mức theo owner, nộp lại, đổi chủ đề, trích dẫn sai, quota, giấu phản hồi khi đang thi, bản viết lại, quyền truy cập phiên ôn và JSON phiên cũ. Detector Impeccable trả danh sách rỗng. Chrome kiểm tra hai theme ở 360/390/768/1024/1440/1920 px và điều hướng bàn phím. Chưa xác minh OpenAI thật, screen reader hoặc thiết bị vật lý. [Báo cáo V1](docs/qa/mock-report-1024-light.png) · [V2 trên điện thoại](docs/qa/interview-v2-ai-390.png) · [V2 trên desktop](docs/qa/interview-v2-ai-1440.png)
+
 ## V2 · Phase 3 · Thực thi C# và T-SQL
 
 Worker HTTPS độc lập đã chạy trên Docker Desktop Linux Engine 29.4.3. Cả 22 lời giải tham khảo (11 C#, 11 T-SQL) đạt với bộ dữ liệu riêng. Bảy nhóm kiểm định đã kiểm tra cấu hình container thực tế, compile/runtime error, kết quả sai, giới hạn thời gian/bộ nhớ/output, owner, nộp trùng, quota, hủy, phục hồi hàng đợi sau restart và dọn container còn sót. SQL đối chiếu kiểu cột, NULL, dòng trùng và thứ tự theo đề bài. Gateway ẩn output khi chấm Submit.

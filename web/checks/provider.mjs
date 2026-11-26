@@ -14,6 +14,20 @@ createServer(async (req, res) => {
     const prompt = JSON.parse(body.input)
     if (prompt.answer === 'QA provider quota') { res.writeHead(429).end(); return }
     if (prompt.answer === 'QA provider timeout') { await new Promise(resolve=>setTimeout(resolve,21000)); res.writeHead(503).end(); return }
+    if (body.text.format.name === 'interview_turn') {
+      assert.deepEqual(Object.keys(prompt).sort(), ['answer','code','language','outline','prior','prompt','remainingSeconds','rubric','stage'])
+      assert(prompt.prior.length <= 2 && body.max_output_tokens <= 1200)
+      assert(!body.instructions.includes(prompt.answer))
+      const quote = prompt.answer === 'QA invalid quotation' ? 'not part of this answer' : prompt.answer.split('.')[0]
+      const priorQuote = prompt.answer === 'QA check consistency' ? prompt.prior[0].answer : null
+      const assessment = {probe:priorQuote ? 'consistency' : prompt.answer === 'QA advance' ? 'advance' : 'cause',quote,priorQuote,
+        difficulty:'harder',findings:[{kind:'gap',quote,note:'Explain when a retry could change the outcome.'}],
+        improvedAnswer:'Compare the outcome of both deliveries before choosing a retry policy.'}
+      res.writeHead(200, {'Content-Type':'application/json'}).end(JSON.stringify({
+        status:'completed',model:'fixture-structured-v1',output:[{content:[{type:'output_text',text:JSON.stringify(assessment)}]}],
+      }))
+      return
+    }
     if (body.text.format.name === 'interview_followup') {
       assert.deepEqual(Object.keys(prompt).sort(), ['answer','language','prompt'])
       assert.equal(prompt.answer, 'A relay can retry.')

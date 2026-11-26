@@ -86,7 +86,10 @@ builder.Services.AddScoped<Practice>();
 builder.Services.AddScoped<Interviews>();
 builder.Services.AddScoped<Learning>();
 builder.Services.AddSingleton(AiOptions.From(builder.Configuration, builder.Environment));
-builder.Services.AddHttpClient<AiFeedback>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddScoped<AiFeedback>();
+builder.Services.AddSingleton(PartitionedRateLimiter.Create<string, string>(owner => RateLimitPartition.GetFixedWindowLimiter(owner,
+    _ => new FixedWindowRateLimiterOptions { PermitLimit = 6, Window = TimeSpan.FromHours(1) })));
+builder.Services.AddHttpClient<AiProvider>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 
 var app = builder.Build();
 app.UseExceptionHandler();

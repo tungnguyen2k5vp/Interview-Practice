@@ -322,6 +322,12 @@ input[type="checkbox"] { accent-color: var(--primary); inline-size: 16px; block-
 .report-summary > div { display: grid; gap: 2px; padding: 10px; background: var(--ground); border-radius: 8px; }
 .report-summary strong { color: var(--accent-ink); font-size: 1.4rem; }
 .report-summary span { color: var(--muted); font-size: .74rem; }
+.interview-finding { display: grid; gap: 5px; overflow-wrap: anywhere; }
+.interview-finding blockquote { margin: 0; font-style: italic; color: var(--body); }
+.interview-finding blockquote::before { content: open-quote; }
+.interview-finding blockquote::after { content: close-quote; }
+.interview-plan { list-style: none; padding: 0; margin: 0; }
+.interview-plan li { display: grid; grid-template-columns: 5em 1fr; gap: 8px; padding-block: 6px; }
 .report-item summary { display: flex; justify-content: space-between; gap: 8px; padding: 13px 16px; align-items: center; font-weight: 580; }
 .report-item summary::after { content: "+"; color: var(--primary); font: 1.25rem var(--mono); }
 .report-item[open] summary::after { content: "−"; }
@@ -330,6 +336,7 @@ input[type="checkbox"] { accent-color: var(--primary); inline-size: 16px; block-
 .lined-list { padding: 0; list-style: none; margin: 0; }
 .lined-list li { display: flex; align-items: flex-start; justify-content: space-between; gap: 13px; padding: 8px 0; border-top: 1px solid #e8edf5; color: var(--body); font-size: .835rem; }
 .lined-list a { color: var(--accent-ink); font-weight: 560; }
+.lined-list li > .button { flex: none; }
 .lined-list li > span:last-child { color: var(--muted); font-size: .8rem; }
 
 .exercise-layout {

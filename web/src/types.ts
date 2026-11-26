@@ -75,17 +75,22 @@ export type History = {
 }
 export type Note = { id: string; title: string; text: string; slug?: string; topic?: string; important: boolean; revision: number; updatedAt?: string }
 export type Preset = { id: string; name: string; description: string; topics: string[] }
+export type InterviewObservation = { model: string; assessment: { findings: {kind: string; quote: string; note: string}[]; improvedAnswer: string } }
+type InterviewEntry = { seconds: number; aiState?: string; observation?: InterviewObservation }
 export type Interview = {
-  session: { id: string; preset: string; mode: 'guided' | 'mock'; language: 'vi' | 'en'; status: string; startedAt: string; minutes: number }
+  session: { id: string; preset: string; mode: 'guided' | 'mock' | 'offline' | 'guided-ai' | 'realistic-ai'; language: 'vi' | 'en'; status: string; startedAt: string; minutes: number }
   revision: number; position: number; count: number; stage: 'question' | 'followup' | 'feedback'; draft: string
   serverNow: string; deadline: string; pausedSeconds?: number
   current?: { slug: string; version: number; title: string; topic: string; text: string; context?: string; code?: string; hint?: string;
-    reference?: Reference; answer?: string; followUpAnswer?: string; rating?: string }
+    reference?: Reference; answer?: string; followUpAnswer?: string; rating?: string; aiState?: string; feedback?: InterviewObservation }
   report?: ReportItem[]
+  aiLimit: number; aiUsed: number; activeSeconds: number
+  previous?: {id: string; at: string; answered: number; followUps: number; activeSeconds: number}
 }
 export type ReportItem = {
   position: number; slug: string; title: string; topic: string; prompt: string; status: string; answer?: string
   hintSeen: boolean; followUp?: string; followUpAnswer?: string; followUpSkipped: boolean; rating?: string; reference: Reference
+  reviewReason?: string; mainEntry?: InterviewEntry; followEntry?: InterviewEntry; rewrite?: string
 }
 export type ExerciseKind = 'coding' | 'sql'
 export type ExerciseCard = {
