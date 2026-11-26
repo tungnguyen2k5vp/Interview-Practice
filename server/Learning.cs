@@ -111,6 +111,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             || (request.Track is not null && request.Track is not ("intern30" or "fresher60" or "junior90" or "sprint7" or "sprint14" or "custom"))
             || !Known(request.Topics) || !Known(request.Roadmap) || !Known(request.ReviewTopics))
             throw ApiProblem.Invalid("Kiểm tra mục tiêu, chủ đề, múi giờ và thời lượng.");
+        await using var tx = await db.LockLearning(owner, ct);
         var user = await db.Users.FindAsync([owner], ct) ?? throw ApiProblem.Missing();
         var iana = TimeZoneInfo.TryConvertWindowsIdToIanaId(request.TimeZone, out var mapped) ? mapped : request.TimeZone;
         var old = user.GoalJson is null ? GoalSettings.Default : DataJson.Read<GoalSettings>(user.GoalJson);
@@ -118,6 +119,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         user.GoalJson = DataJson.Write(request with { Position = request.Position.Trim(), TimeZone = iana, TrackStart = request.Track is null ? null : start });
         user.ConcurrencyStamp = Guid.NewGuid().ToString();
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return DataJson.Read<GoalSettings>(user.GoalJson);
     }
 
@@ -127,6 +129,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         var goal = await Goal(db, owner, ct);
         var zone = TimeZoneInfo.FindSystemTimeZoneById(goal.TimeZone);
         var today = LocalDate(now, zone);
+        await Recall.Expire(db, owner, today, ct);
         var current = await catalog.PublishedQuery().Select(q => new { q.Slug, q.Topic, q.Version, q.Title, q.Level, q.Minutes, q.Data }).ToArrayAsync(ct);
         var answered = db.Attempts.AsNoTracking().Where(x => x.UserId == owner && x.Outcome == "answered");
         var reviews = States(owner);
@@ -139,10 +142,10 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             group a by q.Topic into g select new { Topic = g.Key, Answers = g.Count() }).ToDictionaryAsync(x => x.Topic, x => x.Answers, ct);
         var known = await reviews.Select(x => new { x.Slug, x.Mastery, x.AnsweredCount, x.ScheduledVersion }).ToDictionaryAsync(x => x.Slug, ct);
         var sqlZone = TimeZoneInfo.TryConvertIanaIdToWindowsId(goal.TimeZone, out var windowsZone) ? windowsZone : zone.Id;
-        var days = await answered.GroupBy(a => EF.Functions.AtTimeZone(a.At, sqlZone).Date)
+        var days = await answered.GroupBy(a => a.StudyDay!.Value)
             .Select(g => new { Day = g.Key, Answers = g.Count(), Seconds = g.Sum(a => a.ActiveSeconds),
                 Objective = g.Count(a => a.Correct != null), Correct = g.Count(a => a.Correct == true) })
-            .ToDictionaryAsync(x => DateOnly.FromDateTime(x.Day), ct);
+            .ToDictionaryAsync(x => x.Day, ct);
         var completed = db.Interviews.Where(x => x.UserId == owner && x.Status == "completed" && x.EndedAt != null);
         var mockDays = await completed.GroupBy(m => EF.Functions.AtTimeZone(m.EndedAt!.Value, sqlZone).Date)
             .Select(g => new { Day = g.Key, Count = g.Count() }).ToDictionaryAsync(x => DateOnly.FromDateTime(x.Day), x => x.Count, ct);
@@ -168,9 +171,8 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         var quick = await db.StudySessions.Where(x => x.UserId == owner && x.EndedAt == null).OrderByDescending(x => x.StartedAt)
             .Select(x => new { x.Id, x.Minutes }).FirstOrDefaultAsync(ct);
         if (quick is not null && resumeMock is null) resume = new($"Phiên học {quick.Minutes} phút", $"/phien-hoc/{quick.Id}", "Kế hoạch đang thực hiện");
-        var exerciseProgress = await db.ExerciseDrafts.Where(x => x.UserId == owner)
-            .Select(x => new { x.Slug, x.Version, x.Reviewed }).ToArrayAsync(ct);
-        var pending = exercises.Latest.Where(e => !exerciseProgress.Any(x => x.Slug == e.Slug && x.Version == e.Version && x.Reviewed)).ToArray();
+        var submissions = await ExerciseCatalog.Evidence(db, owner, ct);
+        var pending = exercises.Latest.Where(e => ExerciseCatalog.Progress(e, null, submissions.SingleOrDefault(s => s.Slug == e.Slug)) != "independent").ToArray();
         var suggestions = new List<StudyLink>();
         if (dueCards.FirstOrDefault() is { } first)
             suggestions.Add(new(first.Title, $"/cau-hoi/{first.Slug}", "Đã đến ngày ôn", first.Topic));
@@ -254,16 +256,17 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         join q in catalog.PublishedQuery() on s.Slug equals q.Slug
         orderby s.Due, q.Title
         select new QuestionCard(q.Slug, q.Version, q.Title, q.Topic, q.Format, q.Difficulty, q.Level, q.Technology,
-            q.Minutes, s.Bookmarked, s.LastOutcome, s.Rating, s.Due, null, s.Mastery, s.VerifiedDays);
+            q.Minutes, s.Bookmarked, s.LastOutcome, s.Rating, s.Due, null, s.Mastery, s.VerifiedDays, s.ReviewReason, s.AiAssessed);
 
     private async Task<QuestionCard[]> Reviews(string owner, string? kind, CancellationToken ct)
     {
         var today = await Today(db, owner, clock, ct);
+        await Recall.Expire(db, owner, today, ct);
         var q = States(owner);
         q = kind switch
         {
             "weak" => q.Where(x => x.Mastery == "review" || x.Rating == "unsure" || x.Rating == "partial"),
-            "wrong" => q.Where(x => db.Attempts.Any(a => a.Id == x.LastAttemptId && a.Correct == false)),
+            "wrong" => q.Where(x => x.Mastery == "review" || x.Rating == "unsure" || x.LastOutcome == "skipped"),
             "skipped" => q.Where(x => x.LastOutcome == "skipped"),
             "bookmarked" => q.Where(x => x.Bookmarked),
             "planned" => q.Where(x => x.Due > today),
@@ -278,15 +281,22 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         if (kind is "coding" or "sql")
         {
             var slugs = exercises.Latest.Where(e => e.Kind == kind).Select(e => e.Slug).ToArray();
-            var drafts = db.ExerciseDrafts.AsNoTracking().Where(d => d.UserId == owner && slugs.Contains(d.Slug));
-            var count = await drafts.CountAsync(ct);
+            var events = db.ExerciseDrafts.AsNoTracking().Where(d => d.UserId == owner && slugs.Contains(d.Slug))
+                .Select(d => new { Job = (Guid?)null, d.Slug, d.Version, TestVersion = 0, At = d.SavedAt, Status = d.Reviewed ? "reviewed" : "draft",
+                    d.HintSeen, d.SolutionSeen, Assisted = false, Action = "draft" })
+                .Concat(db.ExerciseSubmissions.AsNoTracking().Where(j => j.UserId == owner && slugs.Contains(j.Slug))
+                    .Select(j => new { Job = (Guid?)j.Id, j.Slug, j.Version, j.TestVersion, At = j.RequestedAt, j.Status,
+                        HintSeen = false, SolutionSeen = false, j.Assisted, j.Action }));
+            var count = await events.CountAsync(ct);
             var number = Math.Clamp(page ?? 1, 1, Math.Max(1, (count + size - 1) / size));
-            var rows = await drafts.OrderByDescending(d => d.SavedAt).ThenBy(d => d.Slug).ThenByDescending(d => d.Version)
+            var rows = await events.OrderByDescending(d => d.At).ThenBy(d => d.Slug).ThenByDescending(d => d.Version).ThenBy(d => d.Job)
                 .Skip((number-1)*size).Take(size).ToArrayAsync(ct);
             return new(rows.Select(d => {
                 var e = exercises.Find(d.Slug, d.Version);
-                return new HistoryItem($"{d.Slug}@{d.Version}", e.Title, $"/{e.Kind}/{e.Slug}?version={e.Version}", e.Topic,
-                    d.Reviewed ? "reviewed" : "draft", null, d.SavedAt, "Bản nháp đã lưu", d.Version, d.HintSeen, d.SolutionSeen, 0, false);
+                var source = d.Job == null ? "Bản nháp đã lưu" : $"{(d.Action == "submit" ? "Lượt nộp" : "Chạy thử")} · test v{d.TestVersion}";
+                if (d.Job != null && d.Assisted) source += " · có trợ giúp";
+                return new HistoryItem(d.Job?.ToString() ?? $"{d.Slug}@{d.Version}", e.Title, $"/{e.Kind}/{e.Slug}?version={e.Version}", e.Topic,
+                    d.Status, null, d.At, source, d.Version, d.HintSeen, d.SolutionSeen, 0, false);
             }).ToArray(), count, number, size);
         }
         IQueryable<HistoryItem> query;
@@ -305,7 +315,8 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
                 from r in ratings.DefaultIfEmpty()
                 orderby a.At descending, a.Id
                 select new HistoryItem(a.Id.ToString(), q.Title, "/luot-luyen/" + a.Id, q.Topic, a.Outcome, r == null ? null : r.Rating,
-                    a.At, a.Correct != null ? "Đáp án xác định" : r == null ? "Chưa tự đánh giá" : "Tự đánh giá", a.Version, a.HintSeen, a.AnswerSeen,
+                    a.At, a.Correct != null ? "Đáp án xác định" : db.KnowledgeChecks.Any(k => k.AttemptId == a.Id && k.AnsweredAt != null)
+                        ? "Bài kiểm tra vận dụng" : r == null ? "Chưa tự đánh giá" : "Tự đánh giá", a.Version, a.HintSeen, a.AnswerSeen,
                     db.Revisions.Count(x => x.AttemptId == a.Id), db.AiReviews.Any(x => x.AttemptId == a.Id && x.Feedback != null));
         }
         var total = await query.CountAsync(ct);
@@ -384,6 +395,8 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             exportedAt = clock.GetUtcNow(), profile, goal = await Goal(db, owner, ct),
             attempts = await attempts.ToArrayAsync(ct),
             assessments = await db.Assessments.AsNoTracking().Where(x => attempts.Any(a => a.Id == x.AttemptId)).ToArrayAsync(ct),
+            knowledgeChecks = await db.KnowledgeChecks.AsNoTracking().Where(x => attempts.Any(a => a.Id == x.AttemptId))
+                .Select(x => new { x.AttemptId, x.OpenedAt, x.AnsweredAt, x.StudyDay, x.Choice, x.Correct, x.Assisted }).ToArrayAsync(ct),
             revisions = await db.Revisions.AsNoTracking().Where(x => attempts.Any(a => a.Id == x.AttemptId)).ToArrayAsync(ct),
             aiFeedback = ai.Select(x => new { x.AttemptId, Feedback = DataJson.Read<AiResponse>(x.Feedback!) }),
             sessions = await sessions.ToArrayAsync(ct),
@@ -392,6 +405,8 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             notes = await db.Notes.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
             study = await db.StudyStates.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
             exercises = await db.ExerciseDrafts.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct),
+            submissions = await db.ExerciseSubmissions.AsNoTracking().Where(x => x.UserId == owner)
+                .Select(x => new { x.Id, x.Slug, x.Version, x.TestVersion, x.Action, x.Assisted, x.RequestedAt, x.Status, x.Result }).ToArrayAsync(ct),
             external = await db.ExternalPractice.AsNoTracking().Where(x => x.UserId == owner).ToArrayAsync(ct)
         };
         return TypedResults.File(System.Text.Encoding.UTF8.GetBytes(DataJson.Write(export)), "application/json", "interview-practice-data.json");

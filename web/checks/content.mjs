@@ -15,6 +15,32 @@ assert.equal(new Set(questions.map(x => x.slug)).size, questions.length)
 assert.equal(new Set(questions.map(x => x.content.topic)).size, 11)
 assert.equal(new Set(questions.map(x => x.content.prompt.trim().toLowerCase())).size, questions.length)
 const slugs = new Set(questions.map(x => x.slug))
+const knowledgeChecks = data('knowledge-checks')
+assert.equal(knowledgeChecks.length, 52)
+assert.equal(new Set(knowledgeChecks.map(x => x.slug + '@' + x.version)).size, knowledgeChecks.length)
+for (const q of questions.filter(x => !x.content.quiz)) assert(knowledgeChecks.some(c => c.slug === q.slug && c.version === 1), q.slug)
+for (const c of knowledgeChecks) {
+  assert(slugs.has(c.slug) && c.version === 1 && c.prompt && c.englishPrompt && c.explanation && c.englishExplanation, c.slug)
+  assert.equal(c.choices.length, c.englishChoices.length)
+  assert(c.choices.length >= 2 && c.choices.length <= 6 && Number.isInteger(c.correctIndex) && c.choices[c.correctIndex])
+  assert.equal(new Set(c.choices).size,c.choices.length)
+  assert.equal(new Set(c.englishChoices).size,c.choices.length)
+}
+const prerequisites = new Map(questions.map(q=>[q.slug,q.content.prerequisites ?? []]))
+const visited = new Set(), active = new Set()
+function visit(slug) {
+  assert(slugs.has(slug), 'Unknown prerequisite '+slug)
+  assert(!active.has(slug), 'Circular prerequisites at '+slug)
+  if(visited.has(slug)) return
+  active.add(slug)
+  for(const dependency of prerequisites.get(slug)) visit(dependency)
+  active.delete(slug); visited.add(slug)
+}
+for(const {slug,content} of questions) {
+  visit(slug)
+  assert(['intern','fresher','junior','mid','senior'].includes(content.level),slug)
+  assert(['easy','medium','hard'].includes(content.difficulty),slug)
+}
 for (const {slug, content: c} of batch) {
   assert(c.nextHint && c.nextHint !== c.hint && c.context && c.trap && c.explanation && c.alternative, slug)
   assert(c.prerequisites.concat(c.related).every(k => k !== slug && slugs.has(k)), slug)

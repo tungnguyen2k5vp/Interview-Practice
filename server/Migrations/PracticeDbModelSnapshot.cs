@@ -105,6 +105,9 @@ namespace InterviewPractice.Migrations
                         .HasMaxLength(90)
                         .HasColumnType("nvarchar(90)");
 
+                    b.Property<DateOnly?>("StudyDay")
+                        .HasColumnType("date");
+
                     b.Property<Guid?>("StudySessionId")
                         .HasColumnType("uniqueidentifier");
 
@@ -169,6 +172,58 @@ namespace InterviewPractice.Migrations
                     b.HasKey("UserId", "Slug", "Version");
 
                     b.ToTable("ExerciseDrafts");
+                });
+
+            modelBuilder.Entity("InterviewPractice.ExerciseSubmission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
+                    b.Property<bool>("Assisted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("RequestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("RequestedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Result")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(90)
+                        .HasColumnType("nvarchar(90)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
+
+                    b.Property<int>("TestVersion")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Slug", "Version", "RequestedAt");
+
+                    b.ToTable("ExerciseSubmissions");
                 });
 
             modelBuilder.Entity("InterviewPractice.ExternalPractice", b =>
@@ -309,6 +364,38 @@ namespace InterviewPractice.Migrations
                         .IsUnique();
 
                     b.ToTable("Turns");
+                });
+
+            modelBuilder.Entity("InterviewPractice.KnowledgeCheckAttempt", b =>
+                {
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("AnsweredAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("Assisted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Choice")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Correct")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Definition")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly?>("StudyDay")
+                        .HasColumnType("date");
+
+                    b.HasKey("AttemptId");
+
+                    b.ToTable("KnowledgeChecks");
                 });
 
             modelBuilder.Entity("InterviewPractice.Learner", b =>
@@ -565,6 +652,9 @@ namespace InterviewPractice.Migrations
                         .HasMaxLength(90)
                         .HasColumnType("nvarchar(90)");
 
+                    b.Property<bool>("AiAssessed")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("AnswerSeen")
                         .HasColumnType("bit");
 
@@ -593,6 +683,9 @@ namespace InterviewPractice.Migrations
                     b.Property<DateOnly?>("Due")
                         .HasColumnType("date");
 
+                    b.Property<DateOnly?>("EvidenceUntil")
+                        .HasColumnType("date");
+
                     b.Property<bool>("HintSeen")
                         .HasColumnType("bit");
 
@@ -617,6 +710,13 @@ namespace InterviewPractice.Migrations
 
                     b.Property<string>("Rating")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RecallRevision")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(24)
+                        .HasColumnType("nvarchar(24)");
 
                     b.Property<int>("Revision")
                         .IsConcurrencyToken()
@@ -820,6 +920,15 @@ namespace InterviewPractice.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("InterviewPractice.ExerciseSubmission", b =>
+                {
+                    b.HasOne("InterviewPractice.Learner", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("InterviewPractice.ExternalPractice", b =>
                 {
                     b.HasOne("InterviewPractice.Learner", null)
@@ -843,6 +952,15 @@ namespace InterviewPractice.Migrations
                     b.HasOne("InterviewPractice.InterviewSession", null)
                         .WithMany()
                         .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InterviewPractice.KnowledgeCheckAttempt", b =>
+                {
+                    b.HasOne("InterviewPractice.Attempt", null)
+                        .WithOne()
+                        .HasForeignKey("InterviewPractice.KnowledgeCheckAttempt", "AttemptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

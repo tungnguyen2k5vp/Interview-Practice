@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { ArrowDown, ArrowRight, ArrowUp, Bookmark, CalendarDays, Check, ChevronRight, Download, FileText, LogOut, Plus, Star, Trash2 } from 'lucide-react'
 import { api, clearPersonalDrafts, useAction, useResource } from './api'
 import { TopicIcon } from './Dashboard'
-import { ExerciseEmpty } from './Exercises'
 import { SignInGate, useSession } from './session'
 import type { Card, Dashboard, ExerciseCard, Goal, History, Note, Page, Topic } from './types'
-import { label, labels } from './types'
+import { label, labels, runStatuses } from './types'
 import { ActionLink, Badge, Button, Dialog, Empty, Field, Link, Loading, Options, PageTitle, Pagination, Problem, QuestionCard, Segments, TopicChecks, dateTime, navigate, shortDate } from './ui'
 
 export function Roadmap() {
@@ -92,14 +91,14 @@ export function Reviews({ params }: { params: URLSearchParams }) {
   const kind = params.get('tab') ?? 'due'
   const selected = useResource<Card[]>(user && kind !== 'exercises' ? '/reviews?kind=' + encodeURIComponent(kind) : null)
   const exercises = useResource<ExerciseCard[]>(user && kind === 'exercises' ? '/exercises' : null)
-  const pending = exercises.data?.filter(x => !x.reviewed) ?? []
+  const pending = exercises.data?.filter(x => x.progress !== 'independent') ?? []
   return <div className="page">
     <PageTitle title="Ôn tập" description="Ôn lại câu đến hạn, câu bạn đánh dấu hoặc nội dung cần giải thích rõ hơn."
       action={<ActionLink href="/ghi-chu?important=1"><Bookmark size={16} /> Ghi chú quan trọng</ActionLink>} />
     {!user ? <SignInGate detail="Đăng nhập để xem câu đến hạn và lịch ôn riêng." /> : <>
       <Segments selected={kind} change={x => navigate('/on-tap?tab=' + x, { preserveScroll: true })} title="Danh sách ôn"
         values={[[ 'due', 'Đến hạn' ], [ 'weak', 'Chưa vững' ], [ 'skipped', 'Đã bỏ qua' ], [ 'bookmarked', 'Đã đánh dấu' ],
-          [ 'wrong', 'Trả lời sai' ], [ 'planned', 'Sắp tới' ], [ 'exercises', 'Bài chưa đối chiếu' ]]} />
+          [ 'wrong', 'Cần luyện lại' ], [ 'planned', 'Sắp tới' ], [ 'exercises', 'Bài cần thực hành' ]]} />
       {selected.data && selected.data.length > 0 && <ActionLink tone="primary" href={'/cau-hoi/' + selected.data[0].slug}>Ôn ngay câu đầu tiên <ArrowRight size={16} /></ActionLink>}
       {(selected.loading || exercises.loading) && <Loading />}
       <Problem text={selected.error} retry={selected.reload} /><Problem text={exercises.error} retry={exercises.reload} />
@@ -108,8 +107,8 @@ export function Reviews({ params }: { params: URLSearchParams }) {
       </QuestionCard>)}</div> : <div className="panel"><Empty title={kind === 'due' ? 'Chưa có câu đến hạn' : 'Danh sách này đang trống'}
         detail="Mở một câu để đặt lịch ôn, đánh dấu hoặc tự đánh giá sau khi luyện." action={<ActionLink href="/cau-hoi">Xem ngân hàng</ActionLink>} /></div>)}
       {exercises.data && <div className="panel content-panel">{pending.length ? pending.map(x => <Link key={x.slug} className="study-row" href={'/' + x.kind + '/' + x.slug}>
-        <TopicIcon topic={x.topic} /><span><strong>{x.title}</strong><small>{x.hasDraft ? 'Có bản nháp' : 'Chưa luyện'}</small></span><ChevronRight size={16} className="row-arrow" />
-      </Link>) : <ExerciseEmpty />}</div>}
+        <TopicIcon topic={x.topic} /><span><strong>{x.title}</strong><small>{label('exerciseProgress', x.progress)}</small></span><ChevronRight size={16} className="row-arrow" />
+      </Link>) : <Empty title="Bạn đã giải độc lập tất cả bài hiện có" detail="Các lượt nộp và phiên bản bài vẫn có trong lịch sử luyện tập." action={<ActionLink href="/tien-do?tab=coding">Xem lịch sử</ActionLink>} />}</div>}
     </>}
   </div>
 }
@@ -242,7 +241,9 @@ export function Progress({ params }: { params: URLSearchParams }) {
           <div>{history.data.items.map(item => <Link className="study-row" href={item.path} key={item.id}>
             <TopicIcon topic={item.topic || 'oop'} /><span><strong>{kind === 'interview' ? label('preset', item.label) : item.label}</strong>
               <small>{dateTime(item.at, goal.timeZone)} · {item.assessmentSource}{item.hasAiFeedback ? ' · Có nhận xét AI' : ''}{item.version ? ' · v' + item.version : ''}{item.revisions ? ' · ' + item.revisions + ' bản cải thiện' : ''}</small></span>
-            <Badge tone={item.rating ? 'indigo' : 'neutral'}>{item.rating ? label('rating', item.rating) : item.status === 'reviewed' ? 'Tự đối chiếu' : item.status === 'draft' ? 'Đã lưu nháp' : label('status', item.status)}</Badge>
+            <Badge tone={item.rating ? 'indigo' : 'neutral'}>{kind === 'coding' || kind === 'sql'
+              ? runStatuses[item.status] ?? label('exerciseProgress', item.status)
+              : item.rating ? label('rating', item.rating) : label('status', item.status)}</Badge>
             <ChevronRight className="row-arrow" size={16} />
           </Link>)}</div>
           <Pagination page={history.data.page} size={history.data.pageSize} total={history.data.total} change={x => navigate('/tien-do?tab=' + kind + '&page=' + x, { preserveScroll: true })} />

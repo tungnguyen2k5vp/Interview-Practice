@@ -131,6 +131,7 @@ export function QuestionCard({ item, children, href = '/cau-hoi/' + item.slug }:
     {item.tags?.length ? <div className="tag-row">{item.tags.slice(0, 3).map(tag => <span key={tag}>{tag}</span>)}</div> : null}
     <div className="question-foot">
       <span>{label('mastery', item.mastery ?? (item.outcome ? 'learning' : 'new'))}</span>
+      {item.reviewReason && <span>{label('reviewReason', item.reviewReason)}</span>}
       {children ?? <Link className="text-link" href={href}>Mở câu hỏi <ArrowRight size={15} /></Link>}
     </div>
   </article>

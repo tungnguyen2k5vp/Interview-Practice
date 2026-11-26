@@ -270,6 +270,7 @@ function AttemptView({ initial }: { initial: Attempt }) {
   const link = '/ghi-chu?new=1&slug=' + question.card.slug + '&topic=' + question.card.topic + '&title=' + encodeURIComponent(question.card.title)
   const base = '/practice/attempts/' + attempt.id
   const previous = useResource<{previous?: Pick<Attempt,'at'|'text'|'language'|'correct'|'id'>}>(base+'/previous')
+  const refresh = async () => setAttempt(await api<Attempt>(base))
   return <div className="page practice-page">
     <PageTitle title={question.card.title} description={'Lượt luyện · ' + dateTime(attempt.at, goal.timeZone)} back={[next, 'Quay về câu hỏi']}
       action={attempt.studySessionId ? <ActionLink tone="primary" href={'/phien-hoc/' + attempt.studySessionId}>Tiếp tục phiên học <ArrowRight size={16}/></ActionLink> : <ActionLink href={next}><RotateCcw size={17} /> Luyện lại</ActionLink>} />
@@ -290,6 +291,7 @@ function AttemptView({ initial }: { initial: Attempt }) {
           <Problem text={previous.error} retry={previous.reload}/>
           {attempt.outcome === 'skipped' && <p>Bạn có thể đặt lịch ôn hoặc luyện lại khi sẵn sàng.</p>}
         </section>
+        {attempt.outcome === 'answered' && <KnowledgeCheckPanel path={base + '/check'} language={attempt.language} refresh={refresh}/>}
         <section className="panel content-panel stack">
           {reference ? <RubricPanel reference={reference} /> : <>
             <h2>Đối chiếu và tự đánh giá</h2>
@@ -315,10 +317,12 @@ function AttemptView({ initial }: { initial: Attempt }) {
           </>}
           {attempt.revisions.map((item, index) => <details className="details" key={item.id}><summary>Bản {index + 1} · {dateTime(item.at, goal.timeZone)}</summary><p className="written-answer">{item.text}</p></details>)}
         </section>}
-        {attempt.outcome === 'answered' && <AiFeedbackPanel path={base + '/ai-feedback'} />}
+        {attempt.outcome === 'answered' && <AiFeedbackPanel path={base + '/ai-feedback'} refresh={refresh}/>}
       </div>
       <aside className="stack"><section className="panel content-panel"><h2>{label('mastery', question.card.mastery ?? 'learning')}</h2>
         <p className="muted">{question.card.verifiedDays ?? 0} ngày trả lời đúng độc lập trên phiên bản này.</p></section>
+        {question.card.reviewReason && <p className="notice">{label('reviewReason', question.card.reviewReason)}</p>}
+        {question.card.aiAssessed && <p className="small muted">Đã có nhận xét AI. Nguồn AI được lưu riêng theo rubric.</p>}
         <ReviewDate key={attempt.rating || 'initial'} card={question.card} />
         <Link className="button secondary" href={link}><FileText size={16} /> Thêm ghi chú</Link>
       </aside>
@@ -326,7 +330,43 @@ function AttemptView({ initial }: { initial: Attempt }) {
   </div>
 }
 
-function AiFeedbackPanel({ path }: { path: string }) {
+type KnowledgeCheck = {
+  prompt: string; englishPrompt: string; choices: string[]; englishChoices: string[]
+  choice?: number; correct?: boolean; assisted: boolean; answeredAt?: string; explanation?: string; englishExplanation?: string
+}
+
+function KnowledgeCheckPanel({ path, language, refresh }: { path: string; language: string; refresh: () => Promise<void> }) {
+  const saved = useResource<{available: boolean; check?: KnowledgeCheck}>(path)
+  const [current, setCurrent] = useState<KnowledgeCheck>()
+  const [choice, setChoice] = useState<number>()
+  const action = useAction()
+  const check = current ?? saved.data?.check
+  if (saved.loading) return <Loading/>
+  if (!saved.data?.available && !check) return <Problem text={saved.error} retry={saved.reload}/>
+  return <section className="panel content-panel stack">
+    <h2>Kiểm tra vận dụng</h2>
+    {!check ? <>
+      <p className="muted">Một tình huống ngắn kiểm tra cách áp dụng kiến thức. Làm trước khi mở tài liệu hoặc nhận xét AI để ghi nhận lần trả lời độc lập.</p>
+      <Button disabled={action.busy} onClick={() => void action.run(async () => setCurrent(await api<KnowledgeCheck>(path, {method:'POST'})))}>Bắt đầu kiểm tra</Button>
+    </> : <>
+      <p className="prompt-text" lang={language}>{language === 'en' ? check.englishPrompt : check.prompt}</p>
+      <fieldset className="quiz-options" disabled={action.busy || !!check.answeredAt}><legend>Chọn phương án phù hợp</legend>
+        {(language === 'en' ? check.englishChoices : check.choices).map((text, i) => <label key={i}><input type="radio" name="knowledge-check"
+          checked={(check.choice ?? choice) === i} onChange={() => setChoice(i)}/>{text}</label>)}
+      </fieldset>
+      {check.answeredAt ? <div role="status"><p className="notice">{check.correct ? 'Vận dụng đúng' : 'Cần luyện lại tình huống này'} · {check.assisted ? 'Có trợ giúp' : 'Trả lời độc lập'}</p>
+        <p lang={language}>{language === 'en' ? check.englishExplanation : check.explanation}</p>
+        <p className="small muted">Bằng chứng áp dụng cho tình huống này. Dùng rubric bên dưới để đánh giá độ sâu câu tự luận.</p></div> :
+        <Button tone="primary" disabled={choice === undefined || action.busy} onClick={() => void action.run(async () => {
+          setCurrent(await api<KnowledgeCheck>(path + '/answer', {method:'POST',body:{choice}}))
+          await refresh()
+        })}>Nộp bài vận dụng</Button>}
+    </>}
+    <Problem text={action.error || saved.error} retry={saved.reload}/>
+  </section>
+}
+
+function AiFeedbackPanel({ path, refresh }: { path: string; refresh: () => Promise<void> }) {
   const status = useResource<{ available: boolean }>('/ai/status')
   const saved = useResource<{ feedback?: AiReview }>(path)
   const [newReview, setNew] = useState<AiReview>()
@@ -352,7 +392,10 @@ function AiFeedbackPanel({ path }: { path: string }) {
       {review.body.referenceAnswer && <details className="details"><summary>Câu trả lời tham khảo từ AI</summary><p>{review.body.referenceAnswer}</p></details>}
     </> : status.data?.available ? <>
       <p className="muted">Khi yêu cầu, hệ thống gửi câu hỏi, câu trả lời đã nộp và rubric tới OpenAI để lấy nhận xét tham khảo.</p>
-      <Button disabled={action.busy} onClick={() => void action.run(async () => setNew(await api<AiReview>(path, { method: 'POST' })))}>
+      <Button disabled={action.busy} onClick={() => void action.run(async () => {
+        setNew(await api<AiReview>(path, { method: 'POST' }))
+        await refresh()
+      })}>
         {action.busy ? 'Đang nhận xét…' : 'Yêu cầu nhận xét AI'}
       </Button>
     </> : !status.error && <p className="muted">Chưa cấu hình AI. Bạn có thể tự đối chiếu theo rubric.</p>}

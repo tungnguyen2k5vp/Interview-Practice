@@ -87,6 +87,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
 
     private async Task<PracticeResponse> Open(string slug, string owner, Guid? sessionId, CancellationToken ct)
     {
+        await Recall.Expire(db, owner, await Learning.Today(db, owner, clock, ct), ct);
         var row = await db.StudyStates.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == owner && x.Slug == slug, ct);
         var q = row?.DraftId is not null && sessionId is null ? await catalog.Version(slug, row.DraftVersion, ct) : await Planned(slug, owner, sessionId, ct);
         if (row?.DraftId is not null && row.DraftVersion != q.Version)
@@ -98,12 +99,15 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
     {
         if (request.Text is null || request.Text.Length > 16000)
             throw ApiProblem.Invalid("Bản nháp tối đa 16.000 ký tự.");
+        await using var tx = await db.LockLearning(owner, ct);
+        if (sessionId is { } id) await StudySessions.Locked(db, owner, id, ct);
         var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, sessionId);
         if (row.DraftText == request.Text && row.DraftRevision > 0)
             return Draft(row, q);
         CheckRevision(row, request.Cursor);
         row.DraftText = request.Text;
         await SaveDraftChange(row, ct);
+        await tx.CommitAsync(ct);
         return Draft(row, q);
     }
 
@@ -111,6 +115,8 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
     {
         if (request.Kind is not ("hint" or "answer"))
             throw ApiProblem.Invalid("Tài liệu yêu cầu không hợp lệ.");
+        await using var tx = await db.LockLearning(owner, ct);
+        if (sessionId is { } id) await StudySessions.Locked(db, owner, id, ct);
         var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, sessionId);
         if (request.Kind == "hint" ? row.HintSeen : row.AnswerSeen)
             return Draft(row, q);
@@ -119,6 +125,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         else row.AnswerSeen = true;
         row.LastOutcome ??= "viewed";
         await SaveDraftChange(row, ct);
+        await tx.CommitAsync(ct);
         return Draft(row, q);
     }
 
@@ -172,10 +179,14 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         if (request.Cursor is null || request.Language is not ("vi" or "en") || request.ActiveSeconds is < 0 or > 3600)
             throw ApiProblem.Invalid("Thông tin lượt luyện không hợp lệ.");
         var id = request.Cursor.Id;
+        await using var tx = await db.LockLearning(owner, ct);
         var existing = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner && x.Slug == slug, ct);
         if (existing is not null)
+        {
+            if (existing.StudySessionId != request.StudySessionId || existing.Version != request.Cursor.Version)
+                throw ApiProblem.Conflict("Bản nháp dùng chung đã nộp trong ngữ cảnh khác. Tải lại để bắt đầu lượt mới.");
             return TypedResults.Ok(await AttemptView(existing, ct));
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        }
         StudySession? finishing = null;
         if (request.StudySessionId is { } sessionId)
         {
@@ -188,15 +199,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
             if (await db.Attempts.CountAsync(a => a.UserId == owner && a.StudySessionId == sessionId, ct) + 1 == plan.Length)
                 finishing = session;
         }
-        (StudyState row, QuestionVersion q) draft;
-        try { draft = await GetDraft(slug, request.Cursor, owner, ct, request.StudySessionId); }
-        catch (ApiProblem problem) when (problem.Status == 409)
-        {
-            existing = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner && x.Slug == slug, ct);
-            if (existing is null) throw;
-            return TypedResults.Ok(await AttemptView(existing, ct));
-        }
-        var (row, q) = draft;
+        var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, request.StudySessionId);
         CheckRevision(row, request.Cursor);
         var quiz = Catalog.Content(q).Quiz;
         if (request.Choice is { } index && (request.Skip || quiz is null || index < 0 || index >= quiz.Vi.Length))
@@ -204,6 +207,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         if (!request.Skip && request.Choice is null && string.IsNullOrWhiteSpace(row.DraftText))
             throw ApiProblem.Invalid("Hãy nhập câu trả lời hoặc chọn Bỏ qua.");
         var now = clock.GetUtcNow();
+        var today = await Learning.Today(db, owner, clock, ct);
         if (finishing is not null) finishing.EndedAt = now;
         var elapsed = Math.Clamp((int)(now - row.DraftStartedAt!.Value).TotalSeconds, 0, 3600);
         var attempt = new Attempt
@@ -211,7 +215,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
             Id = id, UserId = owner, Slug = slug, Version = q.Version, Text = request.Skip ? "" : request.Choice is int selected
                 ? (request.Language == "en" ? quiz!.En : quiz!.Vi)[selected] : row.DraftText,
             Outcome = request.Skip ? "skipped" : "answered", Language = request.Language, HintSeen = row.HintSeen, AnswerSeen = row.AnswerSeen,
-            At = now, ActiveSeconds = request.Skip ? 0 : Math.Min(elapsed, request.ActiveSeconds),
+            At = now, StudyDay = today, ActiveSeconds = request.Skip ? 0 : Math.Min(elapsed, request.ActiveSeconds),
             Choice = request.Choice, Correct = request.Choice is null ? null : request.Choice == quiz!.CorrectIndex, StudySessionId = request.StudySessionId
         };
         db.Attempts.Add(attempt);
@@ -227,16 +231,9 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         row.LastOutcome = attempt.Outcome;
         row.Rating = null;
         if (!request.Skip) row.AnsweredCount++;
-        await Recall.Refresh(db, row, q, ct, pending: attempt);
-        try { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); }
-        catch (DbUpdateException)
-        {
-            await tx.RollbackAsync(ct);
-            db.ChangeTracker.Clear();
-            existing = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner && x.Slug == slug, ct);
-            if (existing is null) throw;
-            return TypedResults.Ok(await AttemptView(existing, ct));
-        }
+        await Recall.Refresh(db, row, q, ct, pending: attempt, today: today);
+        await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return TypedResults.Created($"/api/practice/attempts/{id}", await AttemptView(attempt, ct));
     }
 
@@ -244,7 +241,10 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         => await db.Attempts.SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner, ct) ?? throw ApiProblem.Missing("Không tìm thấy lượt luyện.");
 
     private async Task<AttemptResponse> GetAttempt(Guid id, string owner, CancellationToken ct)
-        => await AttemptView(await Owned(id, owner, ct), ct);
+    {
+        await Recall.Expire(db, owner, await Learning.Today(db, owner, clock, ct), ct);
+        return await AttemptView(await Owned(id, owner, ct), ct);
+    }
 
     private async Task<AttemptResponse> AttemptView(Attempt row, CancellationToken ct)
     {
@@ -259,12 +259,14 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
 
     private async Task<ReferenceResponse> RevealAttempt(Guid id, string owner, CancellationToken ct)
     {
+        await using var tx = await db.LockLearning(owner, ct);
         var row = await Owned(id, owner, ct);
         if (row.ReferenceViewedAt is null)
         {
             row.ReferenceViewedAt = clock.GetUtcNow();
             await db.SaveChangesAsync(ct);
         }
+        await tx.CommitAsync(ct);
         return Catalog.Reference(await catalog.Version(row.Slug, row.Version, ct));
     }
 
@@ -272,6 +274,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
     {
         if (!Ratings.Contains(request.Rating))
             throw ApiProblem.Invalid("Chọn mức tự đánh giá hợp lệ.");
+        await using var tx = await db.LockLearning(owner, ct);
         var attempt = await Owned(id, owner, ct);
         if (attempt.Outcome != "answered")
             throw ApiProblem.Invalid("Chỉ tự đánh giá lượt đã trả lời.");
@@ -288,7 +291,8 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         if (state is not null)
         {
             if (state.LastAttemptId == id && state.ScheduledVersion <= attempt.Version) state.Rating = request.Rating;
-            await Recall.Refresh(db, state, await catalog.Version(attempt.Slug, attempt.Version, ct), ct, overrideId: id, rating: request.Rating);
+            await Recall.Refresh(db, state, await catalog.Version(attempt.Slug, attempt.Version, ct), ct, overrideId: id, rating: request.Rating,
+                today: await Learning.Today(db, owner, clock, ct));
             state.Revision++;
         }
         try { await db.SaveChangesAsync(ct); }
@@ -297,6 +301,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
             db.ChangeTracker.Clear();
             if (!await db.Assessments.AsNoTracking().AnyAsync(x => x.AttemptId == id && x.Rating == request.Rating, ct)) throw;
         }
+        await tx.CommitAsync(ct);
         return await AttemptView(attempt, ct);
     }
 
@@ -316,6 +321,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
 
     private async Task<QuestionCard> Mark(string slug, MarkRequest request, string owner, CancellationToken ct)
     {
+        await using var tx = await db.LockLearning(owner, ct);
         var q = await catalog.Published(slug, ct);
         var row = await db.StudyStates.FindAsync([owner, slug], ct);
         if (row is null)
@@ -331,6 +337,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         }
         row.Revision++;
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return Catalog.Card(q, row);
     }
 }

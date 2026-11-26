@@ -31,7 +31,7 @@ try {
   const page = await ctx.newPage()
   page.on('pageerror', e => errors.push(e.message))
   page.setDefaultTimeout(9000)
-  let session, attempt, liveMock, reportMock
+  let session, attempt, transferId, liveMock, reportMock
   const begin = (mode, minutes=10, topic=null) => send(client, '/study-sessions','POST',{id:randomUUID(),minutes,mode,topic})
   await check('all time budgets and study modes, no matches, input and owner checks', async () => {
     for (const minutes of [5,10,15,30]) {
@@ -64,7 +64,7 @@ try {
     await page.getByRole('button',{name:'Nộp câu trả lời'}).click()
     await page.waitForURL('**/luot-luyen/*')
     const id = new URL(page.url()).pathname.split('/').pop()
-    await page.getByText(/Đáp án chưa đúng/).waitFor()
+    await page.getByText(/Đáp án chưa đúng · Chấm theo đáp án/).waitFor()
     attempt = await send(client,'/practice/attempts/'+id)
     assert.equal(attempt.correct,false); assert.equal(attempt.studySessionId,session.id)
     assert.equal(attempt.question.card.mastery,'review'); assert.equal(attempt.question.card.verifiedDays,0)
@@ -97,7 +97,7 @@ try {
     assert.equal(a.id,b.id); assert.equal(a.correct,true); assert.equal(a.question.card.verifiedDays,0)
     await send(client,'/runner/frequency-map/1/jobs','POST',{id:randomUUID(),action:'submit',code:'return 42;'},[503])
     await send(client,'/runner/frequency-map/1/jobs','POST',{id:randomUUID(),action:'submit',code:''},[400])
-    await send(client,'/runner/jobs/'+randomUUID(),'GET',undefined,[503])
+    await send(client,'/runner/jobs/'+randomUUID(),'GET',undefined,[404])
     const month=(await send(client,'/dashboard')).month; assert.equal(month.length,30)
     assert.equal(month.at(-1).answers,2)
   })
@@ -187,6 +187,76 @@ try {
       await send(client,'/questions/'+item.slug,'GET',undefined,[404])
     } finally {await admin.close()}
   })
+  await check('shared draft, simultaneous submit in two sessions and stale standalone tab', async () => {
+    const [a,b] = await Promise.all([begin('quiz',10,'sql'),begin('quiz',10,'sql')])
+    const slug = a.items.find(x => b.items.some(y => y.slug === x.slug)).slug
+    const path = '/practice/questions/'+slug
+    const opened = await send(client,path+'?sessionId='+a.id)
+    const cursor = opened.draft?.cursor ?? {id:randomUUID(),revision:0,version:a.items.find(x=>x.slug === slug).version}
+    const shared = await send(client,path+'/draft?sessionId='+a.id,'PATCH',{cursor,text:'Nháp dùng chung giữa hai phiên'})
+    assert.deepEqual((await send(client,path+'?sessionId='+b.id)).draft,shared)
+    assert.deepEqual((await send(client,path)).draft,shared)
+    const submit = {cursor:shared.cursor,language:'vi',skip:false,activeSeconds:0,choice:0}
+    const pairs = await Promise.all([a,b].map(s => send(client,path+'/submit','POST',{...submit,studySessionId:s.id},[201,409])))
+    const winner = pairs.find(x=>x.id === cursor.id)
+    assert(winner && pairs.filter(x=>x.id === cursor.id).length === 1)
+    assert.equal((await send(client,path+'/submit','POST',{...submit,studySessionId:winner.studySessionId})).id,winner.id)
+    await send(client,path+'/submit','POST',submit,[409])
+    const loser = a.id === winner.studySessionId ? b : a
+    await send(client,'/study-sessions/'+loser.id+'/finish','POST')
+    await send(client,path+'/draft?sessionId='+loser.id,'PATCH',{cursor:shared.cursor,text:'Sau khi đóng'},[409])
+    assert(!(await send(client,'/study-sessions/'+loser.id)).items.some(x=>x.attempt))
+  })
+  await check('transfer evidence, shuffle and refresh, grading, owner, duplicate, help, timezone and manual due', async () => {
+    const slug = 'di-lifetimes', path='/practice/questions/'+slug
+    const profile=await send(client,'/profile')
+    await send(client,'/profile','PUT',{...profile,timeZone:'Pacific/Kiritimati'})
+    async function essay() {
+      const saved=await send(client,path+'/draft','PATCH',{cursor:{id:randomUUID(),revision:0,version:1},text:'Mỗi lần xử lý một job cần một scope cho các dependency theo request.'})
+      return (await send(client,path+'/submit','POST',{cursor:saved.cursor,language:'vi',skip:false,activeSeconds:0},[201])).id
+    }
+    const id=await essay(), record='/practice/attempts/'+id, check=record+'/check'
+    transferId=id
+    const {card}=await send(client,'/questions/'+slug)
+    assert.equal(card.mastery,'learning')
+    await send(client,path+'/mark','PUT',{due:'2030-01-12',setDue:true})
+    const [opened,same]=await Promise.all([send(client,check,'POST'),send(client,check,'POST')])
+    assert.deepEqual(opened,same)
+    assert(!JSON.stringify(opened).includes('correctIndex') && !opened.explanation)
+    const scopeAnswer='Create and dispose a scope for each job'
+    const correct=opened.englishChoices.indexOf(scopeAnswer)
+    assert(correct>=0)
+    for(const [op,suffix] of [['GET',''],['POST',''],['POST','/answer']]) await send(peer.request,check+suffix,op,suffix?{choice:correct}:undefined,[404])
+    for(const body of [{},{choice:-1},{choice:99}]) await send(client,check+'/answer','POST',body,[400])
+    await page.goto('/luot-luyen/'+id)
+    const option=page.getByRole('radio',{name:opened.choices[correct],exact:true})
+    await option.waitFor(); await page.reload(); await option.check()
+    await page.getByRole('button',{name:'Nộp bài vận dụng'}).click()
+    await page.getByText('Vận dụng đúng · Trả lời độc lập',{exact:true}).waitFor()
+    const result=(await send(client,check)).check
+    assert.deepEqual(await send(client,check+'/answer','POST',{choice:correct}),result)
+    await send(client,check+'/answer','POST',{choice:(correct+1)%opened.choices.length},[409])
+    await page.reload(); await page.getByText('Vận dụng đúng · Trả lời độc lập',{exact:true}).waitFor()
+    const proved=(await send(client,record)).question.card
+    assert.equal(proved.mastery,'secure'); assert.equal(proved.verifiedDays,1); assert.equal(proved.due,'2030-01-12')
+    const before=(await send(client,'/profile/export')).attempts.find(a=>a.id===id)
+    await send(client,'/profile','PUT',{...profile,timeZone:'Pacific/Pago_Pago'})
+    const assistedId=await essay(), assistedPath='/practice/attempts/'+assistedId
+    const assisted=await send(client,assistedPath+'/check','POST')
+    await send(client,assistedPath+'/reference','POST')
+    const answered=await send(client,assistedPath+'/check/answer','POST',{choice:assisted.englishChoices.indexOf(scopeAnswer)})
+    assert(answered.correct && answered.assisted)
+    const wrongId=await essay(), wrongPath='/practice/attempts/'+wrongId+'/check'
+    const wrong=await send(client,wrongPath,'POST')
+    assert.equal((await send(client,wrongPath+'/answer','POST',{choice:wrong.englishChoices.findIndex(x=>x!==scopeAnswer)})).correct,false)
+    const exported=await send(client,'/profile/export')
+    assert.equal(exported.attempts.find(a=>a.id===id).studyDay,before.studyDay)
+    assert.notEqual(exported.attempts.find(a=>a.id===wrongId).studyDay,before.studyDay)
+    assert(exported.knowledgeChecks.some(c=>c.attemptId===id && c.correct && !c.assisted))
+    assert.equal((await send(client,'/questions/'+slug)).card.mastery,'review')
+    assert.equal((await send(client,'/questions/'+slug)).card.due,'2030-01-12')
+    await send(client,'/profile','PUT',profile)
+  })
   if(process.env.IP_AI_FIXTURE==='1') await check('provider quota, invalid evidence and real server timeout keep the submitted answer', async()=>{
     const path='/practice/questions/invariants'
     for(const [text,status] of [['QA provider quota',503],['QA provider evidence',502],['QA provider timeout',504]]){
@@ -197,12 +267,12 @@ try {
       assert.equal((await send(client,'/practice/attempts/'+attempt.id+'/ai-feedback')).feedback,undefined)
     }
   })
-  await check('render five widths, both themes, keyboard focus and real browser controls', async () => {
+  await check('render six widths, both themes, keyboard focus and real browser controls', async () => {
     const routes=[['dashboard','/'],['bank','/cau-hoi'],['practice','/cau-hoi/integer-division'],['coding','/coding/frequency-map'],
       ['sql','/sql/customer-orders'],['interview','/phong-van'],['report','/luot-luyen/'+attempt.id],['roadmap','/lo-trinh'],
       ['reviews','/on-tap'],['progress','/tien-do'],['study','/phien-hoc'],['cv','/chuan-bi'],
-      ['mock-active','/phong-van/'+liveMock],['mock-report','/phong-van/'+reportMock]]
-    for(const width of [360,390,768,1024,1440]){
+      ['mock-active','/phong-van/'+liveMock],['mock-report','/phong-van/'+reportMock],['transfer','/luot-luyen/'+transferId]]
+    for(const width of [360,390,768,1024,1440,1920]){
       await page.setViewportSize({width,height:width<700?820:930})
       for(const [name,url] of routes){
         await page.goto(url);await page.getByRole('heading',{level:1}).first().waitFor()

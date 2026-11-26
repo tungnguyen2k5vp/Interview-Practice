@@ -7,7 +7,7 @@ import { labels } from './types'
 import { ActionLink, Button, Field, Link, Loading, Options, PageTitle, Problem, navigate, shortDate } from './ui'
 
 export const studyModes: Record<string, string> = {
-  new: 'Câu mới', due: 'Câu đến hạn', wrong: 'Trắc nghiệm làm sai', weak: 'Chủ đề yếu', core: 'Câu thường gặp',
+  new: 'Câu mới', due: 'Câu đến hạn', wrong: 'Câu cần luyện lại', weak: 'Chủ đề yếu', core: 'Câu thường gặp',
   flashcard: 'Flashcard', quiz: 'Trắc nghiệm', essay: 'Tự luận', debug: 'Tìm lỗi', predict: 'Dự đoán kết quả',
   compare: 'So sánh khái niệm', speed: 'Trả lời trong 60 giây',
 }

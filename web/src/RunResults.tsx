@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Play, Send } from 'lucide-react'
 import { api, message, useAction, useResource } from './api'
 import { Badge, Button, CodeBlock, Field, Pagination, Problem } from './ui'
+import { runStatuses as status } from './types'
 
 type Job = { id: string; action: string; status: string; at: string; output?: string; columns?: string[]; rows?: (string | null)[][]
   passed?: number; total?: number; milliseconds?: number }
-const status: Record<string, string> = { queued:'Đang chờ', running:'Đang chạy', completed:'Đã chạy', accepted:'Đạt',
-  compile_error:'Lỗi biên dịch', runtime_error:'Lỗi thực thi', wrong_answer:'Sai kết quả', timeout:'Quá thời gian', cancelled:'Đã hủy', failed:'Worker gặp lỗi' }
 
 export function useRuns(slug: string, version: number, enabled: boolean, code: string) {
   const base = '/runner/' + slug + '/' + version + '/jobs'

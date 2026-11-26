@@ -12,7 +12,7 @@ API chính chỉ giao tiếp HTTP qua `RunnerGateway.cs`. Người dùng tạo y
 
 Một job có id, slug, version, action, status và at. Các trường tùy chọn gồm output, columns, rows, passed, total, milliseconds. SQL dùng null JSON cho giá trị SQL NULL. Worker đối chiếu kiểu, dòng trùng và thứ tự dựa trên testVersion. UI hiển thị kết quả Run dạng bảng. Khi Submit, API chuyển verdict và số đếm của worker, đã loại output, cột và hàng của hidden case.
 
-Trạng thái hợp lệ gồm queued, running, accepted, completed, compile_error, runtime_error, wrong_answer, timeout, cancelled và failed. Cấu hình dùng HTTPS, cache handshake 10 giây, deadline mỗi request 4 giây, body phản hồi tối đa 256 KiB, tắt follow redirect. Worker chịu trách nhiệm lưu lịch sử, thực hiện hủy/timeout và dọn tài nguyên, kể cả khi caller rời trang.
+Trạng thái hợp lệ gồm queued, running, accepted, completed, compile_error, runtime_error, wrong_answer, timeout, memory_limit, output_limit, cancelled và failed. Cấu hình dùng HTTPS, cache handshake 10 giây, deadline mỗi request 4 giây, body phản hồi tối đa 256 KiB, tắt follow redirect. Gateway lưu owner, hash yêu cầu, trạng thái trợ giúp và phiên bản test trước khi gọi worker. Khi bật runner, API đối soát tối đa 16 job/lượt sau mỗi 15 giây, kể cả sau khi khởi động lại. Sau 5 phút, job worker xác nhận không tồn tại được ghi là lỗi hạ tầng. Lỗi liên lạc được thử lại. Trang tiến độ dùng verdict chấm trên phiên bản hiện hành. Chạy thử không ghi đè một verdict đã chấm.
 
 ## Điều kiện vận hành
 

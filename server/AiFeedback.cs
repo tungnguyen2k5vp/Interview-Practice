@@ -122,14 +122,17 @@ internal sealed class AiFeedback(HttpClient http, PracticeDb db, Catalog catalog
             var question = await catalog.Version(attempt.Slug, attempt.Version, ct);
             var content = Catalog.Content(question);
             var result = await Ask(attempt, content, ct);
+            await using var tx = await db.LockLearning(owner, ct);
             row.Feedback = DataJson.Write(result);
             var state = await db.StudyStates.FindAsync([owner, attempt.Slug], ct);
             if (state is not null)
             {
-                await Recall.Refresh(db, state, question, ct, overrideId: id, feedback: result.Body);
+                await Recall.Refresh(db, state, question, ct, overrideId: id, feedback: result.Body,
+                    today: await Learning.Today(db, owner, clock, ct));
                 state.Revision++;
             }
             await db.SaveChangesAsync(CancellationToken.None);
+            await tx.CommitAsync(CancellationToken.None);
             return result;
         }
         catch (Exception ex) when (ex is OperationCanceledException or HttpRequestException or JsonException or InvalidDataException or ApiProblem)

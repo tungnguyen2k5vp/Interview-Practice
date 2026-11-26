@@ -22,7 +22,7 @@ internal sealed record QuizOptions(string[] Vi, string[] En);
 internal sealed record QuestionCard(
     string Slug, int Version, string Title, string Topic, string Format, string Difficulty, string Level,
     string? Technology, int Minutes, bool Bookmarked, string? Outcome, string? Rating, DateOnly? Due, string[]? Tags,
-    string? Mastery = null, int VerifiedDays = 0);
+    string? Mastery = null, int VerifiedDays = 0, string? ReviewReason = null, bool AiAssessed = false);
 
 /// <summary>Đề bài công khai. Các mục phản hồi được yêu cầu qua luồng luyện tập.</summary>
 internal sealed record QuestionResponse(
@@ -114,6 +114,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         var pageNumber = Math.Clamp(page ?? 1, 1, 100_000);
         var owner = user.Identity?.IsAuthenticated is true ? user.Id() : "";
         var today = await Learning.Today(db, owner, clock, ct);
+        await Recall.Expire(db, owner, today, ct);
         var term = Term(search);
         if (term?.Length > 120)
             throw ApiProblem.Invalid("Từ khóa tối đa 120 ký tự.");
@@ -134,7 +135,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         query = status switch
         {
             "learning" => query.Where(x => x.s != null && (x.s.Mastery == "learning" || x.s.Mastery == null && x.s.DraftId != null)),
-            "secure" or "mastered" or "review" => query.Where(x => x.s != null && x.s.Mastery == status && x.s.ScheduledVersion == x.q.Version),
+            "secure" or "mastered" or "review" or "self" or "ai" => query.Where(x => x.s != null && x.s.Mastery == status && x.s.ScheduledVersion == x.q.Version),
             "answered" => query.Where(x => x.s != null && x.s.AnsweredCount > 0),
             "new" => query.Where(x => x.s == null || x.s.LastAttemptId == null && x.s.DraftId == null),
             "skipped" => query.Where(x => x.s != null && x.s.LastOutcome == "skipped"),
@@ -146,7 +147,8 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             .Select(x => new { x.q.Data, Card = new QuestionCard(x.q.Slug, x.q.Version, x.q.Title, x.q.Topic, x.q.Format, x.q.Difficulty,
                 x.q.Level, x.q.Technology, x.q.Minutes, x.s != null && x.s.Bookmarked, x.s == null ? null : x.s.LastOutcome,
                 x.s == null ? null : x.s.Rating, x.s == null ? null : x.s.Due, null,
-                x.s == null ? null : x.s.Mastery ?? (x.s.DraftId != null ? "learning" : null), x.s == null ? 0 : x.s.VerifiedDays) }).ToArrayAsync(ct);
+                x.s == null ? null : x.s.Mastery ?? (x.s.DraftId != null ? "learning" : null), x.s == null ? 0 : x.s.VerifiedDays,
+                x.s == null ? null : x.s.ReviewReason, x.s != null && x.s.AiAssessed) }).ToArrayAsync(ct);
         return new(items.Select(x => x.Card with { Tags = DataJson.Read<QuestionContent>(x.Data).Tags }).ToArray(), total, pageNumber, size);
     }
 
@@ -164,16 +166,19 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             ?? throw ApiProblem.Missing("Không tìm thấy phiên bản câu hỏi.");
 
     private async Task<StudyState?> State(string slug, ClaimsPrincipal user, CancellationToken ct)
-        => user.Identity?.IsAuthenticated is true
-            ? await db.StudyStates.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == user.Id() && x.Slug == slug, ct)
-            : null;
+    {
+        if (user.Identity?.IsAuthenticated is not true) return null;
+        await Recall.Expire(db, user.Id(), await Learning.Today(db, user.Id(), clock, ct), ct);
+        return await db.StudyStates.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == user.Id() && x.Slug == slug, ct);
+    }
 
     public static QuestionContent Content(QuestionVersion q) => DataJson.Read<QuestionContent>(q.Data);
     internal static string[] ContentPrerequisites(string data) => DataJson.Read<QuestionContent>(data).Prerequisites ?? [];
     public static QuestionCard Card(QuestionVersion q, StudyState? s = null)
         => new(q.Slug, q.Version, q.Title, q.Topic, q.Format, q.Difficulty, q.Level, q.Technology, q.Minutes,
             s?.Bookmarked ?? false, s?.LastOutcome, s?.Rating, s?.Due, null,
-            s?.ScheduledVersion == q.Version ? s.Mastery : s?.DraftId is not null ? "learning" : null, s?.ScheduledVersion == q.Version ? s.VerifiedDays : 0);
+            s?.ScheduledVersion == q.Version ? s.Mastery : s?.DraftId is not null ? "learning" : null, s?.ScheduledVersion == q.Version ? s.VerifiedDays : 0,
+            s?.ScheduledVersion == q.Version ? s.ReviewReason : null, s?.ScheduledVersion == q.Version && s.AiAssessed);
 
     public static QuestionResponse View(QuestionVersion q, StudyState? s = null)
     {
@@ -204,7 +209,8 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         var existing = (await db.Questions.Select(x => x.Slug).ToArrayAsync(ct)).ToHashSet(StringComparer.Ordinal);
         foreach (var item in items.Where(x => !existing.Contains(x.Slug)))
         {
-            Validate(item.Slug, item.Content);
+            // The original sql-constraints v1 stores its options in the prompt and takes a written answer.
+            Validate(item.Slug, item.Content, allowLegacyWrittenQuiz: item.Slug == "sql-constraints");
             db.Questions.Add(new QuestionHead { Slug = item.Slug, Latest = 1, Published = 1, Status = "published", Revision = 1 });
             db.QuestionVersions.Add(VersionRow(item.Slug, 1, item.Content));
         }
@@ -213,30 +219,41 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
 
     internal async Task ReconcileLegacyReviews(CancellationToken ct)
     {
-        var stale = await (from s in db.StudyStates
+        var stale = from s in db.StudyStates
             join q in PublishedQuery() on s.Slug equals q.Slug
-            join u in db.Users on s.UserId equals u.Id
-            where s.LastAttemptId != null && (s.ScheduledVersion != q.Version || s.SuggestedDue == null && !s.ManualDue)
-            select new { State = s, Question = q, u.GoalJson }).ToArrayAsync(ct);
-        foreach (var item in stale)
+            where s.LastAttemptId != null && (s.RecallRevision < 2 || s.ScheduledVersion != q.Version || s.SuggestedDue == null && !s.ManualDue)
+            select new { State = s, Question = q, HasAttempt = db.Attempts.Any(a =>
+                a.UserId == s.UserId && a.Slug == s.Slug && a.Version == q.Version) };
+        var owners = await db.Attempts.Where(a => a.StudyDay == null).Select(a => a.UserId)
+            .Union(stale.Select(x => x.State.UserId)).ToArrayAsync(ct);
+        foreach (var owner in owners)
         {
-            var state = item.State;
-            if (state.ScheduledVersion == item.Question.Version)
-                await Recall.Refresh(db, state, item.Question, ct);
-            else
+            await using var tx = await db.LockLearning(owner, ct);
+            var zone = TimeZoneInfo.FindSystemTimeZoneById((await Learning.Goal(db, owner, ct)).TimeZone);
+            var attempts = await db.Attempts.Where(a => a.UserId == owner && a.StudyDay == null).ToArrayAsync(ct);
+            foreach (var attempt in attempts) attempt.StudyDay = Learning.LocalDate(attempt.At, zone);
+            await db.SaveChangesAsync(ct);
+            var today = Learning.LocalDate(clock.GetUtcNow(), zone);
+            foreach (var item in await stale.Where(x => x.State.UserId == owner).ToArrayAsync(ct))
             {
-                var goal = item.GoalJson is null ? GoalSettings.Default : DataJson.Read<GoalSettings>(item.GoalJson);
-                ResetVersion(state, item.Question.Version, Learning.LocalDate(clock.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById(goal.TimeZone)));
+                if (item.HasAttempt) await Recall.Refresh(db, item.State, item.Question, ct, today: today);
+                else ResetVersion(item.State, item.Question.Version, today);
+                item.State.Revision++;
             }
-            state.Revision++;
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            db.ChangeTracker.Clear();
         }
-        if (stale.Length > 0) await db.SaveChangesAsync(ct);
     }
 
     private static void ResetVersion(StudyState state, int version, DateOnly today)
     {
         state.ScheduledVersion = version;
+        state.RecallRevision = 2;
         state.Mastery = "review";
+        state.ReviewReason = "version";
+        state.EvidenceUntil = null;
+        state.AiAssessed = false;
         state.SuggestedDue = today;
         if (!state.ManualDue) state.Due = today;
         state.VerifiedDays = state.Lapses = 0;
@@ -341,7 +358,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         return await AdminDetail(slug, ct);
     }
 
-    private static void Validate(string slug, QuestionContent c)
+    private static void Validate(string slug, QuestionContent c, bool allowLegacyWrittenQuiz = false)
     {
         static bool Has(string? value, int max) => !string.IsNullOrWhiteSpace(value) && value.Length <= max;
         static bool List(string[]? values, int min, int max, int length) =>
@@ -361,7 +378,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         if (!Has(c.Source, 600) || !Uri.TryCreate(c.Source, UriKind.Absolute, out var source) || source.Scheme != Uri.UriSchemeHttps
             || c.CheckedOn == default)
             throw ApiProblem.Invalid("Nguồn phải là URL HTTPS và cần có ngày kiểm tra.");
-        if (c.Format == "quiz" && c.Quiz is null)
+        if (c.Format == "quiz" && c.Quiz is null && !allowLegacyWrittenQuiz)
             throw ApiProblem.Invalid("Dạng trắc nghiệm cần lựa chọn tiếng Việt, tiếng Anh và đáp án đúng.");
         if (c.Quiz is { } quiz && (!List(quiz.Vi, 2, 6, 300) || !List(quiz.En, 2, 6, 300)
             || quiz.En.Length != quiz.Vi.Length || quiz.CorrectIndex < 0 || quiz.CorrectIndex >= quiz.Vi.Length

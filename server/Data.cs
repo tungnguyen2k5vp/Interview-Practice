@@ -48,6 +48,10 @@ internal sealed class StudyState
     public int VerifiedDays { get; set; }
     public int Lapses { get; set; }
     public int ScheduledVersion { get; set; }
+    public int RecallRevision { get; set; }
+    public DateOnly? EvidenceUntil { get; set; }
+    public string? ReviewReason { get; set; }
+    public bool AiAssessed { get; set; }
     public int AnsweredCount { get; set; }
     public DateTimeOffset? LastActivityAt { get; set; }
     public string? LastOutcome { get; set; }
@@ -75,6 +79,7 @@ internal sealed class Attempt
     public bool AnswerSeen { get; init; }
     public DateTimeOffset? ReferenceViewedAt { get; set; }
     public DateTimeOffset At { get; init; }
+    public DateOnly? StudyDay { get; set; }
     public int ActiveSeconds { get; init; }
     public int? Choice { get; init; }
     public bool? Correct { get; init; }
@@ -90,6 +95,18 @@ internal sealed class StudySession
     public string Plan { get; set; } = "";
     public DateTimeOffset StartedAt { get; init; }
     public DateTimeOffset? EndedAt { get; set; }
+}
+
+internal sealed class KnowledgeCheckAttempt
+{
+    public Guid AttemptId { get; init; }
+    public string Definition { get; init; } = "";
+    public DateTimeOffset OpenedAt { get; init; }
+    public DateTimeOffset? AnsweredAt { get; set; }
+    public DateOnly? StudyDay { get; set; }
+    public int? Choice { get; set; }
+    public bool? Correct { get; set; }
+    public bool Assisted { get; set; }
 }
 
 internal sealed class SelfAssessment
@@ -178,6 +195,21 @@ internal sealed class ExerciseDraft
     public bool Reviewed { get; set; }
 }
 
+internal sealed class ExerciseSubmission
+{
+    public Guid Id { get; init; }
+    public string UserId { get; init; } = "";
+    public string Slug { get; init; } = "";
+    public int Version { get; init; }
+    public int TestVersion { get; init; }
+    public string Action { get; init; } = "";
+    public string RequestHash { get; init; } = "";
+    public bool Assisted { get; init; }
+    public DateTimeOffset RequestedAt { get; init; }
+    public string Status { get; set; } = "requested";
+    public string? Result { get; set; }
+}
+
 internal sealed class ExternalPractice
 {
     public string UserId { get; init; } = "";
@@ -193,6 +225,7 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
     public DbSet<StudyState> StudyStates => Set<StudyState>();
     public DbSet<Attempt> Attempts => Set<Attempt>();
     public DbSet<StudySession> StudySessions => Set<StudySession>();
+    public DbSet<KnowledgeCheckAttempt> KnowledgeChecks => Set<KnowledgeCheckAttempt>();
     public DbSet<SelfAssessment> Assessments => Set<SelfAssessment>();
     public DbSet<AnswerRevision> Revisions => Set<AnswerRevision>();
     public DbSet<AiReviewRow> AiReviews => Set<AiReviewRow>();
@@ -200,6 +233,7 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
     public DbSet<InterviewTurn> Turns => Set<InterviewTurn>();
     public DbSet<Note> Notes => Set<Note>();
     public DbSet<ExerciseDraft> ExerciseDrafts => Set<ExerciseDraft>();
+    public DbSet<ExerciseSubmission> ExerciseSubmissions => Set<ExerciseSubmission>();
     public DbSet<ExternalPractice> ExternalPractice => Set<ExternalPractice>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -227,6 +261,9 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
         b.Entity<StudySession>().HasIndex(x => new { x.UserId, x.StartedAt });
         b.Entity<StudySession>().Property(x => x.Mode).HasMaxLength(20);
         b.Entity<StudyState>().Property(x => x.Mastery).HasMaxLength(12);
+        b.Entity<StudyState>().Property(x => x.ReviewReason).HasMaxLength(24);
+        b.Entity<KnowledgeCheckAttempt>().HasKey(x => x.AttemptId);
+        b.Entity<KnowledgeCheckAttempt>().HasOne<Attempt>().WithOne().HasForeignKey<KnowledgeCheckAttempt>(x => x.AttemptId);
         b.Entity<SelfAssessment>().HasKey(x => x.AttemptId);
         b.Entity<SelfAssessment>().HasOne<Attempt>().WithOne().HasForeignKey<SelfAssessment>(x => x.AttemptId);
         b.Entity<AnswerRevision>().HasOne<Attempt>().WithMany().HasForeignKey(x => x.AttemptId);
@@ -244,12 +281,28 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
         b.Entity<Note>().HasIndex(x => new { x.UserId, x.UpdatedAt });
         b.Entity<ExerciseDraft>().HasKey(x => new { x.UserId, x.Slug, x.Version });
         b.Entity<ExerciseDraft>().Property(x => x.Revision).IsConcurrencyToken();
+        b.Entity<ExerciseSubmission>().HasIndex(x => new { x.UserId, x.Slug, x.Version, x.RequestedAt });
+        b.Entity<ExerciseSubmission>().Property(x => x.RequestHash).HasMaxLength(64);
+        b.Entity<ExerciseSubmission>().Property(x => x.Status).HasMaxLength(24);
+        b.Entity<ExerciseSubmission>().Property(x => x.Action).HasMaxLength(12);
         b.Entity<ExternalPractice>().HasKey(x => new { x.UserId, x.Slug });
 
-        foreach (var type in new[] { typeof(StudyState), typeof(Attempt), typeof(StudySession), typeof(InterviewSession), typeof(Note), typeof(ExerciseDraft), typeof(ExternalPractice) })
+        foreach (var type in new[] { typeof(StudyState), typeof(Attempt), typeof(StudySession), typeof(InterviewSession), typeof(Note), typeof(ExerciseDraft), typeof(ExerciseSubmission), typeof(ExternalPractice) })
             b.Entity(type).HasOne(typeof(Learner)).WithMany().HasForeignKey("UserId");
-        foreach (var type in new[] { typeof(QuestionHead), typeof(QuestionVersion), typeof(StudyState), typeof(Attempt), typeof(ExerciseDraft), typeof(ExternalPractice) })
+        foreach (var type in new[] { typeof(QuestionHead), typeof(QuestionVersion), typeof(StudyState), typeof(Attempt), typeof(ExerciseDraft), typeof(ExerciseSubmission), typeof(ExternalPractice) })
             b.Entity(type).Property<string>("Slug").HasMaxLength(90);
+    }
+
+    internal async Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> LockLearning(string owner, CancellationToken ct)
+    {
+        var transaction = await Database.BeginTransactionAsync(ct);
+        try
+        {
+            // Serialize learning writes for this owner, including feedback and session closure.
+            await Database.ExecuteSqlInterpolatedAsync($"SELECT [Id] FROM [AspNetUsers] WITH (UPDLOCK, ROWLOCK) WHERE [Id] = {owner}", ct);
+            return transaction;
+        }
+        catch { await transaction.DisposeAsync(); throw; }
     }
 }
 

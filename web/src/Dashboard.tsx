@@ -84,8 +84,8 @@ export function DashboardPage() {
         <TopicIcon topic={topic.topic} /><span><strong>{label('topics', topic.topic)}</strong><small>{topic.practicedQuestions} / {topic.catalogCount} câu đã luyện</small></span>
         <progress aria-label={label('topics', topic.topic) + ' đã luyện'} max={Math.max(1, topic.catalogCount)} value={topic.practicedQuestions} />
       </Link>)}</div>
-      <div className="topic-footer"><Link href="/coding">Coding <strong>{data.codingRemaining}</strong> bài chờ đối chiếu</Link>
-        <Link href="/sql">SQL <strong>{data.sqlRemaining}</strong> bài chờ đối chiếu</Link></div>
+      <div className="topic-footer"><Link href="/coding">Coding <strong>{data.codingRemaining}</strong> bài cần kiểm chứng độc lập</Link>
+        <Link href="/sql">SQL <strong>{data.sqlRemaining}</strong> bài cần kiểm chứng độc lập</Link></div>
     </section>
   </div>
 }

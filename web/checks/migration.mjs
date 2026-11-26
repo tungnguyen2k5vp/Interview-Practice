@@ -21,7 +21,8 @@ try {
   const slug = 'di-lifetimes'
   if (before) {
     const password = randomUUID() + 'qa'
-    await send('/auth/register', 'POST', { displayName: 'Migration QA', email: randomUUID() + '@example.test', password })
+    const email = randomUUID() + '@example.test'
+    await send('/auth/register', 'POST', { displayName: 'Migration QA', email, password })
     const q = await send('/questions/' + slug)
     const cursor = { id: randomUUID(), revision: 0, version: q.card.version }
     const text = 'Một scope giữ cùng instance cho các lần resolve trong scope đó.'
@@ -30,14 +31,17 @@ try {
     await send('/practice/attempts/' + attempt.id + '/assessment', 'PUT', { rating: 'clear' })
     await send('/practice/questions/' + slug + '/mark', 'PUT', { due: '2030-01-12', setDue: true })
     const reference = await send('/practice/attempts/' + attempt.id + '/reference', 'POST')
-    await writeFile(path, JSON.stringify({ id: attempt.id, text, reference, password, cookies: await client.storageState() }))
+    await writeFile(path, JSON.stringify({ id: attempt.id, text, reference, email, password }))
     console.log('PASS created versioned attempt, rating and manual date on previous schema')
   } else {
+    if (previous.email) await send('/auth/login', 'POST', { email: previous.email, password: previous.password })
     const attempt = await send('/practice/attempts/' + previous.id)
     assert.equal(attempt.text, previous.text)
     assert.equal(attempt.rating, 'clear')
     assert.equal(attempt.question.card.due, '2030-01-12')
-    assert.equal(attempt.question.card.mastery, 'learning')
+    assert.equal(attempt.question.card.mastery, 'self')
+    const exported = await send('/profile/export')
+    assert.match(exported.attempts.find(a => a.id === previous.id).studyDay, /^\d{4}-\d{2}-\d{2}$/)
     assert.equal(attempt.question.card.verifiedDays, 0)
     assert.deepEqual(await send('/practice/attempts/' + previous.id + '/reference', 'POST'), previous.reference)
     await send('/profile/account/delete', 'POST', { password: previous.password })

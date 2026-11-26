@@ -1,5 +1,17 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 1 đã kiểm chứng ngày 26/11/2026
+
+- 58 câu chính có đường kiểm chứng. Sáu câu có khóa quiz, 52 câu còn lại có tình huống vận dụng Việt–Anh chấm tại máy chủ. Đề mở được chụp theo phiên bản và xáo lựa chọn. Lượt tự luận, tự đánh giá, đánh giá AI, bài vận dụng và kết quả worker lưu riêng.
+- Lượt sai, cần trợ giúp và bằng chứng hết hạn làm mất chuỗi kiểm chứng. Ngày học mới lưu lúc nộp. Ngày cũ được khôi phục theo múi giờ có trong hồ sơ khi nâng cấp vì V1 chưa lưu múi giờ từng lượt. Đã thử đổi qua đường đổi ngày, hai phiên cùng câu, tab cũ, nộp trùng và truy cập chéo tài khoản.
+- Migration tăng dần `20261126091535_LearningEvidenceV2` đã chạy trên SQL Server QA có dữ liệu V1. Đã đối chiếu câu trả lời, rubric, tự đánh giá, chủ sở hữu và ngày ôn thủ công. Seed trên kho câu trống giữ được câu `sql-constraints` V1 có lựa chọn trong đề. EF đối chiếu model và snapshot đạt.
+- Đã chạy build React/TypeScript, ESLint, build Release .NET, 42 kiểm tra logic và giao thức, 49 ca nội dung thực thi trên C#/T-SQL, 21 nhóm E2E khi tắt AI và 22 nhóm với provider fixture. Ca tích hợp riêng dùng SQL Server thật và HTTP handler kiểm thử, xác nhận verdict đồng bộ sau restart, che hidden output, phân biệt owner/trợ giúp và giữ kết quả accepted sau lần chạy thử. Chưa kiểm chứng dịch vụ OpenAI hoặc worker chạy mã thí sinh.
+- Chrome đã chụp 15 màn hình V2, hai theme tại 360/390/768/1024/1440/1920 px. Đã tái hiện cùng câu trên giao diện V1 ở sáu kích thước. [Mobile V1](docs/qa/v1-essay-390-dark.png) · [Mobile V2](docs/qa/transfer-390-dark.png) · [Desktop V1](docs/qa/v1-essay-1920-light.png) · [Desktop V2](docs/qa/transfer-1920-light.png)
+
+Tiếp theo là batch nội dung Phase 2 theo [kế hoạch V2](UPGRADE_PLAN_V2.md). Các số và giới hạn bên dưới thuộc V1.
+
+## Bản V1
+
 Mốc 26/11/2026. Phạm vi bắt đầu từ commit `a6090c3`. [Audit và tiêu chí nghiệm thu](UPGRADE_PLAN.md)
 
 | Giai đoạn | Đã triển khai | Phần cần tiếp tục |

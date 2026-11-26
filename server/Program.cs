@@ -68,7 +68,9 @@ builder.Services.AddRateLimiter(x =>
 });
 builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddSingleton<RunnerGateway>();
+builder.Services.AddHostedService<RunnerSync>();
 builder.Services.AddSingleton<ExerciseCatalog>();
+builder.Services.AddSingleton<KnowledgeChecks>();
 builder.Services.AddScoped<Catalog>();
 builder.Services.AddScoped<Practice>();
 builder.Services.AddScoped<Interviews>();
@@ -118,6 +120,7 @@ var api = app.MapGroup("/api").AddEndpointFilter(async (context, next) =>
 Auth.Map(api);
 Catalog.Map(api);
 Practice.Map(api);
+KnowledgeChecks.Map(api);
 StudySessions.Map(api);
 Learning.Map(api);
 Interviews.Map(api);

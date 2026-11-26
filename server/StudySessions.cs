@@ -18,7 +18,7 @@ internal static class StudySessions
             await View(await Owned(db, user.Id(), id, ct), db, ct));
         group.MapPost("/{id:guid}/finish", async (Guid id, ClaimsPrincipal user, PracticeDb db, TimeProvider clock, CancellationToken ct) =>
         {
-            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await using var tx = await db.LockLearning(user.Id(), ct);
             var row = await Locked(db, user.Id(), id, ct);
             row.EndedAt ??= clock.GetUtcNow();
             await db.SaveChangesAsync(ct);
@@ -46,6 +46,7 @@ internal static class StudySessions
         if (existing is not null) return await View(existing, db, ct);
         var goal = await Learning.Goal(db, owner, ct);
         var today = Learning.LocalDate(clock.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById(goal.TimeZone));
+        await Recall.Expire(db, owner, today, ct);
         var states = await db.StudyStates.AsNoTracking().Where(s => s.UserId == owner).ToDictionaryAsync(s => s.Slug, ct);
         var wrong = await db.Attempts.Where(a => a.UserId == owner && a.Correct == false &&
             db.StudyStates.Any(s => s.UserId == owner && s.LastAttemptId == a.Id)).Select(a => a.Slug).ToListAsync(ct);
@@ -61,7 +62,7 @@ internal static class StudySessions
             {
                 "new" => s?.LastAttemptId is null && unmet == 0,
                 "due" => s?.Due <= today,
-                "wrong" => wrong.Contains(q.Slug),
+                "wrong" => s?.Mastery == "review" || s?.Rating == "unsure" || s?.LastOutcome == "skipped" || wrong.Contains(q.Slug),
                 "weak" => weakTopics.Contains(q.Topic),
                 "core" => c.Core || Interviews.Presets.Any(p => p.Suggested.Contains(q.Slug)),
                 "quiz" => c.Quiz is not null,

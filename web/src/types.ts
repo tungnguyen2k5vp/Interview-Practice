@@ -12,7 +12,9 @@ export const labels = {
   topics: { csharp: 'C# & .NET', oop: 'OOP & Thiết kế', linq: 'LINQ & Async', aspnet: 'ASP.NET Core', efcore: 'EF Core', sql: 'SQL & Database', algorithms: 'Thuật toán', testing: 'Testing & Tình huống', systems: 'Hệ thống phân tán', delivery: 'Git & Triển khai', behavioral: 'HR & Dự án' },
   difficulty: { easy: 'Cơ bản', medium: 'Trung bình', hard: 'Nâng cao' },
   level: { intern: 'Intern', fresher: 'Fresher', junior: 'Junior', mid: 'Middle', senior: 'Senior' },
-  mastery: { new: 'Chưa học', learning: 'Đang học', review: 'Cần ôn', secure: 'Khá vững', mastered: 'Thành thạo' },
+  mastery: { new: 'Chưa học', learning: 'Đang học', self: 'Đã hiểu theo tự đánh giá', ai: 'Đã được AI đánh giá', review: 'Cần ôn lại', secure: 'Đã được kiểm chứng', mastered: 'Thành thạo có bằng chứng' },
+  reviewReason: { objective: 'Đáp án chưa đúng', transfer: 'Bài vận dụng chưa đúng', assisted: 'Cần trả lời lại độc lập', self: 'Tự đánh giá cần luyện thêm', ai: 'AI đề nghị kiểm tra lại', skipped: 'Đã bỏ qua', stale: 'Bằng chứng cần cập nhật', version: 'Nội dung có phiên bản mới', essay: 'Cần luyện lại' },
+  exerciseProgress: { new: 'Chưa luyện', draft: 'Đã lưu nháp', hint: 'Đã xem gợi ý', solution: 'Đã xem lời giải', reviewed: 'Đã tự đối chiếu', submitted: 'Đã gửi chấm', attempted: 'Đã chạy thử', accepted: 'Đạt test với trợ giúp', independent: 'Đã giải độc lập', 'needs-review': 'Cần kiểm chứng lại' },
   format: { concept: 'Khái niệm', compare: 'So sánh', read: 'Đọc mã', debug: 'Tìm lỗi', predict: 'Dự đoán', design: 'Thiết kế', experience: 'Kinh nghiệm', quiz: 'Trắc nghiệm' },
   rating: { unsure: 'Chưa hiểu', partial: 'Hiểu một phần', clear: 'Giải thích được' },
   status: { viewed: 'Đã xem tài liệu', answered: 'Đã trả lời', skipped: 'Đã bỏ qua', unasked: 'Chưa hỏi', unanswered: 'Chưa trả lời', active: 'Đang thực hiện', paused: 'Đã tạm dừng', completed: 'Hoàn thành', ended: 'Kết thúc sớm', expired: 'Hết giờ' },
@@ -22,12 +24,15 @@ export const labels = {
 export function label(group: keyof typeof labels, key?: string | null) {
   return key ? (labels[group] as Record<string, string>)[key] ?? key : ''
 }
+export const runStatuses: Record<string, string> = { requested:'Đã gửi yêu cầu', queued:'Đang chờ', running:'Đang chạy', completed:'Đã chạy', accepted:'Đạt',
+  compile_error:'Lỗi biên dịch', runtime_error:'Lỗi thực thi', wrong_answer:'Sai kết quả', timeout:'Quá thời gian', memory_limit:'Vượt bộ nhớ',
+  output_limit:'Vượt giới hạn output', cancelled:'Đã hủy', failed:'Worker gặp lỗi' }
 export const rubricTitles = ['Tính đúng kỹ thuật', 'Lập luận và điều kiện áp dụng', 'Chiều sâu và đánh đổi', 'Diễn đạt']
 
 export type Topic = { id: string; name: string; stage: string; check: string; exercise: string }
 export type Card = {
   slug: string; version: number; title: string; topic: string; format: string; difficulty: string; level: string
-  technology?: string; minutes: number; bookmarked: boolean; outcome?: string; rating?: string; due?: string; tags?: string[]; mastery?: string; verifiedDays?: number
+  technology?: string; minutes: number; bookmarked: boolean; outcome?: string; rating?: string; due?: string; tags?: string[]; mastery?: string; verifiedDays?: number; reviewReason?: string; aiAssessed?: boolean
 }
 export type Question = {
   card: Card; subtopic: string; tags: string[]; prompt: string; englishPrompt: string; context: string; code?: string
@@ -85,7 +90,7 @@ export type ReportItem = {
 export type ExerciseKind = 'coding' | 'sql'
 export type ExerciseCard = {
   slug: string; kind: ExerciseKind; title: string; difficulty: string; topic: string; tags: string[]; version: number
-  runtime: string; minutes: number; hasDraft: boolean; reviewed: boolean
+  runtime: string; minutes: number; hasDraft: boolean; reviewed: boolean; progress: string; hintSeen: boolean; solutionSeen: boolean
 }
 export type Example = { input: string; output: string; explanation: string }
 export type ExerciseDraft = { revision: number; text: string; savedAt: string; hintSeen: boolean; solutionSeen: boolean; reviewed: boolean }

@@ -1,12 +1,13 @@
 import { lazy, Suspense, useState } from 'react'
 import { ArrowRight, Braces, CircleCheck, Clock3, Database, ExternalLink, Lightbulb, RotateCcw } from 'lucide-react'
 import { useRuns } from './RunResults'
+import { label } from './types'
 import { api, useAction, useResource } from './api'
 import { useDraft } from './draft'
 import { DraftConflict, ownerKey } from './Practice'
 import { signInLink, useSession } from './session'
 import type { Example, Exercise, ExerciseCard, ExerciseDraft, ExerciseKind, ExternalPractice } from './types'
-import { ActionLink, Badge, Button, CodeBlock, Dialog, Difficulty, Empty, Field, Link, Loading, PageTitle, Problem, Segments, navigate, shortDate } from './ui'
+import { ActionLink, Badge, Button, CodeBlock, Dialog, Difficulty, Field, Link, Loading, PageTitle, Problem, Segments, navigate, shortDate } from './ui'
 
 const CodeEditor = lazy(() => import('./CodeEditor'))
 const exerciseName = { coding: 'Coding Practice', sql: 'SQL Practice' }
@@ -29,7 +30,7 @@ export function ExerciseList({ kind, params }: { kind: ExerciseKind; params: URL
       <h2><Link href={'/' + kind + '/' + item.slug}>{item.title}</Link></h2>
       <div className="tag-row">{item.tags.map(t => <span key={t}>{t}</span>)}</div>
       <div className="card-meta"><span><Clock3 size={14} />{item.minutes} phút</span><span>{item.runtime}</span></div>
-      <div className="question-foot"><span>{item.reviewed ? 'Đã tự đối chiếu' : item.hasDraft ? 'Có bản nháp' : 'Chưa luyện'}</span>
+      <div className="question-foot"><span>{label('exerciseProgress', item.progress)}</span>
         <Link className="text-link" href={'/' + kind + '/' + item.slug}>Mở bài <ArrowRight size={15} /></Link></div>
     </article>)}</div>}
     {links.data && <div className="panel content-panel stack">
@@ -179,8 +180,4 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
 
 function ExampleBlock({ item }: { item: Example }) {
   return <div className="example-block"><dl><dt>Đầu vào</dt><dd>{item.input}</dd><dt>Đầu ra</dt><dd>{item.output}</dd></dl><p className="small muted">{item.explanation}</p></div>
-}
-
-export function ExerciseEmpty() {
-  return <Empty title="Chưa có bài đã lưu" detail="Mở một đề, viết mã rồi lưu nháp để tiếp tục bất cứ lúc nào." action={<ActionLink href="/coding">Mở Coding Practice</ActionLink>} />
 }

@@ -6,7 +6,7 @@
 
 - Phiên học chốt danh sách slug/version. Chọn câu mới, câu đến hạn, câu làm sai, chủ đề yếu, câu trọng tâm, flashcard, trắc nghiệm, tự luận, đọc/tìm lỗi/so sánh code hoặc trả lời trong 60 giây. Máy chủ quản lý deadline của phiên mock.
 - Lịch ôn dùng biến thể SM-2 theo ngày địa phương, có xét độ khó, khoảng cách giữa lần ôn, kết quả khách quan, tự đánh giá, trợ giúp và nhận xét kỹ thuật AI nếu có. Có thể đặt ngày ôn thủ công và chuyển về lịch tự động bằng cách xóa ngày.
-- Mức khá vững cần ít nhất hai ngày độc lập trả lời đúng theo đáp án xác định. Mức thành thạo cần ít nhất ba ngày có bằng chứng đúng và cách ngày đầu tối thiểu bảy ngày. Các lượt tự luận vẫn cập nhật lịch ôn. Tự đánh giá và nhận xét AI được hiển thị với nguồn riêng.
+- Sau khi nộp tự luận, làm bài vận dụng trước khi xem gợi ý, đáp án hoặc phản hồi AI để ghi nhận bằng chứng độc lập. Một lần đúng xác nhận phần kiến thức được hỏi. Mức thành thạo cần ba ngày kiểm chứng trong một chuỗi kéo dài ít nhất bảy ngày. Lượt sai, cần trợ giúp hoặc bằng chứng hết hạn khiến người học cần kiểm chứng lại. Ngày học của lượt mới được chốt theo múi giờ tại thời điểm nộp.
 - Trang lộ trình có các mốc 7/14/30/60/90 ngày và tùy chỉnh, đưa lý thuyết, ôn tập, code, SQL hoặc mock vào quỹ thời gian. Báo cáo 7/30 ngày lấy từ lịch sử thật. Tổng kết phiên cho phép mở lại từng lượt và so sánh với câu trả lời trước trên cùng phiên bản.
 - Trong Phỏng vấn thử có thể chuẩn bị theo CV/JD, nhận dạng kỹ năng và chọn chủ đề. Trình duyệt xử lý văn bản dán hoặc tệp TXT UTF-8 và giải phóng dữ liệu khi bấm xóa hoặc rời trang. Trình duyệt hỗ trợ Web Speech có thể đọc đề và nhập lời nói. Người dùng sửa transcript trước khi nộp và có thể bật ghi âm để nghe lại trong trang đang mở.
 
@@ -98,7 +98,7 @@ powershell -NoProfile -File web/checks/qa.ps1 -Upgrade
 powershell -NoProfile -File web/checks/qa.ps1 -AiFixture -Upgrade
 ~~~
 
-Để kiểm tra nâng cấp dữ liệu cũ, chạy `node web/checks/migration.mjs before` với `IP_BASE` trỏ tới bản trước trên DB QA. Sau đó dùng `web/checks/qa.ps1 -Migration` trên cùng DB. Fixture dùng cookie và mật khẩu ngẫu nhiên trong thư mục .artifacts đã được Git bỏ qua và dọn sau khi kiểm tra.
+Để kiểm tra nâng cấp dữ liệu cũ, chạy `node web/checks/migration.mjs before` với `IP_BASE` trỏ tới bản trước trên DB QA. Sau đó dùng `web/checks/qa.ps1 -Migration` trên cùng DB. Tài khoản QA dùng mật khẩu ngẫu nhiên lưu tạm trong .artifacts. Suite xóa tài khoản và fixture sau khi đối chiếu. Kiểm tra đồng bộ verdict bằng `dotnet run --project checks -c Release -- --runner-sync` trên SQL Server local, database riêng InterviewPractice_Runner_QA.
 
 Chạy test:e2e trên instance riêng để giữ dữ liệu kiểm thử tách khỏi lịch sử cá nhân. Terminal thứ nhất ở thư mục gốc chạy:
 
