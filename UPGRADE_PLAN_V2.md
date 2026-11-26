@@ -38,3 +38,5 @@ Audit từ commit `b576821`, ngày 26/11/2026. Working tree sạch trước khi 
 Phase 1 đã hoàn tất kiểm thử ngày 26/11/2026. Migration nâng từ V1 giữ nguyên bản trả lời, rubric và lịch thủ công. Đã kiểm tra đường khởi tạo mới, hai phiên đồng thời, retry, đổi múi giờ và verdict qua SQL Server. Có 58 câu chính, 52 bài vận dụng bổ sung và 18 bài C#/SQL. Run/Submit tắt trong cấu hình mặc định. Kết quả từng suite và ảnh so sánh nằm trong [PROGRESS.md](PROGRESS.md).
 
 Phase 2 đã nghiệm thu hai batch C#/LINQ và SQL cùng bốn bài thực hành. Hiện có 94/250 câu, 32/100 Intern/Fresher và 42/100 Junior. Cả 36 câu mới có output được đối chiếu trên runtime. Docker Desktop đã được khởi động và `docker info` xác nhận Linux Engine 29.4.3.
+
+Phase 3 đã nghiệm thu trên máy QA. Có worker HTTPS, SQLite bền vững, container C#/T-SQL dùng một lần và biên bản kiểm định theo image ID. Đã chạy 22/22 lời giải, bảy nhóm kiểm tra giới hạn/cách ly và Chrome → gateway → worker → tiến độ SQL Server, gồm đối soát khi đóng trang. Còn nghiệm thu trên host staging thật trước khi bật trên môi trường đó. [Kết quả và ảnh](PROGRESS.md) · [Lệnh triển khai](RUNNER.md)

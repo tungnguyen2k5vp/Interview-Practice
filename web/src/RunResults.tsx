@@ -7,14 +7,15 @@ import { runStatuses as status } from './types'
 type Job = { id: string; action: string; status: string; at: string; output?: string; columns?: string[]; rows?: (string | null)[][]
   passed?: number; total?: number; milliseconds?: number }
 
-export function useRuns(slug: string, version: number, enabled: boolean, code: string) {
+export function useRuns(slug: string, version: number, signedIn: boolean, available: boolean, code: string) {
+  const enabled = signedIn && available
   const base = '/runner/' + slug + '/' + version + '/jobs'
   const [input, setInput] = useState('')
   const [job, setJob] = useState<Job>()
   const [issue, setIssue] = useState('')
   const [page, setPage] = useState(1)
   const [comparison, setComparison] = useState<Job[]>([])
-  const history = useResource<{items: Job[]; total: number}>(enabled ? base + '?page=' + page : null)
+  const history = useResource<{items: Job[]; total: number}>(signedIn ? base + '?page=' + page : null)
   const action = useAction()
   const key = useRef({ id: crypto.randomUUID(), payload: '' })
   const active = job?.status === 'running' || job?.status === 'queued'
@@ -22,7 +23,7 @@ export function useRuns(slug: string, version: number, enabled: boolean, code: s
   const refreshRef = useRef(refresh); refreshRef.current = refresh
   const id = job?.id
   useEffect(() => {
-    if (!active || !id) return
+    if (!enabled || !active || !id) return
     const controller = new AbortController()
     let timer: number
     const poll = async () => {
@@ -38,7 +39,7 @@ export function useRuns(slug: string, version: number, enabled: boolean, code: s
     }
     timer = window.setTimeout(poll, 1000)
     return () => { controller.abort(); clearTimeout(timer) }
-  }, [id, active])
+  }, [id, active, enabled])
   function launch(operation: 'run' | 'submit') {
     void action.run(async () => {
       const payload = JSON.stringify([operation, code, operation === 'run' ? input : null])
@@ -49,15 +50,15 @@ export function useRuns(slug: string, version: number, enabled: boolean, code: s
   }
   const buttons = <><Button disabled={!enabled || action.busy || active} onClick={() => launch('run')}><Play size={16}/> Run</Button>
     <Button disabled={!enabled || action.busy || active} onClick={() => launch('submit')}><Send size={15}/> Submit</Button></>
-  const output = enabled && <>
-    <Field label="Đầu vào tùy chỉnh"><textarea maxLength={8000} rows={3} value={input} onChange={e => setInput(e.target.value)}/></Field>
-    {job && <div className="stack" aria-live="polite"><Badge>{status[job.status]}</Badge>
+  const output = (enabled || Boolean(history.data?.total) || Boolean(history.error)) && <>
+    {job && <div className="stack" role="status"><div className="metadata"><Badge tone={job.status === 'accepted' ? 'green' : 'neutral'}>{status[job.status]}</Badge>
+      {job.total != null && <span>{job.passed} / {job.total} test đạt</span>}{job.milliseconds != null && <span>{(job.milliseconds / 1000).toLocaleString('vi', { maximumFractionDigits: 2 })} giây</span>}</div>
       {job.output && <CodeBlock>{job.output}</CodeBlock>}
       {job.columns && job.rows && <div className="result-table" tabIndex={0}><table><thead><tr>{job.columns.map((c,i) => <th key={i}>{c}</th>)}</tr></thead>
         <tbody>{job.rows.map((r,i) => <tr key={i}>{r.map((value,k) => <td key={k}>{value ?? 'NULL'}</td>)}</tr>)}</tbody></table></div>}
-      {job.total != null && <p>{job.passed} / {job.total} test đạt</p>}{job.milliseconds != null && <p>{job.milliseconds} ms</p>}
-      {active && <Button disabled={action.busy} onClick={() => void action.run(async () => { setJob(await api<Job>('/runner/jobs/' + job.id, {method:'DELETE'})); history.reload() })}>Hủy lượt chạy</Button>}
+      {enabled && active && <Button disabled={action.busy} onClick={() => void action.run(async () => { setJob(await api<Job>('/runner/jobs/' + job.id, {method:'DELETE'})); history.reload() })}>Hủy lượt chạy</Button>}
     </div>}
+    {enabled && <Field label="Đầu vào tùy chỉnh"><textarea maxLength={8000} rows={3} value={input} onChange={e => setInput(e.target.value)}/></Field>}
     <h3>Lịch sử chạy và nộp</h3>
     {history.data?.items.map(row => <div className="split" key={row.id}>
       <Button onClick={() => setJob(row)}>{row.action} · {status[row.status]} · {new Date(row.at).toLocaleString('vi')}</Button>

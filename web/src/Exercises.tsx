@@ -109,7 +109,7 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
     })
   }
   const save = () => { void action.run(() => draft.flush(true)) }
-  const runs = useRuns(slug, version, !!userId && data.runnerAvailable, draft.text)
+  const runs = useRuns(slug, version, Boolean(userId), data.runnerAvailable, draft.text)
   const [width, setWidth] = useState(42)
   return <div className="page exercise-page">
     <PageTitle title={card.title} back={['/' + kind, exerciseName[kind]]} />

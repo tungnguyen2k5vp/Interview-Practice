@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(x => x.Limits.MaxRequestBodySize = 256 * 1024);
@@ -66,7 +67,16 @@ builder.Services.AddRateLimiter(x =>
         http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "guest",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
 });
-builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new SocketsHttpHandler { AllowAutoRedirect = false };
+    if (builder.Configuration["Runner:CaFile"] is { Length: > 0 } caFile)
+    {
+        handler.SslOptions.CertificateChainPolicy = new X509ChainPolicy { TrustMode = X509ChainTrustMode.CustomRootTrust };
+        handler.SslOptions.CertificateChainPolicy.CustomTrustStore.Add(X509Certificate2.CreateFromPem(File.ReadAllText(caFile)));
+    }
+    return handler;
+});
 builder.Services.AddSingleton<RunnerGateway>();
 builder.Services.AddHostedService<RunnerSync>();
 builder.Services.AddSingleton<ExerciseCatalog>();

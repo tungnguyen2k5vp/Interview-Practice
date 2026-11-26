@@ -132,7 +132,7 @@ internal sealed class RunnerGateway(IHttpClientFactory clients, IConfiguration c
                     // No worker job after the retry window. Record infrastructure failure without a grading verdict.
                     result = new(j.Id, j.Slug, j.Version, j.Action, "failed", j.RequestedAt, null, null, null, null, null, null);
                 }
-                await Store(db, j.UserId, result, clock, ct);
+                await Store(db, j.UserId, Public(result, j.Id), clock, ct);
             }
             catch (ApiProblem p) { log.LogDebug("Job {Id} sync deferred ({Status})", j.Id, p.Status); }
             finally { db.ChangeTracker.Clear(); }

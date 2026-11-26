@@ -57,7 +57,7 @@ Nhận xét AI tách lỗi chuyên môn, diễn đạt và câu trả lời tham
 
 Editor CodeMirror có tô cú pháp, gợi ý từ/SQL, căn lề, Ctrl+S, đổi độ rộng panel và reset về starter. Bảng dữ liệu mẫu T-SQL được sinh từ chính schema/dataset của từng phiên bản. Có thể đối chiếu kết quả dự kiến, mở lời giải và lưu nháp khi runner tắt.
 
-API chính có gateway gửi job đến một worker HTTPS độc lập. Repo chưa cung cấp worker sandbox đã nghiệm thu. Mặc định Run/Submit bị khóa và API trả 503. Để nguyên các khóa Runner chưa cấu hình khi chạy local. Khi triển khai worker riêng đã được kiểm định, cấp `Runner__Endpoint` và `Runner__Token` qua secret store, rồi đặt `Runner__IsolationVerified=true`. Gateway còn yêu cầu handshake hợp lệ. Hợp đồng cụ thể và phạm vi kiểm thử nằm trong [RUNNER.md](RUNNER.md).
+Worker trong `worker/` biên dịch C# và chạy T-SQL trong container dùng một lần. Mỗi lần Submit chấm cả dữ liệu công khai và bộ test riêng. Kết quả vẫn cập nhật tiến độ sau khi đóng trang. Run/Submit mặc định tắt. Để chạy thử trên máy có Docker Linux, xem hướng dẫn dựng image, cấu hình HTTPS và kiểm định môi trường trong [RUNNER.md](RUNNER.md).
 
 ## Các màn hình và tệp chính
 

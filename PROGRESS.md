@@ -1,5 +1,13 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 3 · Thực thi C# và T-SQL
+
+Worker HTTPS độc lập đã chạy trên Docker Desktop Linux Engine 29.4.3. Cả 22 lời giải tham khảo (11 C#, 11 T-SQL) đạt với bộ dữ liệu riêng. Bảy nhóm kiểm định đã kiểm tra cấu hình container thực tế, compile/runtime error, kết quả sai, giới hạn thời gian/bộ nhớ/output, owner, nộp trùng, quota, hủy, phục hồi hàng đợi sau restart và dọn container còn sót. SQL đối chiếu kiểu cột, NULL, dòng trùng và thứ tự theo đề bài. Gateway ẩn output khi chấm Submit.
+
+Chrome đã nộp C#, chạy thử với đầu vào tùy chỉnh và kiểm tra lịch sử qua API, HTTPS và Docker. Sau khi đóng trang, bộ đối soát vẫn ghi Accepted của T-SQL vào SQL Server và cập nhật Dashboard, lịch sử và bản xuất cá nhân. Đã kiểm tra sáu chiều rộng từ 360 đến 1920 px. [Điện thoại](docs/qa/worker-accepted-390.png) · [Desktop](docs/qa/worker-accepted-1440.png)
+
+Phase này dùng bảng submission của Phase 1 và SQLite WAL riêng của worker. Cấu hình mặc định tắt Run/Submit. Mỗi host triển khai cần chạy kiểm định với image của chính host đó. Chưa chạy trên staging bên ngoài máy QA. [Hướng dẫn dựng và kiểm định](RUNNER.md)
+
 ## V2 · Phase 2 · Hai batch đã kiểm định
 
 Đã thêm 24 câu C#/LINQ, 12 câu T-SQL, hai bài C# và hai bài SQL. Ngân hàng có 94 câu chính trên 11 chủ đề, với 13 Intern, 19 Fresher, 42 Junior, 17 Middle và 3 Senior. 42 câu có đáp án lựa chọn trực tiếp, 52 câu có bài vận dụng gắn với lượt tự luận. Tổng số bài thực hành là 22 (11 C#, 11 SQL).
