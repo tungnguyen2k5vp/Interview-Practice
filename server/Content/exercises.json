@@ -591,5 +591,299 @@
     "version": 1,
     "testVersion": 1,
     "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "running-totals",
+    "kind": "coding",
+    "title": "Số dư sau mỗi giao dịch",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "Prefix sum",
+      "Overflow"
+    ],
+    "minutes": 12,
+    "description": "Từ các khoản ghi nợ và ghi có đã xếp theo thời gian, xuất số dư ngay sau từng giao dịch. Số dư ban đầu bằng 0.",
+    "input": "Mảng int, phần tử âm biểu thị ghi nợ.",
+    "output": "Mảng long cùng độ dài với số dư tích lũy.",
+    "constraints": [
+      "Tối đa 100.000 giao dịch.",
+      "Giá trị phần tử có thể bằng int.MinValue hoặc int.MaxValue.",
+      "Giữ nguyên mảng đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[8,-3,0,7]",
+        "output": "[8,5,5,12]",
+        "explanation": "Số 0 giữ nguyên số dư."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có giao dịch."
+      },
+      {
+        "input": "[2147483647,1]",
+        "output": "[2147483647,2147483648]",
+        "explanation": "Tổng vượt int.MaxValue."
+      },
+      {
+        "input": "[-4,-7,2]",
+        "output": "[-4,-11,-9]",
+        "explanation": "Cho phép số dư âm."
+      }
+    ],
+    "starter": "public static long[] Balances(int[] transactions)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Mỗi số dư chỉ cần số dư liền trước và giao dịch hiện tại.",
+    "solution": "public static long[] Balances(int[] transactions)\n{\n    var balances = new long[transactions.Length];\n    long sum = 0;\n    for (int i = 0; i < transactions.Length; i++)\n        balances[i] = sum += transactions[i];\n    return balances;\n}",
+    "explanation": "Biến tổng dùng long ngay từ phép cộng đầu tiên. Thêm số âm vẫn giữ đúng bất biến tổng tiền tố.",
+    "complexity": "O(n) thời gian và O(1) bộ nhớ phụ ngoài mảng kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "retry-streak",
+    "kind": "coding",
+    "title": "Chuỗi lỗi liên tiếp dài nhất",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "Array",
+      "Invariant"
+    ],
+    "minutes": 12,
+    "description": "Mỗi mã HTTP 500–599 là một lỗi máy chủ. Tìm độ dài đợt lỗi liên tiếp lớn nhất trong nhật ký đã sắp theo thời gian.",
+    "input": "Mảng mã trạng thái nguyên từ 100 đến 599.",
+    "output": "Một số nguyên, bằng 0 nếu không gặp lỗi 5xx.",
+    "constraints": [
+      "0 đến 200.000 mã.",
+      "4xx ngắt chuỗi lỗi máy chủ."
+    ],
+    "examples": [
+      {
+        "input": "[500,502,404,503]",
+        "output": "2",
+        "explanation": "404 ngắt chuỗi."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Nhật ký rỗng."
+      },
+      {
+        "input": "[499,500,599]",
+        "output": "2",
+        "explanation": "Kiểm tra hai biên của nhóm 5xx."
+      },
+      {
+        "input": "[200,204]",
+        "output": "0",
+        "explanation": "Không có lỗi máy chủ."
+      }
+    ],
+    "starter": "public static int LongestFailure(int[] statuses)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Độ dài chuỗi đang mở trở về 0 khi gặp bất kỳ mã dưới 500.",
+    "solution": "public static int LongestFailure(int[] statuses)\n{\n    int run = 0, longest = 0;\n    foreach (int status in statuses)\n    {\n        run = status >= 500 ? run + 1 : 0;\n        longest = Math.Max(longest, run);\n    }\n    return longest;\n}",
+    "explanation": "run là độ dài hậu tố toàn 5xx của phần đã duyệt. Cập nhật cực đại sau mỗi mã để tính cả đợt lỗi ở cuối.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ phụ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "stable-intersection",
+    "kind": "coding",
+    "title": "Giao hai danh sách theo số lần xuất hiện",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "Multiset",
+      "Dictionary"
+    ],
+    "minutes": 20,
+    "description": "Đối soát hai danh sách mã hàng có thể trùng. Duyệt danh sách trái theo thứ tự, chỉ giữ một mã khi danh sách phải còn một bản sao chưa đối soát.",
+    "input": "Hai mảng int left, right.",
+    "output": "Mảng mã khớp theo thứ tự trong left.",
+    "constraints": [
+      "Tối đa 100.000 phần tử mỗi mảng.",
+      "Mã có thể âm hoặc bằng 0.",
+      "Không sắp xếp lại đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[4,1,4,2,4], [4,2,4]",
+        "output": "[4,4,2]",
+        "explanation": "Chỉ hai lượt xuất hiện của 4 được giữ."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], [1]",
+        "output": "[]",
+        "explanation": "Nguồn trái rỗng."
+      },
+      {
+        "input": "[1,1,1], []",
+        "output": "[]",
+        "explanation": "Không có mã bên phải."
+      },
+      {
+        "input": "[-2,0,-2], [0,-2]",
+        "output": "[-2,0]",
+        "explanation": "Số âm và thứ tự trái."
+      }
+    ],
+    "starter": "public static int[] MatchCodes(int[] left, int[] right)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Đếm tồn kho từ danh sách phải rồi tiêu thụ theo thứ tự trái.",
+    "solution": "public static int[] MatchCodes(int[] left, int[] right)\n{\n    var available = new Dictionary<int, int>();\n    foreach (int code in right) available[code] = available.GetValueOrDefault(code) + 1;\n    var result = new List<int>();\n    foreach (int code in left)\n    {\n        if (available.GetValueOrDefault(code) == 0) continue;\n        result.Add(code);\n        available[code]--;\n    }\n    return result.ToArray();\n}",
+    "explanation": "Mỗi phần tử khớp tiêu thụ một đơn vị. HashSet thiếu thông tin về số lượng bản sao nên không giải được yêu cầu multiplicity.",
+    "complexity": "O(n + m) kỳ vọng, O(k) bộ nhớ phụ cho k mã bên phải, ngoài dữ liệu kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "above-team-average",
+    "kind": "sql",
+    "title": "So đơn hàng với trung bình cùng nhóm",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "CTE",
+      "AVG",
+      "NULL"
+    ],
+    "minutes": 17,
+    "description": "Liệt kê đơn có tổng tiền cao hơn trung bình các đơn có giá trị biết được trong cùng kho.",
+    "input": "#Sales chứa một hàng mỗi đơn; amount có thể NULL.",
+    "output": "order_id, warehouse theo order_id tăng dần.",
+    "constraints": [
+      "Bỏ qua NULL trong trung bình.",
+      "Giữ giá trị thập phân của trung bình.",
+      "So sánh nghiêm ngặt >."
+    ],
+    "schema": "CREATE TABLE #Sales (order_id int PRIMARY KEY, warehouse int NOT NULL, amount int NULL);",
+    "dataset": "INSERT #Sales VALUES (1,1,1),(2,1,2),(3,1,NULL),(4,2,8),(5,2,8),(6,3,NULL);",
+    "expected": "order_id | warehouse\n2 | 1",
+    "examples": [
+      {
+        "input": "Kho 1 có 1, 2 và NULL.",
+        "output": "Chỉ đơn 2.",
+        "explanation": "Trung bình là 1,5."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Hai đơn bằng nhau ở kho 2.",
+        "output": "Không có hàng.",
+        "explanation": "Không đơn nào vượt trung bình."
+      }
+    ],
+    "starter": "-- Viết truy vấn T-SQL cho bộ dữ liệu đã cho.\n",
+    "hint": "Tính AVG theo PARTITION BY rồi lọc ở tầng ngoài.",
+    "solution": "WITH Prices AS (\n    SELECT order_id, warehouse, amount, AVG(CAST(amount AS decimal(19,4))) OVER (PARTITION BY warehouse) AS mean_amount\n    FROM #Sales\n)\nSELECT order_id, warehouse FROM Prices WHERE amount > mean_amount ORDER BY order_id;",
+    "explanation": "AVG bỏ qua NULL. Ép decimal trước phép tính giúp không cắt phần lẻ. Có thể thay window bằng grouped subquery nối theo mã kho.",
+    "complexity": "Kiểm tra sort cho partition và index theo warehouse khi dữ liệu lớn.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "missing-sequence",
+    "kind": "sql",
+    "title": "Tìm khoảng trống trong dãy số hóa đơn",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "LEAD",
+      "Window function"
+    ],
+    "minutes": 20,
+    "description": "Xác định các khoảng số bị thiếu giữa hai hóa đơn đã xuất liên tiếp. Không suy đoán khoảng trước số nhỏ nhất hoặc sau số lớn nhất.",
+    "input": "#Invoices với invoice_no nguyên dương duy nhất.",
+    "output": "first_missing, last_missing tăng theo first_missing.",
+    "constraints": [
+      "Số hiệu từ 1 đến 1.000.000.",
+      "Một khoảng dài vẫn cho một hàng."
+    ],
+    "schema": "CREATE TABLE #Invoices (invoice_no int PRIMARY KEY);",
+    "dataset": "INSERT #Invoices VALUES (3),(4),(8),(10),(11);",
+    "expected": "first_missing | last_missing\n5 | 7\n9 | 9",
+    "examples": [
+      {
+        "input": "4 và 8 là hai số đã xuất liên tiếp.",
+        "output": "5 đến 7.",
+        "explanation": "Khoảng trống nằm giữa hai hàng."
+      }
+    ],
+    "tests": [
+      {
+        "input": "10 đứng ngay trước 11.",
+        "output": "Không sinh khoảng.",
+        "explanation": "Hiệu bằng một."
+      }
+    ],
+    "starter": "-- Viết truy vấn T-SQL cho bộ dữ liệu đã cho.\n",
+    "hint": "LEAD tìm số thực sự đứng sau trong dữ liệu.",
+    "solution": "WITH Sequence AS (\n    SELECT invoice_no, LEAD(invoice_no) OVER (ORDER BY invoice_no) AS next_no FROM #Invoices\n)\nSELECT invoice_no + 1 AS first_missing, next_no - 1 AS last_missing\nFROM Sequence WHERE next_no - invoice_no > 1 ORDER BY first_missing;",
+    "explanation": "next_no NULL trên hàng cuối nên điều kiện không đúng. Truy vấn chỉ xét khoảng giữa hai điểm đã biết.",
+    "complexity": "Khóa chính theo số hóa đơn có thể hỗ trợ đọc có thứ tự cho window.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
+  },
+  {
+    "slug": "transfer-atomic",
+    "kind": "sql",
+    "title": "Chuyển tồn kho trong một giao dịch",
+    "difficulty": "hard",
+    "topic": "sql",
+    "tags": [
+      "Transaction",
+      "Conditional UPDATE",
+      "Rollback"
+    ],
+    "minutes": 25,
+    "description": "Chuyển 4 đơn vị tồn từ bin 1 sang bin 2, rồi thử chuyển thêm 20. Giữ nguyên tồn nếu nguồn không đủ hoặc đích không tồn tại. Xuất tồn cuối cùng.",
+    "input": "#Bins có bin và stock, ràng buộc stock >= 0.",
+    "output": "bin, stock theo bin tăng dần.",
+    "constraints": [
+      "Cả trừ nguồn và cộng đích thuộc một giao dịch mỗi lần chuyển.",
+      "Không để số dư âm.",
+      "Bài mẫu có một session và hai lượng chuyển xác định."
+    ],
+    "schema": "CREATE TABLE #Bins (bin int PRIMARY KEY, stock int NOT NULL CHECK (stock >= 0));",
+    "dataset": "INSERT #Bins VALUES (1,10),(2,3),(3,0);",
+    "expected": "bin | stock\n1 | 6\n2 | 7\n3 | 0",
+    "examples": [
+      {
+        "input": "Chuyển 4 từ nguồn 10 đến đích 3.",
+        "output": "Nguồn 6 và đích 7.",
+        "explanation": "Hai cập nhật commit cùng lượt."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Thử chuyển 20 sau đó.",
+        "output": "Giữ 6 và 7.",
+        "explanation": "Trừ có điều kiện không sửa được hàng nào."
+      }
+    ],
+    "starter": "-- Viết truy vấn T-SQL cho bộ dữ liệu đã cho.\n",
+    "hint": "Kiểm tra @@ROWCOUNT ngay sau từng UPDATE; rollback nếu không cập nhật đúng một hàng.",
+    "solution": "SET XACT_ABORT ON;\nDECLARE @qty int = 4;\nWHILE @qty IS NOT NULL\nBEGIN\n    BEGIN TRANSACTION;\n    UPDATE #Bins SET stock = stock - @qty WHERE bin = 1 AND stock >= @qty;\n    IF @@ROWCOUNT = 1\n    BEGIN\n        UPDATE #Bins SET stock = stock + @qty WHERE bin = 2;\n        IF @@ROWCOUNT = 1 COMMIT TRANSACTION; ELSE ROLLBACK TRANSACTION;\n    END\n    ELSE ROLLBACK TRANSACTION;\n    SET @qty = CASE WHEN @qty = 4 THEN 20 END;\nEND;\nSELECT bin, stock FROM #Bins ORDER BY bin;",
+    "explanation": "UPDATE có điều kiện kiểm tra tồn và thay đổi dưới khóa ghi. Nếu không tìm thấy đích, rollback phục hồi nguồn. XACT_ABORT yêu cầu rollback giao dịch khi có lỗi thực thi phù hợp.",
+    "complexity": "Hai phép tìm theo khóa cho mỗi giao dịch. Tải thực có chuyển ngược chiều cần chiến lược thứ tự khóa hoặc retry deadlock.",
+    "ordered": true,
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "T-SQL · SQL Server 2022"
   }
 ]

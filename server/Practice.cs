@@ -14,7 +14,8 @@ internal sealed record SaveDraftRequest(DraftCursor Cursor, [StringLength(16000)
 internal sealed record RevealRequest(DraftCursor Cursor, string Kind);
 
 /// <summary>Chốt bản nháp đã đồng bộ vào lịch sử.</summary>
-internal sealed record SubmitRequest(DraftCursor Cursor, string Language, bool Skip, [Range(0, 3600)] int ActiveSeconds);
+internal sealed record SubmitRequest(DraftCursor Cursor, string Language, bool Skip, [Range(0, 3600)] int ActiveSeconds,
+    int? Choice = null, Guid? StudySessionId = null);
 
 /// <summary>Tự đánh giá theo mức hiểu.</summary>
 internal sealed record RateRequest(string Rating);
@@ -26,7 +27,7 @@ internal sealed record ReviseRequest(Guid Id, [Required, StringLength(16000)] st
 internal sealed record MarkRequest(bool? Bookmarked, DateOnly? Due, bool SetDue);
 
 /// <summary>Bản nháp đã lưu trên máy chủ và các tài liệu đã mở.</summary>
-internal sealed record DraftResponse(DraftCursor Cursor, string Text, string? Hint, ReferenceResponse? Reference);
+internal sealed record DraftResponse(DraftCursor Cursor, string Text, string? Hint, ReferenceResponse? Reference, string? NextHint);
 
 /// <summary>Câu hỏi, bản nháp và lần nộp gần nhất của người học.</summary>
 internal sealed record PracticeResponse(QuestionResponse Question, DraftResponse? Draft, Guid? LastAttemptId);
@@ -36,7 +37,8 @@ internal sealed record RevisionResponse(Guid Id, string Text, DateTimeOffset At)
 
 /// <summary>Lượt nộp bất biến, dấu đã xem và tự đánh giá.</summary>
 internal sealed record AttemptResponse(Guid Id, QuestionResponse Question, string Text, string Language, string Outcome, bool HintSeen,
-    bool AnswerSeen, DateTimeOffset? ReferenceViewedAt, DateTimeOffset At, int ActiveSeconds, string? Rating, RevisionResponse[] Revisions);
+    bool AnswerSeen, DateTimeOffset? ReferenceViewedAt, DateTimeOffset At, int ActiveSeconds, string? Rating, RevisionResponse[] Revisions,
+    int? Choice, bool? Correct, Guid? StudySessionId);
 
 internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider clock)
 {
@@ -45,18 +47,26 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
     public static void Map(RouteGroupBuilder api)
     {
         var group = api.MapGroup("/practice").RequireAuthorization();
-        group.MapGet("/questions/{slug}", (string slug, ClaimsPrincipal user, Practice practice, CancellationToken ct)
-            => practice.Open(slug, user.Id(), ct)).WithSummary("Mở câu hỏi và bản nháp của người học.");
-        group.MapPatch("/questions/{slug}/draft", (string slug, SaveDraftRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
-            => practice.SaveDraft(slug, request, user.Id(), ct)).WithSummary("Lưu bản nháp có kiểm soát hai tab.");
-        group.MapPost("/questions/{slug}/reveal", (string slug, RevealRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
-            => practice.Reveal(slug, request, user.Id(), ct)).WithSummary("Ghi nhận và mở gợi ý hoặc đáp án.");
+        group.MapGet("/questions/{slug}", (string slug, Guid? sessionId, ClaimsPrincipal user, Practice practice, CancellationToken ct)
+            => practice.Open(slug, user.Id(), sessionId, ct)).WithSummary("Mở câu hỏi và bản nháp của người học.");
+        group.MapPatch("/questions/{slug}/draft", (string slug, Guid? sessionId, SaveDraftRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
+            => practice.SaveDraft(slug, request, user.Id(), sessionId, ct)).WithSummary("Lưu bản nháp có kiểm soát hai tab.");
+        group.MapPost("/questions/{slug}/reveal", (string slug, Guid? sessionId, RevealRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
+            => practice.Reveal(slug, request, user.Id(), sessionId, ct)).WithSummary("Ghi nhận và mở gợi ý hoặc đáp án.");
         group.MapPut("/questions/{slug}/mark", (string slug, MarkRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
             => practice.Mark(slug, request, user.Id(), ct)).WithSummary("Cập nhật dấu lưu và lịch ôn.");
         group.MapPost("/questions/{slug}/submit", (string slug, SubmitRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
             => practice.Submit(slug, request, user.Id(), ct)).WithSummary("Chốt lượt nộp hoặc bỏ qua.");
         group.MapGet("/attempts/{id:guid}", (Guid id, ClaimsPrincipal user, Practice practice, CancellationToken ct)
             => practice.GetAttempt(id, user.Id(), ct)).WithSummary("Đọc một lượt luyện và các bản cải thiện.");
+        group.MapGet("/attempts/{id:guid}/previous", async (Guid id, ClaimsPrincipal user, Practice practice, PracticeDb db, CancellationToken ct) =>
+        {
+            var current = await practice.Owned(id, user.Id(), ct);
+            var previous = await db.Attempts.AsNoTracking().Where(a => a.UserId == current.UserId && a.Slug == current.Slug &&
+                a.Version == current.Version && a.At < current.At && a.Outcome == "answered").OrderByDescending(a => a.At)
+                .Select(a => new { a.Id, a.At, a.Text, a.Language, a.Correct, a.HintSeen, a.AnswerSeen }).FirstOrDefaultAsync(ct);
+            return TypedResults.Ok(new { previous });
+        });
         group.MapPost("/attempts/{id:guid}/reference", (Guid id, ClaimsPrincipal user, Practice practice, CancellationToken ct)
             => practice.RevealAttempt(id, user.Id(), ct)).WithSummary("Mở tài liệu theo phiên bản lượt luyện.");
         group.MapPut("/attempts/{id:guid}/assessment", (Guid id, RateRequest request, ClaimsPrincipal user, Practice practice, CancellationToken ct)
@@ -65,18 +75,30 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
             => practice.Revise(id, request, user.Id(), ct)).WithSummary("Thêm phiên bản trả lời cải thiện.");
     }
 
-    private async Task<PracticeResponse> Open(string slug, string owner, CancellationToken ct)
+    private async Task<QuestionVersion> Planned(string slug, string owner, Guid? sessionId, CancellationToken ct, bool writing = false)
+    {
+        if (sessionId is not Guid id) return await catalog.Published(slug, ct);
+        var session = await StudySessions.Owned(db, owner, id, ct);
+        var item = StudySessions.Plan(session).FirstOrDefault(x => x.Slug == slug) ?? throw ApiProblem.Missing();
+        if (writing && (session.EndedAt is not null || await db.Attempts.AnyAsync(a => a.UserId == owner && a.StudySessionId == id && a.Slug == slug, ct)))
+            throw ApiProblem.Conflict("Câu đã nộp hoặc phiên học đã kết thúc.");
+        return await catalog.Version(slug, item.Version, ct);
+    }
+
+    private async Task<PracticeResponse> Open(string slug, string owner, Guid? sessionId, CancellationToken ct)
     {
         var row = await db.StudyStates.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == owner && x.Slug == slug, ct);
-        var q = row?.DraftId is not null ? await catalog.Version(slug, row.DraftVersion, ct) : await catalog.Published(slug, ct);
+        var q = row?.DraftId is not null && sessionId is null ? await catalog.Version(slug, row.DraftVersion, ct) : await Planned(slug, owner, sessionId, ct);
+        if (row?.DraftId is not null && row.DraftVersion != q.Version)
+            throw ApiProblem.Conflict("Một bản nháp khác phiên bản đang mở. Hãy nộp bản đó từ ngân hàng rồi quay lại phiên học.");
         return new(Catalog.View(q, row), row?.DraftId is null ? null : Draft(row, q), row?.LastAttemptId);
     }
 
-    private async Task<DraftResponse> SaveDraft(string slug, SaveDraftRequest request, string owner, CancellationToken ct)
+    private async Task<DraftResponse> SaveDraft(string slug, SaveDraftRequest request, string owner, Guid? sessionId, CancellationToken ct)
     {
         if (request.Text is null || request.Text.Length > 16000)
             throw ApiProblem.Invalid("Bản nháp tối đa 16.000 ký tự.");
-        var (row, q) = await GetDraft(slug, request.Cursor, owner, ct);
+        var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, sessionId);
         if (row.DraftText == request.Text && row.DraftRevision > 0)
             return Draft(row, q);
         CheckRevision(row, request.Cursor);
@@ -85,11 +107,11 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         return Draft(row, q);
     }
 
-    private async Task<DraftResponse> Reveal(string slug, RevealRequest request, string owner, CancellationToken ct)
+    private async Task<DraftResponse> Reveal(string slug, RevealRequest request, string owner, Guid? sessionId, CancellationToken ct)
     {
         if (request.Kind is not ("hint" or "answer"))
             throw ApiProblem.Invalid("Tài liệu yêu cầu không hợp lệ.");
-        var (row, q) = await GetDraft(slug, request.Cursor, owner, ct);
+        var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, sessionId);
         if (request.Kind == "hint" ? row.HintSeen : row.AnswerSeen)
             return Draft(row, q);
         CheckRevision(row, request.Cursor);
@@ -100,16 +122,19 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         return Draft(row, q);
     }
 
-    private async Task<(StudyState Row, QuestionVersion Question)> GetDraft(string slug, DraftCursor cursor, string owner, CancellationToken ct)
+    private async Task<(StudyState Row, QuestionVersion Question)> GetDraft(string slug, DraftCursor cursor, string owner, CancellationToken ct, Guid? sessionId = null)
     {
         if (cursor is null || cursor.Id == Guid.Empty || cursor.Revision < 0 || cursor.Version < 1)
             throw ApiProblem.Invalid("Thông tin bản nháp không hợp lệ.");
+        var planned = sessionId.HasValue ? await Planned(slug, owner, sessionId, ct, writing: true) : null;
+        if (planned is not null && planned.Version != cursor.Version)
+            throw ApiProblem.Conflict("Bản nháp khác phiên bản câu hỏi của phiên học.");
         var row = await db.StudyStates.FindAsync([owner, slug], ct);
         if (row?.DraftId == cursor.Id && row.DraftVersion == cursor.Version)
-            return (row, await catalog.Version(slug, row.DraftVersion, ct));
+            return (row, planned ?? await catalog.Version(slug, row.DraftVersion, ct));
         if (row?.DraftId is not null || cursor.Revision != 0 || await db.Attempts.AnyAsync(x => x.Id == cursor.Id, ct))
             throw ApiProblem.Conflict("Bản nháp đã đổi hoặc đã nộp. Hãy tải lại bản trên máy chủ.");
-        var q = await catalog.Published(slug, ct);
+        var q = planned ?? await catalog.Published(slug, ct);
         if (q.Version != cursor.Version)
             throw ApiProblem.Conflict("Câu hỏi có phiên bản mới. Tải lại đề trước khi tiếp tục.");
         if (row is null)
@@ -133,7 +158,8 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
 
     private static DraftResponse Draft(StudyState row, QuestionVersion q) => new(
         new DraftCursor(row.DraftId!.Value, row.DraftRevision, row.DraftVersion),
-        row.DraftText, row.HintSeen ? Catalog.Content(q).Hint : null, row.AnswerSeen ? Catalog.Reference(q) : null);
+        row.DraftText, row.HintSeen ? Catalog.Content(q).Hint : null, row.AnswerSeen ? Catalog.Reference(q) : null,
+        row.HintSeen ? Catalog.Content(q).NextHint : null);
 
     private static void CheckRevision(StudyState row, DraftCursor cursor)
     {
@@ -149,8 +175,21 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         var existing = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner && x.Slug == slug, ct);
         if (existing is not null)
             return TypedResults.Ok(await AttemptView(existing, ct));
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        StudySession? finishing = null;
+        if (request.StudySessionId is { } sessionId)
+        {
+            var session = await StudySessions.Locked(db, owner, sessionId, ct);
+            var previous = await db.Attempts.SingleOrDefaultAsync(a => a.StudySessionId == sessionId && a.Slug == slug && a.UserId == owner, ct);
+            if (previous?.Id == id) return TypedResults.Ok(await AttemptView(previous, ct));
+            var plan = StudySessions.Plan(session);
+            if (previous is not null || session.EndedAt is not null || !plan.Any(i => i.Slug == slug && i.Version == request.Cursor.Version))
+                throw ApiProblem.Conflict("Câu này đã được nộp, phiên đã kết thúc hoặc phiên bản đề đã đổi.");
+            if (await db.Attempts.CountAsync(a => a.UserId == owner && a.StudySessionId == sessionId, ct) + 1 == plan.Length)
+                finishing = session;
+        }
         (StudyState row, QuestionVersion q) draft;
-        try { draft = await GetDraft(slug, request.Cursor, owner, ct); }
+        try { draft = await GetDraft(slug, request.Cursor, owner, ct, request.StudySessionId); }
         catch (ApiProblem problem) when (problem.Status == 409)
         {
             existing = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner && x.Slug == slug, ct);
@@ -159,15 +198,21 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         }
         var (row, q) = draft;
         CheckRevision(row, request.Cursor);
-        if (!request.Skip && string.IsNullOrWhiteSpace(row.DraftText))
+        var quiz = Catalog.Content(q).Quiz;
+        if (request.Choice is { } index && (request.Skip || quiz is null || index < 0 || index >= quiz.Vi.Length))
+            throw ApiProblem.Invalid("Lựa chọn không thuộc phiên bản câu hỏi này.");
+        if (!request.Skip && request.Choice is null && string.IsNullOrWhiteSpace(row.DraftText))
             throw ApiProblem.Invalid("Hãy nhập câu trả lời hoặc chọn Bỏ qua.");
         var now = clock.GetUtcNow();
+        if (finishing is not null) finishing.EndedAt = now;
         var elapsed = Math.Clamp((int)(now - row.DraftStartedAt!.Value).TotalSeconds, 0, 3600);
         var attempt = new Attempt
         {
-            Id = id, UserId = owner, Slug = slug, Version = q.Version, Text = request.Skip ? "" : row.DraftText,
+            Id = id, UserId = owner, Slug = slug, Version = q.Version, Text = request.Skip ? "" : request.Choice is int selected
+                ? (request.Language == "en" ? quiz!.En : quiz!.Vi)[selected] : row.DraftText,
             Outcome = request.Skip ? "skipped" : "answered", Language = request.Language, HintSeen = row.HintSeen, AnswerSeen = row.AnswerSeen,
-            At = now, ActiveSeconds = request.Skip ? 0 : Math.Min(elapsed, request.ActiveSeconds)
+            At = now, ActiveSeconds = request.Skip ? 0 : Math.Min(elapsed, request.ActiveSeconds),
+            Choice = request.Choice, Correct = request.Choice is null ? null : request.Choice == quiz!.CorrectIndex, StudySessionId = request.StudySessionId
         };
         db.Attempts.Add(attempt);
         row.DraftId = null;
@@ -182,9 +227,11 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         row.LastOutcome = attempt.Outcome;
         row.Rating = null;
         if (!request.Skip) row.AnsweredCount++;
-        try { await db.SaveChangesAsync(ct); }
+        await Recall.Refresh(db, row, q, ct, pending: attempt);
+        try { await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); }
         catch (DbUpdateException)
         {
+            await tx.RollbackAsync(ct);
             db.ChangeTracker.Clear();
             existing = await db.Attempts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.UserId == owner && x.Slug == slug, ct);
             if (existing is null) throw;
@@ -207,7 +254,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         var revisions = await db.Revisions.Where(x => x.AttemptId == row.Id).OrderBy(x => x.At)
             .Select(x => new RevisionResponse(x.Id, x.Text, x.At)).ToArrayAsync(ct);
         return new(row.Id, Catalog.View(q, state), row.Text, row.Language, row.Outcome, row.HintSeen, row.AnswerSeen,
-            row.ReferenceViewedAt, row.At, row.ActiveSeconds, rating, revisions);
+            row.ReferenceViewedAt, row.At, row.ActiveSeconds, rating, revisions, row.Choice, row.Correct, row.StudySessionId);
     }
 
     private async Task<ReferenceResponse> RevealAttempt(Guid id, string owner, CancellationToken ct)
@@ -229,6 +276,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         if (attempt.Outcome != "answered")
             throw ApiProblem.Invalid("Chỉ tự đánh giá lượt đã trả lời.");
         var rating = await db.Assessments.FindAsync([id], ct);
+        if (rating?.Rating == request.Rating) return await AttemptView(attempt, ct);
         if (rating is null)
         {
             rating = new SelfAssessment { AttemptId = id };
@@ -237,14 +285,18 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         rating.Rating = request.Rating;
         rating.At = clock.GetUtcNow();
         var state = await db.StudyStates.FindAsync([owner, attempt.Slug], ct);
-        if (state?.LastAttemptId == id)
+        if (state is not null)
         {
-            state.Rating = request.Rating;
-            if (!state.ManualDue)
-                state.Due = (await Learning.Today(db, owner, clock, ct)).AddDays(request.Rating switch { "unsure" => 1, "partial" => 3, _ => 7 });
+            if (state.LastAttemptId == id && state.ScheduledVersion <= attempt.Version) state.Rating = request.Rating;
+            await Recall.Refresh(db, state, await catalog.Version(attempt.Slug, attempt.Version, ct), ct, overrideId: id, rating: request.Rating);
             state.Revision++;
         }
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            db.ChangeTracker.Clear();
+            if (!await db.Assessments.AsNoTracking().AnyAsync(x => x.AttemptId == id && x.Rating == request.Rating, ct)) throw;
+        }
         return await AttemptView(attempt, ct);
     }
 
@@ -274,7 +326,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         row.Bookmarked = request.Bookmarked ?? row.Bookmarked;
         if (request.SetDue)
         {
-            row.Due = request.Due;
+            row.Due = request.Due ?? row.SuggestedDue;
             row.ManualDue = request.Due is not null;
         }
         row.Revision++;

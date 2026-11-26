@@ -62,7 +62,12 @@ builder.Services.AddRateLimiter(x =>
     x.AddPolicy("ai", http => RateLimitPartition.GetFixedWindowLimiter(
         http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "guest",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 6, Window = TimeSpan.FromHours(1) }));
+    x.AddPolicy("runner", http => RateLimitPartition.GetFixedWindowLimiter(
+        http.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "guest",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
 });
+builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+builder.Services.AddSingleton<RunnerGateway>();
 builder.Services.AddSingleton<ExerciseCatalog>();
 builder.Services.AddScoped<Catalog>();
 builder.Services.AddScoped<Practice>();
@@ -82,7 +87,7 @@ app.Use(async (context, next) =>
     context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
     context.Response.Headers["X-Frame-Options"] = "DENY";
     if (!app.Environment.IsDevelopment())
-        context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
+        context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'";
     if (context.Request.Path.StartsWithSegments("/api"))
     {
         if (!string.Equals(context.Request.Path.Value, "/api/auth/csrf", StringComparison.OrdinalIgnoreCase))
@@ -113,11 +118,16 @@ var api = app.MapGroup("/api").AddEndpointFilter(async (context, next) =>
 Auth.Map(api);
 Catalog.Map(api);
 Practice.Map(api);
+StudySessions.Map(api);
 Learning.Map(api);
 Interviews.Map(api);
 ExerciseCatalog.Map(api);
+RunnerGateway.Map(api);
 AiFeedback.Map(api);
 api.MapGet("/health", () => TypedResults.Ok(new { status = "ok" })).WithSummary("Kiểm tra ứng dụng đang phục vụ.");
+api.MapGet("/health/ready", async (PracticeDb db, CancellationToken ct) =>
+    await db.Database.CanConnectAsync(ct) ? Results.Ok(new { status = "ready" }) : Results.StatusCode(503))
+    .WithSummary("Kiểm tra kết nối SQL cho readiness probe.");
 api.Map("/{**path}", () => TypedResults.NotFound()).ExcludeFromDescription();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
@@ -130,7 +140,9 @@ await using (var scope = app.Services.CreateAsyncScope())
     var db = services.GetRequiredService<PracticeDb>();
     if (app.Environment.IsDevelopment() || args.Contains("--migrate-and-seed"))
         await db.Database.MigrateAsync();
-    await services.GetRequiredService<Catalog>().SeedAsync(app.Lifetime.ApplicationStopping);
+    var catalog = services.GetRequiredService<Catalog>();
+    await catalog.SeedAsync(app.Lifetime.ApplicationStopping);
+    await catalog.ReconcileLegacyReviews(app.Lifetime.ApplicationStopping);
     if (app.Environment.IsDevelopment())
         await Auth.SeedAdmin(services, app.Configuration);
 }

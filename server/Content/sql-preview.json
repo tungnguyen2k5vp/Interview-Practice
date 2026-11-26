@@ -1,0 +1,485 @@
+{
+  "customer-orders@1": [
+    {
+      "name": "#Customers",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "nvarchar"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "An"
+        ],
+        [
+          "2",
+          "Bình"
+        ],
+        [
+          "3",
+          "An"
+        ]
+      ]
+    },
+    {
+      "name": "#Orders",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "customer_id",
+          "type": "int"
+        },
+        {
+          "name": "status",
+          "type": "varchar"
+        },
+        {
+          "name": "amount",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "11",
+          "1",
+          "paid",
+          "40"
+        ],
+        [
+          "12",
+          "1",
+          "paid",
+          "40"
+        ],
+        [
+          "13",
+          "1",
+          "pending",
+          "20"
+        ],
+        [
+          "14",
+          "2",
+          "pending",
+          "60"
+        ]
+      ]
+    }
+  ],
+  "department-salary@1": [
+    {
+      "name": "#Departments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "nvarchar"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "API"
+        ],
+        [
+          "2",
+          "QA"
+        ],
+        [
+          "3",
+          "Ops"
+        ]
+      ]
+    },
+    {
+      "name": "#Staff",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "department_id",
+          "type": "int"
+        },
+        {
+          "name": "salary",
+          "type": "decimal"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "1",
+          "1200.00"
+        ],
+        [
+          "2",
+          "1",
+          "1500.00"
+        ],
+        [
+          "3",
+          "1",
+          null
+        ],
+        [
+          "4",
+          "2",
+          null
+        ]
+      ]
+    }
+  ],
+  "daily-totals@1": [
+    {
+      "name": "#Receipts",
+      "columns": [
+        {
+          "name": "receipt_id",
+          "type": "int"
+        },
+        {
+          "name": "store_id",
+          "type": "int"
+        },
+        {
+          "name": "paid_at",
+          "type": "datetime2"
+        },
+        {
+          "name": "amount",
+          "type": "int"
+        },
+        {
+          "name": "status",
+          "type": "varchar"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "10",
+          "2026-03-01T09:15:00.0000000",
+          "50",
+          "paid"
+        ],
+        [
+          "2",
+          "10",
+          "2026-03-01T10:00:00.0000000",
+          "50",
+          "paid"
+        ],
+        [
+          "3",
+          "10",
+          "2026-03-02T09:00:00.0000000",
+          "70",
+          "paid"
+        ],
+        [
+          "4",
+          "20",
+          "2026-03-01T12:00:00.0000000",
+          "110",
+          "paid"
+        ],
+        [
+          "5",
+          "10",
+          "2026-03-02T10:00:00.0000000",
+          "80",
+          "void"
+        ]
+      ]
+    }
+  ],
+  "latest-payment@1": [
+    {
+      "name": "#Payments",
+      "columns": [
+        {
+          "name": "payment_id",
+          "type": "int"
+        },
+        {
+          "name": "order_id",
+          "type": "int"
+        },
+        {
+          "name": "processed_at",
+          "type": "datetime2"
+        },
+        {
+          "name": "amount",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "5",
+          "201",
+          "2026-03-01T10:00:00.0000000",
+          "40"
+        ],
+        [
+          "6",
+          "201",
+          "2026-03-01T10:00:00.0000000",
+          "60"
+        ],
+        [
+          "7",
+          "201",
+          "2026-02-28T10:00:00.0000000",
+          "99"
+        ],
+        [
+          "8",
+          "202",
+          "2026-03-02T08:00:00.0000000",
+          "80"
+        ]
+      ]
+    }
+  ],
+  "unassigned-tickets@1": [
+    {
+      "name": "#Tickets",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "title",
+          "type": "nvarchar"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "Kết nối"
+        ],
+        [
+          "2",
+          "In báo cáo"
+        ],
+        [
+          "3",
+          "Đổi mật khẩu"
+        ]
+      ]
+    },
+    {
+      "name": "#Assignments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "ticket_id",
+          "type": "int"
+        },
+        {
+          "name": "agent_id",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "1",
+          "88"
+        ],
+        [
+          "2",
+          "2",
+          null
+        ],
+        [
+          "3",
+          null,
+          "90"
+        ]
+      ]
+    }
+  ],
+  "product-sales@1": [
+    {
+      "name": "#Shipments",
+      "columns": [
+        {
+          "name": "id",
+          "type": "int"
+        },
+        {
+          "name": "store_id",
+          "type": "int"
+        },
+        {
+          "name": "shipped_at",
+          "type": "datetime2"
+        },
+        {
+          "name": "total",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "8",
+          "2026-02-28T23:59:59.0000000",
+          "10"
+        ],
+        [
+          "2",
+          "8",
+          "2026-03-01T00:00:00.0000000",
+          "20"
+        ],
+        [
+          "3",
+          "8",
+          "2026-03-31T23:59:59.9000000",
+          "30"
+        ],
+        [
+          "4",
+          "8",
+          "2026-04-01T00:00:00.0000000",
+          "40"
+        ],
+        [
+          "5",
+          "9",
+          "2026-03-10T10:00:00.0000000",
+          "50"
+        ]
+      ]
+    }
+  ],
+  "above-team-average@1": [
+    {
+      "name": "#Sales",
+      "columns": [
+        {
+          "name": "order_id",
+          "type": "int"
+        },
+        {
+          "name": "warehouse",
+          "type": "int"
+        },
+        {
+          "name": "amount",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "1",
+          "1"
+        ],
+        [
+          "2",
+          "1",
+          "2"
+        ],
+        [
+          "3",
+          "1",
+          null
+        ],
+        [
+          "4",
+          "2",
+          "8"
+        ],
+        [
+          "5",
+          "2",
+          "8"
+        ],
+        [
+          "6",
+          "3",
+          null
+        ]
+      ]
+    }
+  ],
+  "missing-sequence@1": [
+    {
+      "name": "#Invoices",
+      "columns": [
+        {
+          "name": "invoice_no",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "10"
+        ],
+        [
+          "11"
+        ],
+        [
+          "3"
+        ],
+        [
+          "4"
+        ],
+        [
+          "8"
+        ]
+      ]
+    }
+  ],
+  "transfer-atomic@1": [
+    {
+      "name": "#Bins",
+      "columns": [
+        {
+          "name": "bin",
+          "type": "int"
+        },
+        {
+          "name": "stock",
+          "type": "int"
+        }
+      ],
+      "rows": [
+        [
+          "1",
+          "10"
+        ],
+        [
+          "2",
+          "3"
+        ],
+        [
+          "3",
+          "0"
+        ]
+      ]
+    }
+  ]
+}

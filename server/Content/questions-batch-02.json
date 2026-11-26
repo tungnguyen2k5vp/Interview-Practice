@@ -1,0 +1,776 @@
+[
+  {
+    "slug": "integer-division",
+    "content": {
+      "title": "Phép chia trước khi ép kiểu",
+      "topic": "csharp",
+      "subtopic": "Chuyển đổi số",
+      "tags": [
+        "int",
+        "double"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 2,
+      "technology": ".NET 10",
+      "prompt": "Đoạn mã in ra giá trị nào?",
+      "englishPrompt": "What value does this code print?",
+      "context": "Một dashboard tính tỷ lệ xử lý thành công của hai đơn trong ba đơn.",
+      "code": "double result = 2 / 3;\nConsole.WriteLine(result);",
+      "hint": "Xét kiểu của hai toán hạng trước khi xét kiểu biến bên trái.",
+      "nextHint": "Thử thay tử số bằng 2.0 và so sánh thời điểm chuyển kiểu.",
+      "followUp": "Đổi dòng đầu thế nào để tính tỷ lệ, và xử lý tổng bằng 0 ở đâu?",
+      "englishFollowUp": "How would you compute a ratio and handle a zero total?",
+      "outline": [
+        "Kiểu của toán hạng",
+        "Chia nguyên",
+        "Chuyển đổi sau phép chia"
+      ],
+      "shortAnswer": "Kết quả là 0. Hai toán hạng int làm phép chia nguyên trước, sau đó 0 được chuyển thành double.",
+      "explanation": "Kiểu đích không thay đổi việc chọn toán tử ở vế phải. Dùng (double)completed / total sau khi xử lý total == 0 theo ý nghĩa nghiệp vụ.",
+      "alternative": "Với số tiền có quy tắc làm tròn thập phân, chọn decimal và xác định rõ thời điểm làm tròn.",
+      "trap": "Ép (double)(2 / 3) vẫn chuyển số 0 đã bị cắt phần lẻ.",
+      "rubric": [
+        "Dự đoán đúng 0.",
+        "Xác định kiểu của cả hai toán hạng.",
+        "Viết cách chuyển kiểu trước phép chia.",
+        "Nêu ý nghĩa riêng của tổng bằng 0."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/arithmetic-operators",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [
+        "nullable-contract"
+      ],
+      "quiz": {
+        "vi": [
+          "0,666…",
+          "0",
+          "1"
+        ],
+        "en": [
+          "0.666…",
+          "0",
+          "1"
+        ],
+        "correctIndex": 1
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "closure-for",
+    "content": {
+      "title": "Closure trong vòng for",
+      "topic": "csharp",
+      "subtopic": "Delegate và biến bị capture",
+      "tags": [
+        "delegate",
+        "closure"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Ba delegate in ra chuỗi nào khi được gọi sau vòng lặp?",
+      "englishPrompt": "What do the three delegates print when invoked after the loop?",
+      "context": "Các callback được đăng ký trước và chạy đồng bộ sau.",
+      "code": "var actions = new List<Action>();\nfor (int i = 0; i < 3; i++) actions.Add(() => Console.Write(i));\nforeach (var action in actions) action();",
+      "hint": "Xem các lambda giữ biến hay giá trị hiện tại của biến.",
+      "nextHint": "Đếm số lần khai báo biến i và xác định i khi vòng lặp đã kết thúc.",
+      "followUp": "Cách nào giữ được chỉ số của từng lần lặp?",
+      "englishFollowUp": "How would you preserve each iteration’s index?",
+      "outline": [
+        "Phạm vi biến i",
+        "Thời điểm gọi",
+        "Bản sao trong thân vòng lặp"
+      ],
+      "shortAnswer": "Ba delegate cùng đọc biến i. Khi chạy các delegate, i đã là 3 nên kết quả là 333.",
+      "explanation": "Closure kéo dài thời gian sống của biến. Khai báo var index = i trong thân vòng lặp tạo biến riêng ở mỗi lượt, rồi capture index.",
+      "alternative": "Có thể truyền chỉ số làm tham số cho hàm xử lý để tránh capture.",
+      "trap": "Giả định cứ viết một lambda là trình biên dịch chụp một bản sao giá trị.",
+      "rubric": [
+        "Nêu đúng 333.",
+        "Giải thích cùng tham chiếu biến i.",
+        "Chỉ đúng thời điểm đọc biến.",
+        "Đưa ví dụ sao chép trong thân vòng lặp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/lambda-expressions",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "value-reference"
+      ],
+      "related": [
+        "deferred-execution"
+      ],
+      "quiz": {
+        "vi": [
+          "012",
+          "333",
+          "222"
+        ],
+        "en": [
+          "012",
+          "333",
+          "222"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "dispose-ownership",
+    "content": {
+      "title": "Quyền sở hữu stream và using",
+      "topic": "csharp",
+      "subtopic": "IDisposable",
+      "tags": [
+        "using",
+        "IDisposable",
+        "StreamReader"
+      ],
+      "format": "debug",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một hàm nhận Stream từ caller, đọc bằng StreamReader trong using. Vì sao caller có thể thấy stream đã đóng?",
+      "englishPrompt": "A helper wraps a caller-owned Stream in a StreamReader inside a using block. Why might the caller find the stream closed?",
+      "context": "Caller còn cần đọc dữ liệu sau khi hàm trả về.",
+      "code": null,
+      "hint": "Tách quyền sở hữu reader và stream nguồn.",
+      "nextHint": "Kiểm tra giá trị mặc định của leaveOpen trong constructor.",
+      "followUp": "Nếu reader đọc đệm trước, giữ stream mở có đảm bảo Position đúng vị trí ký tự cuối không?",
+      "englishFollowUp": "Does leaving the stream open guarantee its position matches the last character consumed?",
+      "outline": [
+        "Dispose reader",
+        "leaveOpen",
+        "Bộ đệm đọc trước"
+      ],
+      "shortAnswer": "Dispose reader mặc định đóng luôn stream nguồn. Thỏa thuận quyền sở hữu với caller và dùng constructor có leaveOpen: true khi caller tiếp tục quản lý stream.",
+      "explanation": "using đảm bảo dọn tài nguyên khi rời scope kể cả khi có ngoại lệ. leaveOpen giữ handle của stream; reader vẫn có thể đã đọc trước nhiều byte vào buffer.",
+      "alternative": "Để caller cung cấp TextReader nếu hàm chỉ cần một nguồn ký tự.",
+      "trap": "Dựa vào garbage collector để đóng file đúng lúc hoặc nghĩ leaveOpen đồng thời khôi phục Position.",
+      "rubric": [
+        "Mô tả hành vi mặc định của Dispose.",
+        "Xác định đúng thành phần sở hữu stream.",
+        "Chọn đúng leaveOpen khi mượn.",
+        "Giải thích ảnh hưởng của buffer với vị trí."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.io.streamreader.-ctor",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "exceptions-boundary"
+      ],
+      "related": [
+        "generics-gc"
+      ],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "linq-any-empty",
+    "content": {
+      "title": "Any và All trên dãy rỗng",
+      "topic": "linq",
+      "subtopic": "Lượng từ trong LINQ",
+      "tags": [
+        "LINQ",
+        "All",
+        "Any"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 2,
+      "technology": ".NET 10",
+      "prompt": "Đoạn mã in ra gì khi danh sách quyền rỗng?",
+      "englishPrompt": "What does the code print when the permission list is empty?",
+      "context": "Một màn hình cần phân biệt chưa khai báo quyền với tất cả quyền đã duyệt.",
+      "code": "int[] permissions = [];\nConsole.WriteLine((permissions.Any(), permissions.All(x => x > 0)));",
+      "hint": "Any tìm một phần tử làm chứng.",
+      "nextHint": "All trả false khi tìm thấy phản ví dụ. Có phản ví dụ nào trong dãy rỗng?",
+      "followUp": "Nếu quy tắc yêu cầu ít nhất một quyền hợp lệ và không có quyền âm thì viết thế nào?",
+      "englishFollowUp": "How would you require at least one permission and no negative permissions?",
+      "outline": [
+        "Ngữ nghĩa tồn tại",
+        "Tính đúng trên tập rỗng",
+        "Điều kiện có phần tử"
+      ],
+      "shortAnswer": "Kết quả là (False, True). Any cần ít nhất một phần tử, còn All không tìm thấy phần tử vi phạm điều kiện.",
+      "explanation": "Nếu nghiệp vụ đòi có phần tử, kiểm tra điều đó riêng. Với một mảng có thể dùng Length > 0 && permissions.All(x => x >= 0).",
+      "alternative": "Nếu nguồn là iterator chỉ dùng được một lần, duyệt một lượt và ghi nhận đã gặp phần tử.",
+      "trap": "Cho rằng hai phương thức đều trả false trên dãy rỗng.",
+      "rubric": [
+        "Dự đoán đúng cả hai giá trị.",
+        "Giải thích điều kiện dừng của Any.",
+        "Giải thích All qua phản ví dụ.",
+        "Thêm điều kiện riêng cho tập không rỗng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.all",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [
+        "deferred-execution"
+      ],
+      "quiz": {
+        "vi": [
+          "(False, False)",
+          "(True, False)",
+          "(False, True)"
+        ],
+        "en": [
+          "(False, False)",
+          "(True, False)",
+          "(False, True)"
+        ],
+        "correctIndex": 2
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "task-waitasync",
+    "content": {
+      "title": "Timeout của WaitAsync",
+      "topic": "linq",
+      "subtopic": "Timeout và cancellation",
+      "tags": [
+        "Task",
+        "WaitAsync",
+        "CancellationToken"
+      ],
+      "format": "compare",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Khi await work.WaitAsync(timeout) hết hạn, điều gì xảy ra với work đang chạy?",
+      "englishPrompt": "When await work.WaitAsync(timeout) times out, what happens to the underlying work?",
+      "context": "Worker gửi yêu cầu tới một dịch vụ chậm. Caller bỏ chờ sau hai giây.",
+      "code": null,
+      "hint": "Phân biệt task đại diện cho việc chờ và tác vụ nguồn.",
+      "nextHint": "Tìm thành phần thực sự nhận CancellationToken.",
+      "followUp": "Làm sao tránh gửi lại một thao tác ghi đã có thể hoàn thành ở hệ thống bên kia?",
+      "englishFollowUp": "How do you avoid repeating a write that might already have completed remotely?",
+      "outline": [
+        "Timeout của tác vụ chờ",
+        "Hủy hợp tác",
+        "Xác nhận kết quả"
+      ],
+      "shortAnswer": "WaitAsync kết thúc lần chờ bằng TimeoutException khi hết thời gian. Tác vụ nguồn có thể tiếp tục chạy.",
+      "explanation": "Muốn dừng việc thật, truyền token vào thao tác từ đầu, rồi hủy token theo deadline. Ngay cả khi client hủy, phía server có thể đã ghi thành công.",
+      "alternative": "Dùng khóa idempotency và truy vấn trạng thái trước khi gửi lại tác vụ có tác dụng phụ.",
+      "trap": "Coi TimeoutException là bằng chứng tác vụ gốc chưa thay đổi dữ liệu.",
+      "rubric": [
+        "Phân biệt hai task.",
+        "Nêu rõ TimeoutException.",
+        "Mô tả cooperative cancellation.",
+        "Xử lý kết quả chưa biết của lệnh ghi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.waitasync",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "cancellation"
+      ],
+      "related": [
+        "api-pagination-idempotency"
+      ],
+      "quiz": {
+        "vi": [
+          "Luôn bị hủy",
+          "Có thể tiếp tục chạy",
+          "Luôn được rollback"
+        ],
+        "en": [
+          "It is always cancelled",
+          "It can continue running",
+          "It always rolls back"
+        ],
+        "correctIndex": 1
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "di-keyed",
+    "content": {
+      "title": "Hai triển khai cho cùng interface",
+      "topic": "aspnet",
+      "subtopic": "Dependency Injection",
+      "tags": [
+        "IEnumerable",
+        "keyed services",
+        "DI"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Đăng ký lần lượt EmailSender và SmsSender cho IMessageSender. Resolve một IMessageSender rồi resolve IEnumerable<IMessageSender> cho kết quả nào?",
+      "englishPrompt": "Register EmailSender, then SmsSender, for IMessageSender. What do a single-service resolution and an IEnumerable resolution return?",
+      "context": "Cả hai đăng ký đều dùng AddTransient trên container mặc định.",
+      "code": null,
+      "hint": "Phân biệt yêu cầu một instance với yêu cầu một tập hợp.",
+      "nextHint": "Xét thứ tự đăng ký khi yêu cầu IEnumerable<T>.",
+      "followUp": "Khi nào bạn chọn keyed services thay cho chọn implementation bằng chỉ số?",
+      "englishFollowUp": "When would you use keyed services instead of selecting a collection element by index?",
+      "outline": [
+        "Đăng ký cuối",
+        "Toàn bộ tập hợp theo thứ tự",
+        "Khóa có ý nghĩa"
+      ],
+      "shortAnswer": "Resolve một dịch vụ trả SmsSender; resolve IEnumerable trả cả EmailSender và SmsSender theo thứ tự đăng ký.",
+      "explanation": "Kiểu interface mô tả phụ thuộc. Việc chọn implementation theo chỉ số làm luồng xử lý phụ thuộc vào thứ tự cấu hình; keyed services làm rõ ý định khi caller biết khóa.",
+      "alternative": "Với chuỗi handler thực sự cần chạy tất cả, inject IEnumerable và xác định thứ tự cần thiết.",
+      "trap": "Nghĩ AddTransient lần hai xóa mọi dấu vết của đăng ký đầu.",
+      "rubric": [
+        "Xác định implementation khi resolve một.",
+        "Nêu đủ danh sách và thứ tự.",
+        "Liên hệ lựa chọn với nghiệp vụ.",
+        "Phân biệt lifetime với dispatch."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "di-lifetimes"
+      ],
+      "related": [
+        "interface-abstract"
+      ],
+      "quiz": {
+        "vi": [
+          "Một EmailSender; tập hợp chỉ EmailSender",
+          "Một SmsSender; tập hợp EmailSender rồi SmsSender",
+          "Lỗi vì đăng ký trùng"
+        ],
+        "en": [
+          "One EmailSender; collection only EmailSender",
+          "One SmsSender; collection EmailSender then SmsSender",
+          "Duplicate registration throws"
+        ],
+        "correctIndex": 1
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "ef-identity-resolution",
+    "content": {
+      "title": "Identity resolution khi đọc EF Core",
+      "topic": "efcore",
+      "subtopic": "Tracking và định danh",
+      "tags": [
+        "AsNoTracking",
+        "identity resolution"
+      ],
+      "format": "compare",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 5,
+      "technology": "EF Core 10",
+      "prompt": "Một truy vấn đọc nhiều đơn cùng khách hàng. Khi nào AsNoTrackingWithIdentityResolution giúp ích?",
+      "englishPrompt": "A read query returns many orders for the same customer. When is AsNoTrackingWithIdentityResolution useful?",
+      "context": "Kết quả cần đồ thị entity, nhưng không được cập nhật bằng DbContext này.",
+      "code": null,
+      "hint": "Phân biệt cùng khóa và cùng instance CLR.",
+      "nextHint": "So sánh bộ theo dõi tạm khi materialize với ChangeTracker của context.",
+      "followUp": "Nếu chỉ cần DTO phẳng cho HTTP thì bạn chọn cách nào?",
+      "englishFollowUp": "What would you use for a flat HTTP response DTO?",
+      "outline": [
+        "Danh tính theo khóa",
+        "Tracker tạm",
+        "Chi phí materialization"
+      ],
+      "shortAnswer": "Nó dùng tracker riêng trong lúc materialize để tái sử dụng instance cùng khóa, còn context không theo dõi các entity kết quả.",
+      "explanation": "Truy vấn no-tracking thông thường có thể tạo nhiều instance cho một khóa. Khử trùng có chi phí bộ nhớ/tra cứu; giá trị phụ thuộc mật độ lặp và hình dạng kết quả.",
+      "alternative": "Projection trực tiếp sang DTO đủ trường giúp giảm tải nếu không cần đồ thị entity.",
+      "trap": "Cho rằng phương thức này giúp SaveChanges tự phát hiện thay đổi ở kết quả.",
+      "rubric": [
+        "Phân biệt định danh và tracking ghi.",
+        "Giải thích tracker tạm.",
+        "Nhận diện trường hợp khóa lặp.",
+        "So sánh với projection."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/tracking",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "dbcontext-unit-of-work"
+      ],
+      "related": [
+        "ef-projection"
+      ],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "sql-count-null",
+    "content": {
+      "title": "COUNT và nhóm chỉ có NULL",
+      "topic": "sql",
+      "subtopic": "Aggregate và NULL",
+      "tags": [
+        "COUNT",
+        "NULL",
+        "GROUP BY"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 2,
+      "technology": "SQL Server 2022",
+      "prompt": "Một nhóm có ba hàng với Amount lần lượt NULL, 0, NULL. COUNT(*) và COUNT(Amount) cho giá trị nào?",
+      "englishPrompt": "A group has three rows with Amount values NULL, 0, NULL. What do COUNT(*) and COUNT(Amount) return?",
+      "context": "Báo cáo cần cả số bản ghi lẫn số giá trị đã được ghi nhận.",
+      "code": null,
+      "hint": "COUNT(*) đếm hàng.",
+      "nextHint": "Phân biệt số 0 với NULL khi đếm một biểu thức.",
+      "followUp": "Hãy nêu trường hợp COUNT(DISTINCT Amount) khác COUNT(Amount).",
+      "englishFollowUp": "When can COUNT(DISTINCT Amount) differ from COUNT(Amount)?",
+      "outline": [
+        "Đếm hàng",
+        "Bỏ qua NULL của biểu thức",
+        "Zero vẫn là dữ liệu"
+      ],
+      "shortAnswer": "COUNT(*) bằng 3 và COUNT(Amount) bằng 1. Giá trị 0 là một giá trị đã biết.",
+      "explanation": "COUNT(expression) chỉ tăng với biểu thức khác NULL. Thêm DISTINCT khử trùng các giá trị đó trước khi đếm.",
+      "alternative": "Đưa cả hai phép đếm vào báo cáo để đo thiếu dữ liệu theo nhóm.",
+      "trap": "Dùng COUNT(COALESCE(Amount,0)) khi cần đếm số giá trị thực sự được nhập.",
+      "rubric": [
+        "Tính đúng cả hai kết quả.",
+        "Giải thích tại sao số 0 được đếm.",
+        "Phân biệt NULL và không có hàng.",
+        "Đưa ví dụ giá trị lặp cho DISTINCT."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/count-transact-sql",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [
+        "join-duplicates"
+      ],
+      "quiz": {
+        "vi": [
+          "3 và 1",
+          "1 và 1",
+          "3 và 0"
+        ],
+        "en": [
+          "3 and 1",
+          "1 and 1",
+          "3 and 0"
+        ],
+        "correctIndex": 0
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "outbox-commit",
+    "content": {
+      "title": "Outbox khi phát sự kiện đơn hàng",
+      "topic": "systems",
+      "subtopic": "Nhất quán và message queue",
+      "tags": [
+        "transactional outbox",
+        "idempotency"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 7,
+      "technology": null,
+      "prompt": "Lưu đơn hàng thành công nhưng broker ngừng nhận sự kiện. Thiết kế để sự kiện được gửi lại sau khi dịch vụ khởi động lại.",
+      "englishPrompt": "An order commits while the broker is unavailable. Design event publication that survives a service restart.",
+      "context": "SQL Server và broker có giao dịch độc lập.",
+      "code": null,
+      "hint": "Hãy xét hai điểm crash quanh thao tác gửi message.",
+      "nextHint": "Tìm hai bản ghi có thể commit trong cùng một giao dịch SQL.",
+      "followUp": "Nếu worker chết sau khi broker xác nhận nhưng trước khi đánh dấu đã gửi thì sao?",
+      "englishFollowUp": "What if the relay dies after broker acknowledgement but before marking the event as sent?",
+      "outline": [
+        "Giao dịch order và outbox",
+        "Relay thử lại",
+        "Consumer idempotent"
+      ],
+      "shortAnswer": "Ghi order và outbox event cùng transaction. Relay lấy event chưa gửi, chuyển đến broker và đánh dấu sau xác nhận. Consumer dùng event ID để xử lý trùng.",
+      "explanation": "Commit chung bảo toàn ý định phát. Khoảng trống giữa publish và đánh dấu dẫn đến at-least-once. Đảm bảo tính duy nhất trong thao tác lưu kết quả của consumer nếu hiệu ứng cần đúng một lần.",
+      "alternative": "Change data capture có thể làm đầu vào cho relay. Cần theo dõi tuổi event chưa gửi và chính sách lưu giữ.",
+      "trap": "Tuyên bố exactly-once toàn hệ thống chỉ vì có bảng Outbox.",
+      "rubric": [
+        "Xác định cả hai cửa sổ lỗi.",
+        "Đặt biên transaction đúng.",
+        "Đưa cơ chế khử trùng có tính nguyên tử.",
+        "Nêu metric khả dụng để phát hiện tồn đọng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/databases/guide/transactional-outbox-cosmos",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "api-pagination-idempotency",
+        "isolation-deadlock"
+      ],
+      "related": [
+        "cache-design"
+      ],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "cache-invalidation",
+    "content": {
+      "title": "Cache-aside khi hai request ghi và đọc chồng nhau",
+      "topic": "systems",
+      "subtopic": "Redis và invalidation",
+      "tags": [
+        "Redis",
+        "cache-aside",
+        "TTL"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Một reader đã đọc giá cũ từ DB, writer cập nhật giá và xóa cache, sau đó reader ghi giá cũ vào Redis. Giá nào được trả về tiếp theo?",
+      "englishPrompt": "A reader fetches an old price, a writer changes the database and invalidates the cache, then the reader populates Redis. Which price can be served next?",
+      "context": "Giá hiển thị ở trang danh sách; tính tiền cuối cùng dùng giá đã được xác nhận.",
+      "code": null,
+      "hint": "Vẽ thứ tự bốn bước trên một trục thời gian.",
+      "nextHint": "TTL giới hạn khoảng thời gian nào, và có cung cấp read-after-write không?",
+      "followUp": "Bạn sẽ đổi thiết kế cho bước thanh toán cần giá hiện hành như thế nào?",
+      "englishFollowUp": "How would you change the checkout path if it needs an authoritative price?",
+      "outline": [
+        "Race lúc điền cache",
+        "Cửa sổ stale",
+        "Biên đọc authoritative"
+      ],
+      "shortAnswer": "Cache có thể trả giá cũ đến khi hết TTL hoặc được làm mới. Invalidate sau commit vẫn có cửa sổ reader điền lại giá cũ.",
+      "explanation": "Chọn mức stale cho phép cho từng use case. Có thể dùng revision đơn điệu và kiểm tra khi ghi cache. TTL cùng quan sát độ lệch giúp giới hạn và phát hiện bất nhất.",
+      "alternative": "Bước xác nhận đơn dùng giá trong nguồn có thẩm quyền cùng phiên bản giao dịch.",
+      "trap": "Giả định chỉ cần delete sau update là mọi client luôn thấy giá mới.",
+      "rubric": [
+        "Theo đúng trình tự interleaving.",
+        "Nêu rõ câu trả lời có thể stale.",
+        "Chọn ranh giới nhất quán theo nghiệp vụ.",
+        "Mô tả chi phí và hạn chế của biện pháp chọn."
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "cache-design"
+      ],
+      "related": [
+        "optimistic-concurrency"
+      ],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "expand-contract",
+    "content": {
+      "title": "Triển khai đổi tên cột khi hai phiên bản API cùng chạy",
+      "topic": "delivery",
+      "subtopic": "Triển khai tương thích",
+      "tags": [
+        "CI/CD",
+        "migration",
+        "rollback"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "mid",
+      "minutes": 6,
+      "technology": null,
+      "prompt": "Trong rolling deployment, làm sao đổi cột Name thành DisplayName mà các replica cũ và mới vẫn xử lý request?",
+      "englishPrompt": "How would you rename Name to DisplayName during a rolling deployment where old and new replicas serve traffic together?",
+      "context": "Bảng người dùng lớn. Có thể phải rollback ứng dụng trước khi mọi replica được thay.",
+      "code": null,
+      "hint": "Xác định tên cột mà mỗi phiên bản ứng dụng có thể đọc và ghi.",
+      "nextHint": "Tách tạo schema, đồng bộ dữ liệu, chuyển read path và xóa schema thành các thời điểm khác nhau.",
+      "followUp": "Làm sao xử lý hàng vừa backfill vừa được người dùng sửa?",
+      "englishFollowUp": "How would you handle a row edited while a backfill runs?",
+      "outline": [
+        "Mở rộng tương thích",
+        "Đồng bộ có điều kiện",
+        "Thu hẹp sau rollback window"
+      ],
+      "shortAnswer": "Thêm cột mới mà phiên bản cũ vẫn chạy. Bảo đảm hai đường ghi tương thích trong giai đoạn chuyển tiếp, backfill theo lô, kiểm tra dữ liệu rồi mới đổi đường đọc.",
+      "explanation": "Trong lúc còn writer cũ, cần cơ chế đồng bộ hoặc giữ nguồn chuẩn duy nhất; chỉ dual-write ở app mới là chưa đủ. Chống ghi đè bằng điều kiện hoặc version, đo độ lệch trước khi dừng đọc cột cũ.",
+      "alternative": "Chọn maintenance window khi chi phí hỗ trợ nhiều phiên bản vượt yêu cầu downtime.",
+      "trap": "Đổi tên và xóa cột trong migration đầu, rồi coi rollback image là đủ.",
+      "rubric": [
+        "Nhận biết writer cũ còn hoạt động.",
+        "Nêu thứ tự thay schema và app.",
+        "Xử lý được race trong backfill.",
+        "Chỉ rõ thời điểm có thể xóa cột cũ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "migration-rollout"
+      ],
+      "related": [
+        "optimistic-concurrency"
+      ],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "git-revert-shared",
+    "content": {
+      "title": "Hoàn tác một commit trên nhánh chia sẻ",
+      "topic": "delivery",
+      "subtopic": "Git và lịch sử triển khai",
+      "tags": [
+        "Git",
+        "revert",
+        "rollback"
+      ],
+      "format": "compare",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 3,
+      "technology": null,
+      "prompt": "Một commit đã được đẩy lên main và đồng nghiệp đã dựa vào nó. Làm gì để hoàn tác thay đổi mà vẫn giữ lịch sử chung?",
+      "englishPrompt": "A commit on main is already the base for colleagues’ work. How would you undo its changes while preserving shared history?",
+      "context": "Thay đổi chỉ liên quan source và pipeline sẽ tạo bản build mới.",
+      "code": null,
+      "hint": "Nghĩ về một commit mới có diff đảo ngược.",
+      "nextHint": "Phân biệt việc di chuyển con trỏ branch và việc tạo lịch sử mới.",
+      "followUp": "Nếu commit đã gửi email hoặc thay đổi database thì rollback source xử lý phần nào?",
+      "englishFollowUp": "What if the commit already caused emails to be sent or data to change?",
+      "outline": [
+        "Commit đảo ngược",
+        "Lịch sử chia sẻ",
+        "Hiệu ứng ngoài source"
+      ],
+      "shortAnswer": "Tạo git revert cho commit, giải quyết conflict và kiểm tra bản build mới. Lịch sử tiếp tục tiến về phía trước.",
+      "explanation": "Revert tạo commit mới đảo diff trong ngữ cảnh hiện tại, có thể phải giải quyết xung đột với thay đổi về sau. Nó không thu hồi tác động bên ngoài repository.",
+      "alternative": "Nếu bản lỗi đang phục vụ và có artifact tốt đã kiểm chứng, có thể rollback deployment trong khi chuẩn bị commit sửa.",
+      "trap": "Nhầm rollback source với khôi phục dữ liệu đã thay đổi.",
+      "rubric": [
+        "Chọn revert trong ngữ cảnh nhánh chia sẻ.",
+        "Nêu ý nghĩa commit mới.",
+        "Xét conflict và test.",
+        "Tách lịch sử Git khỏi trạng thái runtime."
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/devops/repos/git/undo",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [
+        "expand-contract"
+      ],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-disagreement",
+    "content": {
+      "title": "Trình bày một bất đồng kỹ thuật",
+      "topic": "behavioral",
+      "subtopic": "Giao tiếp và quyết định",
+      "tags": [
+        "STAR",
+        "collaboration"
+      ],
+      "format": "experience",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Kể một lần bạn và đồng đội bất đồng về cách triển khai. Bạn dùng bằng chứng nào để đi đến quyết định?",
+      "englishPrompt": "Describe a technical disagreement with a teammate. What evidence helped you reach a decision?",
+      "context": "Dùng một trải nghiệm thật từ công việc, thực tập hoặc dự án học tập.",
+      "code": null,
+      "hint": "Chọn bất đồng có hai phương án đều có lý.",
+      "nextHint": "Nêu ràng buộc chung, phần bạn trực tiếp làm và kết quả quan sát được.",
+      "followUp": "Nếu phương án được chọn không phải của bạn, bạn đã hỗ trợ nhóm ra sao?",
+      "englishFollowUp": "How did you support the team if your preferred option was not chosen?",
+      "outline": [
+        "Bối cảnh",
+        "Tiêu chí chung",
+        "Hành động cá nhân",
+        "Kết quả thực"
+      ],
+      "shortAnswer": "Nêu ràng buộc, mô tả hai phương án, việc bạn làm để kiểm chứng và kết quả nhóm quan sát được. Khi thiếu chỉ số hãy nói rõ bằng chứng định tính.",
+      "explanation": "Ví dụ về cấu trúc trả lời: nhóm cần quyết định A hay B trước mốc phát hành; giải thích đánh đổi, cách thử và điều đã học. Điền bằng dữ liệu thực của chính bạn.",
+      "alternative": "Nếu chưa có kinh nghiệm công ty, dùng đồ án có phân công thực và chỉ ra giới hạn phạm vi.",
+      "trap": "Kể thành tích của cả nhóm như của riêng mình hoặc đặt ra con số không có nguồn.",
+      "rubric": [
+        "Nêu hai quan điểm một cách công bằng.",
+        "Chỉ ra đóng góp cá nhân.",
+        "Dùng bằng chứng quan sát được.",
+        "Rút kinh nghiệm có thể áp dụng lại."
+      ],
+      "source": "https://careers.microsoft.com/v2/global/en/hiring-tips/interview-tips.html",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "semaphore-release",
+    "content": {
+      "title": "Giới hạn concurrency bằng SemaphoreSlim",
+      "topic": "linq",
+      "subtopic": "Điều phối tác vụ",
+      "tags": [
+        "SemaphoreSlim",
+        "finally"
+      ],
+      "format": "debug",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Worker await WaitAsync(token), gọi I/O rồi Release. Sau vài lỗi I/O mọi request mới đều chờ. Hãy chỉ nguyên nhân và cách sửa.",
+      "englishPrompt": "A worker awaits WaitAsync(token), performs I/O, then releases a semaphore. After some I/O failures all new requests wait. Why, and how would you fix it?",
+      "context": "Semaphore dùng chung để giới hạn số lần gọi tới dịch vụ phụ thuộc.",
+      "code": null,
+      "hint": "Một permit đã lấy cần được trả trên những đường thoát nào?",
+      "nextHint": "Đặt try/finally sau khi WaitAsync đã thành công.",
+      "followUp": "Nếu token bị hủy trong lúc chờ permit thì có gọi Release không?",
+      "englishFollowUp": "Should you release if cancellation occurs while waiting for a permit?",
+      "outline": [
+        "Permit được sở hữu sau WaitAsync",
+        "finally",
+        "Giới hạn cục bộ"
+      ],
+      "shortAnswer": "Nếu I/O ném ngoại lệ trước Release thì permit bị mất. Sau khi WaitAsync thành công, bọc công việc trong try và Release trong finally.",
+      "explanation": "Nếu chờ thất bại do cancellation thì chưa sở hữu permit nên không release. Semaphore trong một process chỉ giới hạn concurrency của process đó.",
+      "alternative": "Kênh Channel có số worker cố định phù hợp khi cần tách queue, backpressure và consumer.",
+      "trap": "Đặt Release vào finally bao quanh cả WaitAsync, làm tăng count dù không lấy được permit.",
+      "rubric": [
+        "Xác định đường thất thoát permit.",
+        "Đặt đúng biên try/finally.",
+        "Xét trường hợp hủy khi đang chờ.",
+        "Phân biệt giới hạn local và toàn cụm."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim.waitasync",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "cancellation"
+      ],
+      "related": [
+        "when-all"
+      ],
+      "quiz": null,
+      "core": false
+    }
+  }
+]

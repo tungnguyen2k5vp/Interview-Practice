@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { Activity, ArrowRight, BookOpen, Braces, ChevronRight, Code2, Database, LayoutDashboard, Menu, Mic, NotebookPen, RotateCcw, Route, Search, Settings2, ShieldCheck, UserRound } from 'lucide-react'
+import { Activity, ArrowRight, BookOpen, Braces, ChevronRight, Code2, Database, LayoutDashboard, Menu, Mic, Moon, NotebookPen, RotateCcw, Route, Search, Settings2, ShieldCheck, Sun, Timer, UserRound } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import '@fontsource-variable/lexend'
-import { AdminRoute } from './Admin'
+const AdminRoute = lazy(() => import('./Admin').then(m => ({default: m.AdminRoute})))
+const Preparation = lazy(() => import('./Preparation').then(m => ({default: m.Preparation})))
 import { Bank } from './Bank'
 import { DashboardPage } from './Dashboard'
 import { ExerciseList, ExerciseRoute } from './Exercises'
 import { InterviewRoute, InterviewSetup } from './Interview'
 import { Notes, Progress, Reviews, Roadmap, Settings } from './Learning'
 import { AttemptRoute, PracticeRoute } from './Practice'
+import { StudyRoute, StudyStart } from './Study'
 import { SessionProvider, SignIn, signInLink, useSession } from './session'
 import { ActionLink, Button, Dialog, Empty, Field, Link, Loading, Problem, navigate, useLocation } from './ui'
 import './styles.css'
@@ -17,6 +19,7 @@ import './styles.css'
 type NavItem = { path: string; title: string; icon: LucideIcon }
 const main: NavItem[] = [
   { path: '/', title: 'Tổng quan', icon: LayoutDashboard },
+  { path: '/phien-hoc', title: 'Phiên học nhanh', icon: Timer },
   { path: '/lo-trinh', title: 'Lộ trình', icon: Route },
   { path: '/cau-hoi', title: 'Câu hỏi', icon: BookOpen },
   { path: '/coding', title: 'Coding', icon: Braces },
@@ -60,6 +63,8 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
   switch (page) {
     case '': return <DashboardPage />
     case 'lo-trinh': return <Roadmap />
+    case 'chuan-bi': return <Preparation />
+    case 'phien-hoc': return slug ? <StudyRoute key={slug} id={slug} params={params} /> : <StudyStart initial={params.get('mode') ?? 'new'} />
     case 'cau-hoi': return slug ? <PracticeRoute slug={slug} /> : <Bank params={params} />
     case 'luot-luyen': return slug ? <AttemptRoute id={slug} /> : <NotFound />
     case 'coding':
@@ -83,6 +88,16 @@ function App() {
   const [drawer, setDrawer] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [term, setTerm] = useState('')
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark' ||
+    (!document.documentElement.dataset.theme && window.matchMedia('(prefers-color-scheme: dark)').matches))
+  const [offline, setOffline] = useState(!navigator.onLine)
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-color-scheme: dark)')
+    const theme = () => { if (!document.documentElement.dataset.theme) setDark(media.matches) }
+    const network = () => setOffline(!navigator.onLine)
+    media.addEventListener('change', theme); window.addEventListener('online', network); window.addEventListener('offline', network)
+    return () => { media.removeEventListener('change', theme); window.removeEventListener('online', network); window.removeEventListener('offline', network) }
+  }, [])
   const mainArea = useRef<HTMLElement>(null)
   const lastPath = useRef(path)
   const nav = [...main, ...personal, ...(user?.admin ? [admin] : [])].find(x => selected(path, x))
@@ -123,6 +138,10 @@ function App() {
         <span className="mobile-title">{nav?.title ?? 'Interview Practice'}</span>
       </div>
       <div className="topbar-right">
+        <Button className="icon-button" tone="quiet" aria-label={dark ? 'Dùng giao diện sáng' : 'Dùng giao diện tối'} onClick={() => {
+          const next = dark ? 'light' : 'dark'; document.documentElement.dataset.theme = next; setDark(!dark)
+          try { localStorage.setItem('ip-theme', next) } catch { /* Preference applies to this tab. */ }
+        }}>{dark ? <Sun size={18}/> : <Moon size={18}/>}</Button>
         <Button className="quick-search" tone="quiet" aria-label="Tìm câu hỏi toàn bộ" onClick={() => setSearchOpen(true)}>
           <Search size={18} aria-hidden="true" /><span>Tìm câu hỏi</span><kbd>Ctrl K</kbd>
         </Button>
@@ -131,8 +150,9 @@ function App() {
       </div>
     </header>
     <main className="main-area" tabIndex={-1} ref={mainArea} id="main-area">
+      {offline && <p role="status" className="notice">Đang ngoại tuyến. Bản đang viết trên thiết bị sẽ đồng bộ khi có mạng.</p>}
       {!ready ? <Loading /> : <div key={user?.id ?? 'guest'}>
-        <Problem text={issue} retry={retry} /><View path={path} params={params} />
+        <Problem text={issue} retry={retry} /><Suspense fallback={<Loading/>}><View path={path} params={params} /></Suspense>
       </div>}
     </main>
     <Dialog title="Điều hướng" open={drawer} onClose={() => setDrawer(false)} drawer><Nav path={path} close={() => setDrawer(false)} /></Dialog>

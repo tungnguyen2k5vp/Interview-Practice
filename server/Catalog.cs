@@ -12,16 +12,22 @@ internal sealed record QuestionContent(
     string Title, string Topic, string Subtopic, string[] Tags, string Format, string Difficulty, string Level,
     int Minutes, string? Technology, string Prompt, string EnglishPrompt, string Context, string? Code,
     string Hint, string FollowUp, string EnglishFollowUp, string[] Outline, string ShortAnswer,
-    string Explanation, string Alternative, string Trap, string[] Rubric, string Source, DateOnly CheckedOn);
+    string Explanation, string Alternative, string Trap, string[] Rubric, string Source, DateOnly CheckedOn,
+    string? NextHint = null, string[]? Prerequisites = null, string[]? Related = null, QuizKey? Quiz = null, bool Core = false);
+
+internal sealed record QuizKey(string[] Vi, string[] En, int CorrectIndex);
+internal sealed record QuizOptions(string[] Vi, string[] En);
 
 /// <summary>Tóm tắt công khai của câu hỏi và trạng thái học cá nhân nếu đã đăng nhập.</summary>
 internal sealed record QuestionCard(
     string Slug, int Version, string Title, string Topic, string Format, string Difficulty, string Level,
-    string? Technology, int Minutes, bool Bookmarked, string? Outcome, string? Rating, DateOnly? Due, string[]? Tags);
+    string? Technology, int Minutes, bool Bookmarked, string? Outcome, string? Rating, DateOnly? Due, string[]? Tags,
+    string? Mastery = null, int VerifiedDays = 0);
 
 /// <summary>Đề bài công khai. Các mục phản hồi được yêu cầu qua luồng luyện tập.</summary>
 internal sealed record QuestionResponse(
-    QuestionCard Card, string Subtopic, string[] Tags, string Prompt, string EnglishPrompt, string Context, string? Code);
+    QuestionCard Card, string Subtopic, string[] Tags, string Prompt, string EnglishPrompt, string Context, string? Code,
+    QuizOptions? Choices, string[] Prerequisites, string[] Related);
 
 /// <summary>Đáp án, rubric và tài liệu cho đúng phiên bản câu hỏi.</summary>
 internal sealed record ReferenceResponse(
@@ -51,11 +57,14 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         new("efcore", "EF Core", "Ứng dụng", "Đọc SQL sinh ra và đề xuất projection hoặc xử lý tranh chấp.", "department-salary"),
         new("sql", "SQL & Database", "Ứng dụng", "Dự đoán số hàng, NULL và thứ tự từ dữ liệu mẫu.", "customer-orders"),
         new("algorithms", "Thuật toán", "Nền tảng", "Nêu invariant, độ phức tạp và edge case trước khi viết code.", "first-true"),
+        new("systems", "Hệ thống phân tán", "Thực tế", "Xác định biên nhất quán, lỗi từng phần và cách phục hồi.", "hop-count"),
+        new("delivery", "Git & Triển khai", "Thực tế", "Mô tả cách đưa một thay đổi lên production và quay lui.", "first-true"),
+        new("behavioral", "HR & Dự án", "Thực tế", "Trình bày quyết định cá nhân và bằng chứng về kết quả.", "balanced-delimiters"),
         new("testing", "Testing & Tình huống", "Thực tế", "Dùng bằng chứng để tìm giả thuyết và nêu cách kiểm chứng.", "daily-totals")
     ];
 
     public static readonly string[] Difficulties = ["easy", "medium", "hard"];
-    public static readonly string[] Levels = ["fresher", "junior", "mid", "senior"];
+    public static readonly string[] Levels = ["intern", "fresher", "junior", "mid", "senior"];
     public static readonly string[] Formats = ["concept", "compare", "read", "debug", "predict", "design", "experience", "quiz"];
 
     public static void Map(RouteGroupBuilder api)
@@ -74,6 +83,13 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             .WithSummary("Đọc đề bài và tiến độ cá nhân của một câu.");
 
         var admin = api.MapGroup("/admin/questions").RequireAuthorization(p => p.RequireRole(Auth.Admin));
+        admin.MapGet("/{slug}/export", async (string slug, Catalog catalog, CancellationToken ct) =>
+        {
+            var head = await catalog.Db.Questions.FindAsync([slug], ct) ?? throw ApiProblem.Missing();
+            var item = new SeedQuestion(slug, Content(await catalog.Version(slug, head.Latest, ct)));
+            return TypedResults.File(System.Text.Encoding.UTF8.GetBytes(DataJson.Write(new[] { item })), "application/json", slug + ".json");
+        });
+        admin.MapPost("/import", (SeedQuestion[] items, Catalog catalog, CancellationToken ct) => catalog.Import(items, ct));
         admin.MapGet("", async (Catalog catalog, CancellationToken ct) =>
             await catalog.Db.Questions.Join(catalog.Db.QuestionVersions,
                 head => new { head.Slug, Version = head.Latest }, version => new { version.Slug, version.Version },
@@ -117,8 +133,10 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         if (due is true) query = query.Where(x => x.s != null && x.s.Due != null && x.s.Due <= today);
         query = status switch
         {
+            "learning" => query.Where(x => x.s != null && (x.s.Mastery == "learning" || x.s.Mastery == null && x.s.DraftId != null)),
+            "secure" or "mastered" or "review" => query.Where(x => x.s != null && x.s.Mastery == status && x.s.ScheduledVersion == x.q.Version),
             "answered" => query.Where(x => x.s != null && x.s.AnsweredCount > 0),
-            "new" => query.Where(x => x.s == null || x.s.AnsweredCount == 0),
+            "new" => query.Where(x => x.s == null || x.s.LastAttemptId == null && x.s.DraftId == null),
             "skipped" => query.Where(x => x.s != null && x.s.LastOutcome == "skipped"),
             _ => query
         };
@@ -127,7 +145,8 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         var items = await query.OrderBy(x => x.q.Title).ThenBy(x => x.q.Slug).Skip((pageNumber - 1) * size).Take(size)
             .Select(x => new { x.q.Data, Card = new QuestionCard(x.q.Slug, x.q.Version, x.q.Title, x.q.Topic, x.q.Format, x.q.Difficulty,
                 x.q.Level, x.q.Technology, x.q.Minutes, x.s != null && x.s.Bookmarked, x.s == null ? null : x.s.LastOutcome,
-                x.s == null ? null : x.s.Rating, x.s == null ? null : x.s.Due, null) }).ToArrayAsync(ct);
+                x.s == null ? null : x.s.Rating, x.s == null ? null : x.s.Due, null,
+                x.s == null ? null : x.s.Mastery ?? (x.s.DraftId != null ? "learning" : null), x.s == null ? 0 : x.s.VerifiedDays) }).ToArrayAsync(ct);
         return new(items.Select(x => x.Card with { Tags = DataJson.Read<QuestionContent>(x.Data).Tags }).ToArray(), total, pageNumber, size);
     }
 
@@ -150,14 +169,17 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             : null;
 
     public static QuestionContent Content(QuestionVersion q) => DataJson.Read<QuestionContent>(q.Data);
+    internal static string[] ContentPrerequisites(string data) => DataJson.Read<QuestionContent>(data).Prerequisites ?? [];
     public static QuestionCard Card(QuestionVersion q, StudyState? s = null)
         => new(q.Slug, q.Version, q.Title, q.Topic, q.Format, q.Difficulty, q.Level, q.Technology, q.Minutes,
-            s?.Bookmarked ?? false, s?.LastOutcome, s?.Rating, s?.Due, null);
+            s?.Bookmarked ?? false, s?.LastOutcome, s?.Rating, s?.Due, null,
+            s?.ScheduledVersion == q.Version ? s.Mastery : s?.DraftId is not null ? "learning" : null, s?.ScheduledVersion == q.Version ? s.VerifiedDays : 0);
 
     public static QuestionResponse View(QuestionVersion q, StudyState? s = null)
     {
         var c = Content(q);
-        return new(Card(q, s), c.Subtopic, c.Tags, c.Prompt, c.EnglishPrompt, c.Context, c.Code);
+        return new(Card(q, s), c.Subtopic, c.Tags, c.Prompt, c.EnglishPrompt, c.Context, c.Code,
+            c.Quiz is null ? null : new(c.Quiz.Vi, c.Quiz.En), c.Prerequisites ?? [], c.Related ?? []);
     }
 
     public static ReferenceResponse Reference(QuestionVersion q)
@@ -177,7 +199,8 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
     public async Task SeedAsync(CancellationToken ct)
     {
         var path = Path.Combine(environment.ContentRootPath, "Content", "questions.json");
-        var items = DataJson.Read<SeedQuestion[]>(await File.ReadAllTextAsync(path, ct));
+        var items = DataJson.Read<SeedQuestion[]>(await File.ReadAllTextAsync(path, ct))
+            .Concat(DataJson.Read<SeedQuestion[]>(await File.ReadAllTextAsync(Path.Combine(environment.ContentRootPath, "Content", "questions-batch-02.json"), ct)));
         var existing = (await db.Questions.Select(x => x.Slug).ToArrayAsync(ct)).ToHashSet(StringComparer.Ordinal);
         foreach (var item in items.Where(x => !existing.Contains(x.Slug)))
         {
@@ -188,6 +211,38 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         await db.SaveChangesAsync(ct);
     }
 
+    internal async Task ReconcileLegacyReviews(CancellationToken ct)
+    {
+        var stale = await (from s in db.StudyStates
+            join q in PublishedQuery() on s.Slug equals q.Slug
+            join u in db.Users on s.UserId equals u.Id
+            where s.LastAttemptId != null && (s.ScheduledVersion != q.Version || s.SuggestedDue == null && !s.ManualDue)
+            select new { State = s, Question = q, u.GoalJson }).ToArrayAsync(ct);
+        foreach (var item in stale)
+        {
+            var state = item.State;
+            if (state.ScheduledVersion == item.Question.Version)
+                await Recall.Refresh(db, state, item.Question, ct);
+            else
+            {
+                var goal = item.GoalJson is null ? GoalSettings.Default : DataJson.Read<GoalSettings>(item.GoalJson);
+                ResetVersion(state, item.Question.Version, Learning.LocalDate(clock.GetUtcNow(), TimeZoneInfo.FindSystemTimeZoneById(goal.TimeZone)));
+            }
+            state.Revision++;
+        }
+        if (stale.Length > 0) await db.SaveChangesAsync(ct);
+    }
+
+    private static void ResetVersion(StudyState state, int version, DateOnly today)
+    {
+        state.ScheduledVersion = version;
+        state.Mastery = "review";
+        state.SuggestedDue = today;
+        if (!state.ManualDue) state.Due = today;
+        state.VerifiedDays = state.Lapses = 0;
+        state.Rating = null;
+    }
+
     private async Task<IResult> AdminDetail(string slug, CancellationToken ct)
     {
         var head = await db.Questions.FindAsync([slug], ct) ?? throw ApiProblem.Missing();
@@ -195,11 +250,42 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         return TypedResults.Ok(new { head.Slug, head.Latest, head.Published, head.Revision, head.Status, content = Content(version) });
     }
 
+    private async Task<IResult> Import(SeedQuestion[] items, CancellationToken ct)
+    {
+        if (items is not { Length: > 0 and <= 20 }) throw ApiProblem.Invalid("Nhập từ 1 đến 20 câu mỗi lần.");
+        var slugs = new HashSet<string>(StringComparer.Ordinal);
+        var prompts = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in items)
+        {
+            if (item?.Content is null || string.IsNullOrWhiteSpace(item.Slug)) throw ApiProblem.Invalid("Thiếu slug hoặc nội dung.");
+            Validate(item.Slug, item.Content);
+            if (!slugs.Add(item.Slug) || !prompts.Add(item.Content.Prompt.Trim()))
+                throw ApiProblem.Invalid("Tệp có câu trùng slug hoặc trùng đề.");
+        }
+        var latest = await (from h in db.Questions join q in db.QuestionVersions
+            on new { h.Slug, Version = h.Latest } equals new { q.Slug, q.Version } select new { h.Slug, q.Data }).ToArrayAsync(ct);
+        if (latest.Any(q => slugs.Contains(q.Slug) || prompts.Contains(DataJson.Read<QuestionContent>(q.Data).Prompt.Trim())))
+            throw ApiProblem.Conflict("Có slug hoặc nội dung đề đã tồn tại. Sửa qua trang phiên bản để giữ lịch sử.");
+        var available = latest.Select(x => x.Slug).Concat(slugs).ToHashSet();
+        if (items.Any(i => (i.Content.Prerequisites ?? []).Concat(i.Content.Related ?? []).Any(k => !available.Contains(k))))
+            throw ApiProblem.Invalid("Liên kết câu hỏi chưa có trong hệ thống hoặc tệp nhập.");
+        foreach (var item in items)
+        {
+            db.Questions.Add(new QuestionHead { Slug = item.Slug, Latest = 1, Revision = 1, Status = "draft" });
+            db.QuestionVersions.Add(VersionRow(item.Slug, 1, item.Content));
+        }
+        await db.SaveChangesAsync(ct);
+        return TypedResults.Ok(new { imported = items.Length });
+    }
+
     private async Task<IResult> SaveVersion(string slug, EditQuestionRequest request, CancellationToken ct)
     {
         if (request.Content is null)
             throw ApiProblem.Invalid("Cần nhập nội dung câu hỏi.");
         Validate(slug, request.Content);
+        var links = (request.Content.Prerequisites ?? []).Concat(request.Content.Related ?? []).Distinct().ToArray();
+        if (links.Length > 0 && await db.Questions.CountAsync(q => links.Contains(q.Slug), ct) != links.Length)
+            throw ApiProblem.Invalid("Một câu tiên quyết hoặc liên quan chưa tồn tại. Kiểm tra lại slug.");
         var head = await db.Questions.FindAsync([slug], ct);
         var created = head is null;
         if ((head?.Revision ?? 0) != request.Revision)
@@ -220,9 +306,11 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
 
     private async Task<IResult> Publish(string slug, PublicationRequest request, CancellationToken ct)
     {
+        await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var head = await db.Questions.FindAsync([slug], ct) ?? throw ApiProblem.Missing();
         if (head.Revision != request.Revision)
             throw ApiProblem.Conflict();
+        var previous = head.Published;
         head.Published = request.Status switch
         {
             "published" => head.Latest,
@@ -232,6 +320,24 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         head.Status = request.Status;
         head.Revision++;
         await db.SaveChangesAsync(ct);
+        if (head.Published is int published && previous != published)
+        {
+            var now = clock.GetUtcNow();
+            var states = await (from s in db.StudyStates
+                join u in db.Users on s.UserId equals u.Id
+                where s.Slug == slug && s.LastAttemptId != null && s.ScheduledVersion != published
+                select new { State = s, u.GoalJson }).ToArrayAsync(ct);
+            foreach (var item in states)
+            {
+                var goal = item.GoalJson is null ? GoalSettings.Default : DataJson.Read<GoalSettings>(item.GoalJson);
+                var today = Learning.LocalDate(now, TimeZoneInfo.FindSystemTimeZoneById(goal.TimeZone));
+                var state = item.State;
+                ResetVersion(state, published, today);
+                state.Revision++;
+            }
+            await db.SaveChangesAsync(ct);
+        }
+        await transaction.CommitAsync(ct);
         return await AdminDetail(slug, ct);
     }
 
@@ -255,6 +361,15 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         if (!Has(c.Source, 600) || !Uri.TryCreate(c.Source, UriKind.Absolute, out var source) || source.Scheme != Uri.UriSchemeHttps
             || c.CheckedOn == default)
             throw ApiProblem.Invalid("Nguồn phải là URL HTTPS và cần có ngày kiểm tra.");
+        if (c.Format == "quiz" && c.Quiz is null)
+            throw ApiProblem.Invalid("Dạng trắc nghiệm cần lựa chọn tiếng Việt, tiếng Anh và đáp án đúng.");
+        if (c.Quiz is { } quiz && (!List(quiz.Vi, 2, 6, 300) || !List(quiz.En, 2, 6, 300)
+            || quiz.En.Length != quiz.Vi.Length || quiz.CorrectIndex < 0 || quiz.CorrectIndex >= quiz.Vi.Length
+            || quiz.Vi.Select(x => x.Trim()).Distinct().Count() != quiz.Vi.Length || quiz.En.Select(x => x.Trim()).Distinct().Count() != quiz.En.Length))
+            throw ApiProblem.Invalid("Cần lựa chọn Việt/Anh tương ứng và một đáp án đúng hợp lệ.");
+        if (c.NextHint?.Length > 700 || new[] { c.Prerequisites, c.Related }.Any(keys => keys is not null &&
+            (keys.Length > 8 || keys.Distinct().Count() != keys.Length || keys.Any(k => k is null || k.Length > 90 || k == slug || !SlugShape().IsMatch(k)))))
+            throw ApiProblem.Invalid("Kiểm tra gợi ý bổ sung và liên kết kiến thức.");
     }
 
     [GeneratedRegex(@"^[a-z0-9]+(?:-[a-z0-9]+)*$", RegexOptions.CultureInvariant, 100)]

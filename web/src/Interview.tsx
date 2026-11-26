@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, AudioLines, Braces, Clock3, Database, Lightbulb, Mic, Pause, Play, RotateCcw, SquareTerminal } from 'lucide-react'
 import { api, useAction, useResource } from './api'
 import { useDraft } from './draft'
+import { Voice } from './Voice'
 import { DraftConflict, ownerKey } from './Practice'
 import { SignInGate, signInLink, useSession } from './session'
 import type { Interview, Preset } from './types'
@@ -15,12 +16,15 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
   const resume = dashboard.data?.resume
   const { user, goal } = useSession()
   const [preset, setPreset] = useState(params.get('preset') || 'foundation')
-  const [topics, setTopics] = useState<string[] | null>(null)
+  const [topics, setTopics] = useState<string[] | null>(() => params.has('topics') ?
+    [...new Set((params.get('topics') ?? '').split(',').filter(k => Object.hasOwn(labels.topics, k)))] : null)
   const [level, setLevel] = useState('')
   const [difficulty, setDifficulty] = useState('')
   const [language, setLanguage] = useState('')
   const [minutes, setMinutes] = useState('15')
   const [mode, setMode] = useState('guided')
+  const [count, setCount] = useState('')
+  const [preferWeak, setPreferWeak] = useState(false)
   const startId = useRef(crypto.randomUUID())
   const action = useAction()
   const current = presets.data?.find(x => x.id === preset)
@@ -31,13 +35,15 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
       const data = await api<Interview>('/interviews', { method: 'POST', body: {
         id: startId.current, preset, level: level || goal.level || 'junior', difficulty: difficulty || null,
         topics: topics ?? (reviewOf ? [] : current?.topics ?? []), minutes: Number(minutes), language: language || goal.language, mode, reviewOf,
+        count: count ? Number(count) : null, preferWeak,
       } })
       navigate('/phong-van/' + data.session.id)
     })
   }
   return <div className="page">
     <PageTitle title="Phỏng vấn thử" description="Tập trả lời từng câu, xử lý câu đào sâu và xem lại cách bạn đã lập luận."
-      action={resume?.path.startsWith('/phong-van/') ? <ActionLink href={resume.path}><Play size={16} /> Tiếp tục phiên</ActionLink> : undefined} />
+      action={<div className="action-row">{resume?.path.startsWith('/phong-van/') && <ActionLink href={resume.path}><Play size={16} /> Tiếp tục phiên</ActionLink>}
+        <ActionLink href="/chuan-bi">Chuẩn bị theo CV và JD <ArrowRight size={15}/></ActionLink></div>} />
     {reviewOf && <p className="notice"><RotateCcw size={18} /> Ưu tiên các câu bỏ qua, chưa tự đánh giá hoặc còn cần luyện từ phiên trước.</p>}
     <section className="stack" aria-label="Các bộ phỏng vấn">
       {presets.loading && <Loading />}
@@ -57,6 +63,9 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
           <Field label="Độ khó"><select value={difficulty} onChange={e => setDifficulty(e.target.value)}><option value="">Tất cả</option><Options values={labels.difficulty} /></select></Field>
           <Field label="Ngôn ngữ"><select value={language || goal.language} onChange={e => setLanguage(e.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></select></Field>
           <Field label="Thời lượng"><select value={minutes} onChange={e => setMinutes(e.target.value)}>{[15, 30, 45].map(x => <option key={x} value={x}>{x} phút</option>)}</select></Field>
+          <Field label="Số câu"><select value={count} onChange={e => setCount(e.target.value)}><option value="">Theo thời lượng</option>
+            {Array.from({ length: Math.min(12, Math.floor(Number(minutes) / 2)) }, (_, i) => <option key={i} value={i+1}>{i+1}</option>)}</select></Field>
+          <label className="check-chip"><input type="checkbox" checked={preferWeak} onChange={e => setPreferWeak(e.target.checked)} />Ưu tiên câu cần ôn</label>
         </div>
         <TopicChecks legend={reviewOf ? 'Chủ đề · để trống dùng chủ đề của phiên trước' : 'Chủ đề · để trống dùng bộ mặc định'}
           value={topics ?? (reviewOf ? [] : current?.topics ?? [])} change={setTopics} />
@@ -178,6 +187,9 @@ function InterviewAnswer({ data, blocked, owner, send, recover }: {
       const saved = await send('draft', snapshot.stamp, snapshot.text)
       return { stamp: saved.revision, text: saved.draft }
     }, Object.is, !paused && !blocked)
+  const coach = useResource<{available: boolean}>(session.mode === 'guided' && stage === 'followup' ? '/ai/status' : null)
+  const textRef = useRef(draft.text)
+  textRef.current = draft.text
   function act(kind: string, value?: string) {
     void action.run(async () => {
       const revision = paused ? data.revision : await draft.flush()
@@ -206,6 +218,13 @@ function InterviewAnswer({ data, blocked, owner, send, recover }: {
     {stage === 'followup' && current.answer && <details className="details">
       <summary>Câu trả lời vừa gửi</summary><p className="written-answer" lang={session.language}>{current.answer}</p>
     </details>}
+    {coach.data?.available && !draft.text && <Button disabled={unusable} onClick={() => void action.run(async () => {
+      await api('/interviews/' + session.id + '/coach-followup?revision=' + data.revision, {method: 'POST'})
+      const next = await recover(); draft.accept({stamp: next.revision, text: next.draft})
+    })}>Gửi câu trả lời vừa nộp cho AI để hỏi sâu</Button>}
+    <Voice key={position + stage + String(unusable)} prompt={current.text} language={session.language} disabled={unusable} append={text => {
+      textRef.current = (textRef.current + ' ' + text).trim().slice(0, 16000); draft.change(textRef.current)
+    }} />
     <Field label="Câu trả lời"><textarea rows={7} maxLength={16000} value={draft.text} lang={session.language}
       readOnly={paused || action.busy || blocked} onChange={e => draft.change(e.target.value)} placeholder={session.language === 'en' ? 'Write your answer in English…' : 'Trình bày câu trả lời của bạn…'} /></Field>
     <div className="split"><span className="small muted" role="status">{paused ? 'Đồng hồ đã dừng' : draft.stateText}</span>

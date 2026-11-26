@@ -12,7 +12,7 @@ const selects: { id: string; title: string; values: Record<string, string> }[] =
   { id: 'level', title: 'Mức mục tiêu', values: labels.level },
   { id: 'format', title: 'Dạng câu', values: labels.format },
   { id: 'technology', title: 'Phiên bản kỹ thuật', values: {} },
-  { id: 'status', title: 'Tình trạng', values: { new: 'Chưa trả lời', answered: 'Đã trả lời', skipped: 'Đã bỏ qua' } },
+  { id: 'status', title: 'Tình trạng', values: { ...labels.mastery, answered: 'Đã trả lời', skipped: 'Đã bỏ qua' } },
 ]
 export function Bank({ params }: { params: URLSearchParams }) {
   const { user } = useSession()
@@ -63,7 +63,7 @@ export function Bank({ params }: { params: URLSearchParams }) {
     </div>
     {resource.loading ? <Loading /> : resource.error ? <Problem text={resource.error} retry={resource.reload} />
       : resource.data?.items.length ? <>
-        <div className="card-grid">{resource.data.items.map(item => <QuestionCard key={item.slug} item={item}
+        <div className="card-grid">{resource.data.items.map(item => <QuestionCard key={item.slug} item={item} href={'/cau-hoi/'+item.slug+'?bank='+encodeURIComponent(qs)}
           children={item.bookmarked ? <span className="saved-label"><Bookmark size={15} fill="currentColor" /> Đã đánh dấu</span> : undefined} />)}</div>
         <Pagination page={resource.data.page} size={resource.data.pageSize} total={resource.data.total} change={p => filter('page', String(p))} />
       </> : <div className="panel"><Empty title="Không tìm thấy câu hỏi" detail="Thử từ khóa ngắn hơn hoặc bỏ bớt một bộ lọc."

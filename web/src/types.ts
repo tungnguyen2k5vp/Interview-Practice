@@ -2,20 +2,21 @@ export type User = { id: string; displayName: string; email: string; admin: bool
 export type Goal = {
   position: string; level?: string | null; topics: string[]; interviewDate?: string | null
   minutesPerDay?: number | null; daysPerWeek?: number | null; language: 'vi' | 'en'; timeZone: string
-  roadmap: string[]; reviewTopics: string[]; skipDay?: string | null
+  roadmap: string[]; reviewTopics: string[]; skipDay?: string | null; track?: string | null; trackStart?: string
 }
 export const defaultGoal: Goal = {
   position: '', topics: [], language: 'vi', timeZone: 'Asia/Ho_Chi_Minh', roadmap: [], reviewTopics: [],
 }
 
 export const labels = {
-  topics: { csharp: 'C# & .NET', oop: 'OOP & Thiết kế', linq: 'LINQ & Async', aspnet: 'ASP.NET Core', efcore: 'EF Core', sql: 'SQL & Database', algorithms: 'Thuật toán', testing: 'Testing & Tình huống' },
+  topics: { csharp: 'C# & .NET', oop: 'OOP & Thiết kế', linq: 'LINQ & Async', aspnet: 'ASP.NET Core', efcore: 'EF Core', sql: 'SQL & Database', algorithms: 'Thuật toán', testing: 'Testing & Tình huống', systems: 'Hệ thống phân tán', delivery: 'Git & Triển khai', behavioral: 'HR & Dự án' },
   difficulty: { easy: 'Cơ bản', medium: 'Trung bình', hard: 'Nâng cao' },
-  level: { fresher: 'Intern / Fresher', junior: 'Junior', mid: 'Mid-level', senior: 'Senior' },
+  level: { intern: 'Intern', fresher: 'Fresher', junior: 'Junior', mid: 'Middle', senior: 'Senior' },
+  mastery: { new: 'Chưa học', learning: 'Đang học', review: 'Cần ôn', secure: 'Khá vững', mastered: 'Thành thạo' },
   format: { concept: 'Khái niệm', compare: 'So sánh', read: 'Đọc mã', debug: 'Tìm lỗi', predict: 'Dự đoán', design: 'Thiết kế', experience: 'Kinh nghiệm', quiz: 'Trắc nghiệm' },
   rating: { unsure: 'Chưa hiểu', partial: 'Hiểu một phần', clear: 'Giải thích được' },
   status: { viewed: 'Đã xem tài liệu', answered: 'Đã trả lời', skipped: 'Đã bỏ qua', unasked: 'Chưa hỏi', unanswered: 'Chưa trả lời', active: 'Đang thực hiện', paused: 'Đã tạm dừng', completed: 'Hoàn thành', ended: 'Kết thúc sớm', expired: 'Hết giờ' },
-  preset: { foundation: 'Nền tảng .NET', backend: 'Backend & API', 'problem-solving': 'SQL & Problem Solving' },
+  preset: { foundation: 'Nền tảng .NET', backend: 'Backend & API', 'problem-solving': 'SQL & Problem Solving', design: 'System Design', coding: 'Coding Interview', 'sql-round': 'SQL Interview', people: 'HR & Dự án' },
   publication: { draft: 'Nháp', published: 'Đã xuất bản', retired: 'Ngừng xuất bản' },
 }
 export function label(group: keyof typeof labels, key?: string | null) {
@@ -26,17 +27,18 @@ export const rubricTitles = ['Tính đúng kỹ thuật', 'Lập luận và đi�
 export type Topic = { id: string; name: string; stage: string; check: string; exercise: string }
 export type Card = {
   slug: string; version: number; title: string; topic: string; format: string; difficulty: string; level: string
-  technology?: string; minutes: number; bookmarked: boolean; outcome?: string; rating?: string; due?: string; tags?: string[]
+  technology?: string; minutes: number; bookmarked: boolean; outcome?: string; rating?: string; due?: string; tags?: string[]; mastery?: string; verifiedDays?: number
 }
 export type Question = {
   card: Card; subtopic: string; tags: string[]; prompt: string; englishPrompt: string; context: string; code?: string
+  choices?: { vi: string[]; en: string[] }; prerequisites: string[]; related: string[]
 }
 export type Reference = {
   version: number; shortAnswer: string; outline: string[]; explanation: string; alternative: string; trap: string
   rubric: string[]; source: string; checkedOn: string
 }
 export type DraftCursor = { id: string; revision: number; version: number }
-export type PracticeDraft = { cursor: DraftCursor; text: string; hint?: string; reference?: Reference }
+export type PracticeDraft = { cursor: DraftCursor; text: string; hint?: string; nextHint?: string; reference?: Reference }
 export type PracticeData = { question: Question; draft?: PracticeDraft; lastAttemptId?: string }
 export type AnswerRevision = { id: string; text: string; at: string }
 export type AiReview = {
@@ -44,17 +46,20 @@ export type AiReview = {
   body: {
     criteria: { status: 'scored' | 'insufficient' | 'notApplicable'; score?: number; finding: string; evidence?: string }[]
     correct: string[]; missing: string[]; incorrect: string[]; conditions: string[]; suggestions: string[]
+    referenceAnswer?: string; criticalErrors?: string[]; expression?: string[]
   }
 }
 export type Attempt = {
+  choice?: number; correct?: boolean; studySessionId?: string
   id: string; question: Question; text: string; language: string; outcome: string; hintSeen: boolean; answerSeen: boolean
   at: string; activeSeconds: number; referenceViewedAt?: string; rating?: string; revisions: AnswerRevision[]
 }
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number }
 export type TopicActivity = { topic: string; catalogCount: number; answers: number; practicedQuestions: number; confidentQuestions: number }
-export type DayActivity = { date: string; answers: number; seconds: number; completedMocks: number }
+export type DayActivity = { date: string; answers: number; seconds: number; completedMocks: number; objective: number; correct: number }
 export type StudyLink = { label: string; path: string; reason: string; topic?: string }
 export type Dashboard = {
+  month: DayActivity[]; trackDay?: number; studyDay: boolean; todayPlan: StudyLink[]
   goal: Goal; today: string; questionCount: number; answers: number; completedMocks: number; activeSeconds: number; weekSeconds: number
   streak: number; dueCount: number; weakCount: number; codingRemaining: number; sqlRemaining: number; resume?: StudyLink
   suggestions: StudyLink[]; due: Card[]; topics: TopicActivity[]; week: DayActivity[]; runnerAvailable: boolean
@@ -85,6 +90,7 @@ export type ExerciseCard = {
 export type Example = { input: string; output: string; explanation: string }
 export type ExerciseDraft = { revision: number; text: string; savedAt: string; hintSeen: boolean; solutionSeen: boolean; reviewed: boolean }
 export type Exercise = {
+  tables?: { name:string; columns:{name:string;type:string}[]; rows:(string|null)[][] }[]
   card: ExerciseCard; testVersion: number; description: string; input: string; output: string; constraints: string[]; examples: Example[]
   tests: Example[]; starter: string; schema?: string; dataset?: string; expected?: string; ordered?: boolean
   hint?: string; reference?: { code: string; explanation: string; complexity: string }; draft?: ExerciseDraft; savedVersions: number[]; runnerAvailable: boolean
@@ -97,7 +103,8 @@ export type QuestionContent = {
   title: string; topic: string; subtopic: string; tags: string[]; format: string; difficulty: string; level: string; minutes: number
   technology?: string | null; prompt: string; englishPrompt: string; context: string; code?: string | null; hint: string
   followUp: string; englishFollowUp: string; outline: string[]; shortAnswer: string; explanation: string; alternative: string
-  trap: string; rubric: string[]; source: string; checkedOn: string
+  trap: string; rubric: string[]; source: string; checkedOn: string; nextHint?: string; core?: boolean
+  prerequisites?: string[]; related?: string[]; quiz?: { vi: string[]; en: string[]; correctIndex: number } | null
 }
 export type EditorialRow = { slug: string; latest: number; published?: number; status: string; title: string; topic: string }
 export type Editorial = Omit<EditorialRow, 'title' | 'topic'> & { revision: number; content: QuestionContent }

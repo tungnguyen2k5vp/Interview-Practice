@@ -6,7 +6,7 @@ namespace InterviewPractice;
 
 /// <summary>Bộ lọc và thời lượng cho một phiên mới.</summary>
 internal sealed record StartInterviewRequest(Guid Id, string Preset, string Level, string[] Topics, string? Difficulty, string Language,
-    int Minutes, string Mode, Guid? ReviewOf);
+    int Minutes, string Mode, Guid? ReviewOf, int? Count = null, bool PreferWeak = false);
 
 /// <summary>Thao tác tại một phiên bản trạng thái phiên cụ thể.</summary>
 internal sealed record InterviewActionRequest(Guid Id, int Revision, string Action, [StringLength(16000)] string? Text);
@@ -18,7 +18,8 @@ internal sealed record InterviewRatingRequest(string Rating);
 internal sealed record InterviewPreset(string Id, string Name, string Description, string[] Topics, string[] Suggested);
 
 internal sealed record QuestionPointer(string Slug, int Version);
-internal sealed record InterviewPlan(string Level, string[] Topics, string? Difficulty, QuestionPointer[] Questions);
+internal sealed record InterviewPlan(string Level, string[] Topics, string? Difficulty, QuestionPointer[] Questions,
+    Dictionary<int, string>? FollowUps = null);
 
 /// <summary>Thông tin phiên có thể mở tiếp.</summary>
 internal sealed record InterviewSummary(Guid Id, string Preset, string Mode, string Language, string Status, DateTimeOffset StartedAt, int Minutes);
@@ -35,23 +36,29 @@ internal sealed record ReportItem(int Position, string Slug, string Title, strin
 internal sealed record InterviewResponse(InterviewSummary Session, int Revision, int Position, int Count, string Stage, string Draft,
     DateTimeOffset ServerNow, DateTimeOffset Deadline, int? PausedSeconds, CurrentPrompt? Current, ReportItem[]? Report);
 
-internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider clock)
+internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider clock, AiFeedback coach)
 {
     public static readonly InterviewPreset[] Presets =
     [
         new("foundation", "Nền tảng .NET", "C# và OOP, cách diễn đạt và lập luận.", ["csharp", "oop", "linq"], ["value-reference", "interface-abstract", "deferred-execution"]),
         new("backend", "Backend & API", "Pipeline, EF Core, phân quyền và tình huống vận hành.", ["aspnet", "efcore", "testing"], ["di-lifetimes", "middleware-order", "ef-projection", "resource-authorization", "slow-api"]),
-        new("problem-solving", "SQL & Problem Solving", "Đọc truy vấn và lý giải thuật toán.", ["sql", "algorithms"], ["join-duplicates", "two-pointers", "sql-null"])
+        new("problem-solving", "SQL & Problem Solving", "Đọc truy vấn và lý giải thuật toán.", ["sql", "algorithms"], ["join-duplicates", "two-pointers", "sql-null"]),
+        new("coding", "Coding Interview", "Đọc code và giải thích thuật toán bằng lời.", ["algorithms", "csharp"], ["binary-search-boundary", "hash-frequency"]),
+        new("sql-round", "SQL Interview", "JOIN, chỉ mục và tính nhất quán.", ["sql"], ["index-plan", "join-duplicates"]),
+        new("design", "System Design", "Chọn biên nhất quán, xử lý lỗi và đánh đổi.", ["systems", "delivery"], ["outbox-commit", "cache-invalidation"]),
+        new("people", "HR & Dự án", "Quyết định, phối hợp và bằng chứng trong dự án.", ["behavioral", "testing"], ["behavioral-disagreement", "project-star"])
     ];
 
     public static void Map(RouteGroupBuilder api)
     {
-        api.MapGet("/interview-presets", () => TypedResults.Ok(Presets)).WithSummary("Xem ba bộ phỏng vấn.");
+        api.MapGet("/interview-presets", () => TypedResults.Ok(Presets)).WithSummary("Xem các bộ phỏng vấn.");
         var group = api.MapGroup("/interviews").RequireAuthorization();
         group.MapPost("", (StartInterviewRequest request, ClaimsPrincipal user, Interviews service, CancellationToken ct)
             => service.Start(request, user.Id(), ct)).WithSummary("Chốt kế hoạch và bắt đầu phiên.");
         group.MapGet("/{id:guid}", (Guid id, ClaimsPrincipal user, Interviews service, CancellationToken ct)
             => service.Read(id, user.Id(), ct)).WithSummary("Tiếp tục phiên hoặc xem báo cáo.");
+        group.MapPost("/{id:guid}/coach-followup", (Guid id, int revision, ClaimsPrincipal user, Interviews service, CancellationToken ct)
+            => service.FollowUp(id, revision, user.Id(), ct)).RequireRateLimiting("ai");
         group.MapPost("/{id:guid}/actions", (Guid id, InterviewActionRequest request, ClaimsPrincipal user, Interviews service, CancellationToken ct)
             => service.Act(id, request, user.Id(), ct)).WithSummary("Gửi câu trả lời hoặc điều khiển phiên.");
         group.MapPut("/{id:guid}/ratings/{position:int}", (Guid id, int position, InterviewRatingRequest request, ClaimsPrincipal user, Interviews service,
@@ -66,6 +73,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
         var preset = Presets.SingleOrDefault(x => x.Id == request.Preset);
         if (request.Id == Guid.Empty || preset is null || request.Mode is not ("guided" or "mock")
             || request.Language is not ("vi" or "en") || request.Minutes is not (15 or 30 or 45)
+            || request.Count is < 1 or > 12 || request.Count > request.Minutes / 2
             || !Catalog.Levels.Contains(request.Level) || request.Topics is null || request.Topics.Length > Catalog.Topics.Length
             || request.Topics.Any(x => !Catalog.Topics.Any(t => t.Id == x))
             || (!string.IsNullOrWhiteSpace(request.Difficulty) && !Catalog.Difficulties.Contains(request.Difficulty)))
@@ -92,8 +100,15 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             source = source.Where(x => x.Difficulty == request.Difficulty);
         var candidates = await source.Select(x => new { x.Slug, x.Version, x.Level }).ToArrayAsync(ct);
         var level = Array.IndexOf(Catalog.Levels, request.Level);
-        var count = request.Minutes switch { 15 => 3, 30 => 5, _ => 7 };
+        var count = request.Count ?? (request.Minutes switch { 15 => 3, 30 => 5, _ => 7 });
+        var recentPlans = await db.Interviews.Where(x => x.UserId == user).OrderByDescending(x => x.StartedAt)
+            .Take(8).Select(x => x.Plan).ToArrayAsync(ct);
+        var seen = recentPlans.SelectMany((p, i) => DataJson.Read<InterviewPlan>(p).Questions.Select(q => (q.Slug, Cost: 8 - i)))
+            .GroupBy(x => x.Slug).ToDictionary(g => g.Key, g => g.Sum(x => x.Cost));
+        var weakSlugs = request.PreferWeak ? await db.StudyStates.Where(x => x.UserId == user && x.Mastery == "review")
+            .Select(x => x.Slug).ToListAsync(ct) : [];
         var choices = candidates.OrderByDescending(x => weak.Contains(x.Slug))
+            .ThenByDescending(x => weakSlugs.Contains(x.Slug)).ThenBy(x => seen.GetValueOrDefault(x.Slug))
             .ThenBy(x => Math.Abs(Array.IndexOf(Catalog.Levels, x.Level) - level))
             .ThenByDescending(x => preset.Suggested.Contains(x.Slug))
             .ThenBy(x => x.Slug, StringComparer.Ordinal)
@@ -108,7 +123,14 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             SegmentStartedAt = now, Plan = DataJson.Write(new InterviewPlan(request.Level, topics, request.Difficulty, choices))
         };
         db.Interviews.Add(row);
-        await db.SaveChangesAsync(ct);
+        try { await db.SaveChangesAsync(ct); }
+        catch (DbUpdateException)
+        {
+            db.ChangeTracker.Clear();
+            existing = await db.Interviews.AsNoTracking().SingleOrDefaultAsync(x => x.Id == request.Id && x.UserId == user, ct);
+            if (existing is null) throw;
+            return TypedResults.Ok(await View(existing, ct));
+        }
         return TypedResults.Created($"/api/interviews/{row.Id}", await View(row, ct));
     }
 
@@ -201,6 +223,22 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
                 row.HintSeen = true;
                 break;
             case "next" when row.Status == "active" && row.Stage == "feedback":
+                if (row.Mode == "guided" && string.IsNullOrEmpty(plan.Difficulty) && row.Position + 2 < plan.Questions.Length)
+                {
+                    var turn = await db.Turns.FindAsync([id, row.Position, "question"], ct);
+                    if (turn?.Rating is "clear" or "unsure" || turn?.HintSeen == true)
+                    {
+                        var unasked = plan.Questions[(row.Position + 1)..];
+                        var ids = unasked.Select(x => x.Slug).ToArray();
+                        var levels = await db.QuestionVersions.Where(q => ids.Contains(q.Slug))
+                            .Select(q => new { q.Slug, q.Version, q.Difficulty }).ToDictionaryAsync(q => (q.Slug, q.Version), q => q.Difficulty, ct);
+                        var direction = turn.Rating == "clear" && !turn.HintSeen ? -1 : 1;
+                        var chosen = unasked.MinBy(q => direction * Array.IndexOf(Catalog.Difficulties, levels[(q.Slug, q.Version)]))!;
+                        var swap = Array.IndexOf(plan.Questions, chosen);
+                        (plan.Questions[row.Position+1], plan.Questions[swap]) = (plan.Questions[swap], plan.Questions[row.Position+1]);
+                        row.Plan = DataJson.Write(plan);
+                    }
+                }
                 Advance(row, plan, now);
                 break;
             case "answer" or "skip" when row.Status == "active" && row.Stage != "feedback":
@@ -213,7 +251,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
                     SessionId = id, ActionId = request.Id, Position = row.Position, Kind = row.Stage, Text = text,
                     Skipped = skipped, HintSeen = row.HintSeen, At = now
                 });
-                if (row.Stage == "question" && !skipped && text is not ("Chưa biết" or "I don't know"))
+                if (row.Stage == "question" && !skipped && text is not ("Chưa biết" or "I don't know") && (row.Deadline - now).TotalSeconds >= 30)
                 {
                     row.Stage = "followup";
                     row.Draft = "";
@@ -273,7 +311,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             var main = turns.SingleOrDefault(x => x.Kind == "question");
             var follow = turns.SingleOrDefault(x => x.Kind == "followup");
             current = new(q.Slug, q.Version, q.Title, q.Topic,
-                row.Stage == "followup" ? english ? c.EnglishFollowUp : c.FollowUp : english ? c.EnglishPrompt : c.Prompt,
+                row.Stage == "followup" ? plan.FollowUps?.GetValueOrDefault(row.Position) ?? (english ? c.EnglishFollowUp : c.FollowUp) : english ? c.EnglishPrompt : c.Prompt,
                 row.Stage == "question" && !english ? c.Context : null,
                 row.Stage == "question" ? c.Code : null,
                 row.Mode == "guided" && row.Stage == "question" && row.HintSeen ? c.Hint : null,
@@ -283,10 +321,13 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
         {
             var turns = await db.Turns.AsNoTracking().Where(x => x.SessionId == row.Id).ToArrayAsync(ct);
             var items = new List<ReportItem>();
+            var slugs = plan.Questions.Select(q => q.Slug).Distinct().ToArray();
+            var versions = await db.QuestionVersions.AsNoTracking().Where(q => slugs.Contains(q.Slug))
+                .ToDictionaryAsync(q => (q.Slug, q.Version), ct);
             for (var index = 0; index < plan.Questions.Length; index++)
             {
                 var pointer = plan.Questions[index];
-                var q = await catalog.Version(pointer.Slug, pointer.Version, ct);
+                var q = versions[(pointer.Slug, pointer.Version)];
                 var c = Catalog.Content(q);
                 var main = turns.SingleOrDefault(x => x.Position == index && x.Kind == "question");
                 var follow = turns.SingleOrDefault(x => x.Position == index && x.Kind == "followup");
@@ -294,12 +335,34 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
                 items.Add(new(index, q.Slug, q.Title, q.Topic, english ? c.EnglishPrompt : c.Prompt,
                     main is null ? index <= row.Position ? "unanswered" : "unasked" : main.Skipped ? "skipped" : "answered",
                     main is { Skipped: false } ? main.Text : null, main?.HintSeen ?? false,
-                    follow is not null || (row.Position == index && row.Stage == "followup") ? english ? c.EnglishFollowUp : c.FollowUp : null,
+                    follow is not null || (row.Position == index && row.Stage == "followup") ? plan.FollowUps?.GetValueOrDefault(index) ?? (english ? c.EnglishFollowUp : c.FollowUp) : null,
                     follow is { Skipped: false } ? follow.Text : null, follow?.Skipped ?? false, main?.Rating, Catalog.Reference(q)));
             }
             report = [.. items];
         }
         return new(Summary(row), row.Revision, Math.Min(row.Position, plan.Questions.Length - 1), plan.Questions.Length, row.Stage,
             row.Draft, clock.GetUtcNow(), row.Deadline, row.PausedSeconds, current, report);
+    }
+
+    private async Task<InterviewResponse> FollowUp(Guid id, int revision, string user, CancellationToken ct)
+    {
+        var row = await Owned(id, user, ct);
+        await Expire(row, ct);
+        if (row.Mode != "guided" || row.Status != "active" || row.Stage != "followup" || row.Draft.Length != 0)
+            throw ApiProblem.Conflict("Chỉ đổi câu đào sâu trước khi trả lời trong phiên có hướng dẫn.");
+        var plan = DataJson.Read<InterviewPlan>(row.Plan);
+        if (plan.FollowUps?.ContainsKey(row.Position) == true) return await View(row, ct);
+        if (row.Revision != revision || (row.Deadline - clock.GetUtcNow()).TotalSeconds < 25) throw ApiProblem.Conflict();
+        var pointer = plan.Questions[row.Position];
+        var material = Catalog.Content(await catalog.Version(pointer.Slug, pointer.Version, ct));
+        var turn = await db.Turns.SingleAsync(t => t.SessionId == id && t.Position == row.Position && t.Kind == "question", ct);
+        var follow = await coach.ContextQuestion(material, turn.Text, row.Language, ct);
+        if (row.Deadline <= clock.GetUtcNow()) { await Expire(row, ct); return await View(row, ct); }
+        var saved = plan.FollowUps ?? [];
+        saved[row.Position] = follow;
+        row.Plan = DataJson.Write(plan with { FollowUps = saved });
+        row.Revision++;
+        await db.SaveChangesAsync(ct);
+        return await View(row, ct);
     }
 }

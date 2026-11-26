@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react'
-import { ArrowRight, Braces, CircleCheck, Clock3, Database, ExternalLink, FlaskConical, Lightbulb, Play, RotateCcw, Send } from 'lucide-react'
+import { ArrowRight, Braces, CircleCheck, Clock3, Database, ExternalLink, Lightbulb, RotateCcw } from 'lucide-react'
+import { useRuns } from './RunResults'
 import { api, useAction, useResource } from './api'
 import { useDraft } from './draft'
 import { DraftConflict, ownerKey } from './Practice'
@@ -20,7 +21,6 @@ export function ExerciseList({ kind, params }: { kind: ExerciseKind; params: URL
       : 'Luyện T-SQL với schema, dữ liệu mẫu và kết quả đối chiếu theo từng phiên bản.'} />
     {kind === 'coding' && <Segments title="Nguồn bài tập" values={[[ 'local', 'Bài luyện C#' ], [ 'external', 'LeetCode' ]]}
       selected={external ? 'external' : 'local'} change={x => navigate(x === 'external' ? '/coding?tab=leetcode' : '/coding')} />}
-    {!external && <div className="notice"><FlaskConical size={18} /><span>Chưa cấu hình môi trường thực thi. Bạn có thể viết, lưu và tự đối chiếu lời giải.</span></div>}
     {(list.loading || links.loading) && <Loading />}
     <Problem text={list.error} retry={list.reload} /><Problem text={links.error} retry={links.reload} />
     {list.data && <div className="card-grid">{list.data.map(item => <article className="panel question-card" key={item.slug}>
@@ -108,20 +108,26 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
     })
   }
   const save = () => { void action.run(() => draft.flush(true)) }
+  const runs = useRuns(slug, version, !!userId && data.runnerAvailable, draft.text)
+  const [width, setWidth] = useState(42)
   return <div className="page exercise-page">
     <PageTitle title={card.title} back={['/' + kind, exerciseName[kind]]} />
     <div className="metadata"><Difficulty value={card.difficulty} /><span>{card.runtime}</span><span>{card.minutes} phút</span>
-      <span>Bài v{version} · {kind === 'sql' ? 'Dữ liệu' : 'Test'} v{data.testVersion}</span></div>
+      <span>Bài v{version} · {kind === 'sql' ? 'Dữ liệu' : 'Test'} v{data.testVersion}</span>
+      <label className="split-control">Độ rộng đề bài <input type="range" min={30} max={60} value={width} onChange={e => setWidth(Number(e.target.value))}/></label></div>
     <div className="mobile-exercise-tabs">
       <Segments title="Không gian làm bài" selected={view} change={setView} values={[[ 'problem', 'Đề bài' ], [ 'editor', 'Code' ], [ 'result', 'Kết quả' ]]} />
     </div>
-    <div className="exercise-layout" data-view={view}>
+    <div className="exercise-layout" data-view={view} style={{'--problem-size': width + '%'} as React.CSSProperties}>
       <section className="panel content-panel stack exercise-problem">
         <h2>Đề bài</h2><p>{data.description}</p>
         <div className="brief-block"><h3>Đầu vào</h3><p>{data.input}</p><h3>Đầu ra</h3><p>{data.output}</p></div>
         <div><h3>Ràng buộc</h3><ul>{data.constraints.map(x => <li key={x}>{x}</li>)}</ul></div>
         {data.schema && <details className="details" open><summary>Schema</summary><CodeBlock language="T-SQL">{data.schema}</CodeBlock></details>}
-        {data.dataset && <details className="details"><summary>Dữ liệu mẫu</summary><CodeBlock language="T-SQL">{data.dataset}</CodeBlock></details>}
+        {data.dataset && <details className="details"><summary>Dữ liệu mẫu</summary>{data.tables?.map(t=><div className="result-table" key={t.name} tabIndex={0}>
+          <table><caption>{t.name}</caption><thead><tr>{t.columns.map(c=><th key={c.name} scope="col">{c.name}<br/><small>{c.type}</small></th>)}</tr></thead>
+          <tbody>{t.rows.map((r,i)=><tr key={i}>{r.map((v,k)=><td key={k}>{v ?? 'NULL'}</td>)}</tr>)}</tbody></table></div>)}
+          <details><summary>Lệnh tạo dữ liệu</summary><CodeBlock language="T-SQL">{data.dataset}</CodeBlock></details></details>}
         <div><h3>Ví dụ</h3>{data.examples.map(x => <ExampleBlock key={x.input} item={x} />)}</div>
         <details className="details"><summary>{kind === 'coding' ? 'Test công khai' : 'Trường hợp kiểm tra'}</summary>
           {data.tests.map(x => <ExampleBlock key={x.input} item={x} />)}
@@ -137,8 +143,7 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
         <Suspense fallback={<Loading />}><CodeEditor kind={kind} value={draft.text} change={draft.change} readOnly={!userId || action.busy} save={save} /></Suspense>
         <div className="editor-footer">
           <div className="action-row">
-            <Button disabled={!data.runnerAvailable} title="Chưa cấu hình môi trường thực thi"><Play size={16} /> Run</Button>
-            <Button disabled={!data.runnerAvailable} title="Chưa cấu hình môi trường thực thi"><Send size={15} /> Submit</Button>
+            {runs.buttons}
             {userId ? <Button tone="primary" disabled={action.busy || draft.state === 'conflict'} onClick={save}>Lưu nháp</Button>
               : <ActionLink tone="primary" href={signInLink()}>Đăng nhập</ActionLink>}
           </div>
@@ -149,8 +154,9 @@ function ExerciseWork({ initial, userId }: { initial: Exercise; userId?: string 
         </div>
       </section>
       <section className="panel content-panel stack exercise-result">
-        <div className="split"><h2>Kết quả thực thi</h2><Badge tone="amber">Chưa cấu hình runner</Badge></div>
-        <p className="muted">Bạn có thể tự đối chiếu với ví dụ và lời giải. Lịch sử test sẽ xuất hiện sau khi có lượt chạy.</p>
+        <div className="split"><h2>Kết quả thực thi</h2>{!data.runnerAvailable && <Badge tone="amber">Chưa cấu hình runner</Badge>}</div>
+        {runs.output}
+        {!data.runnerAvailable && <p className="muted">Bạn có thể tự đối chiếu với ví dụ và lời giải.</p>}
         {data.expected && <><h3>Kết quả đối chiếu · Dữ liệu v{data.testVersion}</h3>
           <p className="small muted">{data.ordered ? 'Có quy tắc thứ tự ở đầu ra.' : 'Đề cho phép mọi thứ tự hàng.'}</p><CodeBlock>{data.expected}</CodeBlock></>}
         {data.reference ? <div className="stack">

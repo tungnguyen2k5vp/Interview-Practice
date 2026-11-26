@@ -2,16 +2,19 @@
 name: ".NET Interview Practice"
 description: "Không gian luyện phỏng vấn cho lập trình viên .NET"
 colors:
-  primary: "#4f46e5"
-  primary-hover: "#4338ca"
-  indigo-soft: "#eceefe"
-  session-panel: "#4539c4"
+  primary: "#23634b"
+  primary-hover: "#194e3a"
+  accent-soft: "#e4efe6"
+  dark-page: "#131d18"
+  dark-surface: "#1c2823"
+  dark-text: "#eff5ef"
+  dark-primary: "#add9bb"
   code-background: "#182339"
-  text: "#0f172a"
-  text-support: "#475569"
-  page: "#f8fafc"
+  text: "#192c27"
+  text-support: "#50645b"
+  page: "#f6f8f5"
   surface: "#ffffff"
-  border: "#e2e8f0"
+  border: "#d7e1d9"
   success: "#116044"
   warning: "#85511a"
   danger: "#b42337"
@@ -38,7 +41,7 @@ typography:
 rounded:
   badge: "6px"
   control: "8px"
-  panel: "12px"
+  panel: "10px"
 spacing:
   compact: "8px"
   control: "12px"
@@ -78,8 +81,8 @@ components:
     height: "42px"
     padding: "8px 10px"
   active-nav:
-    backgroundColor: "{colors.indigo-soft}"
-    textColor: "#3833a9"
+    backgroundColor: "{colors.accent-soft}"
+    textColor: "#23563e"
     rounded: "{rounded.control}"
     height: "43px"
   topic-badge:
@@ -98,11 +101,11 @@ components:
 
 ## Overview
 
-Giao diện sáng cho công cụ học .NET. Bề mặt trắng giữ đề bài và nội dung đang viết dễ quét. Đoạn mã đi cùng đề ở nơi giúp người học bắt đầu thao tác.
+Không gian học .NET có hai giao diện sáng và tối. Khối kế hoạch đặt phiên đang dở hoặc buổi luyện mới lên trước. Cột kế bên giới thiệu một nội dung có thật từ ngân hàng.
 
 ## Colors
 
-Indigo phục vụ thao tác chính và trạng thái được chọn. Màu nền slate nhạt phân biệt không gian làm việc với thanh điều hướng. Chip chủ đề và thông báo có nhãn chữ.
+Xanh lục đậm đánh dấu thao tác chính trên nền sáng, xanh nhạt trên nền tối. CSS light-dark() dùng chung cho nền, viền, chữ và focus. Ưu tiên hệ điều hành cho tới khi người dùng chọn theme. Các nhãn có chữ cho phép phân biệt tự đánh giá, kết quả chấm và nguồn AI.
 
 ## Typography
 
@@ -118,14 +121,14 @@ Viền mảnh phân định panel và thanh điều hướng. Hộp thoại dùn
 
 ## Shapes
 
-Bo góc 12 px cho panel, 8 px cho nút và input, 6 px cho nhãn. Hành động chính trên mobile chừa chiều cao ít nhất 44 px.
+Bo góc 10 px cho panel, 8 px cho nút và input, 6 px cho nhãn. Hành động chính trên mobile chừa chiều cao ít nhất 44 px.
 
 ## Components
 
-Nút chính dùng tác vụ tạo thay đổi. Nút phụ dùng thao tác cạnh nội dung. Lỗi và đồng bộ bản nháp có nhãn trạng thái riêng. Icon Lucide dùng một trọng lượng nét trong từng nhóm. Dialog gốc quản lý focus và đóng bằng Escape.
+Khối lịch hôm nay gồm hành động tiếp tục và một đề xuất khác. Các bước học và ôn đứng trước số liệu. Heatmap 7/30 ngày hiện ngày và số hoạt động bằng chữ. Thanh phiên học có câu trước, câu sau và kết thúc. Workspace có thanh điều chỉnh kích thước bằng bàn phím và ba tab trên mobile. Nút chính dùng tác vụ tạo thay đổi. Nút phụ dùng thao tác cạnh nội dung. Lỗi và đồng bộ bản nháp có nhãn trạng thái riêng. Icon Lucide dùng một trọng lượng nét trong từng nhóm. Dialog gốc quản lý focus và đóng bằng Escape.
 
 ## Do's and Don'ts
 
 - Dùng nhãn chữ cùng màu trạng thái.
-- Giữ focus thấy rõ trên cả bề mặt sáng và vùng bắt đầu luyện indigo.
+- Giữ focus thấy rõ trên cả bề mặt sáng và khối kế hoạch tối.
 - Giữ số liệu từ hoạt động đã lưu và hiện trạng thái trống khi chưa có dữ liệu.

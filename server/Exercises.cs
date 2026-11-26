@@ -6,6 +6,8 @@ namespace InterviewPractice;
 
 /// <summary>Ví dụ hoặc trường hợp kiểm tra công khai.</summary>
 internal sealed record Example(string Input, string Output, string Explanation);
+internal sealed record PreviewColumn(string Name, string Type);
+internal sealed record PreviewTable(string Name, PreviewColumn[] Columns, string?[][] Rows);
 
 /// <summary>Phiên bản bài tập, thông số runtime và tài liệu đối chiếu.</summary>
 internal sealed record ExerciseContent(
@@ -23,7 +25,7 @@ internal sealed record ExerciseDraftResponse(int Revision, string Text, DateTime
 /// <summary>Dữ liệu dùng trong không gian làm bài coding hoặc SQL.</summary>
 internal sealed record ExerciseResponse(ExerciseCard Card, int TestVersion, string Description, string Input, string Output,
     string[] Constraints, Example[] Examples, Example[] Tests, string Starter, string? Schema, string? Dataset, string? Expected, bool? Ordered,
-    string? Hint, ExerciseReference? Reference, ExerciseDraftResponse? Draft, int[] SavedVersions, bool RunnerAvailable);
+    string? Hint, ExerciseReference? Reference, ExerciseDraftResponse? Draft, int[] SavedVersions, bool RunnerAvailable, PreviewTable[]? Tables);
 
 /// <summary>Lời giải và giải thích độ phức tạp.</summary>
 internal sealed record ExerciseReference(string Code, string Explanation, string Complexity);
@@ -39,7 +41,9 @@ internal sealed record ExternalRequest(string Status, [StringLength(4000)] strin
 
 internal sealed class ExerciseCatalog
 {
+    private readonly RunnerGateway runner;
     private readonly ExerciseContent[] _items;
+    private readonly Dictionary<string, PreviewTable[]> previews;
     public ExerciseContent[] Latest { get; }
     public static readonly ExternalLink[] Links =
     [
@@ -49,8 +53,10 @@ internal sealed class ExerciseCatalog
         new("merge-intervals", 56, "Merge Intervals", "medium", ["Sort", "Intervals"], "https://leetcode.com/problems/merge-intervals/", new(2026, 11, 25))
     ];
 
-    public ExerciseCatalog(IWebHostEnvironment env)
+    public ExerciseCatalog(IWebHostEnvironment env, RunnerGateway runner)
     {
+        this.runner = runner;
+        previews = DataJson.Read<Dictionary<string, PreviewTable[]>>(File.ReadAllText(Path.Combine(env.ContentRootPath, "Content", "sql-preview.json")));
         _items = DataJson.Read<ExerciseContent[]>(File.ReadAllText(Path.Combine(env.ContentRootPath, "Content", "exercises.json")));
         if (_items.Select(x => (x.Slug, x.Version)).Distinct().Count() != _items.Length ||
             _items.Any(x => x.Version < 1 || x.TestVersion < 1 || x.Kind is not ("coding" or "sql")))
@@ -58,7 +64,7 @@ internal sealed class ExerciseCatalog
         Latest = _items.GroupBy(x => x.Slug).Select(x => x.MaxBy(e => e.Version)!).ToArray();
     }
 
-    private ExerciseContent Find(string slug, int? version) =>
+    internal ExerciseContent Find(string slug, int? version) =>
         (version is null ? Latest : _items).SingleOrDefault(x => x.Slug == slug && (version is null || x.Version == version))
         ?? throw ApiProblem.Missing("Không tìm thấy phiên bản bài tập.");
 
@@ -76,7 +82,7 @@ internal sealed class ExerciseCatalog
         return new(Card(e, draft), e.TestVersion, e.Description, e.Input, e.Output, e.Constraints, e.Examples, e.Tests, e.Starter,
             e.Schema, e.Dataset, e.Expected, e.Ordered, draft?.HintSeen is true ? e.Hint : null,
             draft?.SolutionSeen is true ? new(e.Solution, e.Explanation, e.Complexity) : null, draft is null ? null : Draft(draft),
-            drafts.Select(x => x.Version).OrderDescending().ToArray(), false);
+            drafts.Select(x => x.Version).OrderDescending().ToArray(), await runner.Available(e.Kind, ct), previews.GetValueOrDefault($"{slug}@{e.Version}"));
     }
 
     private async Task<ExerciseDraftResponse> Save(string slug, int version, ExerciseSaveRequest request, string owner,

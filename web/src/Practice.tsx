@@ -5,16 +5,20 @@ import { useDraft } from './draft'
 import { SignInGate, useSession } from './session'
 import { label } from './types'
 import { rubricTitles } from './types'
-import type { AiReview, AnswerRevision, Attempt, Card, DraftCursor, PracticeData, PracticeDraft, Question, Reference } from './types'
+import type { AiReview, AnswerRevision, Attempt, Card, DraftCursor, Page, PracticeData, PracticeDraft, Question, Reference } from './types'
 import { ActionLink, Badge, Button, CodeBlock, Dialog, Difficulty, Field, Link, Loading, PageTitle, Problem, Ratings, RubricPanel, dateTime, navigate, timeText } from './ui'
 
-export function PracticeRoute({ slug }: { slug: string }) {
+type SessionContext = { id: string; mode: string; version: number }
+export function PracticeRoute({ slug, session }: { slug: string; session?: SessionContext }) {
   const { user } = useSession()
   const segment = encodeURIComponent(slug)
-  const resource = useResource<PracticeData | Question>(user ? '/practice/questions/' + segment : '/questions/' + segment)
+  const resource = useResource<PracticeData | Question>(user ? '/practice/questions/' + segment + (session ? '?sessionId=' + session.id : '') : '/questions/' + segment)
   if (resource.loading) return <Loading />
   if (!resource.data) return <Problem text={resource.error} retry={resource.reload} />
-  if ('question' in resource.data && user) return <QuestionEditor initial={resource.data} owner={user.id} key={slug} />
+  if ('question' in resource.data && user) {
+    if (session && resource.data.question.card.version !== session.version) return <Problem text="Phiên bản trong kế hoạch khác bản đang mở. Bạn có thể chuyển câu hoặc kết thúc phiên để tạo kế hoạch mới." />
+    return <QuestionEditor initial={resource.data} owner={user.id} key={slug} session={session} />
+  }
   const question = resource.data as Question
   return <div className="page narrow">
     <QuestionTitle question={question} /><div className="panel content-panel"><Prompt question={question} language="vi" /></div>
@@ -24,14 +28,41 @@ export function PracticeRoute({ slug }: { slug: string }) {
 
 function QuestionTitle({ question, action }: { question: Question; action?: React.ReactNode }) {
   const { card } = question
+  const bank = new URLSearchParams(location.search).get('bank')
   return <>
-    <PageTitle title={card.title} back={['/cau-hoi', 'Ngân hàng câu hỏi']} action={action} />
+    <PageTitle title={card.title} back={['/cau-hoi'+(bank ? '?'+bank : ''), 'Ngân hàng câu hỏi']} action={action} />
+    {bank !== null && <BankNavigation slug={card.slug} filters={bank}/>}
     <div className="metadata">
       <Badge tone={card.topic}>{label('topics', card.topic)}</Badge><Difficulty value={card.difficulty} />
       <span>{label('level', card.level)}</span><span><Clock3 size={15} aria-hidden="true" />{card.minutes} phút</span>
       {card.technology && <span>{card.technology}</span>}
     </div>
   </>
+}
+function BankNavigation({ slug, filters }: { slug: string; filters: string }) {
+  const result = useResource<Page<Card>>('/questions?'+filters)
+  const action = useAction()
+  const page = result.data
+  if (!page) return <Problem text={result.error} retry={result.reload}/>
+  const index = page.items.findIndex(x=>x.slug===slug)
+  if (index < 0) return null
+  function move(direction: number) {
+    void action.run(async () => {
+      const query = new URLSearchParams(filters)
+      let target = page!.items[index+direction]
+      if (!target) {
+        query.set('page', String(page!.page + direction))
+        const adjacent = await api<Page<Card>>('/questions?'+query)
+        target = adjacent.items[direction > 0 ? 0 : adjacent.items.length-1]
+      }
+      if (target) navigate('/cau-hoi/'+target.slug+'?bank='+encodeURIComponent(query.toString()))
+    })
+  }
+  return <nav className="action-row" aria-label="Các câu trong kết quả tìm kiếm">
+    <Button disabled={action.busy || (index===0 && page.page===1)} onClick={()=>move(-1)}>Câu trước</Button>
+    <span>{(page.page-1)*page.pageSize+index+1} / {page.total}</span>
+    <Button disabled={action.busy || (page.page-1)*page.pageSize+index+1>=page.total} onClick={()=>move(1)}>Câu tiếp <ArrowRight size={15}/></Button>
+    <Problem text={action.error}/></nav>
 }
 function Prompt({ question, language }: { question: Question; language: string }) {
   return <>
@@ -40,14 +71,25 @@ function Prompt({ question, language }: { question: Question; language: string }
     {language === 'vi' && question.context && <p className="muted">{question.context}</p>}
     {question.code && <CodeBlock language="C#">{question.code}</CodeBlock>}
     <div className="tag-row">{question.tags.map(tag => <span key={tag}>{tag}</span>)}</div>
+    {!!(question.prerequisites.length + question.related.length) && <RelatedList question={question}/>}
   </>
+}
+function RelatedList({ question }: { question:Question }) {
+  const [open,setOpen]=useState(false)
+  return <details className="details" onToggle={e=>setOpen(e.currentTarget.open)}><summary>Kiến thức liên quan</summary>
+    {open && ([['Nền tảng',question.prerequisites],['Học tiếp',question.related]] as const).map(([title,keys]) =>
+      keys.length > 0 && <p key={title}>{title} · {keys.map((s,i)=><span key={s}>{i>0 && ', '}<RelatedQuestion slug={s}/></span>)}</p>)}</details>
+}
+function RelatedQuestion({ slug }: {slug:string}) {
+  const q = useResource<Question>('/questions/'+slug)
+  return q.data ? <Link className="text-link" href={'/cau-hoi/'+slug}>{q.data.card.title}</Link> : <span>{q.loading ? '…' : 'Chưa xuất bản'}</span>
 }
 function sameCursor(a: DraftCursor, b: DraftCursor) {
   return a.version === b.version && a.revision === b.revision && (a.revision === 0 || a.id === b.id)
 }
 const newCursor = (version: number): DraftCursor => ({ id: crypto.randomUUID(), version, revision: 0 })
 
-function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: string }) {
+function QuestionEditor({ initial, owner, session }: { initial: PracticeData; owner: string; session?: SessionContext }) {
   const { goal } = useSession()
   const [data, setData] = useState(initial)
   const [language, setLanguage] = useState<'vi' | 'en' | null>(null)
@@ -59,11 +101,13 @@ function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: stri
   const [notice, setNotice] = useState('')
   const action = useAction()
   const { question } = data
+  const choices = session?.mode === 'essay' ? undefined : question.choices
   const base = '/practice/questions/' + question.card.slug
+  const query = session ? '?sessionId=' + session.id : ''
   const fresh = useRef(newCursor(question.card.version))
   const draft = useDraft(ownerKey(owner, 'question', question.card.slug),
     { stamp: initial.draft?.cursor ?? fresh.current, text: initial.draft?.text ?? '' }, async snapshot => {
-      const saved = await api<PracticeDraft>(base + '/draft', { method: 'PATCH', body: { cursor: snapshot.stamp, text: snapshot.text } })
+      const saved = await api<PracticeDraft>(base + '/draft' + query, { method: 'PATCH', body: { cursor: snapshot.stamp, text: snapshot.text } })
       setOpened(saved)
       return { stamp: saved.cursor, text: saved.text }
     }, sameCursor)
@@ -83,7 +127,7 @@ function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: stri
   function reveal(kind: 'hint' | 'answer') {
     void action.run(async () => {
       const cursor = await draft.flush()
-      const result = await api<PracticeDraft>(base + '/reveal', { method: 'POST', body: { cursor, kind } })
+      const result = await api<PracticeDraft>(base + '/reveal' + query, { method: 'POST', body: { cursor, kind } })
       draft.accept({ stamp: result.cursor, text: result.text }, true)
       setOpened(result)
     })
@@ -91,8 +135,9 @@ function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: stri
   function submit(skip: boolean) {
     void action.run(async () => {
       const cursor = await draft.flush()
+      const index = choices ? choices.vi.findIndex((option, i) => draft.text === option || draft.text === choices.en[i]) : -1
       const attempt = await api<Attempt>(base + '/submit', { method: 'POST',
-        body: { cursor, language: selectedLanguage, skip, activeSeconds: seconds } })
+        body: { cursor, language: selectedLanguage, skip, activeSeconds: seconds, choice: !skip && index >= 0 ? index : null, studySessionId: session?.id } })
       draft.discard()
       setTimer(false)
       setSkipping(false)
@@ -101,7 +146,7 @@ function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: stri
   }
   function resolve(keep: boolean) {
     void action.run(async () => {
-      const remote = await api<PracticeData>(base)
+      const remote = await api<PracticeData>(base + query)
       draft.accept({ stamp: remote.draft?.cursor ?? newCursor(remote.question.card.version), text: remote.draft?.text ?? '' }, keep)
       setOpened(remote.draft)
       setData(remote)
@@ -125,13 +170,17 @@ function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: stri
         </section>
         <section className="panel content-panel stack">
           <div className="editor-top"><div><h2>Câu trả lời của bạn</h2><span className="small muted" role="status">{draft.stateText}</span></div>
-            <Button onClick={toggleTimer} disabled={action.busy} aria-pressed={timer}><Clock3 size={16} /> {timer || seconds ? timeText(seconds) : 'Bấm giờ'}</Button>
+            <Button onClick={toggleTimer} disabled={action.busy} aria-pressed={timer}><Clock3 size={16} /> {session?.mode === 'speed' ? (timer || seconds ? timeText(Math.max(0, 60 - seconds)) : 'Bắt đầu 60 giây') : timer || seconds ? timeText(seconds) : 'Bấm giờ'}</Button>
           </div>
+          {session?.mode === 'speed' && seconds >= 60 && <p role="status" className="notice">Đã hết 60 giây. Bạn có thể hoàn thiện rồi nộp câu trả lời.</p>}
+          {session?.mode === 'flashcard' && <Button disabled={action.busy || !!opened?.reference} onClick={() => reveal('answer')}><FileText size={16}/> Lật thẻ xem đáp án</Button>}
+          {choices ? <fieldset className="quiz-options" disabled={action.busy}><legend>Chọn một đáp án</legend>
+            {choices[selectedLanguage].map((text, i) => <label key={i}><input type="radio" name="choice" checked={draft.text === choices.vi[i] || draft.text === choices.en[i]} onChange={() => draft.change(text)} />{text}</label>)}</fieldset> :
           <label className="field"><span className="sr-only">Câu trả lời của bạn</span>
             <textarea rows={8} maxLength={16000} value={draft.text} readOnly={action.busy}
               placeholder="Nêu ý chính, ví dụ và điều kiện áp dụng…" lang={selectedLanguage}
               onChange={e => draft.change(e.target.value)} />
-          </label>
+          </label>}
           <div className="split"><span className="small muted">{draft.text.length.toLocaleString('vi')} / 16.000</span>
             <div className="action-row">
               <Button disabled={action.busy || draft.state === 'conflict'} onClick={() => void action.run(() => draft.flush(true))}>Lưu nháp</Button>
@@ -152,6 +201,7 @@ function QuestionEditor({ initial, owner }: { initial: PracticeData; owner: stri
           </select></Field>
           <Button tone="secondary" disabled={action.busy || Boolean(opened?.hint)} onClick={() => reveal('hint')}><Lightbulb size={16} /> Xin gợi ý</Button>
           {opened?.hint && <p className="notice hint">{opened.hint}</p>}
+          {opened?.nextHint && <details className="details"><summary>Gợi ý tiếp theo</summary><p>{opened.nextHint}</p></details>}
           <Button tone="quiet" disabled={action.busy || Boolean(opened?.reference)} onClick={() => reveal('answer')}><FileText size={16} /> Xem đáp án trước khi nộp</Button>
           <Button tone="quiet" disabled={action.busy || draft.state === 'conflict'} onClick={() => draft.text.trim() ? setSkipping(true) : submit(true)}>Bỏ qua</Button>
         </section>
@@ -194,7 +244,7 @@ function ReviewDate({ card }: { card: Card }) {
       <Button type="submit" disabled={action.busy}><CalendarPlus size={16} /> Lưu lịch ôn</Button>
     </form>
     <Problem text={action.error} />
-    {done && <span className="success small" role="status"><Check size={16} /> {due ? 'Đã lưu ngày ôn' : 'Đã xóa ngày ôn'}</span>}
+    {done && <span className="success small" role="status"><Check size={16} /> {due ? 'Đã lưu ngày ôn' : 'Đã dùng lại lịch tự động'}</span>}
   </section>
 }
 
@@ -219,9 +269,10 @@ function AttemptView({ initial }: { initial: Attempt }) {
   const next = '/cau-hoi/' + question.card.slug
   const link = '/ghi-chu?new=1&slug=' + question.card.slug + '&topic=' + question.card.topic + '&title=' + encodeURIComponent(question.card.title)
   const base = '/practice/attempts/' + attempt.id
+  const previous = useResource<{previous?: Pick<Attempt,'at'|'text'|'language'|'correct'|'id'>}>(base+'/previous')
   return <div className="page practice-page">
     <PageTitle title={question.card.title} description={'Lượt luyện · ' + dateTime(attempt.at, goal.timeZone)} back={[next, 'Quay về câu hỏi']}
-      action={<ActionLink href={next}><RotateCcw size={17} /> Luyện lại</ActionLink>} />
+      action={attempt.studySessionId ? <ActionLink tone="primary" href={'/phien-hoc/' + attempt.studySessionId}>Tiếp tục phiên học <ArrowRight size={16}/></ActionLink> : <ActionLink href={next}><RotateCcw size={17} /> Luyện lại</ActionLink>} />
     <div className="metadata"><Badge tone={attempt.outcome === 'answered' ? 'green' : 'amber'}>{label('status', attempt.outcome)}</Badge>
       <span>Phiên bản {question.card.version}</span><span>{attempt.language === 'en' ? 'English' : 'Tiếng Việt'}</span>
       {attempt.hintSeen && <span>Đã xem gợi ý</span>}{attempt.answerSeen && <span>Đã xem đáp án trước khi nộp</span>}
@@ -232,6 +283,11 @@ function AttemptView({ initial }: { initial: Attempt }) {
           <h2>{attempt.outcome === 'answered' ? 'Câu trả lời đã nộp' : 'Bạn đã bỏ qua câu này'}</h2>
           <p className="muted">{attempt.language === 'en' ? question.englishPrompt : question.prompt}</p>
           {attempt.outcome === 'answered' && <div className="written-answer" lang={attempt.language}>{attempt.text}</div>}
+          {typeof attempt.correct === 'boolean' && <p className="notice">{attempt.correct ? 'Đáp án đúng' : 'Đáp án chưa đúng'} · Chấm theo đáp án của đề v{question.card.version}</p>}
+          {previous.data?.previous && <details className="details"><summary>So với lần trả lời trước</summary>
+            <p className="small muted">{dateTime(previous.data.previous.at, goal.timeZone)} · {previous.data.previous.language === 'en' ? 'English' : 'Tiếng Việt'}</p>
+            <p className="written-answer">{previous.data.previous.text}</p><Link className="text-link" href={'/luot-luyen/'+previous.data.previous.id}>Mở lượt trước</Link></details>}
+          <Problem text={previous.error} retry={previous.reload}/>
           {attempt.outcome === 'skipped' && <p>Bạn có thể đặt lịch ôn hoặc luyện lại khi sẵn sàng.</p>}
         </section>
         <section className="panel content-panel stack">
@@ -261,7 +317,9 @@ function AttemptView({ initial }: { initial: Attempt }) {
         </section>}
         {attempt.outcome === 'answered' && <AiFeedbackPanel path={base + '/ai-feedback'} />}
       </div>
-      <aside className="stack"><ReviewDate key={attempt.rating || 'initial'} card={question.card} />
+      <aside className="stack"><section className="panel content-panel"><h2>{label('mastery', question.card.mastery ?? 'learning')}</h2>
+        <p className="muted">{question.card.verifiedDays ?? 0} ngày trả lời đúng độc lập trên phiên bản này.</p></section>
+        <ReviewDate key={attempt.rating || 'initial'} card={question.card} />
         <Link className="button secondary" href={link}><FileText size={16} /> Thêm ghi chú</Link>
       </aside>
     </div>
@@ -288,8 +346,10 @@ function AiFeedbackPanel({ path }: { path: string }) {
       {([
         ['Ý đúng', review.body.correct], ['Phần còn thiếu', review.body.missing], ['Phần cần sửa', review.body.incorrect],
         ['Điều kiện áp dụng', review.body.conditions], ['Cách cải thiện', review.body.suggestions],
+        ['Lỗi chuyên môn cần sửa trước', review.body.criticalErrors ?? []], ['Diễn đạt và cấu trúc', review.body.expression ?? []],
       ] as const).filter(([, items]) => items.length).map(([title, items]) =>
         <div key={title}><h3>{title}</h3><ul>{items.map((item, index) => <li key={index}>{item}</li>)}</ul></div>)}
+      {review.body.referenceAnswer && <details className="details"><summary>Câu trả lời tham khảo từ AI</summary><p>{review.body.referenceAnswer}</p></details>}
     </> : status.data?.available ? <>
       <p className="muted">Khi yêu cầu, hệ thống gửi câu hỏi, câu trả lời đã nộp và rubric tới OpenAI để lấy nhận xét tham khảo.</p>
       <Button disabled={action.busy} onClick={() => void action.run(async () => setNew(await api<AiReview>(path, { method: 'POST' })))}>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowDown, ArrowRight, ArrowUp, Bell, Bookmark, CalendarDays, Check, ChevronRight, Download, FileText, LogOut, Plus, Star, Trash2 } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUp, Bookmark, CalendarDays, Check, ChevronRight, Download, FileText, LogOut, Plus, Star, Trash2 } from 'lucide-react'
 import { api, clearPersonalDrafts, useAction, useResource } from './api'
 import { TopicIcon } from './Dashboard'
 import { ExerciseEmpty } from './Exercises'
@@ -21,6 +21,7 @@ export function Roadmap() {
     await action.run(async () => {
       setGoal(await api<Goal>('/profile', { method: 'PUT', body: next }))
       setSaved(note)
+      dashboard.reload()
     })
   }
   function move(index: number, amount: number) {
@@ -29,17 +30,34 @@ export function Roadmap() {
     void save({ ...goal, roadmap: next }, 'Đã đổi thứ tự lộ trình.')
   }
   const today = dashboard.data?.today
+  const tracks: Record<string, [string, string, number, number]> = {
+    intern30: ['Intern .NET · 30 ngày', 'intern', 30, 20], fresher60: ['Fresher .NET · 60 ngày', 'fresher', 60, 30],
+    junior90: ['Junior Backend · 90 ngày', 'junior', 90, 45], sprint7: ['Ôn cấp tốc · 7 ngày', goal.level || 'junior', 7, 30],
+    sprint14: ['Ôn cấp tốc · 14 ngày', goal.level || 'junior', 14, 30], custom: ['Lộ trình tùy chỉnh', goal.level || 'junior', 0, goal.minutesPerDay ?? 20],
+  }
+  const track = goal.track ? tracks[goal.track] : null
   return <div className="page narrow">
     <PageTitle title="Lộ trình học" description="Đi từ kiến thức nền đến ứng dụng và tình huống thực tế. Bạn có thể đổi thứ tự theo mục tiêu."
       action={<ActionLink href="/cai-dat"><CalendarDays size={16} /> Thiết lập lịch học</ActionLink>} />
     {(topics.loading || dashboard.loading) && <Loading />}
     <Problem text={topics.error || dashboard.error || action.error} retry={topics.error ? topics.reload : dashboard.error ? dashboard.reload : undefined} />
+    {user && <section className="panel content-panel"><Field label="Chọn lộ trình"><select value={goal.track ?? ''} disabled={action.busy || !today}
+      onChange={e => { const key = e.target.value; const t = tracks[key]; if (!t || !today) return
+        void save({ ...goal, track: key, level: t[1], minutesPerDay: t[3], daysPerWeek: goal.daysPerWeek ?? 5 }, 'Đã cập nhật lộ trình.')
+      }}><option value="" disabled>Chọn mục tiêu</option>{Object.entries(tracks).map(([key, t]) => <option key={key} value={key}>{t[0]}</option>)}</select></Field>
+      {track && <p className="small muted">{track[0]} · {track[2] > 0 && (dashboard.data?.trackDay ?? 1) > track[2]
+        ? 'Đã qua mốc lộ trình' : 'Ngày ' + (dashboard.data?.trackDay ?? 1)}{goal.interviewDate && ' · Phỏng vấn ' + shortDate(goal.interviewDate)}</p>}</section>}
     {today && <section className="panel content-panel plan-strip">
-      <div><h2>Kế hoạch hôm nay</h2><p>{goal.skipDay === today ? 'Bạn đã bỏ lịch luyện hôm nay.'
+      <div><h2>Kế hoạch hôm nay</h2><p>{goal.skipDay === today ? 'Bạn đã bỏ lịch luyện hôm nay.' : goal.track && !dashboard.data?.studyDay ? 'Ngày nghỉ theo nhịp học đã chọn.'
         : goal.minutesPerDay ? 'Dành ' + goal.minutesPerDay + ' phút cho chủ đề ưu tiên.' : 'Chọn một câu theo lộ trình và dành đủ thời gian để tự trả lời.'}</p></div>
       {user && <Button disabled={action.busy} onClick={() => void save({ ...goal, skipDay: goal.skipDay === today ? null : today },
         goal.skipDay === today ? 'Đã khôi phục lịch hôm nay.' : 'Đã bỏ lịch hôm nay.')}>{goal.skipDay === today ? 'Khôi phục lịch' : 'Bỏ lịch hôm nay'}</Button>}
     </section>}
+    {dashboard.data?.studyDay && user && <section className="panel content-panel stack">
+      {dashboard.data.todayPlan.map(item=><Link className="study-row" key={item.path} href={item.path}><TopicIcon topic={item.topic ?? 'oop'}/>
+        <span><strong>{item.label}</strong><small>{item.reason}</small></span><ArrowRight size={16}/></Link>)}
+      {!dashboard.data.todayPlan.length && <p>Hôm nay không còn bài phù hợp với quỹ thời gian đã đặt.</p>}
+      <ActionLink tone="primary" href={'/phien-hoc?mode=' + (dashboard.data.dueCount ? 'due' : 'new')}>Bắt đầu buổi học <ArrowRight size={15} /></ActionLink></section>}
     <span className="sr-only" role="status">{saved}</span>
     <section className="panel roadmap-list" aria-label="Các bước luyện">
       {order.map((key, index) => {
@@ -81,8 +99,8 @@ export function Reviews({ params }: { params: URLSearchParams }) {
     {!user ? <SignInGate detail="Đăng nhập để xem câu đến hạn và lịch ôn riêng." /> : <>
       <Segments selected={kind} change={x => navigate('/on-tap?tab=' + x, { preserveScroll: true })} title="Danh sách ôn"
         values={[[ 'due', 'Đến hạn' ], [ 'weak', 'Chưa vững' ], [ 'skipped', 'Đã bỏ qua' ], [ 'bookmarked', 'Đã đánh dấu' ],
-          [ 'planned', 'Sắp tới' ], [ 'exercises', 'Bài chưa đối chiếu' ]]} />
-      <p className="notice"><Bell size={16} /> Lịch tự đánh giá đề xuất ôn sau 1, 3 hoặc 7 ngày theo mức hiểu. Bạn có thể đặt ngày khác trong mỗi câu.</p>
+          [ 'wrong', 'Trả lời sai' ], [ 'planned', 'Sắp tới' ], [ 'exercises', 'Bài chưa đối chiếu' ]]} />
+      {selected.data && selected.data.length > 0 && <ActionLink tone="primary" href={'/cau-hoi/' + selected.data[0].slug}>Ôn ngay câu đầu tiên <ArrowRight size={16} /></ActionLink>}
       {(selected.loading || exercises.loading) && <Loading />}
       <Problem text={selected.error} retry={selected.reload} /><Problem text={exercises.error} retry={exercises.reload} />
       {selected.data && (selected.data.length ? <div className="card-grid">{selected.data.map(item => <QuestionCard key={item.slug} item={item}>
@@ -185,46 +203,51 @@ function newNote(params?: URLSearchParams): Note {
 export function Progress({ params }: { params: URLSearchParams }) {
   const { user, goal } = useSession()
   const dashboard = useResource<Dashboard>(user ? '/dashboard' : null)
-  const kind = params.get('tab') === 'interview' ? 'interview' : 'practice'
+  const tab = params.get('tab') ?? ''
+  const kind = ['interview','coding','sql'].includes(tab) ? tab : 'practice'
   const page = params.get('page') ?? '1'
   const history = useResource<Page<History>>(user ? '/history?kind=' + kind + '&page=' + encodeURIComponent(page) : null)
   const d = dashboard.data
-  const peak = Math.max(1, ...d?.week.map(x => x.answers) ?? [])
+  const [period, setPeriod] = useState('7')
+  const periodDays = period === '7' ? d?.week : d?.month
   return <div className="page">
     <PageTitle title="Tiến độ" description="Xem lượt luyện đã ghi nhận, tự đánh giá và xu hướng theo chủ đề." />
     {!user ? <SignInGate detail="Đăng nhập để xem lịch sử và dữ liệu học của chính bạn." /> : <>
       {dashboard.loading && <Loading />}<Problem text={dashboard.error} retry={dashboard.reload} />
       {d && <div className="dashboard-columns">
         <section className="panel content-panel stack">
-          <div className="split"><h2>Nhịp luyện 7 ngày</h2><Badge tone="indigo">{d.streak} ngày liên tiếp</Badge></div>
-          <p className="muted small">{shortDate(d.week[0].date)} – {shortDate(d.today)} · {d.week.reduce((sum, x) => sum + x.answers, 0)} lượt tự trả lời</p>
-          <div className="week-chart">{d.week.map(day => <div className="week-column" key={day.date}>
-            <strong>{day.answers}</strong><meter min={0} max={peak} value={day.answers} aria-label={shortDate(day.date) + ', lượt tự trả lời'} />
-            <span>{day.date.slice(-2)}/{day.date.slice(5, 7)}</span>
+          <div className="split"><h2>Lịch hoạt động</h2><Segments title="Kỳ báo cáo" selected={period} change={setPeriod} values={[[ '7', '7 ngày' ], [ '30', '30 ngày' ]]} /></div>
+          <p className="muted small">{shortDate(periodDays![0].date)} – {shortDate(d.today)} · {periodDays!.reduce((sum, x) => sum + x.answers, 0)} lượt trả lời · {d.streak} ngày liên tiếp</p>
+          <div className="heatmap">{periodDays!.map(day => <div key={day.date} className={'heat-cell heat-' + Math.min(3, day.answers + day.completedMocks)} title={shortDate(day.date) + ' · ' + day.answers + ' lượt và ' + day.completedMocks + ' phiên mock'}>
+            <span>{day.date.slice(-2)}</span><small>{day.answers + day.completedMocks}<span className="sr-only"> hoạt động ngày {shortDate(day.date)}</span></small>
           </div>)}</div>
           <p className="small muted">Chuỗi ngày tính khi có lượt tự trả lời hoặc phiên mock hoàn thành có câu trả lời, theo múi giờ {goal.timeZone}.</p>
+          <details className="details"><summary>Kết quả trắc nghiệm theo ngày</summary>
+            {periodDays?.some(d=>d.objective) ? <div className="result-table"><table><thead><tr><th>Ngày</th><th>Trả lời đúng</th><th>Lượt chấm</th></tr></thead>
+              <tbody>{periodDays.filter(d=>d.objective).map(d=><tr key={d.date}><td>{shortDate(d.date)}</td><td>{d.correct}</td><td>{d.objective}</td></tr>)}</tbody></table></div>
+              : <p className="small muted">Chưa có lượt trắc nghiệm trong kỳ này.</p>}</details>
         </section>
         <section className="panel content-panel stack">
           <h2>Theo chủ đề</h2>
-          <p className="small muted">Toàn bộ thời gian · {d.answers} lượt tự trả lời. Đã vững khi có hai lần tự đánh giá giải thích được ở các ngày khác nhau cho cùng phiên bản, trước khi mở hỗ trợ.</p>
+          <p className="small muted">Khá vững từ hai ngày trả lời đúng trắc nghiệm độc lập trên cùng phiên bản. Tự tin khi trả lời tự luận được lưu riêng trong lịch sử.</p>
           <ul className="lined-list topic-progress">{d.topics.map(x => <li key={x.topic}><span>{label('topics', x.topic)}</span><span>{x.answers} lượt · {x.confidentQuestions} vững</span></li>)}</ul>
         </section>
       </div>}
       <section className="panel content-panel stack">
         <div className="split"><h2>Lịch sử</h2><Segments title="Loại hoạt động" selected={kind} change={x => navigate('/tien-do?tab=' + x, { preserveScroll: true })}
-          values={[[ 'practice', 'Tự luyện' ], [ 'interview', 'Phỏng vấn' ]]} /></div>
+          values={[[ 'practice', 'Tự luyện' ], [ 'interview', 'Phỏng vấn' ], ['coding','Nháp C#'], ['sql','Nháp SQL']]} /></div>
         {history.loading && <Loading />}<Problem text={history.error} retry={history.reload} />
         {history.data && (history.data.items.length ? <>
           <p className="muted small">{history.data.total} bản ghi</p>
           <div>{history.data.items.map(item => <Link className="study-row" href={item.path} key={item.id}>
             <TopicIcon topic={item.topic || 'oop'} /><span><strong>{kind === 'interview' ? label('preset', item.label) : item.label}</strong>
               <small>{dateTime(item.at, goal.timeZone)} · {item.assessmentSource}{item.hasAiFeedback ? ' · Có nhận xét AI' : ''}{item.version ? ' · v' + item.version : ''}{item.revisions ? ' · ' + item.revisions + ' bản cải thiện' : ''}</small></span>
-            <Badge tone={item.rating ? 'indigo' : 'neutral'}>{item.rating ? label('rating', item.rating) : label('status', item.status)}</Badge>
+            <Badge tone={item.rating ? 'indigo' : 'neutral'}>{item.rating ? label('rating', item.rating) : item.status === 'reviewed' ? 'Tự đối chiếu' : item.status === 'draft' ? 'Đã lưu nháp' : label('status', item.status)}</Badge>
             <ChevronRight className="row-arrow" size={16} />
           </Link>)}</div>
           <Pagination page={history.data.page} size={history.data.pageSize} total={history.data.total} change={x => navigate('/tien-do?tab=' + kind + '&page=' + x, { preserveScroll: true })} />
         </> : <Empty title="Chưa có hoạt động đã lưu" detail="Sau khi nộp câu trả lời hoặc bắt đầu một phiên phỏng vấn, bạn sẽ thấy lịch sử ở đây."
-          action={<ActionLink href={kind === 'interview' ? '/phong-van' : '/cau-hoi'}>Bắt đầu luyện</ActionLink>} />)}
+          action={<ActionLink href={kind === 'interview' ? '/phong-van' : kind === 'practice' ? '/cau-hoi' : '/'+kind}>Bắt đầu luyện</ActionLink>} />)}
       </section>
     </>}
   </div>

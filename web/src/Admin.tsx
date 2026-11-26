@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, Plus, ShieldCheck } from 'lucide-react'
+import { ChevronRight, Download, Plus, ShieldCheck } from 'lucide-react'
 import { api, useAction, useResource } from './api'
 import { useSession } from './session'
 import type { Editorial, EditorialRow, QuestionContent } from './types'
@@ -11,6 +11,8 @@ export function AdminRoute({ slug }: { slug?: string }) {
   const list = useResource<EditorialRow[]>(user?.admin && !slug ? '/admin/questions' : null)
   const detail = useResource<Editorial>(user?.admin && slug && slug !== 'new' ? '/admin/questions/' + encodeURIComponent(slug) : null)
   const [search, setSearch] = useState('')
+  const [importStatus, setImportStatus] = useState('')
+  const importer = useAction()
   if (!user?.admin) return <div className="page">
     <PageTitle title="Quản trị nội dung" /><div className="panel"><Empty title="Cần quyền biên tập nội dung" detail="Đăng nhập bằng tài khoản được cấp quyền quản trị nội dung." /></div>
   </div>
@@ -22,6 +24,17 @@ export function AdminRoute({ slug }: { slug?: string }) {
     {(list.loading || detail.loading) && <Loading />}
     <Problem text={list.error || detail.error} retry={list.error ? list.reload : detail.reload} />
     {list.data && <section className="panel content-panel stack">
+      <details className="details"><summary>Nhập câu hỏi từ JSON</summary><p className="small muted">Tối đa 20 câu, 200 KB. Các câu hợp lệ được lưu thành bản nháp.</p>
+        <Field label="Tệp ngân hàng JSON"><input type="file" accept=".json,application/json" disabled={importer.busy} onChange={e=>{
+          const file=e.target.files?.[0]; e.target.value=''; if(!file)return
+          void importer.run(async()=>{
+            setImportStatus('')
+            if (!file.name.toLowerCase().endsWith('.json') || file.size > 204800) { setImportStatus('Chọn tệp JSON tối đa 200 KB.'); return }
+            let items: unknown; try { items=JSON.parse(await file.text()) } catch { setImportStatus('Tệp JSON không hợp lệ.'); return }
+            const result=await api<{imported:number}>('/admin/questions/import',{method:'POST',body:items})
+            setImportStatus('Đã nhập '+result.imported+' câu nháp.'); list.reload()
+          })
+        }}/></Field><span role="status">{importStatus}</span><Problem text={importer.error}/></details>
       <Field label="Tìm trong nội dung"><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tiêu đề hoặc slug…" /></Field>
       <div>{list.data.filter(x => (x.title + ' ' + x.slug).toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi'))).map(x =>
         <Link className="study-row" key={x.slug} href={'/quan-tri/' + x.slug}>
@@ -39,7 +52,7 @@ const empty: QuestionContent = {
 }
 const prompts: [keyof QuestionContent, string, boolean][] = [
   ['prompt', 'Đề bài tiếng Việt', true], ['englishPrompt', 'Đề bài tiếng Anh', true], ['context', 'Bối cảnh tiếng Việt', false], ['code', 'Đoạn mã minh họa', false],
-  ['hint', 'Gợi ý', true], ['followUp', 'Câu đào sâu tiếng Việt', true], ['englishFollowUp', 'Câu đào sâu tiếng Anh', true],
+  ['hint', 'Gợi ý', true], ['nextHint', 'Gợi ý bước hai', false], ['followUp', 'Câu đào sâu tiếng Việt', true], ['englishFollowUp', 'Câu đào sâu tiếng Anh', true],
 ]
 const answers: [keyof QuestionContent, string, boolean][] = [
   ['shortAnswer', 'Bản trả lời ngắn', true], ['explanation', 'Giải thích', true], ['alternative', 'Phương án khác', true], ['trap', 'Lỗi thường gặp', true],
@@ -55,6 +68,7 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
   const [dirty, setDirty] = useState(false)
   const [retire, setRetire] = useState(false)
   const action = useAction()
+  const quiz = content.quiz
   function update<K extends keyof QuestionContent>(key: K, value: QuestionContent[K]) {
     setContent(old => ({ ...old, [key]: value }))
     setDirty(true)
@@ -82,11 +96,15 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
     <form className="stack" onSubmit={e => {
       e.preventDefault()
       void action.run(async () => {
-        const value = { ...content, tags: tags.split(',').map(x => x.trim()).filter(Boolean), outline: outline.split('\n').map(x => x.trim()).filter(Boolean) }
+        const clean = (values: string[]) => values.map(x => x.trim()).filter(Boolean)
+        const value = { ...content, tags: clean(tags.split(',')), outline: clean(outline.split('\n')),
+          related: clean(content.related ?? []), prerequisites: clean(content.prerequisites ?? []),
+          quiz: quiz ? { ...quiz, vi: quiz.vi.map(x => x.trim()), en: quiz.en.map(x => x.trim()) } : null }
         const result = await api<Omit<Editorial, 'content'>>('/admin/questions/' + encodeURIComponent(slug), {
           method: 'PUT', body: { revision: editorial?.revision ?? 0, content: value },
         })
         setEditorial({ ...result, content: value })
+        setContent(value)
         setDirty(false)
         setStatus('Đã lưu nháp v' + result.latest + '.')
         if (!editorial) navigate('/quan-tri/' + result.slug, { replace: true, preserveScroll: true })
@@ -105,10 +123,22 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
           <Field label="Mức mục tiêu"><select value={content.level} onChange={e => update('level', e.target.value)}><Options values={labels.level} /></select></Field>
           <Field label="Phút luyện gợi ý"><input type="number" min={1} max={60} required value={content.minutes} onChange={e => update('minutes', Number(e.target.value))} /></Field>
           <Field label="Phiên bản kỹ thuật" full><input maxLength={60} value={content.technology ?? ''} onChange={e => update('technology', e.target.value || null)} /></Field>
+          <Field label="Slug câu tiên quyết, cách nhau bằng dấu phẩy"><input value={content.prerequisites?.join(',') ?? ''} onChange={e => update('prerequisites', e.target.value.split(','))}/></Field>
+          <Field label="Slug câu liên quan, cách nhau bằng dấu phẩy"><input value={content.related?.join(',') ?? ''} onChange={e => update('related', e.target.value.split(','))}/></Field>
         </div>
+        <label className="check-chip"><input type="checkbox" checked={!!content.core} onChange={e => update('core', e.target.checked)}/> Câu trọng tâm</label>
       </section>
       <section className="panel content-panel stack"><h2>Đề và câu đào sâu</h2>{areas(prompts)}</section>
       <section className="panel content-panel stack"><h2>Đáp án và rubric</h2>
+        <label className="check-chip"><input type="checkbox" checked={!!quiz}
+          onChange={e => update('quiz', e.target.checked ? { vi: ['', ''], en: ['', ''], correctIndex: 0 } : null)}/> Chấm theo lựa chọn trắc nghiệm</label>
+        {quiz && <div className="form-grid">
+          {(['vi', 'en'] as const).map(lang => <Field key={lang} label={'Lựa chọn tiếng ' + (lang === 'vi' ? 'Việt' : 'Anh') + ', mỗi dòng một đáp án'}>
+            <textarea required rows={4} value={quiz[lang].join('\n')} onChange={e => update('quiz', { ...quiz, [lang]: e.target.value.split('\n') })}/>
+          </Field>)}
+          <Field label="Đáp án đúng"><select required value={quiz.correctIndex < quiz.vi.length ? quiz.correctIndex : ''} onChange={e => update('quiz', { ...quiz, correctIndex: Number(e.target.value) })}>
+            <option value="" disabled>Chọn đáp án</option>{quiz.vi.map((option, i) => <option key={i} value={i}>{i + 1}. {option}</option>)}</select></Field>
+        </div>}
         <Field label="Ý chính mong đợi, mỗi ý một dòng"><textarea required rows={4} value={outline} onChange={e => { setOutline(e.target.value); setDirty(true) }} /></Field>
         {areas(answers)}
         {rubricTitles.map((title, index) => <Field key={title} label={title}><textarea required rows={2} maxLength={350} value={content.rubric[index]}
@@ -117,6 +147,10 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
           <Field label="Ngày kiểm tra"><input type="date" required value={content.checkedOn} onChange={e => update('checkedOn', e.target.value)} /></Field></div>
       </section>
       <div className="panel content-panel stack">
+        <details className="details"><summary>Xem trước đề và đáp án</summary><h3>{content.title}</h3>
+          <p>{content.prompt}</p><p lang="en">{content.englishPrompt}</p><p>{content.shortAnswer}</p>
+          <ul>{content.rubric.map((line,i)=><li key={i}>{line}</li>)}</ul></details>
+        {editorial && <a className="text-link" download href={'/api/admin/questions/'+encodeURIComponent(slug)+'/export'}><Download size={16}/> Xuất bản đã lưu ra JSON</a>}
         <div className="action-row"><Button type="submit" tone="primary" disabled={action.busy}>Lưu bản nháp</Button>
           {editorial && <Button disabled={dirty || action.busy || editorial.status === 'published'} onClick={() => publish('published')}>Xuất bản v{editorial.latest}</Button>}
           {editorial?.published && <Button tone="quiet" disabled={action.busy} onClick={() => setRetire(true)}>Ngừng xuất bản</Button>}

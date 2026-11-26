@@ -9,16 +9,10 @@ related_targets: ["web/src/Dashboard.tsx"]
 
 Chế độ Operate. Điểm vào học hằng ngày cho lập trình viên .NET. Các con số và ưu tiên lấy từ ngân hàng và nhật ký cá nhân.
 
-## Direction contract
+## Hành vi của màn hình
 
-**Thesis.** Bề mặt mở lịch học bằng một câu hỏi thực tế, với hành động tiếp tục hoặc bắt đầu ở vị trí ổn định.
+Hành động đầu tiên mở phiên đang dở hoặc tạo buổi luyện theo quỹ thời gian. Một đề xuất riêng nằm bên cạnh trên desktop và bên dưới trên mobile. Các việc tiếp theo và câu đến hạn đứng trước số liệu toàn thời gian. Mọi bộ đếm đến từ API theo tài khoản.
 
-**Own-world.** Nền slate sáng, bề mặt trắng, indigo cho hành động. Typography Lexend cho tiếng Việt. Dùng màu phụ theo chủ đề và trạng thái.
+Giao diện dùng Lexend, chữ xanh đen trên nền giấy sáng hoặc xanh nhạt trên nền tối, và focus ring theo màu chính. Header có tìm kiếm bàn phím, chọn theme và tài khoản. Từ 860 px, điều hướng chuyển sang menu. Từ 670 px, các cột đọc theo thứ tự hành động.
 
-**Story.** Người học thấy mục tiêu, có thể mở một câu có thật và biết nội dung đến hạn ngay trong màn hình đầu.
-
-**First viewport.** Desktop có rail bên trái, tìm kiếm trên thanh header, khối bắt đầu luyện ở đầu nội dung. Cột bên phải của khối cho xem một đoạn mã thuộc chính đề bài. Bên dưới là số liệu và danh sách học tiếp/ôn hôm nay. Mobile xếp theo thứ tự thực hiện, menu mở qua dialog.
-
-**Form.** seed: none (pinned). “Desktop: sidebar điều hướng, header gọn” và “gọn, sáng, có phân cấp rõ”. Điểm nhấn là xem mã của chính câu hỏi trước khi mở phiên.
-
-**Finish.** unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+Ảnh thực tế của lần nghiệm thu nằm trong docs/qa và thư mục .impeccable/review do Playwright tạo.

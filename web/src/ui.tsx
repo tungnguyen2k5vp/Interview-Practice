@@ -120,18 +120,18 @@ export function Pagination({ page, size, total, change }: { page: number; size: 
     <Button onClick={() => change(page + 1)} disabled={page >= pages}>Sau <ArrowRight size={16} /></Button>
   </nav>
 }
-export function QuestionCard({ item, children }: { item: Card; children?: ReactNode }) {
+export function QuestionCard({ item, children, href = '/cau-hoi/' + item.slug }: { item: Card; children?: ReactNode; href?: string }) {
   return <article className="question-card panel">
     <div className="split"><Badge tone={item.topic}>{label('topics', item.topic)}</Badge><Difficulty value={item.difficulty} /></div>
-    <h3><Link href={'/cau-hoi/' + item.slug}>{item.title}</Link></h3>
+    <h3><Link href={href}>{item.title}</Link></h3>
     <div className="card-meta">
       <span>{label('format', item.format)}</span><span>{label('level', item.level)}</span>
       <span><Clock3 size={14} aria-hidden="true" />{item.minutes} phút</span>
     </div>
     {item.tags?.length ? <div className="tag-row">{item.tags.slice(0, 3).map(tag => <span key={tag}>{tag}</span>)}</div> : null}
     <div className="question-foot">
-      <span>{item.rating ? label('rating', item.rating) : item.outcome ? label('status', item.outcome) : 'Chưa luyện'}</span>
-      {children ?? <Link className="text-link" href={'/cau-hoi/' + item.slug}>Mở câu hỏi <ArrowRight size={15} /></Link>}
+      <span>{label('mastery', item.mastery ?? (item.outcome ? 'learning' : 'new'))}</span>
+      {children ?? <Link className="text-link" href={href}>Mở câu hỏi <ArrowRight size={15} /></Link>}
     </div>
   </article>
 }

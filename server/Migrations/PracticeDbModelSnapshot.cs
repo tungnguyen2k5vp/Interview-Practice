@@ -80,6 +80,12 @@ namespace InterviewPractice.Migrations
                     b.Property<DateTimeOffset>("At")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int?>("Choice")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Correct")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("HintSeen")
                         .HasColumnType("bit");
 
@@ -99,6 +105,9 @@ namespace InterviewPractice.Migrations
                         .HasMaxLength(90)
                         .HasColumnType("nvarchar(90)");
 
+                    b.Property<Guid?>("StudySessionId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -114,7 +123,13 @@ namespace InterviewPractice.Migrations
 
                     b.HasIndex("Slug", "Version");
 
+                    b.HasIndex("StudySessionId", "Slug")
+                        .IsUnique()
+                        .HasFilter("[StudySessionId] IS NOT NULL");
+
                     b.HasIndex("UserId", "At");
+
+                    b.HasIndex("UserId", "Slug", "Version", "At");
 
                     b.ToTable("Attempts");
                 });
@@ -506,6 +521,41 @@ namespace InterviewPractice.Migrations
                     b.ToTable("Assessments");
                 });
 
+            modelBuilder.Entity("InterviewPractice.StudySession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Minutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Plan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "StartedAt");
+
+                    b.ToTable("StudySessions");
+                });
+
             modelBuilder.Entity("InterviewPractice.StudyState", b =>
                 {
                     b.Property<string>("UserId")
@@ -546,6 +596,9 @@ namespace InterviewPractice.Migrations
                     b.Property<bool>("HintSeen")
                         .HasColumnType("bit");
 
+                    b.Property<int>("Lapses")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset?>("LastActivityAt")
                         .HasColumnType("datetimeoffset");
 
@@ -558,11 +611,24 @@ namespace InterviewPractice.Migrations
                     b.Property<bool>("ManualDue")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Mastery")
+                        .HasMaxLength(12)
+                        .HasColumnType("nvarchar(12)");
+
                     b.Property<string>("Rating")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Revision")
                         .IsConcurrencyToken()
+                        .HasColumnType("int");
+
+                    b.Property<int>("ScheduledVersion")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("SuggestedDue")
+                        .HasColumnType("date");
+
+                    b.Property<int>("VerifiedDays")
                         .HasColumnType("int");
 
                     b.HasKey("UserId", "Slug");
@@ -727,6 +793,11 @@ namespace InterviewPractice.Migrations
 
             modelBuilder.Entity("InterviewPractice.Attempt", b =>
                 {
+                    b.HasOne("InterviewPractice.StudySession", null)
+                        .WithMany()
+                        .HasForeignKey("StudySessionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("InterviewPractice.Learner", null)
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -799,6 +870,15 @@ namespace InterviewPractice.Migrations
                     b.HasOne("InterviewPractice.Attempt", null)
                         .WithOne()
                         .HasForeignKey("InterviewPractice.SelfAssessment", "AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("InterviewPractice.StudySession", b =>
+                {
+                    b.HasOne("InterviewPractice.Learner", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

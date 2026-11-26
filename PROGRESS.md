@@ -1,38 +1,61 @@
-# Tiến độ triển khai
+# Bàn giao nâng cấp Interview Practice
 
-Thư mục `Interview Practice` mới trong workspace `D:\ReactJS`, độc lập với các ứng dụng kề bên.
+Mốc 26/11/2026. Phạm vi bắt đầu từ commit `a6090c3`. [Audit và tiêu chí nghiệm thu](UPGRADE_PLAN.md)
 
-| Phần | Khảo sát ban đầu | Công việc P0 | Tệp chính |
-| --- | --- | --- | --- |
-| Hạ tầng | .NET SDK 10 và Node 24 có sẵn. SQL Server 2022 phản hồi qua Windows Authentication. | API cùng origin, Identity, EF migration, React/Vite và quy trình chạy local. | `server/Program.cs`, `server/Data.cs`, `web/vite.config.ts` |
-| Nội dung | Brief có phạm vi và ví dụ. | Bộ nội dung độc lập và quản trị phiên bản cho câu hỏi, đáp án, rubric. | `server/Content/`, `server/Catalog.cs` |
-| Dữ liệu học | Dự án mới. | Nháp có khóa phiên bản, nộp bất biến, bản sửa, lịch sử, ôn tập và ghi chú. | `server/Practice.cs`, `web/src/Practice.tsx` |
-| Phỏng vấn | Có thông số và hai chế độ trong brief. | Lưu kế hoạch và trạng thái tại server, đồng hồ theo deadline, báo cáo theo nguồn. | `server/Interviews.cs`, `web/src/Interview.tsx` |
-| Coding và SQL | Docker daemon chưa chạy. | Đề, editor, dataset, ví dụ, lời giải và nháp. UI phản ánh trạng thái thực thi. | `server/Content/exercises.json`, `web/src/Exercises.tsx` |
-
-Thứ tự triển khai là ngân hàng → tự luyện/ôn → mock → editor và tổng quan → kiểm thử trên SQL Server và Chromium.
-
-## Trạng thái bàn giao
-
-| Giai đoạn | Đã triển khai | Còn lại hoặc giới hạn |
+| Giai đoạn | Đã triển khai | Phần cần tiếp tục |
 | --- | --- | --- |
-| P0 | 44 câu Việt–Anh qua tám chủ đề. Tự luyện có nháp, gợi ý, lịch sử phiên bản, tự đánh giá, bản cải thiện, bookmark, ôn và ghi chú. Có 3 bộ mock và 2 chế độ, dashboard, tiến độ, hồ sơ, quản trị nội dung, export/xóa dữ liệu và 12 bài có editor. | Nháp mất mạng tiếp tục sau khi có kết nối trong tab và hồ sơ trình duyệt đã dùng. Phần mobile được kiểm tra qua Chromium giả lập. |
-| P1 | Nhận xét AI cho lượt đã nộp, có trích dẫn và rubric theo phiên bản. Kế hoạch cơ bản dùng ưu tiên, phút mỗi ngày, số ngày mỗi tuần và bỏ lịch một ngày. | OpenAI thật cần khóa và model. Mock dùng câu đào sâu biên soạn sẵn. Runner C#/SQL, bài theo JD, lịch ôn thích ứng, import hàng loạt và quản trị bộ test nâng cao chưa triển khai. |
-| P2 | — | Voice interview, coding đa ngôn ngữ, PWA/offline đầy đủ, hệ thống nâng cao và tích hợp tài khoản ngoài. |
+| 1 · Vòng học | 12 chế độ và quỹ 5/10/15/30 phút, danh sách câu theo phiên bản, khôi phục sau refresh, tổng kết, chấm trắc nghiệm ở server. Lịch ôn SM‑2 xét ngày địa phương, độ khó, trợ giúp và lịch sử. Tự đánh giá, AI và bằng chứng đúng có nguồn riêng. | Thêm câu có đáp án khách quan và mở rộng ngân hàng theo batch kiểm định. |
+| 2 · C# và SQL | Editor có tô cú pháp, gợi ý, căn lề, nháp và reset. SQL hiển thị bảng từ dataset thật. Gateway và giao diện có hợp đồng Run/Submit, lịch sử phân trang, hủy job và so sánh hai verdict. | Run/Submit tắt. Chưa có worker cách ly để xác minh thực thi C#/T-SQL, chấm hidden test, giới hạn tài nguyên và dọn job. |
+| 3 · Mock và AI | Bảy bộ đề, chọn số câu, hạn chế lặp và ưu tiên câu yếu. Phiên hướng dẫn có thể đổi thứ tự câu còn lại và hỏi sâu theo câu trả lời. Phiên thi giữ deadline ở server và công bố tài liệu sau khi hết phiên. | Xác minh bằng OpenAI thật. Mock Coding là vòng giải thích thuật toán. Kết quả thực thi trong mock còn phụ thuộc worker. |
+| 4 · Cá nhân hóa | Lộ trình 7/14/30/60/90 ngày và tùy chỉnh. Kế hoạch theo ngày, quỹ thời gian, thứ tự kỹ năng tiên quyết và lịch sử thật. CV/JD hỗ trợ dán văn bản hoặc TXT, checklist, câu hỏi về dự án và bằng chứng luyện theo kỹ năng. Giọng nói dùng Web Speech, transcript sửa được, ghi âm nghe lại khi người dùng bật. | CV/JD nhận diện kỹ năng bằng từ khóa và chỉ nhận TXT. Ghi âm giữ trong bộ nhớ phiên. Chưa xác minh microphone hoặc IME trên thiết bị vật lý, Safari hay Firefox. |
+| 5 · Giao diện | Thiết kế lại Dashboard, phiên học, tự luyện, C#/SQL, thiết lập mock và báo cáo. Lộ trình và ôn tập có điểm bắt đầu trực tiếp. Theme sáng/tối, focus, điều hướng bàn phím và panel đổi kích thước trên desktop. | Kiểm tra thêm với công nghệ hỗ trợ và thiết bị thật. |
+| 6 · Dữ liệu, biên tập và vận hành | Migration tăng dần, readiness probe, truy vấn thống kê tổng hợp ở SQL Server. Admin tạo, xem trước, nhập/xuất JSON, phát hiện đề trùng và biên tập lựa chọn, rubric, liên kết. Phiên bản đã dùng vẫn đọc được từ lượt cũ. | Dataset, test case, preset và roadmap vẫn biên tập qua mã/tệp. Chưa đo tải production hoặc triển khai worker. |
 
-## Kết quả kiểm tra ngày 25/11/2026
+## Nội dung đã kiểm định
 
-| Lệnh hoặc phạm vi | Kết quả |
+| Hạng mục | Batch mới | Tổng sau nâng cấp |
+| --- | ---: | ---: |
+| Câu Việt–Anh | 14 | 58 |
+| Chủ đề | 3 | 11 |
+| Bài C# | 3 | 9 |
+| Bài T-SQL | 3 | 9 |
+| Bộ mock | 4 | 7 |
+| Câu chấm theo đáp án xác định | 6 | 6 |
+
+Batch có nguồn HTTPS, gợi ý hai bước, câu đào sâu, rubric, kiến thức tiên quyết và liên kết ôn tập. Bộ kiểm định đã kiểm tra 58 bản ghi, chạy 37 ca bài C#, 3 ví dụ C# trong câu hỏi và 9 truy vấn T-SQL. Dữ liệu mẫu SQL được đối chiếu với chính dataset trên SQL Server. Mục tiêu dài hạn trong brief là 400–600 câu, 60 bài C# và 50 bài SQL.
+
+## Kiến trúc và dữ liệu
+
+`StudySessions` lưu owner và danh sách câu theo phiên bản. Migration `20261126035424_StudyRecall` thêm dữ liệu lịch ôn, bằng chứng trắc nghiệm, khóa theo phiên học và index theo owner/câu/phiên bản. Hai migration trước được giữ. Kiểm tra nâng cấp sử dụng một lượt luyện tạo bằng bản gốc trên SQL Server QA và đọc lại nguyên văn câu trả lời, rubric, tự đánh giá và ngày ôn thủ công sau khi áp migration.
+
+Ôn tự luận và tự tin vẫn có giá trị để chọn lịch. Hai ngày trả lời đúng độc lập theo đáp án xác định mới đạt khá vững. Thành thạo cần từ ba ngày có bằng chứng đúng, cách mốc đầu tối thiểu bảy ngày. Sau khi xuất bản phiên bản mới, lịch tự động được đánh giá lại theo phiên bản đó và lịch ôn thủ công được giữ.
+
+## Kết quả kiểm thử
+
+| Phạm vi | Kết quả |
 | --- | --- |
-| npm.cmd run build --prefix web | TypeScript và build Vite thành công. CodeMirror tải từ chunk riêng. |
-| npm.cmd run lint --prefix web | ESLint thành công. |
-| dotnet build server --no-restore | 0 cảnh báo, 0 lỗi. |
-| dotnet tool run dotnet-ef migrations has-pending-model-changes --project server --no-build | Mô hình trùng migration cuối. Cả hai migration đã áp trên SQL Server 2022. Seed lặp lại giữ 44 câu xuất bản và lịch sử. |
-| npm.cmd run test:content --prefix web | 31 ca đạt, 0 lỗi và 0 bỏ qua. Có 25 ví dụ/test C# và 6 truy vấn SQL kiểm tra kiểu và kết quả. |
-| npm.cmd run test:e2e --prefix web với SQL Server QA | 13 nhóm đạt, 0 lỗi và 0 bỏ qua ở cả hai lần chạy. Một lần tắt AI, một lần dùng fixture loopback. Có phục hồi nháp, hai tab, hai tài khoản, CSRF, lịch sử rubric, pause/deadline của mock, ôn lại theo chủ đề phiên trước, editor và dữ liệu cá nhân. |
-| Giao diện và điều hướng | Đã quan sát ảnh 1440, 768 và 360 px, điều hướng menu/dialog bằng bàn phím, kiểm tra isComposing bằng sự kiện tổng hợp và thao tác editor. Chưa kiểm tra bàn phím/IME trên điện thoại thật hoặc Safari/Firefox. |
-| Impeccable | Detector trả về danh sách rỗng. Review ảnh thực hiện trực tiếp vì công cụ reviewer riêng báo lỗi tên model. |
+| Vite, TypeScript, ESLint, .NET Release và publish | Đạt. Build .NET có 0 cảnh báo và 0 lỗi. Gói publish có ứng dụng React, script theme, font và dữ liệu ngân hàng. |
+| Unit checks | 16 đạt. Gồm 13 ca lịch ôn/múi giờ và 3 ca hợp đồng kết quả runner. |
+| Kiểm định nội dung | 49 ca thực thi đạt, 58 bản ghi câu hỏi hợp lệ. |
+| EF và nâng cấp DB | Schema đã nâng cấp từ bản cũ trên SQL Server QA. EF xác nhận Release khớp migration mới nhất. |
+| E2E/API với AI tắt | 19 nhóm đạt, 0 lỗi, 0 bỏ qua. |
+| E2E/API với AI fixture | 20 nhóm đạt, 0 lỗi, 0 bỏ qua. Xác minh quota, trích dẫn sai và timeout 20 giây giữ nguyên câu trả lời đã nộp. |
+| Impeccable | Detector trả danh sách rỗng. CodeMirror đã chỉnh nền tối sau khi rà ảnh thật. |
+| Kiểm thử phụ thuộc môi trường | Chờ worker cách ly, OpenAI thật và thiết bị vật lý. |
 
-Ảnh từ bản dựng được lưu trong [desktop](.impeccable/review/desktop.png), [tablet](.impeccable/review/tablet.png), [mobile](.impeccable/review/mobile.png) và [editor mobile](.impeccable/review/mobile-editor.png). Các ảnh ghi lại giao diện trong lần chạy QA.
+Playwright chụp 14 màn hình trong Chrome ở cả hai theme và năm chiều rộng. Bộ ảnh đại diện được lưu trong repo. Suite `web/checks/upgrade.mjs` ghi các ảnh còn lại vào `.impeccable/review/`.
 
-Các ca về giới hạn CPU/RAM/output, hủy cây tiến trình, cách ly mạng/máy chủ và bảo mật hidden test phụ thuộc runner. Các ca thực thi đó chưa chạy. QA dùng provider AI nội bộ.
+| Chiều rộng | Màn hình |
+| --- | --- |
+| 360 px | [Phiên học nhanh, sáng](docs/qa/study-360-light.png) |
+| 390 px | [Editor C#, tối](docs/qa/coding-390-dark.png) |
+| 768 px | [Lộ trình, tối](docs/qa/roadmap-768-dark.png) |
+| 1024 px | [Báo cáo mock, sáng](docs/qa/mock-report-1024-light.png) |
+| 1440 px | [Dashboard, sáng](docs/qa/dashboard-1440-light.png) |
+
+## Chạy và triển khai
+
+- [README](README.md) có lệnh chạy local, cấu hình SQL Server, admin, AI và cách chạy lại các suite.
+- [RUNNER](RUNNER.md) có giao thức worker và điều kiện xác nhận cách ly trước khi bật thực thi.
+- Khi triển khai, build frontend trước khi publish .NET, sao lưu SQL Server, áp migration với quyền riêng rồi xác nhận `/api/health/ready`. Đưa cấu hình AI qua secret store và xác minh phản hồi thật bằng môi trường staging.
+- Tiếp tục kiểm định nội dung theo batch. Sau khi có worker độc lập, nghiệm thu giới hạn tài nguyên và hidden test trước khi bật Run/Submit. Các hạng mục quản trị còn lại được ghi trong [kế hoạch](UPGRADE_PLAN.md).
