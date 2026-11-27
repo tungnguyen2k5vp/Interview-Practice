@@ -11,7 +11,7 @@ export const studyModes: Record<string, string> = {
   flashcard: 'Flashcard', quiz: 'Trắc nghiệm', essay: 'Tự luận', debug: 'Tìm lỗi', predict: 'Dự đoán kết quả',
   compare: 'So sánh khái niệm', speed: 'Trả lời trong 60 giây',
 }
-type Item = { slug: string; version: number; title: string; minutes: number; topic?:string; attempt?: {
+type Item = { slug: string; version: number; title: string; minutes: number; topic?:string; reason?:string; attempt?: {
   id: string; outcome: string; correct?: boolean; transfer?:boolean; rating?: string; hintSeen: boolean; answerSeen: boolean; due?: string } }
 type Session = { id: string; mode: string; minutes: number; endedAt?: string; items: Item[];level?:string;
   coding?:{slug:string;version:number;submission?:string};codingResult?:{status:string;assisted:boolean} }
@@ -65,6 +65,7 @@ export function StudyRoute({ id, params }: { id: string; params: URLSearchParams
         <Button onClick={finish} disabled={action.busy}>Kết thúc phiên</Button>
       </div></nav>
     <Problem text={action.error} />
+    {item.reason && <p className="notice">{label('reviewReason',item.reason)}</p>}
     {item.attempt ? <div className="panel content-panel"><h2>{item.title}</h2><ActionLink href={'/luot-luyen/' + item.attempt.id}>Xem lượt đã nộp</ActionLink></div> :
       <PracticeRoute key={item.slug} slug={item.slug} session={{ id, mode: session.mode, version: item.version }} />}
   </div>

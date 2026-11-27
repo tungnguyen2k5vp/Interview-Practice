@@ -1,5 +1,15 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 7 · Thiết kế hệ thống và quản trị học liệu
+
+Thêm tám tình huống thiết kế hệ thống. Sơ đồ có 11 loại thành phần, liên kết có hướng, ghi chú đánh đổi, điều khiển kéo thả hoặc bàn phím, tự lưu theo thiết bị/phiên bản đề và xuất SVG. Phần tự đối chiếu kiểm tra kết nối và hỏi về luồng dữ liệu, nhất quán, mở rộng, phục hồi và bảo mật.
+
+Quản trị mở rộng sang bài C#/SQL/debugging, code review, bộ phỏng vấn, nhóm kỹ năng, lộ trình và đề thiết kế hệ thống. Có nhập/xuất JSON, xem trước, xuất bản theo phiên bản và nhật ký thao tác. Test ẩn được nhập/xuất cục bộ rồi chuyển thẳng lên host worker. API xác nhận worker hỗ trợ đúng loại và phiên bản bài trước khi cho nộp. Migration `20261126163855_EditorialMaterials` thêm bảng học liệu và nhật ký, đã đối chiếu câu trả lời, rubric và ngày ôn từ Phase 6.
+
+Flashcard ghi nguồn tự đánh giá riêng. Quiz nhiều lựa chọn dùng chấm chính xác tập đáp án và chỉ trả giải thích sau khi nộp. Đồng hồ 60 giây dùng mốc tuyệt đối trong cùng trình duyệt, giữ phần đã viết sau khi hết giờ. Danh sách luyện lại hiển thị lý do và bài code cần kiểm chứng lại. Tám câu HTTP/ASP.NET Core nâng ngân hàng lên 102 câu, gồm 37 Intern/Fresher, 45 Junior và 20 Middle/Senior. Đối chiếu 75 URL HTTPS và 111 ca thực thi nội dung đạt.
+
+Chrome/SQL Server đạt 26 nhóm khi tắt AI và 28 nhóm với AI fixture. Giao diện đã qua sáu chiều rộng, hai theme, điều khiển bàn phím và Impeccable. Docker đạt bảy nhóm kiểm định và luồng Chrome → worker → lưu verdict trên SQL Server. [Sơ đồ trên điện thoại](docs/qa/design-390-dark.png) · [Sơ đồ trên desktop](docs/qa/design-1440-light.png) · [Biên tập học liệu](docs/qa/materials-1440.png)
+
 ## V2 · Phase 6 · Cá nhân hóa
 
 Ba bài đầu vào cố định phiên bản cho Intern, Fresher và Junior lưu kết quả theo tài khoản. Khi có worker, người học có thể nộp tiếp phần C# sau bốn câu lý thuyết. Báo cáo nhận đúng ID submission. Cây kỹ năng mở từng câu cùng bằng chứng và tiên quyết. Dùng cấu trúc JSON mới riêng cho placement, giữ định dạng các phiên V1 và V2 trước đó.

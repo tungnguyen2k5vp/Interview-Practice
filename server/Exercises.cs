@@ -14,7 +14,7 @@ internal sealed record ExerciseContent(
     string Slug, string Kind, string Title, string Difficulty, string Topic, string[] Tags, int Version, int TestVersion, string Runtime, int Minutes,
     string Description, string Input, string Output, string[] Constraints, Example[] Examples, Example[] Tests,
     string Starter, string Hint, string Solution, string Explanation, string Complexity, string? Schema, string? Dataset, string? Expected, bool? Ordered,
-    string? Reproduce = null);
+    string? Reproduce = null, PreviewTable[]? Tables = null);
 
 /// <summary>Tóm tắt bài tập và bản nháp cá nhân.</summary>
 internal sealed record ExerciseCard(string Slug, string Kind, string Title, string Difficulty, string Topic, string[] Tags,
@@ -40,12 +40,9 @@ internal sealed record ExternalLink(string Slug, int Number, string Name, string
 /// <summary>Trạng thái và ghi chú cá nhân cho một bài ngoài ứng dụng.</summary>
 internal sealed record ExternalRequest(string Status, [StringLength(4000)] string Note);
 
-internal sealed class ExerciseCatalog
+internal sealed class ExerciseCatalog(Materials materials, RunnerGateway runner)
 {
-    private readonly RunnerGateway runner;
-    private readonly ExerciseContent[] _items;
-    private readonly Dictionary<string, PreviewTable[]> previews;
-    public ExerciseContent[] Latest { get; }
+    public ExerciseContent[] Latest => materials.Latest<ExerciseContent>("exercise");
     public static readonly ExternalLink[] Links =
     [
         new("two-sum", 1, "Two Sum", "easy", ["Hash map", "Array"], "https://leetcode.com/problems/two-sum/", new(2026, 11, 25)),
@@ -54,22 +51,9 @@ internal sealed class ExerciseCatalog
         new("merge-intervals", 56, "Merge Intervals", "medium", ["Sort", "Intervals"], "https://leetcode.com/problems/merge-intervals/", new(2026, 11, 25))
     ];
 
-    public ExerciseCatalog(IWebHostEnvironment env, RunnerGateway runner)
-    {
-        this.runner = runner;
-        previews = DataJson.Read<Dictionary<string, PreviewTable[]>>(File.ReadAllText(Path.Combine(env.ContentRootPath, "Content", "sql-preview.json")));
-        var dir = Path.Combine(env.ContentRootPath, "Content");
-        _items = Directory.GetFiles(dir, "exercises-batch-*.json").Order(StringComparer.Ordinal).Prepend(Path.Combine(dir, "exercises.json"))
-            .SelectMany(file => DataJson.Read<ExerciseContent[]>(File.ReadAllText(file))).ToArray();
-        if (_items.Select(x => (x.Slug, x.Version)).Distinct().Count() != _items.Length ||
-            _items.Any(x => x.Version < 1 || x.TestVersion < 1 || x.Kind is not ("coding" or "sql")))
-            throw new InvalidDataException("Mỗi phiên bản bài tập phải có khóa duy nhất và thông số kiểm thử.");
-        Latest = _items.GroupBy(x => x.Slug).Select(x => x.MaxBy(e => e.Version)!).ToArray();
-    }
-
-    internal ExerciseContent Find(string slug, int? version) =>
-        (version is null ? Latest : _items).SingleOrDefault(x => x.Slug == slug && (version is null || x.Version == version))
-        ?? throw ApiProblem.Missing("Không tìm thấy phiên bản bài tập.");
+    internal ExerciseContent Find(string slug, int? version) => materials.Find<ExerciseContent>("exercise",slug,version);
+    internal Task<bool> Available(ExerciseContent e,CancellationToken ct) =>
+        runner.Available(e.Kind,ct,$"{e.Slug}@{e.Version}@{e.TestVersion}",materials.IsSeed(e));
 
     public static ExerciseCard Card(ExerciseContent e, ExerciseDraft? draft, ExerciseSubmission? last = null) =>
         new(e.Slug, e.Kind, e.Title, e.Difficulty, e.Topic, e.Tags, e.Version, e.Runtime, e.Minutes, draft is not null, draft?.Reviewed ?? false,
@@ -109,7 +93,7 @@ internal sealed class ExerciseCatalog
         return new(Card(e, draft, last), e.TestVersion, e.Description, e.Input, e.Output, e.Constraints, e.Examples, e.Tests, e.Starter,
             e.Schema, e.Dataset, e.Expected, e.Ordered, draft?.HintSeen is true ? e.Hint : null,
             draft?.SolutionSeen is true ? new(e.Solution, e.Explanation, e.Complexity) : null, draft is null ? null : Draft(draft),
-            drafts.Select(x => x.Version).OrderDescending().ToArray(), await runner.Available(e.Kind, ct), previews.GetValueOrDefault($"{slug}@{e.Version}"), e.Reproduce);
+            drafts.Select(x => x.Version).OrderDescending().ToArray(), await Available(e,ct), e.Tables, e.Reproduce);
     }
 
     private async Task<ExerciseDraftResponse> Save(string slug, int version, ExerciseSaveRequest request, string owner,

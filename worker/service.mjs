@@ -71,7 +71,10 @@ export async function openWorker(config) {
     try {
       if (!timingSafeEqual(secret,digest(req.headers.authorization??''))) throw error(401)
       const url=new URL(req.url,'https://localhost')
-      if (req.method==='GET' && url.pathname==='/v1/capabilities') return send(200,{protocol:1,isolated:true,kinds:config.kinds})
+      if (req.method==='GET' && url.pathname==='/v1/capabilities') {
+        const enabled=[...exercises].filter(([,e])=>config.kinds.includes(e.kind)).map(([key,e])=>e.kind+':'+key)
+        return send(200,{protocol:1,isolated:true,kinds:config.kinds,exercises:enabled})
+      }
       const route=/^\/v1\/owners\/([A-Za-z0-9_-]{1,128})\/jobs(?:\/([a-f\d-]+))?$/i.exec(url.pathname)
       if (!route) throw error(404)
       const [,owner,rawId]=route, id=rawId?.toLowerCase()

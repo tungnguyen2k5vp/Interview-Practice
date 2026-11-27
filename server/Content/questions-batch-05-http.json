@@ -1,0 +1,540 @@
+[
+  {
+    "slug": "http-created-location",
+    "content": {
+      "title": "Sau khi tạo tài nguyên",
+      "topic": "aspnet",
+      "subtopic": "Sau khi tạo tài nguyên",
+      "tags": [
+        "HTTP",
+        "intern"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Một API tạo sản phẩm đồng bộ. Client cần biết kết quả và địa chỉ để đọc sản phẩm mới. Chọn các thông tin phù hợp trong phản hồi thành công.",
+      "englishPrompt": "An API creates a product synchronously. Which response details indicate success and help the client read the new product?",
+      "context": "Ứng dụng quản lý kho gửi POST /products. Máy chủ đã hoàn tất việc tạo bản ghi.",
+      "hint": "Phân biệt tạo xong với mới đưa vào hàng đợi.",
+      "nextHint": "201 diễn tả một hoặc nhiều tài nguyên được tạo thành công.",
+      "followUp": "Nếu POST chỉ xếp hàng để xử lý sau, client tra trạng thái ở đâu?",
+      "englishFollowUp": "If POST only enqueues work, where could the client check its status?",
+      "outline": [
+        "201 diễn tả một hoặc nhiều tài nguyên được tạo thành công.",
+        "Location định danh tài nguyên chính mới tạo khi URI khác URI đích của request."
+      ],
+      "shortAnswer": "201 Created. Location của sản phẩm vừa tạo.",
+      "explanation": "201 diễn tả một hoặc nhiều tài nguyên được tạo thành công. Location định danh tài nguyên chính mới tạo khi URI khác URI đích của request.",
+      "alternative": "202 cho biết đã nhận nhưng chưa hoàn tất xử lý.",
+      "trap": "Trạng thái cache không quyết định kết quả tạo tài nguyên.",
+      "rubric": [
+        "201 diễn tả một hoặc nhiều tài nguyên được tạo thành công.",
+        "Location định danh tài nguyên chính mới tạo khi URI khác URI đích của request.",
+        "202 cho biết đã nhận nhưng chưa hoàn tất xử lý.",
+        "Trạng thái cache không quyết định kết quả tạo tài nguyên."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.3.2",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "201 Created",
+          "Location của sản phẩm vừa tạo",
+          "202 Accepted làm mặc định",
+          "404 khi chưa có cache"
+        ],
+        "en": [
+          "201 Created",
+          "Location for the newly created product",
+          "202 Accepted by default",
+          "404 for an empty cache"
+        ],
+        "correctIndex": 0,
+        "correctIndices": [
+          0,
+          1
+        ],
+        "reasons": [
+          "201 diễn tả một hoặc nhiều tài nguyên được tạo thành công.",
+          "Location định danh tài nguyên chính mới tạo khi URI khác URI đích của request.",
+          "202 cho biết đã nhận nhưng chưa hoàn tất xử lý.",
+          "Trạng thái cache không quyết định kết quả tạo tài nguyên."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-head-body",
+    "content": {
+      "title": "Đọc metadata bằng HEAD",
+      "topic": "aspnet",
+      "subtopic": "Đọc metadata bằng HEAD",
+      "tags": [
+        "HTTP",
+        "intern"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Dịch vụ lưu trữ hỗ trợ GET và HEAD cho một tệp có sẵn. Phản hồi HEAD thành công có các đặc điểm nào?",
+      "englishPrompt": "A file service supports GET and HEAD for an existing object. Which properties hold for a successful HEAD response?",
+      "context": "Client muốn biết thông tin tệp trước khi quyết định tải qua mạng di động.",
+      "hint": "Đối chiếu metadata với số byte thực truyền trên đường mạng.",
+      "nextHint": "HEAD yêu cầu máy chủ bỏ phần nội dung của phản hồi.",
+      "followUp": "Với nội dung nén theo Accept-Encoding, kích thước được mô tả thuộc representation nào?",
+      "englishFollowUp": "With negotiated compression, which representation does the reported length describe?",
+      "outline": [
+        "HEAD yêu cầu máy chủ bỏ phần nội dung của phản hồi.",
+        "Nếu gửi Content-Length thì giá trị phải bằng số byte mà GET tương ứng sẽ gửi."
+      ],
+      "shortAnswer": "Không gửi nội dung tệp trong thân phản hồi. Có thể có Content-Length của GET tương ứng.",
+      "explanation": "HEAD yêu cầu máy chủ bỏ phần nội dung của phản hồi. Nếu gửi Content-Length thì giá trị phải bằng số byte mà GET tương ứng sẽ gửi.",
+      "alternative": "Không có thân phản hồi không đồng nghĩa với tệp dài 0 byte.",
+      "trap": "HEAD là phương thức an toàn để lấy metadata.",
+      "rubric": [
+        "HEAD yêu cầu máy chủ bỏ phần nội dung của phản hồi.",
+        "Nếu gửi Content-Length thì giá trị phải bằng số byte mà GET tương ứng sẽ gửi.",
+        "Không có thân phản hồi không đồng nghĩa với tệp dài 0 byte.",
+        "HEAD là phương thức an toàn để lấy metadata."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-9.3.2",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có thể có Content-Length của GET tương ứng",
+          "Bắt buộc Content-Length bằng 0",
+          "HEAD tự chuyển sang DELETE",
+          "Không gửi nội dung tệp trong thân phản hồi"
+        ],
+        "en": [
+          "May include the size of the corresponding GET representation",
+          "Content-Length must equal zero",
+          "Automatically turns into DELETE",
+          "No file content in the response body"
+        ],
+        "correctIndex": 0,
+        "correctIndices": [
+          0,
+          3
+        ],
+        "reasons": [
+          "Nếu gửi Content-Length thì giá trị phải bằng số byte mà GET tương ứng sẽ gửi.",
+          "Không có thân phản hồi không đồng nghĩa với tệp dài 0 byte.",
+          "HEAD là phương thức an toàn để lấy metadata.",
+          "HEAD yêu cầu máy chủ bỏ phần nội dung của phản hồi."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-auth-challenge",
+    "content": {
+      "title": "Khi API yêu cầu đăng nhập",
+      "topic": "aspnet",
+      "subtopic": "Khi API yêu cầu đăng nhập",
+      "tags": [
+        "HTTP",
+        "fresher"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Một API dùng Bearer bảo vệ chức năng xuất hóa đơn. Không có thông tin xác thực trong request. Chọn hai yếu tố của phản hồi challenge.",
+      "englishPrompt": "A Bearer-protected invoice export receives a request without credentials. Which two elements belong to an authentication challenge?",
+      "context": "API phục vụ ứng dụng di động cần biết cơ chế đăng nhập mà máy chủ chấp nhận.",
+      "hint": "Tách bước nhận diện danh tính khỏi bước xét quyền.",
+      "nextHint": "401 yêu cầu thông tin xác thực cho tài nguyên đích.",
+      "followUp": "Khi client đã đăng nhập nhưng không được xuất hóa đơn thì sao?",
+      "englishFollowUp": "What changes if the user is authenticated but cannot export invoices?",
+      "outline": [
+        "401 yêu cầu thông tin xác thực cho tài nguyên đích.",
+        "Phản hồi 401 phải có ít nhất một challenge thích hợp."
+      ],
+      "shortAnswer": "401 Unauthorized. WWW-Authenticate với scheme phù hợp.",
+      "explanation": "401 yêu cầu thông tin xác thực cho tài nguyên đích. Phản hồi 401 phải có ít nhất một challenge thích hợp.",
+      "alternative": "Trả danh sách rỗng làm client hiểu sai kết quả nghiệp vụ.",
+      "trap": "403 thường mô tả máy chủ hiểu nhưng từ chối thực hiện, không thay thế challenge này.",
+      "rubric": [
+        "401 yêu cầu thông tin xác thực cho tài nguyên đích.",
+        "Phản hồi 401 phải có ít nhất một challenge thích hợp.",
+        "Trả danh sách rỗng làm client hiểu sai kết quả nghiệp vụ.",
+        "403 thường mô tả máy chủ hiểu nhưng từ chối thực hiện, không thay thế challenge này."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.2",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "200 với danh sách rỗng",
+          "Luôn dùng 403 cho khách chưa đăng nhập",
+          "401 Unauthorized",
+          "WWW-Authenticate với scheme phù hợp"
+        ],
+        "en": [
+          "200 with an empty list",
+          "Always return 403 for anonymous callers",
+          "401 Unauthorized",
+          "WWW-Authenticate with the supported scheme"
+        ],
+        "correctIndex": 2,
+        "correctIndices": [
+          2,
+          3
+        ],
+        "reasons": [
+          "Trả danh sách rỗng làm client hiểu sai kết quả nghiệp vụ.",
+          "403 thường mô tả máy chủ hiểu nhưng từ chối thực hiện, không thay thế challenge này.",
+          "401 yêu cầu thông tin xác thực cho tài nguyên đích.",
+          "Phản hồi 401 phải có ít nhất một challenge thích hợp."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-etag-edit",
+    "content": {
+      "title": "Sửa tài liệu với If-Match",
+      "topic": "aspnet",
+      "subtopic": "Sửa tài liệu với If-Match",
+      "tags": [
+        "HTTP",
+        "junior"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": "HTTP",
+      "prompt": "Hai biên tập viên mở cùng một tài liệu. API dùng strong ETag và điều kiện If-Match. Chọn hành vi bảo vệ được nội dung người sửa trước.",
+      "englishPrompt": "Two editors read the same document. Which actions with a strong ETag and If-Match protect the first saved edit?",
+      "context": "A lưu bản mới trong khi B vẫn đang sửa trên dữ liệu cũ.",
+      "hint": "Chỉ ra điểm cam kết sửa và đường xử lý khi phiên bản đã cũ.",
+      "nextHint": "So sánh và ghi cùng thao tác ngăn thay đổi xen giữa hai bước.",
+      "followUp": "Ở EF Core, hàng bị thay đổi ngay trước SaveChanges được phát hiện ở đâu?",
+      "englishFollowUp": "Where would EF Core detect a conflicting update just before SaveChanges?",
+      "outline": [
+        "So sánh và ghi cùng thao tác ngăn thay đổi xen giữa hai bước.",
+        "412 cho client biết cần đọc lại hoặc hợp nhất nội dung."
+      ],
+      "shortAnswer": "Đối chiếu ETag cùng thao tác cập nhật một cách nguyên tử. Trả 412 nếu điều kiện sai và thay đổi chưa được thực hiện.",
+      "explanation": "So sánh và ghi cùng thao tác ngăn thay đổi xen giữa hai bước. 412 cho client biết cần đọc lại hoặc hợp nhất nội dung.",
+      "alternative": "Giữa lúc kiểm tra và ghi, một giao dịch khác có thể thay phiên bản.",
+      "trap": "ETag nhận diện phiên bản representation. Quyền vẫn cần kiểm tra riêng.",
+      "rubric": [
+        "So sánh và ghi cùng thao tác ngăn thay đổi xen giữa hai bước.",
+        "412 cho client biết cần đọc lại hoặc hợp nhất nội dung.",
+        "Giữa lúc kiểm tra và ghi, một giao dịch khác có thể thay phiên bản.",
+        "ETag nhận diện phiên bản representation. Quyền vẫn cần kiểm tra riêng."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-13.1.1",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dùng ETag như bằng chứng người dùng có quyền sửa",
+          "Đối chiếu ETag cùng thao tác cập nhật một cách nguyên tử",
+          "Trả 412 nếu điều kiện sai và thay đổi chưa được thực hiện",
+          "Đọc ETag rồi cập nhật vô điều kiện sau đó"
+        ],
+        "en": [
+          "Treat the ETag as edit authorization",
+          "Check the ETag atomically with the update",
+          "Return 412 when the precondition fails and the edit was not applied",
+          "Read the tag then update unconditionally later"
+        ],
+        "correctIndex": 1,
+        "correctIndices": [
+          1,
+          2
+        ],
+        "reasons": [
+          "ETag nhận diện phiên bản representation. Quyền vẫn cần kiểm tra riêng.",
+          "So sánh và ghi cùng thao tác ngăn thay đổi xen giữa hai bước.",
+          "412 cho client biết cần đọc lại hoặc hợp nhất nội dung.",
+          "Giữa lúc kiểm tra và ghi, một giao dịch khác có thể thay phiên bản."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "di-scope-worker",
+    "content": {
+      "title": "Scope theo từng công việc nền",
+      "topic": "aspnet",
+      "subtopic": "Scope theo từng công việc nền",
+      "tags": [
+        "DI",
+        "junior"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": "ASP.NET Core 10",
+      "prompt": "BackgroundService cần dùng DbContext scoped cho từng công việc. Những quyết định nào giữ đúng vòng đời?",
+      "englishPrompt": "A BackgroundService needs a scoped DbContext per work item. Which decisions preserve the intended lifetimes?",
+      "context": "Một tiến trình nhập đơn liên tục, có thể chạy hai đơn song song.",
+      "hint": "Theo dấu đối tượng từ khi resolve cho tới lúc giải phóng.",
+      "nextHint": "Scope độc lập cấp DbContext riêng cho công việc.",
+      "followUp": "Điều gì thay đổi khi hàng đợi xử lý bốn công việc đồng thời?",
+      "englishFollowUp": "What changes when the queue processes four jobs concurrently?",
+      "outline": [
+        "Scope độc lập cấp DbContext riêng cho công việc.",
+        "Dispose sau await giữ các tài nguyên còn sống tới lúc công việc xong."
+      ],
+      "shortAnswer": "Tạo scope riêng cho mỗi công việc độc lập. Hoàn tất các thao tác đang dùng service trước khi dispose scope.",
+      "explanation": "Scope độc lập cấp DbContext riêng cho công việc. Dispose sau await giữ các tài nguyên còn sống tới lúc công việc xong.",
+      "alternative": "DbContext không dành cho nhiều công việc đồng thời.",
+      "trap": "Resolve từ root làm mất ranh giới scope, có thể bị kiểm tra scope từ chối.",
+      "rubric": [
+        "Scope độc lập cấp DbContext riêng cho công việc.",
+        "Dispose sau await giữ các tài nguyên còn sống tới lúc công việc xong.",
+        "DbContext không dành cho nhiều công việc đồng thời.",
+        "Resolve từ root làm mất ranh giới scope, có thể bị kiểm tra scope từ chối."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/extensions/scoped-service",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [
+        "di-lifetimes"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tạo scope riêng cho mỗi công việc độc lập",
+          "Hoàn tất các thao tác đang dùng service trước khi dispose scope",
+          "Giữ DbContext trong một biến static",
+          "Resolve scoped service từ root rồi dùng chung giữa các tác vụ"
+        ],
+        "en": [
+          "Create a scope for each independent work item",
+          "Finish work using scoped services before disposing the scope",
+          "Keep the DbContext in a static variable",
+          "Resolve from the root and share between concurrent tasks"
+        ],
+        "correctIndex": 0,
+        "correctIndices": [
+          0,
+          1
+        ],
+        "reasons": [
+          "Scope độc lập cấp DbContext riêng cho công việc.",
+          "Dispose sau await giữ các tài nguyên còn sống tới lúc công việc xong.",
+          "DbContext không dành cho nhiều công việc đồng thời.",
+          "Resolve từ root làm mất ranh giới scope, có thể bị kiểm tra scope từ chối."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-retry-after",
+    "content": {
+      "title": "Đọc Retry-After",
+      "topic": "aspnet",
+      "subtopic": "Đọc Retry-After",
+      "tags": [
+        "HTTP",
+        "fresher"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Một đối tác giới hạn tần suất gọi API. Header Retry-After có thể biểu diễn thời điểm chờ theo các dạng nào?",
+      "englishPrompt": "A partner API throttles requests. Which Retry-After forms can a client receive?",
+      "context": "SDK cần đọc cả phản hồi có thời gian tuyệt đối và phản hồi có thời gian tương đối.",
+      "hint": "Xác định đơn vị, sau đó so với ngân sách chờ của client.",
+      "nextHint": "delay-seconds dùng số nguyên đơn vị giây.",
+      "followUp": "Làm thế nào xử lý thời gian chờ dài hơn deadline của request?",
+      "englishFollowUp": "How should the client handle a delay longer than its request deadline?",
+      "outline": [
+        "delay-seconds dùng số nguyên đơn vị giây.",
+        "HTTP-date chỉ thời điểm sớm nhất nên thử lại."
+      ],
+      "shortAnswer": "Số giây không âm. Một HTTP-date.",
+      "explanation": "delay-seconds dùng số nguyên đơn vị giây. HTTP-date chỉ thời điểm sớm nhất nên thử lại.",
+      "alternative": "Đọc thành mili giây làm client thử lại quá sớm.",
+      "trap": "Lịch cron không thuộc ngữ pháp của header.",
+      "rubric": [
+        "delay-seconds dùng số nguyên đơn vị giây.",
+        "HTTP-date chỉ thời điểm sớm nhất nên thử lại.",
+        "Đọc thành mili giây làm client thử lại quá sớm.",
+        "Lịch cron không thuộc ngữ pháp của header."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-10.2.3",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Một HTTP-date",
+          "Mặc định là mili giây",
+          "Một cron expression",
+          "Số giây không âm"
+        ],
+        "en": [
+          "An HTTP-date",
+          "Milliseconds by default",
+          "A cron expression",
+          "Nonnegative delay in seconds"
+        ],
+        "correctIndex": 0,
+        "correctIndices": [
+          0,
+          3
+        ],
+        "reasons": [
+          "HTTP-date chỉ thời điểm sớm nhất nên thử lại.",
+          "Đọc thành mili giây làm client thử lại quá sớm.",
+          "Lịch cron không thuộc ngữ pháp của header.",
+          "delay-seconds dùng số nguyên đơn vị giây."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-content-type-accept",
+    "content": {
+      "title": "Chọn định dạng trao đổi",
+      "topic": "aspnet",
+      "subtopic": "Chọn định dạng trao đổi",
+      "tags": [
+        "HTTP",
+        "intern"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Client gửi một bản ghi JSON và muốn nhận báo cáo dạng CSV. Hai header nào thể hiện đúng ý định?",
+      "englishPrompt": "A client sends JSON and wants a CSV report back. Which headers express that intent?",
+      "context": "Endpoint nhập liệu có nhiều định dạng báo cáo theo yêu cầu client.",
+      "hint": "Theo dõi riêng dữ liệu đi tới và dữ liệu trở về.",
+      "nextHint": "Content-Type mô tả kiểu media của nội dung request được gửi.",
+      "followUp": "Nếu máy chủ bắt buộc content negotiation và không tạo được CSV thì sao?",
+      "englishFollowUp": "If strict negotiation is required and CSV is unavailable, what can the server return?",
+      "outline": [
+        "Content-Type mô tả kiểu media của nội dung request được gửi.",
+        "Accept cho biết kiểu representation client chấp nhận trong phản hồi."
+      ],
+      "shortAnswer": "Content-Type: application/json. Accept: text/csv.",
+      "explanation": "Content-Type mô tả kiểu media của nội dung request được gửi. Accept cho biết kiểu representation client chấp nhận trong phản hồi.",
+      "alternative": "Accept nói về phản hồi mong muốn, không định kiểu thân request.",
+      "trap": "Content-Encoding mô tả phép mã hóa nội dung như gzip.",
+      "rubric": [
+        "Content-Type mô tả kiểu media của nội dung request được gửi.",
+        "Accept cho biết kiểu representation client chấp nhận trong phản hồi.",
+        "Accept nói về phản hồi mong muốn, không định kiểu thân request.",
+        "Content-Encoding mô tả phép mã hóa nội dung như gzip."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-12.5.1",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Accept: application/json để khai báo thân request",
+          "Content-Encoding: text/csv để chọn định dạng báo cáo",
+          "Content-Type: application/json",
+          "Accept: text/csv"
+        ],
+        "en": [
+          "Accept: application/json to declare the request body",
+          "Content-Encoding: text/csv to select a report format",
+          "Content-Type: application/json",
+          "Accept: text/csv"
+        ],
+        "correctIndex": 2,
+        "correctIndices": [
+          2,
+          3
+        ],
+        "reasons": [
+          "Accept nói về phản hồi mong muốn, không định kiểu thân request.",
+          "Content-Encoding mô tả phép mã hóa nội dung như gzip.",
+          "Content-Type mô tả kiểu media của nội dung request được gửi.",
+          "Accept cho biết kiểu representation client chấp nhận trong phản hồi."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-304-validation",
+    "content": {
+      "title": "Tái sử dụng phản hồi đã cache",
+      "topic": "aspnet",
+      "subtopic": "Tái sử dụng phản hồi đã cache",
+      "tags": [
+        "HTTP",
+        "junior"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": "HTTP",
+      "prompt": "Client có bản GET đã cache và gửi If-None-Match khớp phiên bản hiện tại. Chọn hành vi phù hợp khi server trả 304.",
+      "englishPrompt": "A cached GET sends If-None-Match matching the current version. What is appropriate when the server responds with 304?",
+      "context": "Trang danh mục kiểm tra dữ liệu còn mới trước khi hiển thị bản đã lưu.",
+      "hint": "Nêu nơi cung cấp phần nội dung mà người dùng nhìn thấy.",
+      "nextHint": "304 xác nhận representation đang lưu có thể được dùng lại.",
+      "followUp": "Nếu ETag đã thay đổi thì phản hồi thường mang theo những gì?",
+      "englishFollowUp": "What would the response usually carry if the ETag changed?",
+      "outline": [
+        "304 xác nhận representation đang lưu có thể được dùng lại.",
+        "Trình cache cập nhật các header phù hợp theo quy tắc xác thực."
+      ],
+      "shortAnswer": "Dùng lại nội dung phù hợp đang có trong cache. Cập nhật các metadata liên quan trong cache từ phản hồi.",
+      "explanation": "304 xác nhận representation đang lưu có thể được dùng lại. Trình cache cập nhật các header phù hợp theo quy tắc xác thực.",
+      "alternative": "304 kết thúc sau phần header, không chứa nội dung JSON mới.",
+      "trap": "304 diễn tả kết quả của điều kiện đọc, không phải 404 hoặc 410.",
+      "rubric": [
+        "304 xác nhận representation đang lưu có thể được dùng lại.",
+        "Trình cache cập nhật các header phù hợp theo quy tắc xác thực.",
+        "304 kết thúc sau phần header, không chứa nội dung JSON mới.",
+        "304 diễn tả kết quả của điều kiện đọc, không phải 404 hoặc 410."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.4.5",
+      "checkedOn": "2026-11-26",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Xóa bản cache vì tài nguyên đã bị xóa",
+          "Dùng lại nội dung phù hợp đang có trong cache",
+          "Cập nhật các metadata liên quan trong cache từ phản hồi",
+          "Đọc JSON mới từ thân phản hồi 304"
+        ],
+        "en": [
+          "Discard the cache because the resource was deleted",
+          "Reuse the matching cached content",
+          "Update relevant cached metadata from the response",
+          "Read fresh JSON from the 304 response body"
+        ],
+        "correctIndex": 1,
+        "correctIndices": [
+          1,
+          2
+        ],
+        "reasons": [
+          "304 diễn tả kết quả của điều kiện đọc, không phải 404 hoặc 410.",
+          "304 xác nhận representation đang lưu có thể được dùng lại.",
+          "Trình cache cập nhật các header phù hợp theo quy tắc xác thực.",
+          "304 kết thúc sau phần header, không chứa nội dung JSON mới."
+        ]
+      }
+    }
+  }
+]

@@ -15,7 +15,7 @@ internal sealed record RevealRequest(DraftCursor Cursor, string Kind);
 
 /// <summary>Chốt bản nháp đã đồng bộ vào lịch sử.</summary>
 internal sealed record SubmitRequest(DraftCursor Cursor, string Language, bool Skip, [Range(0, 3600)] int ActiveSeconds,
-    int? Choice = null, Guid? StudySessionId = null);
+    int? Choice = null, Guid? StudySessionId = null, string? FlashRating=null, int[]? Choices=null);
 
 /// <summary>Tự đánh giá theo mức hiểu.</summary>
 internal sealed record RateRequest(string Rating);
@@ -38,7 +38,7 @@ internal sealed record RevisionResponse(Guid Id, string Text, DateTimeOffset At)
 /// <summary>Lượt nộp bất biến, dấu đã xem và tự đánh giá.</summary>
 internal sealed record AttemptResponse(Guid Id, QuestionResponse Question, string Text, string Language, string Outcome, bool HintSeen,
     bool AnswerSeen, DateTimeOffset? ReferenceViewedAt, DateTimeOffset At, int ActiveSeconds, string? Rating, RevisionResponse[] Revisions,
-    int? Choice, bool? Correct, Guid? StudySessionId);
+    int? Choice, bool? Correct, Guid? StudySessionId, string[]? ChoiceReasons);
 
 internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider clock)
 {
@@ -188,9 +188,11 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
             return TypedResults.Ok(await AttemptView(existing, ct));
         }
         StudySession? finishing = null;
+        var flash=false;
         if (request.StudySessionId is { } sessionId)
         {
             var session = await StudySessions.Locked(db, owner, sessionId, ct);
+            flash=session.Mode=="flashcard";
             var previous = await db.Attempts.SingleOrDefaultAsync(a => a.StudySessionId == sessionId && a.Slug == slug && a.UserId == owner, ct);
             if (previous?.Id == id) return TypedResults.Ok(await AttemptView(previous, ct));
             var plan = StudySessions.Plan(session);
@@ -203,9 +205,19 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         var (row, q) = await GetDraft(slug, request.Cursor, owner, ct, request.StudySessionId);
         CheckRevision(row, request.Cursor);
         var quiz = Catalog.Content(q).Quiz;
-        if (request.Choice is { } index && (request.Skip || quiz is null || index < 0 || index >= quiz.Vi.Length))
+        var multi=request.Choices;
+        if(multi!=null && (request.Skip || request.Choice!=null || request.FlashRating!=null || quiz?.CorrectIndices==null ||
+            multi.Length<1 || multi.Length>quiz.Vi.Length || multi.Any(i=>i<0||i>=quiz.Vi.Length) || multi.Length!=multi.Distinct().Count()))
+            throw ApiProblem.Invalid("Các lựa chọn không thuộc câu trắc nghiệm nhiều đáp án.");
+        if (request.Choice is { } index && (request.Skip || quiz is null || quiz.CorrectIndices!=null || index < 0 || index >= quiz.Vi.Length))
             throw ApiProblem.Invalid("Lựa chọn không thuộc phiên bản câu hỏi này.");
-        if (!request.Skip && request.Choice is null && string.IsNullOrWhiteSpace(row.DraftText))
+        if(request.FlashRating is not null && (!flash || request.Skip || request.Choice.HasValue || !row.AnswerSeen ||
+            request.FlashRating is not ("again" or "hard" or "good" or "easy"))) throw ApiProblem.Invalid("Hãy lật thẻ trước khi tự đánh giá.");
+        if (!request.Skip && flash && request.FlashRating is null)
+            throw ApiProblem.Invalid("Chọn mức tự đánh giá trước khi kết thúc thẻ.");
+        if (!request.Skip && !flash && quiz != null && multi == null && request.Choice == null)
+            throw ApiProblem.Invalid("Chọn đáp án trước khi nộp.");
+        if (!request.Skip && request.FlashRating is null && multi==null && request.Choice is null && string.IsNullOrWhiteSpace(row.DraftText))
             throw ApiProblem.Invalid("Hãy nhập câu trả lời hoặc chọn Bỏ qua.");
         var now = clock.GetUtcNow();
         var today = await Learning.Today(db, owner, clock, ct);
@@ -213,13 +225,14 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         var elapsed = Math.Clamp((int)(now - row.DraftStartedAt!.Value).TotalSeconds, 0, 3600);
         var attempt = new Attempt
         {
-            Id = id, UserId = owner, Slug = slug, Version = q.Version, Text = request.Skip ? "" : request.Choice is int selected
+            Id = id, UserId = owner, Slug = slug, Version = q.Version, Text = request.Skip || flash ? "" : multi!=null ? string.Join("\n",multi.Order().Select(i=>(request.Language=="en"?quiz!.En:quiz!.Vi)[i])) : request.Choice is int selected
                 ? (request.Language == "en" ? quiz!.En : quiz!.Vi)[selected] : row.DraftText,
             Outcome = request.Skip ? "skipped" : "answered", Language = request.Language, HintSeen = row.HintSeen, AnswerSeen = row.AnswerSeen,
             At = now, StudyDay = today, ActiveSeconds = request.Skip ? 0 : Math.Min(elapsed, request.ActiveSeconds),
-            Choice = request.Choice, Correct = request.Choice is null ? null : request.Choice == quiz!.CorrectIndex, StudySessionId = request.StudySessionId
+            Choice = request.Choice, Correct = multi!=null ? multi.Order().SequenceEqual(quiz!.CorrectIndices!.Order()) : request.Choice is null ? null : request.Choice == quiz!.CorrectIndex, StudySessionId = request.StudySessionId
         };
         db.Attempts.Add(attempt);
+        if(request.FlashRating is {} grade)db.Assessments.Add(new(){AttemptId=id,Rating=grade,At=now});
         row.DraftId = null;
         row.DraftStartedAt = null;
         row.DraftText = "";
@@ -230,9 +243,9 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         row.LastAttemptId = id;
         row.LastActivityAt = now;
         row.LastOutcome = attempt.Outcome;
-        row.Rating = null;
+        row.Rating = request.FlashRating;
         if (!request.Skip) row.AnsweredCount++;
-        await Recall.Refresh(db, row, q, ct, pending: attempt, today: today);
+        await Recall.Refresh(db, row, q, ct, pending: attempt, overrideId:id, rating:request.FlashRating, today: today);
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
         return TypedResults.Created($"/api/practice/attempts/{id}", await AttemptView(attempt, ct));
@@ -255,7 +268,7 @@ internal sealed class Practice(PracticeDb db, Catalog catalog, TimeProvider cloc
         var revisions = await db.Revisions.Where(x => x.AttemptId == row.Id).OrderBy(x => x.At)
             .Select(x => new RevisionResponse(x.Id, x.Text, x.At)).ToArrayAsync(ct);
         return new(row.Id, Catalog.View(q, state), row.Text, row.Language, row.Outcome, row.HintSeen, row.AnswerSeen,
-            row.ReferenceViewedAt, row.At, row.ActiveSeconds, rating, revisions, row.Choice, row.Correct, row.StudySessionId);
+            row.ReferenceViewedAt, row.At, row.ActiveSeconds, rating, revisions, row.Choice, row.Correct, row.StudySessionId, row.Correct.HasValue ? Catalog.Content(q).Quiz?.Reasons : null);
     }
 
     private async Task<ReferenceResponse> RevealAttempt(Guid id, string owner, CancellationToken ct)

@@ -1,6 +1,6 @@
 # 04. .NET Interview Practice
 
-Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 94 câu Việt–Anh, 11 chủ đề, 14 bài C#, 11 bài T-SQL, 15 tình huống code review và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
+Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 102 câu Việt–Anh, 11 chủ đề, 14 bài C#, 11 bài T-SQL, 15 tình huống code review, 8 đề thiết kế hệ thống và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
 
 ## Học và theo dõi tiến độ
 
@@ -11,6 +11,8 @@
 - Trong **Lộ trình → Cây kỹ năng và kiểm tra đầu vào**, chọn Intern, Fresher hoặc Junior. Mỗi bộ có bốn câu theo phiên bản. Phần code xuất hiện khi worker sẵn sàng. Kết quả chỉ ra câu có bằng chứng độc lập và chủ đề cần kiểm chứng thêm.
 - Trong **Phỏng vấn thử → Chuẩn bị theo CV và JD**, dán văn bản hoặc mở TXT UTF-8, PDF có chữ, DOCX tối đa 2 MiB. Duyệt và sửa phần trích xuất trước khi dùng. CV, JD và checklist chỉ lưu trên thiết bị khi bấm lưu. Có thể mở lại hoặc xóa tại trang này.
 - Web Speech hỗ trợ đọc đề và nhập lời nói tùy trình duyệt. Có thể sửa transcript trước khi nộp. Ghi âm để nghe lại là lựa chọn riêng, có tạm dừng, tiếp tục và xóa bản ghi.
+- Trong **Phỏng vấn thực hành → Thiết kế hệ thống**, dựng sơ đồ bằng kéo thả hoặc bàn phím, ghi chú các đánh đổi, tự đối chiếu theo đề và xuất SVG. Mỗi phiên bản đề có bản lưu riêng trên trình duyệt.
+- Flashcard có hai mặt và bốn mức tự đánh giá. Quiz chấm một hoặc nhiều lựa chọn theo đề và lưu ánh xạ khi xáo đáp án. Luyện tốc độ hỗ trợ đồng hồ 60 giây khôi phục trong cùng trình duyệt và chế độ tự do thời gian.
 
 ## Chạy local
 
@@ -94,7 +96,7 @@ dotnet build server --no-restore
 npm.cmd run test:content --prefix web
 ~~~
 
-test:content kiểm định 94 bản ghi câu hỏi, 52 bài vận dụng và 25 bài thực hành. 111 ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
+test:content kiểm định 102 bản ghi câu hỏi, 52 bài vận dụng và 25 bài thực hành. 111 ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
 
 Trên Windows, sau khi build frontend, chạy các lệnh sau từ thư mục dự án. Hai lượt QA dùng Chrome đã cài, cơ sở dữ liệu InterviewPractice_QA, tài khoản thử nghiệm và tiến trình loopback tạm. Lần chạy sau phải bắt đầu sau khi lần trước đã kết thúc.
 

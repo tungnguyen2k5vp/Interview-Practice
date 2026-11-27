@@ -47,7 +47,7 @@ internal sealed record HistoryItem(string Id, string Label, string Path, string 
 /// <summary>Trang lịch sử và số mẫu.</summary>
 internal sealed record HistoryPage(HistoryItem[] Items, int Total, int Page, int PageSize);
 
-internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog exercises, TimeProvider clock)
+internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog exercises, TimeProvider clock, Materials materials)
 {
     public static void Map(RouteGroupBuilder api)
     {
@@ -108,7 +108,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             || request.TimeZone is null || request.TimeZone.Length > 80 || !TimeZoneInfo.TryFindSystemTimeZoneById(request.TimeZone, out _)
             || (request.Level is not null && !Catalog.Levels.Contains(request.Level))
             || request.MinutesPerDay is < 1 or > 480 || request.DaysPerWeek is < 1 or > 7
-            || (request.Track is not null && request.Track is not ("intern30" or "fresher60" or "junior90" or "sprint7" or "sprint14" or "custom"))
+            || (request.Track is not null && !materials.Latest<RoadmapTrack>("track").Any(t=>t.Id==request.Track))
             || !Known(request.Topics) || !Known(request.Roadmap) || !Known(request.ReviewTopics))
             throw ApiProblem.Invalid("Kiểm tra mục tiêu, chủ đề, múi giờ và thời lượng.");
         await using var tx = await db.LockLearning(owner, ct);
@@ -166,7 +166,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         var resumeQuestion = await Cards(reviews.Where(x => x.DraftId != null && x.DraftText != "")
             .OrderByDescending(x => x.LastActivityAt).Take(1)).FirstOrDefaultAsync(ct);
         StudyLink? resume = resumeMock is not null
-            ? new(Interviews.Presets.First(x => x.Id == resumeMock.Preset).Name, $"/phong-van/{resumeMock.Id}", "Phiên phỏng vấn đang dở")
+            ? new(catalog.PresetList.First(x => x.Id == resumeMock.Preset).Name, $"/phong-van/{resumeMock.Id}", "Phiên phỏng vấn đang dở")
             : resumeQuestion is not null ? new(resumeQuestion.Title, $"/cau-hoi/{resumeQuestion.Slug}", "Có câu trả lời đang viết", resumeQuestion.Topic) : null;
         var quick = await db.StudySessions.Where(x => x.UserId == owner && x.EndedAt == null).OrderByDescending(x => x.StartedAt)
             .Select(x => new { x.Id, x.Minutes }).FirstOrDefaultAsync(ct);
@@ -195,7 +195,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
             suggestions.Add(new(exercise.Title, $"/{(exercise.Kind == "sql" ? "sql" : "coding")}/{exercise.Slug}", "Bài thực hành đang chờ đối chiếu", exercise.Topic));
         if (suggestions.Count < 3)
             suggestions.Add(new("Nền tảng .NET", "/phong-van?preset=foundation", "Dành 15 phút để tập trả lời từng câu"));
-        var activity = Catalog.Topics.Select(topic =>
+        var activity = catalog.TopicList.Select(topic =>
         {
             var rows = current.Where(x => x.Topic == topic.Id).ToArray();
             return new TopicActivity(topic.Id, rows.Length, topicCounts.GetValueOrDefault(topic.Id),
@@ -216,7 +216,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
                 remaining -= review.Minutes;
             }
             var trainingDays = activityDays.Count(d => d < today && (goal.TrackStart == null || d >= goal.TrackStart));
-            var duration = goal.Track switch { "intern30" => 30, "fresher60" => 60, "junior90" => 90, "sprint7" => 7, "sprint14" => 14, _ => 0 };
+            var duration = materials.Latest<RoadmapTrack>("track").FirstOrDefault(t=>t.Id==goal.Track)?.Days??0;
             var soon = goal.InterviewDate is { } interviewDate && interviewDate >= today && interviewDate <= today.AddDays(2)
                 || duration > 0 && trackDay >= duration - 2 && trackDay <= duration;
             var rotation = soon ? 2 : trainingDays % 3;
@@ -266,7 +266,7 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         q = kind switch
         {
             "weak" => q.Where(x => x.Mastery == "review" || x.Rating == "unsure" || x.Rating == "partial"),
-            "wrong" => q.Where(x => x.Mastery == "review" || x.Rating == "unsure" || x.LastOutcome == "skipped"),
+            "wrong" => q.Where(x => x.Bookmarked || x.Mastery == "review" || x.Rating == "unsure" || x.LastOutcome == "skipped"),
             "skipped" => q.Where(x => x.LastOutcome == "skipped"),
             "bookmarked" => q.Where(x => x.Bookmarked),
             "planned" => q.Where(x => x.Due > today),

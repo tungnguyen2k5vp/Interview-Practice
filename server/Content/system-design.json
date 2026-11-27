@@ -1,0 +1,138 @@
+[
+  {
+    "slug": "url-shortener",
+    "version": 1,
+    "title": "URL Shortener",
+    "brief": "Một bản tin có thể đưa hàng triệu lượt đọc tới cùng một liên kết ngắn trong vài phút.",
+    "requirements": [
+      "Tạo mã rút gọn và chuyển hướng khi đọc.",
+      "Chủ sở hữu có thể thu hồi một mã đang được cache."
+    ],
+    "rubric": [
+      "Theo một lượt chuyển hướng từ mã tới URL đích.",
+      "Sau khi thu hồi, một mã cũ còn hoạt động bao lâu?",
+      "Ước lượng tải đọc cho liên kết được chia sẻ rộng.",
+      "Nếu cache mất toàn bộ dữ liệu, hệ thống phục hồi ra sao?",
+      "Ai có quyền tạo, sửa và thu hồi đích đến?"
+    ]
+  },
+  {
+    "slug": "e-commerce",
+    "version": 1,
+    "title": "E-commerce",
+    "brief": "Khách mua sản phẩm cuối cùng trong lúc cổng thanh toán phản hồi chậm.",
+    "requirements": [
+      "Ghi nhận đơn và giữ hàng trong thời gian giới hạn.",
+      "Xử lý thông báo thanh toán lặp hoặc đến trễ."
+    ],
+    "rubric": [
+      "Theo một đơn hàng từ giỏ đến xác nhận.",
+      "Số hàng nào được cam kết với khách trong lúc thanh toán?",
+      "Chọn bước cần mở rộng khi có đợt giảm giá.",
+      "Khi đã thu tiền nhưng chưa cập nhật đơn, ai đối soát?",
+      "Phân quyền xem đơn và giới hạn dữ liệu thanh toán thế nào?"
+    ]
+  },
+  {
+    "slug": "chat-system",
+    "version": 1,
+    "title": "Chat System",
+    "brief": "Một nhóm có người dùng trực tuyến và ngoại tuyến, có thể mở nhiều thiết bị cùng lúc.",
+    "requirements": [
+      "Đồng bộ tin nhắn bị bỏ lỡ sau khi kết nối lại.",
+      "Làm rõ thứ tự trong hội thoại và trạng thái đã nhận."
+    ],
+    "rubric": [
+      "Theo một tin từ người gửi tới hai thiết bị của người nhận.",
+      "Sự kiện nào quyết định thứ tự của tin nhắn?",
+      "Một phòng rất đông ảnh hưởng đến phân phối ra sao?",
+      "Thiết bị gửi lại một tin sau khi mất mạng thì sao?",
+      "Khi thành viên rời nhóm, việc đọc lịch sử tuân theo quy tắc nào?"
+    ]
+  },
+  {
+    "slug": "booking-system",
+    "version": 1,
+    "title": "Booking System",
+    "brief": "Hai khách cùng chọn chỗ cuối trong một khung giờ.",
+    "requirements": [
+      "Giữ chỗ có thời hạn rồi xác nhận hoặc giải phóng.",
+      "Cho phép hủy và tra lại trạng thái đặt chỗ."
+    ],
+    "rubric": [
+      "Theo một lần giữ chỗ đến bước xác nhận.",
+      "Điểm nào quyết định ai giữ được chỗ cuối?",
+      "Giảm tải khi một sự kiện vừa mở bán thế nào?",
+      "Khi tiến trình hết hạn bị dừng, ai thu hồi chỗ?",
+      "Ai được xem, xác nhận hoặc hủy lần đặt chỗ?"
+    ]
+  },
+  {
+    "slug": "notification-service",
+    "version": 1,
+    "title": "Notification Service",
+    "brief": "Hệ thống giao dịch gửi thông báo theo lựa chọn kênh của từng khách hàng.",
+    "requirements": [
+      "Theo dõi trạng thái gửi theo kênh và giới hạn của nhà cung cấp.",
+      "Tôn trọng thay đổi tùy chọn nhận tin."
+    ],
+    "rubric": [
+      "Từ một giao dịch đến email hoặc tin nhắn diễn ra qua đâu?",
+      "Chọn chính sách khi chưa biết nhà cung cấp đã nhận hay chưa.",
+      "Chia tải theo kênh khi một nhà cung cấp xử lý chậm.",
+      "Sau nhiều lần gửi lỗi, thông báo đi đâu?",
+      "Ai được xem nội dung và thay đổi tùy chọn nhận tin?"
+    ]
+  },
+  {
+    "slug": "inventory-management",
+    "version": 1,
+    "title": "Inventory Management",
+    "brief": "Nhiều kho ghi nhận nhập, xuất và chuyển hàng. Một số cập nhật đến trễ.",
+    "requirements": [
+      "Truy ra được lịch sử điều chỉnh tồn.",
+      "Hiển thị lượng còn bán được tại mỗi kho."
+    ],
+    "rubric": [
+      "Theo một lượt chuyển hàng qua hai kho.",
+      "Tồn khả dụng khác tồn vật lý ở những thời điểm nào?",
+      "Chọn khóa phân vùng khi một mã hàng rất phổ biến.",
+      "Phát hiện và sửa chênh lệch tồn như thế nào?",
+      "Ai có thể điều chỉnh tồn và xác minh nhật ký?"
+    ]
+  },
+  {
+    "slug": "file-upload",
+    "version": 1,
+    "title": "File Upload Service",
+    "brief": "Người dùng tải tệp lớn từ đường truyền hay gián đoạn rồi chia sẻ cho người khác.",
+    "requirements": [
+      "Tiếp tục tải và chỉ công bố khi tệp hoàn chỉnh.",
+      "Thu hồi quyền tải xuống và dọn phần tải dở."
+    ],
+    "rubric": [
+      "Dữ liệu tệp và metadata đi qua những bước nào?",
+      "Khi nào tệp được coi là hoàn chỉnh và sẵn sàng đọc?",
+      "Đường truyền hay bộ nhớ nào giới hạn số lượt tải đồng thời?",
+      "Nếu người dùng rời trang giữa chừng, ai dọn phần chưa hoàn tất?",
+      "Ai kiểm tra quyền đọc khi đường dẫn đã được chia sẻ?"
+    ]
+  },
+  {
+    "slug": "learning-management",
+    "version": 1,
+    "title": "Learning Management System",
+    "brief": "Học viên theo một khóa học trong khi giảng viên xuất bản phiên bản bài mới.",
+    "requirements": [
+      "Giữ được phiên bản học viên đã nộp.",
+      "Tổng hợp tiến độ và cho phép học tiếp trên thiết bị khác."
+    ],
+    "rubric": [
+      "Theo một lần nộp bài tới lịch sử và bảng tiến độ.",
+      "Tiến độ trên thiết bị khác được phép chậm bao lâu?",
+      "Bảng thống kê lớp lớn nên đọc từ đâu?",
+      "Khôi phục bảng tiến độ khi tác vụ tổng hợp dừng giữa chừng.",
+      "Ai được mở bài riêng và xem kết quả từng học viên?"
+    ]
+  }
+]

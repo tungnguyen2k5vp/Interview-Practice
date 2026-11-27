@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import { chromium } from 'playwright'
 import { checkLabs } from './labs.mjs'
 import { checkPersonalization } from './personalization.mjs'
+import { advanced } from './advanced.mjs'
 
 const baseURL = process.env.IP_BASE ?? 'http://127.0.0.1:5096'
 assert(['localhost','127.0.0.1'].includes(new URL(baseURL).hostname))
@@ -357,8 +358,11 @@ try {
     let state=await send(client,'/interviews','POST',{...defaults,id:randomUUID()},[201])
     const firstId=state.session.id, firstSlug=state.current.slug
     assert.equal(process.env.IP_QA_DB,'InterviewPractice_QA')
-    execFileSync('sqlcmd',['-S','localhost','-E','-C','-b','-d','InterviewPractice_QA','-Q',
-      "UPDATE Interviews SET [Plan]=JSON_MODIFY(JSON_MODIFY(JSON_MODIFY([Plan],'$.activeStart',NULL),'$.aiLimit',NULL),'$.aiUsed',NULL) WHERE Id='"+firstId+"'"],{stdio:'pipe'})
+    const container=process.env.IP_QA_SQL_CONTAINER
+    const query="UPDATE Interviews SET [Plan]=JSON_MODIFY(JSON_MODIFY(JSON_MODIFY([Plan],'$.activeStart',NULL),'$.aiLimit',NULL),'$.aiUsed',NULL) WHERE Id='"+firstId+"'"
+    const sqlArgs=['-S','localhost','-C','-b','-d','InterviewPractice_QA','-Q',query]
+    if(container)execFileSync('docker',['exec','-e','SQLCMDPASSWORD',container,'/opt/mssql-tools18/bin/sqlcmd','-U','sa',...sqlArgs],{stdio:'pipe'})
+    else execFileSync('sqlcmd',['-E',...sqlArgs],{stdio:'pipe'})
     const skip=()=>send(client,'/interviews/'+state.session.id+'/actions','POST',{id:randomUUID(),revision:state.revision,action:'skip'})
     state=await skip();assert.equal(state.session.status,'completed');assert(!state.report[0].mainEntry && !state.previous)
     state=await send(client,'/interviews','POST',{...defaults,id:randomUUID(),reviewOf:firstId},[201])
@@ -399,6 +403,8 @@ try {
     checkLabs({page,client,peer,send,screenshots}))
   await check('local PDF and DOCX extraction, consent and deletion, placement levels and prerequisite navigation', () =>
     checkPersonalization({page,ctx,peer,send}))
+  await check('diagram editing, drag and keyboard, reload and SVG, material revisions, publication and audit log', ()=>
+    advanced({page,ctx,browser,baseURL,send,screenshots}))
   await check('render six widths, both themes, keyboard focus and real browser controls', async () => {
     const routes=[['dashboard','/'],['bank','/cau-hoi'],['practice','/cau-hoi/integer-division'],['coding','/coding/frequency-map'],
       ['sql','/sql/customer-orders'],['interview','/phong-van'],['report','/luot-luyen/'+attempt.id],['roadmap','/lo-trinh'],

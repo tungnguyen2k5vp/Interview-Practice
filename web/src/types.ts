@@ -13,10 +13,10 @@ export const labels = {
   difficulty: { easy: 'Cơ bản', medium: 'Trung bình', hard: 'Nâng cao' },
   level: { intern: 'Intern', fresher: 'Fresher', junior: 'Junior', mid: 'Middle', senior: 'Senior' },
   mastery: { new: 'Chưa học', learning: 'Đang học', self: 'Đã hiểu theo tự đánh giá', ai: 'Đã được AI đánh giá', review: 'Cần ôn lại', secure: 'Đã được kiểm chứng', mastered: 'Thành thạo có bằng chứng' },
-  reviewReason: { objective: 'Đáp án chưa đúng', transfer: 'Bài vận dụng chưa đúng', assisted: 'Cần trả lời lại độc lập', self: 'Tự đánh giá cần luyện thêm', ai: 'AI đề nghị kiểm tra lại', skipped: 'Đã bỏ qua', stale: 'Bằng chứng cần cập nhật', version: 'Nội dung có phiên bản mới', essay: 'Cần luyện lại' },
+  reviewReason: { bookmarked:'Đã đánh dấu để luyện lại', objective: 'Đáp án chưa đúng', transfer: 'Bài vận dụng chưa đúng', assisted: 'Cần trả lời lại độc lập', self: 'Tự đánh giá cần luyện thêm', ai: 'AI đề nghị kiểm tra lại', skipped: 'Đã bỏ qua', stale: 'Bằng chứng cần cập nhật', version: 'Nội dung có phiên bản mới', essay: 'Cần luyện lại' },
   exerciseProgress: { new: 'Chưa luyện', draft: 'Đã lưu nháp', hint: 'Đã xem gợi ý', solution: 'Đã xem lời giải', reviewed: 'Đã tự đối chiếu', submitted: 'Đã gửi chấm', attempted: 'Đã chạy thử', accepted: 'Đạt test với trợ giúp', independent: 'Đã giải độc lập', 'needs-review': 'Cần kiểm chứng lại' },
   format: { concept: 'Khái niệm', compare: 'So sánh', read: 'Đọc mã', debug: 'Tìm lỗi', predict: 'Dự đoán', design: 'Thiết kế', experience: 'Kinh nghiệm', quiz: 'Trắc nghiệm' },
-  rating: { unsure: 'Chưa hiểu', partial: 'Hiểu một phần', clear: 'Giải thích được' },
+  rating: { again:'Luyện lại', hard:'Khó', good:'Nhớ được', easy:'Dễ', unsure: 'Chưa hiểu', partial: 'Hiểu một phần', clear: 'Giải thích được' },
   status: { viewed: 'Đã xem tài liệu', answered: 'Đã trả lời', skipped: 'Đã bỏ qua', unasked: 'Chưa hỏi', unanswered: 'Chưa trả lời', active: 'Đang thực hiện', paused: 'Đã tạm dừng', completed: 'Hoàn thành', ended: 'Kết thúc sớm', expired: 'Hết giờ' },
   preset: { foundation: 'Nền tảng .NET', backend: 'Backend & API', 'problem-solving': 'SQL & Problem Solving', design: 'System Design', coding: 'Coding Interview', 'sql-round': 'SQL Interview', people: 'HR & Dự án' },
   publication: { draft: 'Nháp', published: 'Đã xuất bản', retired: 'Ngừng xuất bản' },
@@ -29,14 +29,14 @@ export const runStatuses: Record<string, string> = { requested:'Đã gửi yêu 
   output_limit:'Vượt giới hạn output', cancelled:'Đã hủy', failed:'Worker gặp lỗi' }
 export const rubricTitles = ['Tính đúng kỹ thuật', 'Lập luận và điều kiện áp dụng', 'Chiều sâu và đánh đổi', 'Diễn đạt']
 
-export type Topic = { id: string; name: string; stage: string; check: string; exercise: string }
+export type Topic = { exerciseKind?: string; id: string; name: string; stage: string; check: string; exercise: string }
 export type Card = {
   slug: string; version: number; title: string; topic: string; format: string; difficulty: string; level: string
   technology?: string; minutes: number; bookmarked: boolean; outcome?: string; rating?: string; due?: string; tags?: string[]; mastery?: string; verifiedDays?: number; reviewReason?: string; aiAssessed?: boolean
 }
 export type Question = {
   card: Card; subtopic: string; tags: string[]; prompt: string; englishPrompt: string; context: string; code?: string
-  choices?: { vi: string[]; en: string[] }; prerequisites: string[]; related: string[]
+  choices?: { vi: string[]; en: string[]; multiple?: boolean }; prerequisites: string[]; related: string[]
 }
 export type Reference = {
   version: number; shortAnswer: string; outline: string[]; explanation: string; alternative: string; trap: string
@@ -56,7 +56,7 @@ export type AiReview = {
 }
 export type Attempt = {
   choice?: number; correct?: boolean; studySessionId?: string
-  id: string; question: Question; text: string; language: string; outcome: string; hintSeen: boolean; answerSeen: boolean
+  id: string; question: Question; text: string; language: string; outcome: string; hintSeen: boolean; answerSeen: boolean; choiceReasons?: string[]
   at: string; activeSeconds: number; referenceViewedAt?: string; rating?: string; revisions: AnswerRevision[]
 }
 export type Page<T> = { items: T[]; total: number; page: number; pageSize: number }
@@ -115,7 +115,7 @@ export type QuestionContent = {
   technology?: string | null; prompt: string; englishPrompt: string; context: string; code?: string | null; hint: string
   followUp: string; englishFollowUp: string; outline: string[]; shortAnswer: string; explanation: string; alternative: string
   trap: string; rubric: string[]; source: string; checkedOn: string; nextHint?: string; core?: boolean
-  prerequisites?: string[]; related?: string[]; quiz?: { vi: string[]; en: string[]; correctIndex: number } | null
+  prerequisites?: string[]; related?: string[]; quiz?: { vi: string[]; en: string[]; correctIndex: number; correctIndices?: number[]; reasons?: string[] } | null
 }
 export type EditorialRow = { slug: string; latest: number; published?: number; status: string; title: string; topic: string }
 export type Editorial = Omit<EditorialRow, 'title' | 'topic'> & { revision: number; content: QuestionContent }

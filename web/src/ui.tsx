@@ -163,8 +163,8 @@ export function Ratings({ rating, change, busy }: { rating?: string; change: (va
   return <fieldset className="ratings">
     <legend>Tự đánh giá</legend>
     <p className="small muted">Bạn đang tự chọn mức hiểu của mình.</p>
-    <div className="action-row">{Object.entries(labels.rating).map(([key, title]) =>
-      <Button key={key} tone={rating === key ? 'primary' : 'secondary'} disabled={busy} aria-pressed={rating === key} onClick={() => change(key)}>{title}</Button>)}</div>
+    <div className="action-row">{(['unsure','partial','clear'] as const).map(key =>
+      <Button key={key} tone={rating === key ? 'primary' : 'secondary'} disabled={busy} aria-pressed={rating === key} onClick={() => change(key)}>{labels.rating[key]}</Button>)}</div>
   </fieldset>
 }
 export const shortDate = (value: string) => new Intl.DateTimeFormat('vi', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })

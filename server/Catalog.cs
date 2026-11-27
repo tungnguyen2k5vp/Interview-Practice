@@ -15,8 +15,8 @@ internal sealed record QuestionContent(
     string Explanation, string Alternative, string Trap, string[] Rubric, string Source, DateOnly CheckedOn,
     string? NextHint = null, string[]? Prerequisites = null, string[]? Related = null, QuizKey? Quiz = null, bool Core = false);
 
-internal sealed record QuizKey(string[] Vi, string[] En, int CorrectIndex);
-internal sealed record QuizOptions(string[] Vi, string[] En);
+internal sealed record QuizKey(string[] Vi, string[] En, int CorrectIndex, int[]? CorrectIndices=null, string[]? Reasons=null);
+internal sealed record QuizOptions(string[] Vi, string[] En,bool Multiple=false);
 
 /// <summary>Tóm tắt công khai của câu hỏi và trạng thái học cá nhân nếu đã đăng nhập.</summary>
 internal sealed record QuestionCard(
@@ -45,8 +45,10 @@ internal sealed record PublicationRequest(int Revision, string Status);
 
 internal sealed record SeedQuestion(string Slug, QuestionContent Content);
 
-internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environment, TimeProvider clock)
+internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environment, TimeProvider clock, Materials materials)
 {
+    internal TopicInfo[] TopicList => materials.Latest<TopicInfo>("topic");
+    internal InterviewPreset[] PresetList => materials.Latest<InterviewPreset>("preset");
     private PracticeDb Db => db;
     public static readonly TopicInfo[] Topics =
     [
@@ -69,7 +71,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
 
     public static void Map(RouteGroupBuilder api)
     {
-        api.MapGet("/topics", () => TypedResults.Ok(Topics)).WithSummary("Liệt kê chủ đề và bước lộ trình.");
+        api.MapGet("/topics", (Catalog c, ExerciseCatalog exercises) => c.TopicList.Select(t=>new { t.Id,t.Name,t.Stage,t.Check,t.Exercise,exerciseKind=exercises.Find(t.Exercise,null).Kind })).WithSummary("Liệt kê chủ đề và bước lộ trình.");
         api.MapGet("/questions/technologies", async (Catalog catalog, CancellationToken ct) =>
             await catalog.PublishedQuery().Where(q => q.Technology != null).Select(q => q.Technology!).Distinct().OrderBy(x => x).ToArrayAsync(ct))
             .WithSummary("Liệt kê phiên bản kỹ thuật đang xuất bản.");
@@ -89,7 +91,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             var item = new SeedQuestion(slug, Content(await catalog.Version(slug, head.Latest, ct)));
             return TypedResults.File(System.Text.Encoding.UTF8.GetBytes(DataJson.Write(new[] { item })), "application/json", slug + ".json");
         });
-        admin.MapPost("/import", (SeedQuestion[] items, Catalog catalog, CancellationToken ct) => catalog.Import(items, ct));
+        admin.MapPost("/import", (SeedQuestion[] items, ClaimsPrincipal user, Catalog catalog, CancellationToken ct) => catalog.Import(items, user.Id(), ct));
         admin.MapGet("", async (Catalog catalog, CancellationToken ct) =>
             await catalog.Db.Questions.Join(catalog.Db.QuestionVersions,
                 head => new { head.Slug, Version = head.Latest }, version => new { version.Slug, version.Version },
@@ -98,10 +100,10 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             .WithSummary("Liệt kê nội dung ở mọi trạng thái cho admin.");
         admin.MapGet("/{slug}", (string slug, Catalog catalog, CancellationToken ct) => catalog.AdminDetail(slug, ct))
             .WithSummary("Đọc bản biên tập mới nhất và phiên bản đang xuất bản.");
-        admin.MapPut("/{slug}", (string slug, EditQuestionRequest request, Catalog catalog, CancellationToken ct)
-            => catalog.SaveVersion(slug, request, ct)).WithSummary("Lưu một phiên bản nội dung bất biến.");
-        admin.MapPost("/{slug}/publication", (string slug, PublicationRequest request, Catalog catalog, CancellationToken ct)
-            => catalog.Publish(slug, request, ct)).WithSummary("Xuất bản bản mới nhất hoặc ngừng xuất bản.");
+        admin.MapPut("/{slug}", (string slug, EditQuestionRequest request, ClaimsPrincipal user, Catalog catalog, CancellationToken ct)
+            => catalog.SaveVersion(slug, request, user.Id(), ct)).WithSummary("Lưu một phiên bản nội dung bất biến.");
+        admin.MapPost("/{slug}/publication", (string slug, PublicationRequest request, ClaimsPrincipal user, Catalog catalog, CancellationToken ct)
+            => catalog.Publish(slug, request,user.Id(), ct)).WithSummary("Xuất bản bản mới nhất hoặc ngừng xuất bản.");
     }
 
     private static string? Term(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -184,7 +186,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
     {
         var c = Content(q);
         return new(Card(q, s), c.Subtopic, c.Tags, c.Prompt, c.EnglishPrompt, c.Context, c.Code,
-            c.Quiz is null ? null : new(c.Quiz.Vi, c.Quiz.En), c.Prerequisites ?? [], c.Related ?? []);
+            c.Quiz is null ? null : new(c.Quiz.Vi, c.Quiz.En,c.Quiz.CorrectIndices!=null), c.Prerequisites ?? [], c.Related ?? []);
     }
 
     public static ReferenceResponse Reference(QuestionVersion q)
@@ -268,7 +270,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         return TypedResults.Ok(new { head.Slug, head.Latest, head.Published, head.Revision, head.Status, content = Content(version) });
     }
 
-    private async Task<IResult> Import(SeedQuestion[] items, CancellationToken ct)
+    private async Task<IResult> Import(SeedQuestion[] items,string actor, CancellationToken ct)
     {
         if (items is not { Length: > 0 and <= 20 }) throw ApiProblem.Invalid("Nhập từ 1 đến 20 câu mỗi lần.");
         var slugs = new HashSet<string>(StringComparer.Ordinal);
@@ -290,13 +292,14 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         foreach (var item in items)
         {
             db.Questions.Add(new QuestionHead { Slug = item.Slug, Latest = 1, Revision = 1, Status = "draft" });
+            Materials.Audit(db,actor,"import","question",item.Slug,1,clock.GetUtcNow());
             db.QuestionVersions.Add(VersionRow(item.Slug, 1, item.Content));
         }
         await db.SaveChangesAsync(ct);
         return TypedResults.Ok(new { imported = items.Length });
     }
 
-    private async Task<IResult> SaveVersion(string slug, EditQuestionRequest request, CancellationToken ct)
+    private async Task<IResult> SaveVersion(string slug, EditQuestionRequest request,string actor, CancellationToken ct)
     {
         if (request.Content is null)
             throw ApiProblem.Invalid("Cần nhập nội dung câu hỏi.");
@@ -317,12 +320,13 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         head.Revision++;
         head.Status = "draft";
         db.QuestionVersions.Add(VersionRow(slug, head.Latest, request.Content));
+        Materials.Audit(db,actor,"draft","question",slug,head.Latest,clock.GetUtcNow());
         await db.SaveChangesAsync(ct);
         var response = new { head.Slug, head.Latest, head.Published, head.Revision, head.Status };
         return created ? TypedResults.Created($"/api/admin/questions/{slug}", response) : TypedResults.Ok(response);
     }
 
-    private async Task<IResult> Publish(string slug, PublicationRequest request, CancellationToken ct)
+    private async Task<IResult> Publish(string slug, PublicationRequest request,string actor, CancellationToken ct)
     {
         await using var transaction = await db.Database.BeginTransactionAsync(ct);
         var head = await db.Questions.FindAsync([slug], ct) ?? throw ApiProblem.Missing();
@@ -336,6 +340,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
             _ => throw ApiProblem.Invalid("Trạng thái xuất bản không hợp lệ.")
         };
         head.Status = request.Status;
+        Materials.Audit(db,actor,request.Status,"question",slug,head.Latest,clock.GetUtcNow());
         head.Revision++;
         await db.SaveChangesAsync(ct);
         if (head.Published is int published && previous != published)
@@ -364,7 +369,7 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         static bool Has(string? value, int max) => !string.IsNullOrWhiteSpace(value) && value.Length <= max;
         static bool List(string[]? values, int min, int max, int length) =>
             values is not null && values.Length >= min && values.Length <= max && values.All(x => Has(x, length));
-        if (slug == "new" || slug.Length > 90 || !SlugShape().IsMatch(slug))
+        if (slug is "new" or "hoc-lieu" || slug.Length > 90 || !SlugShape().IsMatch(slug))
             throw ApiProblem.Invalid("Slug dùng chữ thường, số và dấu nối, tối đa 90 ký tự.");
         if (!Topics.Any(x => x.Id == c.Topic) || !Formats.Contains(c.Format) || !Levels.Contains(c.Level) || !Difficulties.Contains(c.Difficulty))
             throw ApiProblem.Invalid("Chọn chủ đề, dạng câu, mức mục tiêu và độ khó hợp lệ.");
@@ -382,6 +387,9 @@ internal sealed partial class Catalog(PracticeDb db, IWebHostEnvironment environ
         if (c.Format == "quiz" && c.Quiz is null && !allowLegacyWrittenQuiz)
             throw ApiProblem.Invalid("Dạng trắc nghiệm cần lựa chọn tiếng Việt, tiếng Anh và đáp án đúng.");
         if (c.Quiz is { } quiz && (!List(quiz.Vi, 2, 6, 300) || !List(quiz.En, 2, 6, 300)
+            || quiz.CorrectIndices is {} indices && (indices.Length<2 || indices.Length>=quiz.Vi.Length || indices.Distinct().Count()!=indices.Length ||
+                !indices.Contains(quiz.CorrectIndex) || indices.Any(i=>i<0 || i>=quiz.Vi.Length))
+            || quiz.Reasons is {} reasons && !List(reasons,quiz.Vi.Length,quiz.Vi.Length,700)
             || quiz.En.Length != quiz.Vi.Length || quiz.CorrectIndex < 0 || quiz.CorrectIndex >= quiz.Vi.Length
             || quiz.Vi.Select(x => x.Trim()).Distinct().Count() != quiz.Vi.Length || quiz.En.Select(x => x.Trim()).Distinct().Count() != quiz.En.Length))
             throw ApiProblem.Invalid("Cần lựa chọn Việt/Anh tương ứng và một đáp án đúng hợp lệ.");

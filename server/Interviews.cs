@@ -74,7 +74,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
 
     public static void Map(RouteGroupBuilder api)
     {
-        api.MapGet("/interview-presets", () => TypedResults.Ok(Presets)).WithSummary("Xem các bộ phỏng vấn.");
+        api.MapGet("/interview-presets", (Catalog catalog) => TypedResults.Ok(catalog.PresetList)).WithSummary("Xem các bộ phỏng vấn.");
         var group = api.MapGroup("/interviews").RequireAuthorization();
         group.MapPost("", (StartInterviewRequest request, ClaimsPrincipal user, Interviews service, CancellationToken ct)
             => service.Start(request, user.Id(), ct)).WithSummary("Chốt kế hoạch và bắt đầu phiên.");
@@ -97,7 +97,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
 
     private async Task<IResult> Start(StartInterviewRequest request, string user, CancellationToken ct)
     {
-        var preset = Presets.SingleOrDefault(x => x.Id == request.Preset);
+        var preset = catalog.PresetList.SingleOrDefault(x => x.Id == request.Preset);
         if (request.Id == Guid.Empty || preset is null || request.Mode is not ("guided" or "mock" or "offline" or "guided-ai" or "realistic-ai")
             || (Automatic(request.Mode) ? !request.AiConsent || request.AiLimit is < 1 or > 4 : request.AiConsent || request.AiLimit != 0)
             || request.Language is not ("vi" or "en") || request.Minutes is not (15 or 30 or 45)

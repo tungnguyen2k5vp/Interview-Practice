@@ -2,8 +2,8 @@ import { useRef, useState } from 'react'
 import { ArrowRight } from 'lucide-react'
 import { api, useAction, useResource } from './api'
 import { SignInGate, useSession } from './session'
-import { label, labels } from './types'
-import { Badge, Button, Field, Link, Loading, Options, PageTitle, Problem, navigate } from './ui'
+import { label } from './types'
+import { Badge, Button, Field, Link, Loading, PageTitle, Problem, navigate } from './ui'
 
 type SkillNode={slug:string;title:string;version:number;mastery?:string;verifiedDays:number;aiAssessed:boolean;prerequisites:string[]}
 type SkillTopic={id:string;name:string;check:string;exercise?:{kind:string;slug:string;title:string};nodes:SkillNode[]}
@@ -23,7 +23,7 @@ export function Skills(){
       <Button tone="primary" disabled={action.busy} onClick={()=>void action.run(async()=>{
         const next=await api<{id:string}>('/placement',{method:'POST',body:{id:startId.current,level}});navigate('/phien-hoc/'+next.id)
       })}>Bắt đầu kiểm tra <ArrowRight size={16}/></Button><Problem text={action.error}/></section>
-    <section className="panel content-panel stack"><Field label="Nhóm kỹ năng"><select value={topic} onChange={e=>setTopic(e.target.value)}><Options values={labels.topics}/></select></Field>
+    <section className="panel content-panel stack"><Field label="Nhóm kỹ năng"><select value={topic} onChange={e=>setTopic(e.target.value)}>{tree.data?.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
       {tree.loading && <Loading/>}<Problem text={tree.error} retry={tree.reload}/>
       {current && <><h2>{current.name}</h2><p>{current.check}</p>
         <p className="small muted">{current.nodes.filter(n=>n.verifiedDays>0).length}/{current.nodes.length} câu có bằng chứng độc lập hiện tại</p>

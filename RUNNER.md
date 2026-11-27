@@ -43,6 +43,8 @@ Lệnh cuối dùng OpenSSL để tạo chứng chỉ QA một ngày, chỉ API 
 
 Khi nâng cấp worker đã có bộ test riêng, chạy `node worker/prepare-tests.mjs <tệp-mới> <tệp-hiện-tại>`. Công cụ sao chép các bộ cũ theo khóa slug/version/testVersion và sinh ca cho phiên bản mới. Trỏ IP_WORKER_TESTS sang tệp mới sau khi kiểm tra. Cả hai tệp phải ở ngoài web root.
 
+Với bài được biên tập trong **Quản trị nội dung → Biên tập học liệu**, xuất phiên bản đã xuất bản và xuất gói test riêng. Đặt `IP_WORKER_CATALOG` trỏ tới một mảng JSON chứa các phiên bản bổ sung, gộp các bản cần giữ để tiếp tục chấm lượt cũ. Giữ test ẩn ngoài thư mục publish API. Sau khi biên soạn test ẩn tương ứng từng khóa, chạy `node worker/check.mjs --catalog --attest` với cấu hình hiện tại rồi khởi động lại worker. API chỉ hiện Run/Submit cho bản học liệu bổ sung khi worker xác nhận hỗ trợ đúng loại, slug, phiên bản đề và phiên bản test.
+
 Máy staging cần cấu hình biến môi trường trước khi khởi động.
 
 | Biến | Giá trị |

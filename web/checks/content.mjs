@@ -63,6 +63,11 @@ for (const {slug, content: c} of [...batch, ...newBatches]) {
   if (c.quiz) {
     assert.equal(c.quiz.vi.length, c.quiz.en.length)
     assert(c.quiz.vi.length >= 2 && Number.isInteger(c.quiz.correctIndex) && c.quiz.vi[c.quiz.correctIndex] && c.quiz.en[c.quiz.correctIndex])
+    if(c.quiz.correctIndices) {
+      const correct=c.quiz.correctIndices
+      assert(correct.length>=2 && correct.length<c.quiz.vi.length && new Set(correct).size===correct.length && correct.includes(c.quiz.correctIndex),slug)
+      assert(correct.every(i=>Number.isInteger(i) && i>=0 && i<c.quiz.vi.length) && c.quiz.reasons?.length===c.quiz.vi.length && c.quiz.reasons.every(x=>x.trim()),slug)
+    }
     for (const options of [c.quiz.vi,c.quiz.en]) assert(options.every(o=>typeof o==='string' && o.trim()) && new Set(options).size===options.length, slug)
   }
 }
@@ -175,8 +180,7 @@ const harness = [
   'static async Task CheckSql(string name, string sql, string names, string types, string expected, bool ordered)',
   '{',
   '    // Only the checked-in reference queries run against session-scoped temporary tables in tempdb.',
-  '    const string connection = "Server=localhost;Database=tempdb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5;";',
-  '    await using var db = new SqlConnection(connection);',
+  '    await using var db = new SqlConnection(ContentConnection());',
   '    await db.OpenAsync();',
   '    await using var query = new SqlCommand(sql, db) { CommandTimeout = 5 };',
   '    await using var reader = await query.ExecuteReaderAsync();',
@@ -203,7 +207,7 @@ const harness = [
   '}',
   'async Task Preview(string key, string seed, string tableNames)',
   '{',
-  '    await using var db = new SqlConnection("Server=localhost;Database=tempdb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5");',
+  '    await using var db = new SqlConnection(ContentConnection());',
   '    await db.OpenAsync();',
   '    await using (var command = new SqlCommand(seed, db)) await command.ExecuteNonQueryAsync();',
   '    var tables = new List<object>();',
@@ -217,6 +221,8 @@ const harness = [
   '    }',
   '    previews.Add(key, tables);',
   '}',
+  'static string ContentConnection() => new SqlConnectionStringBuilder(Environment.GetEnvironmentVariable("IP_CONTENT_SQL_CONNECTION")',
+  '    ?? "Server=localhost;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5;") { InitialCatalog = "tempdb" }.ConnectionString;',
   'public static class Solutions',
   '{',
   ...coding.map(item => item.solution.split('\n').map(line => '    ' + line).join('\n')),

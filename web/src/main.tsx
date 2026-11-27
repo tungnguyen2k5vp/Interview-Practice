@@ -7,6 +7,7 @@ const AdminRoute = lazy(() => import('./Admin').then(m => ({default: m.AdminRout
 const Preparation = lazy(() => import('./Preparation').then(m => ({default: m.Preparation})))
 const Labs = lazy(() => import('./Labs').then(m => ({default: m.Labs})))
 const Skills = lazy(() => import('./Skills').then(m => ({default: m.Skills})))
+const DesignPlayground = lazy(() => import('./DesignPlayground').then(m => ({default:m.DesignPlayground})))
 import { Bank } from './Bank'
 import { DashboardPage } from './Dashboard'
 import { ExerciseList, ExerciseRoute } from './Exercises'
@@ -67,6 +68,7 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
     case '': return <DashboardPage />
     case 'lo-trinh': return <Roadmap />
     case 'ky-nang': return <Skills />
+    case 'thiet-ke': return <DesignPlayground />
     case 'chuan-bi': return <PreparationForUser />
     case 'thuc-hanh': return <Labs mode={params.get('mode')==='debug'?'debug':params.get('mode')==='review'?'review':'project'}/>
     case 'phien-hoc': return slug ? <StudyRoute key={slug} id={slug} params={params} /> : <StudyStart initial={params.get('mode') ?? 'new'} />

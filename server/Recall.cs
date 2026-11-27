@@ -83,6 +83,8 @@ internal static class Recall
         var events = history.Select(x =>
         {
             var self = x.Id == overrideId && rating is not null ? rating : x.Rating;
+            if(self is "again" or "hard" or "good" or "easy")
+                return new RecallEvent(x.StudyDay ?? Learning.LocalDate(x.At,zone),self switch {"again"=>0,"hard"=>2,"easy"=>5,_=>4},false,"self",x.At);
             var ai = x.Id == overrideId && feedback is not null ? feedback :
                 x.Feedback is null ? null : DataJson.Read<AiResponse>(x.Feedback).Body;
             var technical = ai?.Criteria.FirstOrDefault();

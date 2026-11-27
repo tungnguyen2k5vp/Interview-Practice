@@ -7,7 +7,9 @@ const content = new URL('../server/Content/',import.meta.url)
 const read = file => JSON.parse(readFileSync(file,'utf8'))
 const compile = readFileSync(new URL('./compile.sh',import.meta.url),'utf8').replaceAll('\r\n','\n')
 const entries = readdirSync(content).filter(f => /^exercises(?:-batch-[\w-]+)?\.json$/.test(f)).flatMap(f=>read(new URL(f,content)))
+if (process.env.IP_WORKER_CATALOG) entries.push(...read(process.env.IP_WORKER_CATALOG))
 export const exercises = new Map(entries.map(e=>[[e.slug,e.version,e.testVersion].join('@'),e]))
+if(exercises.size!==entries.length)throw new Error('Duplicate exercise release')
 export const keyOf = r => [r.slug,r.version,r.testVersion].join('@')
 
 export function inputArgs(text) {

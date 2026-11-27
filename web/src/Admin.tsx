@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { MaterialEditor } from './MaterialEditor'
 import { ChevronRight, Download, Plus, ShieldCheck } from 'lucide-react'
 import { api, useAction, useResource } from './api'
 import { useSession } from './session'
@@ -9,18 +10,19 @@ import { ActionLink, Badge, Button, Dialog, Empty, Field, Link, Loading, Options
 export function AdminRoute({ slug }: { slug?: string }) {
   const { user } = useSession()
   const list = useResource<EditorialRow[]>(user?.admin && !slug ? '/admin/questions' : null)
-  const detail = useResource<Editorial>(user?.admin && slug && slug !== 'new' ? '/admin/questions/' + encodeURIComponent(slug) : null)
+  const detail = useResource<Editorial>(user?.admin && slug && slug !== 'new' && slug !== 'hoc-lieu' ? '/admin/questions/' + encodeURIComponent(slug) : null)
   const [search, setSearch] = useState('')
   const [importStatus, setImportStatus] = useState('')
   const importer = useAction()
   if (!user?.admin) return <div className="page">
     <PageTitle title="Quản trị nội dung" /><div className="panel"><Empty title="Cần quyền biên tập nội dung" detail="Đăng nhập bằng tài khoản được cấp quyền quản trị nội dung." /></div>
   </div>
+  if (slug === 'hoc-lieu') return <MaterialEditor />
   if (slug === 'new') return <EditorialEdit key="new" />
   if (detail.data) return <EditorialEdit key={detail.data.slug} initial={detail.data} />
   return <div className="page narrow">
     <PageTitle title="Quản trị câu hỏi" description="Lưu đề, đáp án và rubric thành phiên bản mới trước khi xuất bản."
-      action={<ActionLink tone="primary" href="/quan-tri/new"><Plus size={16} /> Tạo câu hỏi</ActionLink>} />
+      action={<div className="action-row"><ActionLink href="/quan-tri/hoc-lieu">Biên tập học liệu</ActionLink><ActionLink tone="primary" href="/quan-tri/new"><Plus size={16} /> Tạo câu hỏi</ActionLink></div>} />
     {(list.loading || detail.loading) && <Loading />}
     <Problem text={list.error || detail.error} retry={list.error ? list.reload : detail.reload} />
     {list.data && <section className="panel content-panel stack">
@@ -136,8 +138,13 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
           {(['vi', 'en'] as const).map(lang => <Field key={lang} label={'Lựa chọn tiếng ' + (lang === 'vi' ? 'Việt' : 'Anh') + ', mỗi dòng một đáp án'}>
             <textarea required rows={4} value={quiz[lang].join('\n')} onChange={e => update('quiz', { ...quiz, [lang]: e.target.value.split('\n') })}/>
           </Field>)}
-          <Field label="Đáp án đúng"><select required value={quiz.correctIndex < quiz.vi.length ? quiz.correctIndex : ''} onChange={e => update('quiz', { ...quiz, correctIndex: Number(e.target.value) })}>
-            <option value="" disabled>Chọn đáp án</option>{quiz.vi.map((option, i) => <option key={i} value={i}>{i + 1}. {option}</option>)}</select></Field>
+          <label className="check-chip"><input type="checkbox" checked={!!quiz.correctIndices} onChange={e=>update('quiz',{...quiz,correctIndices:e.target.checked?[quiz.correctIndex]:undefined})}/> Chọn nhiều đáp án</label>
+          {quiz.correctIndices ? <fieldset><legend>Các đáp án đúng</legend>{quiz.vi.map((o,i)=><label className="check-chip" key={i}><input type="checkbox" checked={quiz.correctIndices!.includes(i)} onChange={e=>{
+            const indices=e.target.checked?[...quiz.correctIndices!,i]:quiz.correctIndices!.filter(n=>n!==i)
+            update('quiz',{...quiz,correctIndices:indices,correctIndex:indices[0]??0})
+          }}/>{o}</label>)}</fieldset> : <Field label="Đáp án đúng"><select required value={quiz.correctIndex < quiz.vi.length ? quiz.correctIndex : ''} onChange={e => update('quiz', { ...quiz, correctIndex: Number(e.target.value) })}>
+            <option value="" disabled>Chọn đáp án</option>{quiz.vi.map((option, i) => <option key={i} value={i}>{i + 1}. {option}</option>)}</select></Field>}
+          <Field label="Giải thích từng lựa chọn, mỗi dòng một ý" full><textarea value={quiz.reasons?.join('\n')??''} onChange={e=>update('quiz',{...quiz,reasons:e.target.value?e.target.value.split('\n'):undefined})}/></Field>
         </div>}
         <Field label="Ý chính mong đợi, mỗi ý một dòng"><textarea required rows={4} value={outline} onChange={e => { setOutline(e.target.value); setDirty(true) }} /></Field>
         {areas(answers)}

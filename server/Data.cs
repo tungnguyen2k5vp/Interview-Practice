@@ -246,6 +246,8 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
     public DbSet<ExerciseSubmission> ExerciseSubmissions => Set<ExerciseSubmission>();
     public DbSet<ExternalPractice> ExternalPractice => Set<ExternalPractice>();
     public DbSet<ReviewComment> ReviewComments => Set<ReviewComment>();
+    public DbSet<MaterialVersion> Materials => Set<MaterialVersion>();
+    public DbSet<EditorialEvent> EditorialEvents => Set<EditorialEvent>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -261,6 +263,13 @@ internal sealed class PracticeDb(DbContextOptions<PracticeDb> options) : Identit
         b.Entity<QuestionVersion>().Property(x => x.Difficulty).HasMaxLength(12);
         b.Entity<QuestionVersion>().Property(x => x.Title).HasMaxLength(160);
         b.Entity<StudyState>().HasKey(x => new { x.UserId, x.Slug });
+        b.Entity<MaterialVersion>().HasKey(x => new { x.Kind, x.Slug, x.Version });
+        b.Entity<MaterialVersion>().Property(x => x.Kind).HasMaxLength(16);
+        b.Entity<MaterialVersion>().Property(x => x.Slug).HasMaxLength(90);
+        b.Entity<EditorialEvent>().Property(x => x.Kind).HasMaxLength(16);
+        b.Entity<EditorialEvent>().Property(x => x.Slug).HasMaxLength(90);
+        b.Entity<EditorialEvent>().Property(x => x.Action).HasMaxLength(16);
+        b.Entity<EditorialEvent>().HasIndex(x => new { x.Action, x.Id });
         b.Entity<StudyState>().HasOne<QuestionHead>().WithMany().HasForeignKey(x => x.Slug).OnDelete(DeleteBehavior.Restrict);
         b.Entity<StudyState>().Property(x => x.Revision).IsConcurrencyToken();
         b.Entity<StudyState>().HasIndex(x => new { x.UserId, x.Due });

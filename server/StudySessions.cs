@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace InterviewPractice;
 
 internal sealed record StartStudy(Guid Id, string Mode, int Minutes, string? Topic);
-internal sealed record StudyItem(string Slug, int Version, string Title, int Minutes, string? Topic=null);
+internal sealed record StudyItem(string Slug, int Version, string Title, int Minutes, string? Topic=null, string? Reason=null);
 
 internal static class StudySessions
 {
@@ -62,20 +62,21 @@ internal static class StudySessions
             {
                 "new" => s?.LastAttemptId is null && unmet == 0,
                 "due" => s?.Due <= today,
-                "wrong" => s?.Mastery == "review" || s?.Rating == "unsure" || s?.LastOutcome == "skipped" || wrong.Contains(q.Slug),
+                "wrong" => s?.Bookmarked==true || s?.Mastery == "review" || s?.Rating == "unsure" || s?.LastOutcome == "skipped" || wrong.Contains(q.Slug),
                 "weak" => weakTopics.Contains(q.Topic),
-                "core" => c.Core || Interviews.Presets.Any(p => p.Suggested.Contains(q.Slug)),
+                "core" => c.Core || catalog.PresetList.Any(p => p.Suggested.Contains(q.Slug)),
                 "quiz" => c.Quiz is not null,
                 "essay" => c.Quiz is null,
                 "debug" or "predict" or "compare" => q.Format == request.Mode,
                 _ => true
             })
-            orderby request.Mode == "due" ? s?.Due : null,
+            orderby request.Mode=="flashcard" && s?.Due<=today descending, request.Mode is "due" or "flashcard" ? s?.Due : null,
                 unmet,
                 s?.LastActivityAt, goal.Topics.Contains(q.Topic) descending,
                 Math.Abs(Array.IndexOf(Catalog.Levels, q.Level) - Math.Max(0, Array.IndexOf(Catalog.Levels, goal.Level))),
                 q.Minutes, q.Slug
-            select new StudyItem(q.Slug, q.Version, q.Title, request.Mode == "speed" ? 1 : q.Minutes);
+            select new StudyItem(q.Slug, q.Version, q.Title, request.Mode is "speed" or "flashcard" ? 1 : q.Minutes, q.Topic,
+                request.Mode=="wrong" ? s?.ReviewReason ?? (s?.Bookmarked==true?"bookmarked":s?.LastOutcome=="skipped"?"skipped":"self") : null);
         var plan = new List<StudyItem>();
         var remaining = request.Minutes;
         foreach (var item in candidates)
@@ -117,6 +118,6 @@ internal static class StudySessions
         var codingResult = placement?.Coding?.Submission is { } job ? await db.ExerciseSubmissions.AsNoTracking().Where(j=>
             j.Id==job && j.UserId==row.UserId && j.Action=="submit").Select(j=>new{j.Status,j.Assisted}).SingleOrDefaultAsync(ct) : null;
         return TypedResults.Ok(new { row.Id, row.Mode, row.Minutes, row.StartedAt, row.EndedAt, level=placement?.Level, coding=placement?.Coding, codingResult,
-            items = Plan(row).Select(i => new { i.Slug, i.Version, i.Title, i.Minutes, i.Topic, attempt = attempts.GetValueOrDefault(i.Slug) }) });
+            items = Plan(row).Select(i => new { i.Slug, i.Version, i.Title, i.Minutes, i.Topic, i.Reason, attempt = attempts.GetValueOrDefault(i.Slug) }) });
     }
 }

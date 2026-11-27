@@ -11,7 +11,7 @@ namespace InterviewPractice;
 internal sealed record RunRequest(Guid Id, string Action, string Code, string? Input, Guid? PlacementId = null);
 internal sealed record RunRow(Guid Id, string Slug, int Version, string Action, string Status, DateTimeOffset At,
     string? Output, string[]? Columns, string?[][]? Rows, int? Passed, int? Total, int? Milliseconds);
-internal sealed record RunnerCapabilities(int Protocol, bool Isolated, string[] Kinds);
+internal sealed record RunnerCapabilities(int Protocol, bool Isolated, string[] Kinds, string[]? Exercises=null);
 internal sealed record RunPage(RunRow[] Items, int Total);
 
 // Only the isolated worker holds datasets, hidden cases and execution credentials.
@@ -24,11 +24,11 @@ internal sealed class RunnerGateway(IHttpClientFactory clients, IConfiguration c
     private readonly bool approved = config.GetValue<bool>("Runner:IsolationVerified");
     internal bool Configured => approved && endpoint is not null && !string.IsNullOrWhiteSpace(token);
     private readonly SemaphoreSlim gate = new(1, 1);
-    private (DateTimeOffset Until, string[] Kinds) capabilities = (DateTimeOffset.MinValue, []);
+    private (DateTimeOffset Until, string[] Kinds, string[]? Exercises) capabilities = (DateTimeOffset.MinValue, [], null);
 
     private static ApiProblem Offline() => new(503, "runner_unavailable", "Chưa cấu hình môi trường thực thi hoặc worker đang ngoại tuyến.");
 
-    public async Task<bool> Available(string kind, CancellationToken ct)
+    public async Task<bool> Available(string kind, CancellationToken ct, string? exercise=null, bool seed=false)
     {
         if (!Configured) return false;
         await gate.WaitAsync(ct);
@@ -37,15 +37,17 @@ internal sealed class RunnerGateway(IHttpClientFactory clients, IConfiguration c
             if (clock.GetUtcNow() >= capabilities.Until)
             {
                 string[] kinds = [];
+                string[]? exercises = null;
                 try
                 {
                     var caps = await Send<RunnerCapabilities>(HttpMethod.Get, "v1/capabilities", null, ct);
-                    if (caps is { Protocol: 1, Isolated: true, Kinds: not null }) kinds = caps.Kinds;
+                    if (caps is { Protocol: 1, Isolated: true, Kinds: not null }) { kinds=caps.Kinds; exercises=caps.Exercises; }
                 }
                 catch (ApiProblem) { /* A failed handshake keeps execution disabled. */ }
-                capabilities = (clock.GetUtcNow().AddSeconds(10), kinds);
+                capabilities = (clock.GetUtcNow().AddSeconds(10), kinds, exercises);
             }
-            return capabilities.Kinds.Contains(kind);
+            return capabilities.Kinds.Contains(kind) && (exercise == null ||
+                (capabilities.Exercises?.Contains(kind + ":" + exercise) ?? seed));
         }
         finally { gate.Release(); }
     }
@@ -150,7 +152,7 @@ internal sealed class RunnerGateway(IHttpClientFactory clients, IConfiguration c
             if (input.Id == Guid.Empty || input.Action is not ("run" or "submit") || string.IsNullOrWhiteSpace(input.Code) ||
                 input.Code.Length > 32000 || input.Input?.Length > 8000 || (input.Action == "submit" && input.Input is not null))
                 throw ApiProblem.Invalid("Kiểm tra mã nguồn, thao tác và đầu vào tùy chỉnh.");
-            if (!await gateway.Available(e.Kind, ct)) throw Offline();
+            if (!await catalog.Available(e, ct)) throw Offline();
             if(input.PlacementId != null && input.Action!="submit") throw ApiProblem.Invalid("Chỉ lượt nộp mới gắn với bài kiểm tra đầu vào.");
             var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(DataJson.Write(new { slug, version, input.Action, input.Code, input.Input, e.TestVersion })+input.PlacementId?.ToString("N"))));
             await using (var tx = await db.LockLearning(user.Id(), ct))

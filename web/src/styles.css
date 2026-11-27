@@ -42,6 +42,20 @@ p, li { overflow-wrap: anywhere; }
 p { color: var(--body); }
 ul { margin: 8px 0; padding-left: 22px; }
 svg { flex: none; vertical-align: middle; }
+.design-brief { max-width: 74ch; }
+.json-source, .material-value { font-family: var(--mono); font-size: .875rem; }
+.material-value { white-space: pre-wrap; overflow-wrap: anywhere; }
+.design-brief p { margin-top: 8px; }
+.design-scroll { max-width: 100%; min-width: 0; overflow: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--ground); }
+.design-board { display: block; width: 100%; min-width: 680px; max-height: 510px; }
+.design-board .part { cursor: grab; touch-action: none; }
+.design-board .part rect { fill: var(--surface); stroke: var(--muted); }
+.design-board .part.selected rect, .design-board .part:focus-visible rect { fill: var(--accent-soft); stroke: var(--primary); stroke-width: 3px; }
+.design-board text { fill: var(--ink); font-size: 14px; user-select: none; }
+.design-board .part-type, .design-board .flow-label { font-size: 11px; fill: var(--muted); }
+.design-board .flow { stroke: var(--muted); stroke-width: 2px; }
+.design-board .arrow { fill: var(--muted); }
+.design-board .flow-label { paint-order: stroke; stroke: var(--ground); stroke-width: 4px; }
 pre, code, kbd { font-family: var(--mono); }
 .small { font-size: .8125rem; }
 .muted { color: var(--muted); }

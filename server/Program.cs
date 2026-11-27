@@ -82,6 +82,7 @@ builder.Services.AddHttpClient("runner").ConfigurePrimaryHttpMessageHandler(() =
 builder.Services.AddSingleton<RunnerGateway>();
 builder.Services.AddHttpClient("public-github").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false, UseCookies = false });
 builder.Services.AddHostedService<RunnerSync>();
+builder.Services.AddSingleton<Materials>();
 builder.Services.AddSingleton<ExerciseCatalog>();
 builder.Services.AddSingleton<CodeReviews>();
 builder.Services.AddSingleton<KnowledgeChecks>();
@@ -134,6 +135,19 @@ var api = app.MapGroup("/api").AddEndpointFilter(async (context, next) =>
     }
     return await next(context);
 });
+PathString[] materialRoutes = ["/api/admin/materials", "/api/design-scenarios", "/api/roadmap-tracks", "/api/topics",
+    "/api/skills/tree", "/api/placement", "/api/labs/reviews", "/api/exercises", "/api/runner",
+    "/api/interview-presets", "/api/interviews", "/api/study-sessions", "/api/dashboard", "/api/history", "/api/profile"];
+api.AddEndpointFilter(async (ctx,next)=>{
+    var path = ctx.HttpContext.Request.Path;
+    if (materialRoutes.Any(prefix => path.StartsWithSegments(prefix)))
+    {
+        var services = ctx.HttpContext.RequestServices;
+        await services.GetRequiredService<Materials>().Refresh(services.GetRequiredService<PracticeDb>(),ctx.HttpContext.RequestAborted);
+    }
+    return await next(ctx);
+});
+Materials.Map(api);
 Auth.Map(api);
 Catalog.Map(api);
 Practice.Map(api);

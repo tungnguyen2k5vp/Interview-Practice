@@ -8,6 +8,7 @@ import { label, labels, runStatuses } from './types'
 import { ActionLink, Badge, Button, Dialog, Empty, Field, Link, Loading, Options, PageTitle, Pagination, Problem, QuestionCard, Segments, TopicChecks, dateTime, navigate, shortDate } from './ui'
 
 export function Roadmap() {
+  const tracks=useResource<{id:string;name:string;level?:string;days:number;minutes?:number}[]>('/roadmap-tracks')
   const topics = useResource<Topic[]>('/topics')
   const dashboard = useResource<Dashboard>('/dashboard')
   const { goal, setGoal, user } = useSession()
@@ -29,22 +30,17 @@ export function Roadmap() {
     void save({ ...goal, roadmap: next }, 'Đã đổi thứ tự lộ trình.')
   }
   const today = dashboard.data?.today
-  const tracks: Record<string, [string, string, number, number]> = {
-    intern30: ['Intern .NET · 30 ngày', 'intern', 30, 20], fresher60: ['Fresher .NET · 60 ngày', 'fresher', 60, 30],
-    junior90: ['Junior Backend · 90 ngày', 'junior', 90, 45], sprint7: ['Ôn cấp tốc · 7 ngày', goal.level || 'junior', 7, 30],
-    sprint14: ['Ôn cấp tốc · 14 ngày', goal.level || 'junior', 14, 30], custom: ['Lộ trình tùy chỉnh', goal.level || 'junior', 0, goal.minutesPerDay ?? 20],
-  }
-  const track = goal.track ? tracks[goal.track] : null
+  const track=tracks.data?.find(t=>t.id===goal.track)
   return <div className="page narrow">
     <PageTitle title="Lộ trình học" description="Đi từ kiến thức nền đến ứng dụng và tình huống thực tế. Bạn có thể đổi thứ tự theo mục tiêu."
       action={<div className="action-row"><ActionLink href="/ky-nang">Cây kỹ năng và kiểm tra đầu vào</ActionLink><ActionLink href="/cai-dat"><CalendarDays size={16} /> Thiết lập lịch học</ActionLink></div>} />
     {(topics.loading || dashboard.loading) && <Loading />}
-    <Problem text={topics.error || dashboard.error || action.error} retry={topics.error ? topics.reload : dashboard.error ? dashboard.reload : undefined} />
+    <Problem text={tracks.error || topics.error || dashboard.error || action.error} retry={tracks.error?tracks.reload:topics.error ? topics.reload : dashboard.error ? dashboard.reload : undefined} />
     {user && <section className="panel content-panel"><Field label="Chọn lộ trình"><select value={goal.track ?? ''} disabled={action.busy || !today}
-      onChange={e => { const key = e.target.value; const t = tracks[key]; if (!t || !today) return
-        void save({ ...goal, track: key, level: t[1], minutesPerDay: t[3], daysPerWeek: goal.daysPerWeek ?? 5 }, 'Đã cập nhật lộ trình.')
-      }}><option value="" disabled>Chọn mục tiêu</option>{Object.entries(tracks).map(([key, t]) => <option key={key} value={key}>{t[0]}</option>)}</select></Field>
-      {track && <p className="small muted">{track[0]} · {track[2] > 0 && (dashboard.data?.trackDay ?? 1) > track[2]
+      onChange={e => { const key = e.target.value; const t = tracks.data?.find(item=>item.id===key); if (!t || !today) return
+        void save({ ...goal, track: key, level: t.level??goal.level??'junior', minutesPerDay: t.minutes??goal.minutesPerDay??20, daysPerWeek: goal.daysPerWeek ?? 5 }, 'Đã cập nhật lộ trình.')
+      }}><option value="" disabled>Chọn mục tiêu</option>{tracks.data?.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></Field>
+      {track && <p className="small muted">{track.name} · {track.days > 0 && (dashboard.data?.trackDay ?? 1) > track.days
         ? 'Đã qua mốc lộ trình' : 'Ngày ' + (dashboard.data?.trackDay ?? 1)}{goal.interviewDate && ' · Phỏng vấn ' + shortDate(goal.interviewDate)}</p>}</section>}
     {today && <section className="panel content-panel plan-strip">
       <div><h2>Kế hoạch hôm nay</h2><p>{goal.skipDay === today ? 'Bạn đã bỏ lịch luyện hôm nay.' : goal.track && !dashboard.data?.studyDay ? 'Ngày nghỉ theo nhịp học đã chọn.'
@@ -70,7 +66,7 @@ export function Roadmap() {
             <div className="metadata"><Badge tone={key}>{topic.stage}</Badge><span>{progress?.practicedQuestions ?? 0} / {progress?.catalogCount ?? 0} câu đã tự trả lời</span></div>
             <h2>{topic.name}</h2><p>{topic.check}</p>
             <div className="action-row"><Link className="text-link" href={'/cau-hoi?topic=' + key}>Câu nên luyện <ArrowRight size={15} /></Link>
-              <Link className="text-link" href={'/' + (['sql', 'efcore', 'testing'].includes(key) ? 'sql' : 'coding') + '/' + topic.exercise}>Bài áp dụng <ArrowRight size={15} /></Link>
+              <Link className="text-link" href={'/' + (topic.exerciseKind??(['sql', 'efcore', 'testing'].includes(key)?'sql':'coding')) + '/' + topic.exercise}>Bài áp dụng <ArrowRight size={15} /></Link>
               {user && <Button tone="quiet" aria-pressed={reviewing} disabled={action.busy} onClick={() => void save({
                 ...goal, reviewTopics: reviewing ? goal.reviewTopics.filter(x => x !== key) : [...goal.reviewTopics, key],
               }, reviewing ? 'Đã bỏ ưu tiên ôn.' : 'Đã đánh dấu cần ôn.')}>{reviewing ? 'Đang cần ôn' : 'Đánh dấu cần ôn'}</Button>}
@@ -90,8 +86,8 @@ export function Reviews({ params }: { params: URLSearchParams }) {
   const { user } = useSession()
   const kind = params.get('tab') ?? 'due'
   const selected = useResource<Card[]>(user && kind !== 'exercises' ? '/reviews?kind=' + encodeURIComponent(kind) : null)
-  const exercises = useResource<ExerciseCard[]>(user && kind === 'exercises' ? '/exercises' : null)
-  const pending = exercises.data?.filter(x => x.progress !== 'independent') ?? []
+  const exercises = useResource<ExerciseCard[]>(user && (kind === 'exercises'||kind==='wrong') ? '/exercises' : null)
+  const pending = exercises.data?.filter(x => kind==='wrong'?x.progress==='needs-review':x.progress !== 'independent') ?? []
   return <div className="page">
     <PageTitle title="Ôn tập" description="Ôn lại câu đến hạn, câu bạn đánh dấu hoặc nội dung cần giải thích rõ hơn."
       action={<ActionLink href="/ghi-chu?important=1"><Bookmark size={16} /> Ghi chú quan trọng</ActionLink>} />
@@ -108,7 +104,7 @@ export function Reviews({ params }: { params: URLSearchParams }) {
         detail="Mở một câu để đặt lịch ôn, đánh dấu hoặc tự đánh giá sau khi luyện." action={<ActionLink href="/cau-hoi">Xem ngân hàng</ActionLink>} /></div>)}
       {exercises.data && <div className="panel content-panel">{pending.length ? pending.map(x => <Link key={x.slug} className="study-row" href={'/' + x.kind + '/' + x.slug}>
         <TopicIcon topic={x.topic} /><span><strong>{x.title}</strong><small>{label('exerciseProgress', x.progress)}</small></span><ChevronRight size={16} className="row-arrow" />
-      </Link>) : <Empty title="Bạn đã giải độc lập tất cả bài hiện có" detail="Các lượt nộp và phiên bản bài vẫn có trong lịch sử luyện tập." action={<ActionLink href="/tien-do?tab=coding">Xem lịch sử</ActionLink>} />}</div>}
+      </Link>) : <Empty title={kind==='wrong'?'Chưa có bài thực hành cần kiểm chứng lại':'Bạn đã giải độc lập tất cả bài hiện có'} detail="Các lượt nộp và phiên bản bài vẫn có trong lịch sử luyện tập." action={<ActionLink href="/tien-do?tab=coding">Xem lịch sử</ActionLink>} />}</div>}
     </>}
   </div>
 }

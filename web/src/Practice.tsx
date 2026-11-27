@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Bookmark, CalendarPlus, Check, Clock3, FileText, Lightbulb, RotateCcw } from 'lucide-react'
-import { api, useAction, useResource } from './api'
+import { api, localSet, useAction, useResource } from './api'
+import { Flashcard, SpeedClock } from './StudyTools'
 import { useDraft } from './draft'
 import { SignInGate, useSession } from './session'
 import { label } from './types'
@@ -84,6 +85,18 @@ function RelatedQuestion({ slug }: {slug:string}) {
   const q = useResource<Question>('/questions/'+slug)
   return q.data ? <Link className="text-link" href={'/cau-hoi/'+slug}>{q.data.card.title}</Link> : <span>{q.loading ? '…' : 'Chưa xuất bản'}</span>
 }
+function choiceOrder(count:number,seed?:string){
+  const order=Array.from({length:count},(_,i)=>i)
+  if(seed){
+    let n=2166136261
+    for(const c of seed)n=Math.imul(n^c.charCodeAt(0),16777619)
+    for(let i=count-1;i>0;i--){
+      n=(Math.imul(n,1664525)+1013904223)>>>0
+      const j=n%(i+1),previous=order[i];order[i]=order[j];order[j]=previous
+    }
+  }
+  return order
+}
 function sameCursor(a: DraftCursor, b: DraftCursor) {
   return a.version === b.version && a.revision === b.revision && (a.revision === 0 || a.id === b.id)
 }
@@ -102,6 +115,10 @@ function QuestionEditor({ initial, owner, session }: { initial: PracticeData; ow
   const action = useAction()
   const { question } = data
   const choices = session?.mode === 'essay' ? undefined : question.choices
+  const [expired,setExpired]=useState(false)
+  const [speedReady,setSpeedReady]=useState(false)
+  const speed=session?.mode==='speed'
+  const timerKey=ownerKey(owner,'speed',session?.id+':'+question.card.slug)
   const base = '/practice/questions/' + question.card.slug
   const query = session ? '?sessionId=' + session.id : ''
   const fresh = useRef(newCursor(question.card.version))
@@ -112,6 +129,10 @@ function QuestionEditor({ initial, owner, session }: { initial: PracticeData; ow
       return { stamp: saved.cursor, text: saved.text }
     }, sameCursor)
 
+  const checkedIndices:number[]=(()=>{
+    if(!choices?.multiple)return []
+    try {const values:unknown=JSON.parse(draft.text);return Array.isArray(values)?values.filter((n):n is number=>Number.isInteger(n)&&n>=0&&n<choices.vi.length):[]}catch{return []}
+  })()
   useEffect(() => {
     if (!timer) return
     const tick = window.setInterval(() => {
@@ -132,13 +153,15 @@ function QuestionEditor({ initial, owner, session }: { initial: PracticeData; ow
       setOpened(result)
     })
   }
-  function submit(skip: boolean) {
+  function submit(skip: boolean,flashRating?:string) {
     void action.run(async () => {
       const cursor = await draft.flush()
-      const index = choices ? choices.vi.findIndex((option, i) => draft.text === option || draft.text === choices.en[i]) : -1
+      const many=choices?.multiple && !skip && !flashRating ? checkedIndices : undefined
+      const index = choices && !choices.multiple ? choices.vi.findIndex((option, i) => draft.text === option || draft.text === choices.en[i]) : -1
       const attempt = await api<Attempt>(base + '/submit', { method: 'POST',
-        body: { cursor, language: selectedLanguage, skip, activeSeconds: seconds, choice: !skip && index >= 0 ? index : null, studySessionId: session?.id } })
+        body: { cursor, language: selectedLanguage, skip, activeSeconds: seconds, choice: !skip && !flashRating && index >= 0 ? index : null, studySessionId: session?.id, flashRating, choices:many } })
       draft.discard()
+      if(speed)localSet(timerKey,null)
       setTimer(false)
       setSkipping(false)
       navigate('/luot-luyen/' + attempt.id)
@@ -159,6 +182,12 @@ function QuestionEditor({ initial, owner, session }: { initial: PracticeData; ow
       setNotice(card.bookmarked ? 'Đã đánh dấu câu hỏi.' : 'Đã bỏ đánh dấu.')
     })
   }
+  if(session?.mode==='flashcard')return <div className="page practice-page"><QuestionTitle question={question}/>
+    <Flashcard reference={opened?.reference} reveal={()=>reveal('answer')} busy={action.busy||draft.state==='conflict'}
+      rate={grade=>submit(false,grade)} front={<Prompt question={question} language={selectedLanguage}/>}/>
+    <Problem text={action.error||draft.issue}/>{draft.state==='conflict'&&<DraftConflict busy={action.busy} onServer={()=>resolve(false)} onKeep={()=>resolve(true)}/>}
+    <p className="small muted">Đánh giá trên thẻ dùng để xếp lịch ôn. Bạn có thể làm bài vận dụng để kiểm chứng kiến thức.</p>
+  </div>
   return <div className="page practice-page">
     <QuestionTitle question={question} action={<Button tone="secondary" aria-pressed={question.card.bookmarked} disabled={action.busy} onClick={() => mark(!question.card.bookmarked)}>
       <Bookmark size={17} fill={question.card.bookmarked ? 'currentColor' : 'none'} />{question.card.bookmarked ? 'Đã đánh dấu' : 'Đánh dấu'}
@@ -170,21 +199,22 @@ function QuestionEditor({ initial, owner, session }: { initial: PracticeData; ow
         </section>
         <section className="panel content-panel stack">
           <div className="editor-top"><div><h2>Câu trả lời của bạn</h2><span className="small muted" role="status">{draft.stateText}</span></div>
-            <Button onClick={toggleTimer} disabled={action.busy} aria-pressed={timer}><Clock3 size={16} /> {session?.mode === 'speed' ? (timer || seconds ? timeText(Math.max(0, 60 - seconds)) : 'Bắt đầu 60 giây') : timer || seconds ? timeText(seconds) : 'Bấm giờ'}</Button>
+            {!speed && <Button onClick={toggleTimer} disabled={action.busy} aria-pressed={timer}><Clock3 size={16} /> {timer || seconds ? timeText(seconds) : 'Bấm giờ'}</Button>}
           </div>
-          {session?.mode === 'speed' && seconds >= 60 && <p role="status" className="notice">Đã hết 60 giây. Bạn có thể hoàn thiện rồi nộp câu trả lời.</p>}
-          {session?.mode === 'flashcard' && <Button disabled={action.busy || !!opened?.reference} onClick={() => reveal('answer')}><FileText size={16}/> Lật thẻ xem đáp án</Button>}
-          {choices ? <fieldset className="quiz-options" disabled={action.busy}><legend>Chọn một đáp án</legend>
-            {choices[selectedLanguage].map((text, i) => <label key={i}><input type="radio" name="choice" checked={draft.text === choices.vi[i] || draft.text === choices.en[i]} onChange={() => draft.change(text)} />{text}</label>)}</fieldset> :
+          {speed && <SpeedClock storage={timerKey} expired={setExpired} ready={setSpeedReady} onElapsed={setSeconds}/>}
+          {session?.mode==='predict' && <p className="small muted">Ghi kết quả dự đoán trước, rồi đối chiếu với kết quả đã kiểm định sau khi nộp.</p>}
+          {choices ? <fieldset className="quiz-options" disabled={action.busy || speed && (!speedReady||expired)}><legend>{choices.multiple?'Chọn tất cả đáp án phù hợp':'Chọn một đáp án'}</legend>
+            {choiceOrder(choices.vi.length,session?.mode==='quiz'?session.id+question.card.slug:undefined).map(i=> <label key={i}><input type={choices.multiple?'checkbox':'radio'} name="choice" checked={choices.multiple?checkedIndices.includes(i):draft.text === choices.vi[i] || draft.text === choices.en[i]}
+                onChange={e=>choices.multiple?draft.change(JSON.stringify(e.target.checked?[...checkedIndices,i]:checkedIndices.filter(n=>n!==i))):draft.change(choices[selectedLanguage][i])} />{choices[selectedLanguage][i]}</label>)}</fieldset> :
           <label className="field"><span className="sr-only">Câu trả lời của bạn</span>
-            <textarea rows={8} maxLength={16000} value={draft.text} readOnly={action.busy}
+            <textarea rows={8} maxLength={16000} value={draft.text} readOnly={action.busy || speed && (!speedReady||expired)}
               placeholder="Nêu ý chính, ví dụ và điều kiện áp dụng…" lang={selectedLanguage}
               onChange={e => draft.change(e.target.value)} />
           </label>}
           <div className="split"><span className="small muted">{draft.text.length.toLocaleString('vi')} / 16.000</span>
             <div className="action-row">
               <Button disabled={action.busy || draft.state === 'conflict'} onClick={() => void action.run(() => draft.flush(true))}>Lưu nháp</Button>
-              <Button tone="primary" disabled={action.busy || !draft.text.trim() || draft.state === 'conflict'} onClick={() => submit(false)}>Nộp câu trả lời <ArrowRight size={16} /></Button>
+              <Button tone="primary" disabled={action.busy || (choices?.multiple?!checkedIndices.length:!draft.text.trim()) || draft.state === 'conflict'} onClick={() => submit(false)}>Nộp câu trả lời <ArrowRight size={16} /></Button>
             </div>
           </div>
           {draft.state === 'conflict' && <DraftConflict onServer={() => resolve(false)} onKeep={() => resolve(true)} busy={action.busy} />}
@@ -283,8 +313,9 @@ function AttemptView({ initial }: { initial: Attempt }) {
         <section className="panel content-panel">
           <h2>{attempt.outcome === 'answered' ? 'Câu trả lời đã nộp' : 'Bạn đã bỏ qua câu này'}</h2>
           <p className="muted">{attempt.language === 'en' ? question.englishPrompt : question.prompt}</p>
-          {attempt.outcome === 'answered' && <div className="written-answer" lang={attempt.language}>{attempt.text}</div>}
+          {attempt.outcome === 'answered' && <div className="written-answer" lang={attempt.language}>{attempt.text || (attempt.rating ? 'Flashcard · '+label('rating',attempt.rating) : '')}</div>}
           {typeof attempt.correct === 'boolean' && <p className="notice">{attempt.correct ? 'Đáp án đúng' : 'Đáp án chưa đúng'} · Chấm theo đáp án của đề v{question.card.version}</p>}
+          {attempt.choiceReasons && <details className="details"><summary>Giải thích từng lựa chọn</summary><ul>{attempt.choiceReasons.map((r,i)=><li key={i}><strong>{question.choices?.[attempt.language==='en'?'en':'vi'][i]}</strong> · {r}</li>)}</ul></details>}
           {previous.data?.previous && <details className="details"><summary>So với lần trả lời trước</summary>
             <p className="small muted">{dateTime(previous.data.previous.at, goal.timeZone)} · {previous.data.previous.language === 'en' ? 'English' : 'Tiếng Việt'}</p>
             <p className="written-answer">{previous.data.previous.text}</p><Link className="text-link" href={'/luot-luyen/'+previous.data.previous.id}>Mở lượt trước</Link></details>}
@@ -298,7 +329,7 @@ function AttemptView({ initial }: { initial: Attempt }) {
             <p className="muted">Mở đáp án để so sánh cách lập luận và xem rubric của câu hỏi.</p>
             <Button onClick={() => void action.run(async () => setReference(await api<Reference>(base + '/reference', { method: 'POST' })))} disabled={action.busy}>Xem đáp án và rubric <ArrowRight size={16} /></Button>
           </>}
-          {attempt.outcome === 'answered' && <Ratings rating={attempt.rating} busy={action.busy} change={rating => void action.run(async () => {
+          {attempt.outcome === 'answered' && !['again','hard','good','easy'].includes(attempt.rating??'') && <Ratings rating={attempt.rating} busy={action.busy} change={rating => void action.run(async () => {
             setAttempt(await api<Attempt>(base + '/assessment', { method: 'PUT', body: { rating } }))
           })} />}
           <Problem text={action.error} />

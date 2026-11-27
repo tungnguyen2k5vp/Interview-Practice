@@ -10,7 +10,7 @@ type ProjectIndex = { fingerprint:string; files:string[]; questions:ProjectPromp
 
 export function Labs({ mode }: {mode:string}) {
   const { user } = useSession()
-  return <div className="page narrow"><PageTitle title="Phỏng vấn thực hành" back={['/phong-van','Phỏng vấn thử']}/>
+  return <div className="page narrow"><PageTitle title="Phỏng vấn thực hành" back={['/phong-van','Phỏng vấn thử']} action={<ActionLink href="/thiet-ke">Thiết kế hệ thống <ArrowRight size={16}/></ActionLink>}/>
     <Segments title="Bài phỏng vấn thực hành" selected={mode} change={v=>navigate('/thuc-hanh?mode='+v)}
       values={[['project','Dự án'],['review','Code review'],['debug','Debugging Lab']]}/>
     {user ? mode==='review' ? <ReviewLab/> : mode==='debug' ? <DebugLab/> : <ProjectInterview/> :

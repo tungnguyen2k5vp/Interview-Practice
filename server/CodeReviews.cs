@@ -7,10 +7,10 @@ internal sealed record ReviewCase(string Slug, int Version, string Title, string
     int[] Lines, string Severity, string Cause, string OtherCause, string Repair, string OtherRepair, string Check);
 internal sealed record ReviewInput(Guid Id, int Line, string Severity, string Cause, string Repair, string Comment, string Suggestion);
 
-internal sealed class CodeReviews(IWebHostEnvironment env)
+internal sealed class CodeReviews(Materials materials)
 {
-    private readonly ReviewCase[] cases = DataJson.Read<ReviewCase[]>(File.ReadAllText(Path.Combine(env.ContentRootPath,"Content","code-reviews.json")));
-    private ReviewCase Find(string slug, int version) => cases.SingleOrDefault(c => c.Slug == slug && c.Version == version) ?? throw ApiProblem.Missing();
+    private ReviewCase[] Cases => materials.Latest<ReviewCase>("review");
+    private ReviewCase Find(string slug,int version) => materials.Find<ReviewCase>("review",slug,version);
     private static string[] Choices(string a, string b) => [.. new[]{a,b}.Order(StringComparer.Ordinal)];
     private static object Result(ReviewCase c, ReviewInput a) => new { input = a, located = c.Lines.Contains(a.Line),
         severityMatches = a.Severity == c.Severity, causeMatches = a.Cause == c.Cause, repairMatches = a.Repair == c.Repair,
@@ -19,7 +19,7 @@ internal sealed class CodeReviews(IWebHostEnvironment env)
     internal static void Map(RouteGroupBuilder api)
     {
         var group = api.MapGroup("/labs/reviews").RequireAuthorization();
-        group.MapGet("", (CodeReviews service) => service.cases.GroupBy(c => c.Slug).Select(g => g.MaxBy(c => c.Version)!)
+        group.MapGet("", (CodeReviews service) => service.Cases
             .Select(c => new { c.Slug, c.Version, c.Title, c.File }));
         group.MapGet("/{slug}/{version:int}", async (string slug, int version, ClaimsPrincipal user, CodeReviews service, PracticeDb db, CancellationToken ct) => {
             var c = service.Find(slug, version);

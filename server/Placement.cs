@@ -12,7 +12,7 @@ internal static class Placement
     public static void Map(RouteGroupBuilder api)
     {
         api.MapPost("/placement", async (PlacementRequest request, ClaimsPrincipal user, PracticeDb db, Catalog catalog, ExerciseCatalog exercises,
-            RunnerGateway runner, TimeProvider clock, CancellationToken ct) => {
+            TimeProvider clock, CancellationToken ct) => {
             if(request.Id == Guid.Empty || request.Level is not ("intern" or "fresher" or "junior")) throw ApiProblem.Invalid("Chọn mức mục tiêu hợp lệ.");
             var owner = user.Id();
             var old = await db.StudySessions.AsNoTracking().SingleOrDefaultAsync(s => s.Id == request.Id && s.UserId == owner, ct);
@@ -29,7 +29,7 @@ internal static class Placement
             if(versions.Count != slugs.Length) throw ApiProblem.Conflict("Bộ kiểm tra đang thiếu câu đã xuất bản.");
             var items = slugs.Select(slug => { var q = versions[slug];return new StudyItem(q.Slug,q.Version,q.Title,q.Minutes,q.Topic); }).ToArray();
             var e = exercises.Find(request.Level=="junior"?"debug-api-segments":"overlapping-bookings",null);
-            var coding = await runner.Available("coding",ct) ? new PlacementCoding(e.Slug,e.Version,e.TestVersion) : null;
+            var coding = await exercises.Available(e,ct) ? new PlacementCoding(e.Slug,e.Version,e.TestVersion) : null;
             return await StudySessions.Save(db,new StudySession{Id=request.Id,UserId=owner,Mode="placement",Minutes=items.Sum(i=>i.Minutes)+(coding==null?0:e.Minutes),
                 StartedAt=clock.GetUtcNow(),Plan=DataJson.Write(new PlacementPlan(request.Level,items,coding))},ct);
         }).RequireAuthorization();
@@ -38,7 +38,7 @@ internal static class Placement
             await Recall.Expire(db,owner,await Learning.Today(db,owner,clock,ct),ct);
             var states=await db.StudyStates.AsNoTracking().Where(s=>s.UserId==owner).ToDictionaryAsync(s=>s.Slug,ct);
             var rows=await catalog.PublishedQuery().OrderBy(q=>q.Topic).ThenBy(q=>q.Title).ToArrayAsync(ct);
-            return Catalog.Topics.Select(t=>new { t.Id,t.Name,t.Check,
+            return catalog.TopicList.Select(t=>new { t.Id,t.Name,t.Check,
                 exercise=exercises.Latest.Where(e=>e.Slug==t.Exercise).Select(e=>new{e.Slug,e.Kind,e.Title}).SingleOrDefault(),
                 nodes=rows.Where(q=>q.Topic==t.Id).Select(q=>{
                     var card=Catalog.Card(q,states.GetValueOrDefault(q.Slug));
