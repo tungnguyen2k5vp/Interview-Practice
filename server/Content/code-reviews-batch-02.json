@@ -1,0 +1,184 @@
+[
+  {
+    "slug": "review-secondary-sort",
+    "version": 1,
+    "title": "Thứ tự phiếu trong từng mức ưu tiên",
+    "file": "DispatchBoard.cs",
+    "context": "Bảng điều phối cần xếp Priority giảm dần, rồi TicketNo tăng dần khi bằng Priority. tickets là danh sách trong bộ nhớ. TicketNo là duy nhất.",
+    "diff": [
+      " var sorted = tickets.OrderByDescending(t => t.Priority)",
+      "-    .ThenBy(t => t.TicketNo);",
+      "+    .OrderBy(t => t.TicketNo);",
+      " return sorted.Select(t => t.TicketNo).ToArray();"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "OrderBy thứ hai tạo khóa sắp xếp chính mới là TicketNo. Với TicketNo duy nhất, Priority không còn quyết định vị trí.",
+    "otherCause": "Select chỉ lấy TicketNo nên tự động sắp lại toàn bộ kết quả theo mã phiếu.",
+    "repair": "Dùng ThenBy cho TicketNo sau OrderByDescending theo Priority.",
+    "otherRepair": "Chỉ thêm ToList sau OrderBy theo TicketNo để giữ ưu tiên ban đầu.",
+    "check": "Dùng ba phiếu (ưu tiên, mã) là (1,1), (3,8), (3,4). Kết quả phải là 4, 8, 1."
+  },
+  {
+    "slug": "review-dictionary-duplicate-keys",
+    "version": 1,
+    "title": "Lập danh bạ thành viên theo đội",
+    "file": "TeamDirectory.cs",
+    "context": "Một đội có nhiều thành viên. Directory nhận một ánh xạ từ TeamId tới danh sách MemberId. Từng bản ghi đầu vào có MemberId duy nhất.",
+    "diff": [
+      " var directory = new Directory();",
+      "-var byTeam = members.GroupBy(m => m.TeamId).ToDictionary(g => g.Key, g => g.Select(m => m.MemberId).ToList());",
+      "+var byTeam = members.ToDictionary(m => m.TeamId, m => new List<int> { m.MemberId });",
+      " directory.Replace(byTeam);"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "ToDictionary đòi khóa duy nhất và ném lỗi khi gặp thành viên thứ hai của cùng TeamId.",
+    "otherCause": "Giá trị kiểu List<int> buộc Dictionary chỉ nhận một thành viên cho mỗi đội, kể cả khi đã nhóm đúng.",
+    "repair": "Nhóm theo TeamId rồi tạo một danh sách chứa mọi MemberId trong từng nhóm.",
+    "otherRepair": "Gọi DistinctBy theo TeamId trước ToDictionary để chỉ còn một dòng mỗi đội.",
+    "check": "Cho đội 3 có thành viên 7 và 9, đội 4 có thành viên 11. Xác nhận không ném lỗi và mỗi đội giữ đủ mã."
+  },
+  {
+    "slug": "review-untracked-rename",
+    "version": 1,
+    "title": "Lưu tên phòng mới",
+    "file": "RenameRoom.cs",
+    "context": "Dịch vụ dùng một DbContext mới cho mỗi lần đổi tên phòng. Hành vi mong đợi là SaveChangesAsync ghi tên mới để lần đọc sau ở context khác thấy được.",
+    "diff": [
+      "-var room = await db.Rooms.SingleAsync(r => r.Id == id, ct);",
+      "+var room = await db.Rooms.AsNoTracking().SingleAsync(r => r.Id == id, ct);",
+      " room.Name = newName;",
+      " await db.SaveChangesAsync(ct);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Entity lấy qua AsNoTracking không nằm trong change tracker. Việc gán Name lên đối tượng này không tạo thay đổi cần lưu.",
+    "otherCause": "SingleAsync chỉ ghi nhận một thuộc tính trên entity nên Name nằm ngoài kết quả truy vấn.",
+    "repair": "Dùng truy vấn có tracking cho thao tác sửa rồi gọi SaveChangesAsync.",
+    "otherRepair": "Đổi SingleAsync thành FirstAsync và giữ nguyên AsNoTracking.",
+    "check": "Đổi phòng A1 thành A2, dispose context ghi và query bằng context mới. Assert tên đọc từ DB là A2."
+  },
+  {
+    "slug": "review-ef-collection-clear",
+    "version": 1,
+    "title": "Thay chương trình học trong context mới",
+    "file": "CourseModules.cs",
+    "context": "Course có collection Modules khởi tạo bằng List rỗng. Lazy loading tắt và context mới chưa theo dõi module nào. Quan hệ bắt buộc có cascade delete; nghiệp vụ yêu cầu xóa toàn bộ module hiện có.",
+    "diff": [
+      "-var course = await db.Courses.Include(c => c.Modules).SingleAsync(c => c.Id == id, ct);",
+      "+var course = await db.Courses.SingleAsync(c => c.Id == id, ct);",
+      " course.Modules.Clear();",
+      " await db.SaveChangesAsync(ct);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Clear chỉ tác động các phần tử hiện có trong collection ở bộ nhớ. Modules chưa nạp nên không có quan hệ nào bị cắt.",
+    "otherCause": "Cascade delete luôn tắt với collection khởi tạo bằng List nên Include ban đầu cũng không thể xóa module.",
+    "repair": "Nạp collection trước khi Clear để EF theo dõi các quan hệ bị cắt, hoặc xóa trực tiếp các module theo CourseId.",
+    "otherRepair": "Gọi DetectChanges ngay sau Clear để EF tự truy vấn toàn bộ module chưa nạp.",
+    "check": "Tạo hai khóa học, mỗi khóa có hai module, dùng context mới để xóa module của khóa đầu. Đọc lại và xác nhận còn nguyên module của khóa kia."
+  },
+  {
+    "slug": "review-sql-average-int",
+    "version": 1,
+    "title": "Điểm trung bình học phần bị mất phần lẻ",
+    "file": "AssessmentAverage.sql",
+    "context": "score là int bắt buộc. Báo cáo cần trả decimal(6,2) và giữ phần lẻ của điểm trung bình cho từng lớp.",
+    "diff": [
+      " SELECT class_id,",
+      "-       CAST(AVG(CAST(score AS decimal(8,2))) AS decimal(6,2)) AS mean_score",
+      "+       CAST(AVG(score) AS decimal(6,2)) AS mean_score",
+      " FROM #Results",
+      " GROUP BY class_id;"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "moderate",
+    "cause": "AVG của biểu thức int trong SQL Server trả int. Ép kiểu sau đó chỉ thêm phần thập phân vào kết quả đã mất phần lẻ.",
+    "otherCause": "GROUP BY dùng kiểu dữ liệu của class_id để quyết định kiểu của AVG(score).",
+    "repair": "Ép score sang decimal trước khi AVG, rồi ép kết quả về decimal(6,2) theo hợp đồng.",
+    "otherRepair": "Giữ nguyên AVG(score) và tăng độ chính xác của kiểu ép bên ngoài lên decimal(12,4).",
+    "check": "Hai điểm 7 và 8 trong cùng một lớp phải trả 7.50. Kiểm tra cả giá trị và kiểu trả về."
+  },
+  {
+    "slug": "review-sql-update-from-many",
+    "version": 1,
+    "title": "Cộng đủ các dòng điều chỉnh tồn",
+    "file": "ApplyDeltas.sql",
+    "context": "Mỗi dòng #Changes là một delta hợp lệ. Một batch có thể chứa nhiều delta cùng item_id. #Stock có đúng một dòng cho mỗi item_id.",
+    "diff": [
+      " UPDATE s",
+      "-SET on_hand = s.on_hand + x.total_delta",
+      "+SET on_hand = s.on_hand + x.delta",
+      " FROM #Stock AS s",
+      "-JOIN (SELECT item_id, SUM(delta) AS total_delta FROM #Changes GROUP BY item_id) AS x ON x.item_id = s.item_id;",
+      "+JOIN #Changes AS x ON x.item_id = s.item_id;"
+    ],
+    "lines": [
+      2,
+      4
+    ],
+    "severity": "major",
+    "cause": "Nhiều dòng nguồn cùng khớp một dòng đích của UPDATE FROM. SQL Server không bảo đảm chọn delta nào và không cộng lần lượt tất cả.",
+    "otherCause": "Dấu cộng trong UPDATE luôn dùng giá trị on_hand đã sửa ở lần khớp trước đó nên các delta bị tính hai lần.",
+    "repair": "Nhóm #Changes theo item_id và SUM(delta) trước khi nối để mỗi dòng đích có đúng một tổng.",
+    "otherRepair": "Thêm DISTINCT trên item_id, delta trước khi nối và vẫn lấy x.delta để cập nhật.",
+    "check": "Tồn đầu 12, hai delta +5 và -2 cho cùng mã phải ra 15. Một mã khác không có delta phải giữ nguyên."
+  },
+  {
+    "slug": "review-test-aliased-snapshot",
+    "version": 1,
+    "title": "Test bảo toàn thứ tự danh sách đầu vào",
+    "file": "SortPreviewTests.cs",
+    "context": "SortPreview được phép trả một danh sách đã sắp xếp nhưng phải giữ nguyên thứ tự của List đầu vào. Test cần bắt cả implementation sắp xếp trực tiếp trên input.",
+    "diff": [
+      " var input = new List<int> { 3, 1, 2 };",
+      "-var before = input.ToArray();",
+      "+var before = input;",
+      " _ = SortPreview(input);",
+      " Assert.Equal(before.ToArray(), input.ToArray());"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "before và input trỏ cùng một List. Nếu SortPreview đổi thứ tự tại chỗ, cả hai vế assert được chụp sau thay đổi và bằng nhau.",
+    "otherCause": "Hai lần ToArray luôn làm Assert.Equal thất bại vì tạo ra hai array có địa chỉ khác nhau trong xUnit.",
+    "repair": "Chụp ToArray trước lúc gọi SortPreview rồi so snapshot với input sau khi gọi.",
+    "otherRepair": "Đảo thứ tự hai vế trong Assert.Equal để snapshot được đánh giá trước.",
+    "check": "Thử một implementation dùng input.Sort() rồi trả input. Test phải đỏ, còn implementation trả bản sao đã sắp xếp phải xanh."
+  },
+  {
+    "slug": "review-cache-move-category",
+    "version": 1,
+    "title": "Chuyển tài liệu sang chuyên mục khác",
+    "file": "MoveArticle.cs",
+    "context": "Trang chuyên mục không có TTL và cache danh sách mã bài viết theo CategoryId. oldCategory và newCategory khác nhau. MoveAsync đã commit trước khi trả về. Yêu cầu này chỉ xét tuần tự, không có lượt đọc đồng thời.",
+    "diff": [
+      " var oldCategory = article.CategoryId;",
+      " await repository.MoveAsync(article.Id, newCategory, ct);",
+      "-foreach (var key in new[] { Key(oldCategory), Key(newCategory) }) cache.Remove(key);",
+      "+cache.Remove(Key(newCategory));",
+      " metrics.RecordMove(oldCategory, newCategory);"
+    ],
+    "lines": [
+      3
+    ],
+    "severity": "major",
+    "cause": "Chuyển bài làm thay đổi hai danh sách. Chỉ bỏ cache của chuyên mục mới khiến trang chuyên mục cũ vẫn còn bài vô thời hạn.",
+    "otherCause": "Đo metric với hai mã chuyên mục sẽ tự nạp lại cache cho cả hai danh sách.",
+    "repair": "Sau khi commit, bỏ cả hai khóa danh sách của chuyên mục cũ và mới.",
+    "otherRepair": "Gọi Remove cho cùng khóa newCategory lần thứ hai sau khi ghi metric.",
+    "check": "Nạp cache hai chuyên mục, chuyển một bài rồi đọc lại cả hai. Bài chỉ được hiện đúng một lần trong chuyên mục đích."
+  }
+]

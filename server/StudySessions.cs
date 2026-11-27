@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InterviewPractice;
 
-internal sealed record StartStudy(Guid Id, string Mode, int Minutes, string? Topic);
+internal sealed record StartStudy(Guid Id, string Mode, int Minutes, string? Topic, string? Concept=null);
 internal sealed record StudyItem(string Slug, int Version, string Title, int Minutes, string? Topic=null, string? Reason=null);
 
 internal static class StudySessions
@@ -36,7 +36,7 @@ internal static class StudySessions
 
     internal static StudyItem[] Plan(StudySession session) => session.Mode=="placement" ? DataJson.Read<PlacementPlan>(session.Plan).Items : DataJson.Read<StudyItem[]>(session.Plan);
 
-    private static async Task<IResult> Start(StartStudy request, ClaimsPrincipal user, PracticeDb db, Catalog catalog, TimeProvider clock, CancellationToken ct)
+    private static async Task<IResult> Start(StartStudy request, ClaimsPrincipal user, PracticeDb db, Catalog catalog, Materials materials, TimeProvider clock, CancellationToken ct)
     {
         if (request.Id == Guid.Empty || request.Minutes is not (5 or 10 or 15 or 30) || !Modes.Contains(request.Mode)
             || request.Topic is not null && !Catalog.Topics.Any(x => x.Id == request.Topic))
@@ -50,7 +50,12 @@ internal static class StudySessions
         var states = await db.StudyStates.AsNoTracking().Where(s => s.UserId == owner).ToDictionaryAsync(s => s.Slug, ct);
         var wrong = await db.Attempts.Where(a => a.UserId == owner && a.Correct == false &&
             db.StudyStates.Any(s => s.UserId == owner && s.LastAttemptId == a.Id)).Select(a => a.Slug).ToListAsync(ct);
-        var current = await catalog.PublishedQuery().AsNoTracking().ToListAsync(ct);
+        var questions = catalog.PublishedQuery().AsNoTracking();
+        if (request.Concept is not null) {
+            var slugs = materials.Concepts.SingleOrDefault(c=>c.Id==request.Concept)?.Questions ?? throw ApiProblem.Invalid("Khái niệm không hợp lệ.");
+            questions = questions.Where(q=>slugs.Contains(q.Slug));
+        }
+        var current = await questions.ToListAsync(ct);
         var weakTopics = current.Where(q => states.GetValueOrDefault(q.Slug)?.Mastery == "review")
             .Select(q => q.Topic).Concat(goal.ReviewTopics).ToHashSet();
         var candidates = from q in current

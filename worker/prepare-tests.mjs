@@ -1,6 +1,8 @@
 import { randomInt, randomBytes } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { exercises } from './grader.mjs'
+import { sqlVariantsV3 } from './sql-variants-v3.mjs'
+import { codingVariantsV3 } from './coding-variants-v3.mjs'
 
 const [destination,previous,...extra]=process.argv.slice(2)
 if(!destination || extra.length) throw new Error('Usage: node worker/prepare-tests.mjs <new private file> [previous private file]')
@@ -9,6 +11,9 @@ const word=randomBytes(6).toString('hex')
 const codes=[word+'b',word,word+'c',word]
 const sample=(args,expected)=>({input:args.map(x=>JSON.stringify(x)).join(', '),output:JSON.stringify(expected)})
 const coding={
+  ...codingVariantsV3(n,m,word),
+  'crm-canonical-tags':sample([[' '+word,word.toUpperCase(),' ',word+'b']],[word,word+'b']),
+  'debug-page-offset':sample([1000000000+n,m],(999999999+n)*m),
   'debug-api-segments':sample(['/api'+word],false),
   'debug-retry-delay':sample([n,randomInt(32,200),m],m),
   'debug-copy-buffer':sample([[m,0,n],randomInt(4,15)],[m,0,n]),
@@ -27,6 +32,9 @@ const coding={
   'reconcile-balances':sample([3,[2,0,2,2],[m,n,-m,n]],[n,0,n])
 }
 const sql={
+  ...sqlVariantsV3(id,n,m),
+  'course-vacancies':`INSERT #Courses VALUES (${id},${m}),(${id+1},1); INSERT #Enrollments VALUES (${id},1,1),(${id},2,0);`,
+  'learners-across-courses':`INSERT #Enrollments VALUES (10,${id},1),(20,${id},1),(40,${id},0),(50,${id},1);`,
   'customer-orders':`INSERT #Customers VALUES (${id},N'Lan'); INSERT #Orders VALUES (${id},${id},'paid',${n});`,
   'department-salary':`INSERT #Departments VALUES (${id},N'Test'); INSERT #Staff VALUES (${id},${id},${n}.50);`,
   'daily-totals':`INSERT #Receipts VALUES (${id},${id},'2026-03-08T10:30:00',${m},'paid');`,

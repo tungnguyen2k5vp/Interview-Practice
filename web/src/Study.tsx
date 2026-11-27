@@ -16,24 +16,26 @@ type Item = { slug: string; version: number; title: string; minutes: number; top
 type Session = { id: string; mode: string; minutes: number; endedAt?: string; items: Item[];level?:string;
   coding?:{slug:string;version:number;submission?:string};codingResult?:{status:string;assisted:boolean} }
 
-export function StudyStart({ initial = 'new' }: { initial?: string }) {
+export function StudyStart({ initial = 'new', concept }: { initial?: string; concept?: string|null }) {
   const { user } = useSession()
   const [mode, setMode] = useState(initial in studyModes ? initial : 'new')
   const [minutes, setMinutes] = useState(10)
   const [topic, setTopic] = useState('')
+  const concepts = useResource<{id:string;name:string}[]>(concept ? '/concepts' : null)
   const requestId = useRef(crypto.randomUUID())
   const action = useAction()
   return <div className="page narrow">
     <PageTitle title="Phiên học nhanh" back={['/', 'Tổng quan']} />
     {!user ? <SignInGate detail="Đăng nhập để tạo phiên riêng và lưu lịch ôn." /> :
       <form className="panel content-panel stack" onSubmit={e => { e.preventDefault(); void action.run(async () => {
-        const session = await api<Session>('/study-sessions', { method: 'POST', body: { id: requestId.current, mode, minutes, topic: topic || null } })
+        const session = await api<Session>('/study-sessions', { method: 'POST', body: { id: requestId.current, mode, minutes, topic: topic || null, concept } })
         navigate('/phien-hoc/' + session.id)
       }) }}>
-        <fieldset className="ratings"><legend>Bạn có bao nhiêu thời gian?</legend><div className="action-row">{[5, 10, 15, 30].map(value =>
-          <Button key={value} tone={minutes === value ? 'primary' : 'secondary'} aria-pressed={value === minutes} onClick={() => setMinutes(value)}>{value} phút</Button>)}</div></fieldset>
-        <Field label="Chế độ luyện"><select value={mode} onChange={e => setMode(e.target.value)}><Options values={studyModes} /></select></Field>
-        <Field label="Chủ đề"><select value={topic} onChange={e => setTopic(e.target.value)}><option value="">Tất cả chủ đề</option><Options values={labels.topics} /></select></Field>
+        <fieldset disabled={action.busy} className="ratings"><legend>Bạn có bao nhiêu thời gian?</legend><div className="action-row">{[5, 10, 15, 30].map(value =>
+          <Button key={value} tone={minutes === value ? 'primary' : 'secondary'} aria-pressed={value === minutes} onClick={() => {if(value!==minutes)requestId.current=crypto.randomUUID();setMinutes(value)}}>{value} phút</Button>)}</div></fieldset>
+        <Field label="Chế độ luyện"><select disabled={action.busy} value={mode} onChange={e => {requestId.current=crypto.randomUUID();setMode(e.target.value)}}><Options values={studyModes} /></select></Field>
+        {concept ? <p>Khái niệm · {concepts.data?.find(c=>c.id===concept)?.name ?? concept}</p> :
+          <Field label="Chủ đề"><select disabled={action.busy} value={topic} onChange={e => {requestId.current=crypto.randomUUID();setTopic(e.target.value)}}><option value="">Tất cả chủ đề</option><Options values={labels.topics} /></select></Field>}
         <div><Button type="submit" tone="primary" disabled={action.busy}>Bắt đầu phiên <ArrowRight size={16} /></Button></div>
         <Problem text={action.error} />
       </form>}

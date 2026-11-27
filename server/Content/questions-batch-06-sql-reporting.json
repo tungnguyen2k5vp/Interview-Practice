@@ -1,0 +1,684 @@
+[
+  {
+    "slug": "len-pad",
+    "content": {
+      "title": "Độ dài mã đã đệm",
+      "topic": "sql",
+      "subtopic": "LEN",
+      "tags": [
+        "LEN",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Bộ đếm dùng LEN hiển thị độ dài nào cho mã kệ dưới đây?",
+      "englishPrompt": "What length does LEN report for the padded shelf code?",
+      "context": "Máy quét nhập mã có khoảng trắng cuối.",
+      "code": "SELECT LEN('A B  ');",
+      "hint": "Đánh dấu khoảng trắng nằm bên trong mã.",
+      "nextHint": "LEN bỏ khoảng trắng cuối và vẫn đếm khoảng trắng giữa A và B.",
+      "followUp": "Nếu cần kiểm tra số byte để đối soát file, dùng hàm nào?",
+      "englishFollowUp": "Which function measures the stored byte length for a file check?",
+      "outline": [
+        "LEN bỏ khoảng trắng cuối và vẫn đếm khoảng trắng giữa A và B.",
+        "Đánh dấu khoảng trắng nằm bên trong mã."
+      ],
+      "shortAnswer": "3 — LEN bỏ khoảng trắng cuối và vẫn đếm khoảng trắng giữa A và B.",
+      "explanation": "LEN bỏ khoảng trắng cuối và vẫn đếm khoảng trắng giữa A và B. DATALENGTH đếm byte, cần biết kiểu varchar hay nvarchar khi so với độ dài ký tự.",
+      "alternative": "DATALENGTH đếm byte, cần biết kiểu varchar hay nvarchar khi so với độ dài ký tự.",
+      "trap": "Đếm toàn bộ byte lưu trữ sẽ cho kết quả khác.",
+      "rubric": [
+        "LEN bỏ khoảng trắng cuối và vẫn đếm khoảng trắng giữa A và B.",
+        "Đếm toàn bộ byte lưu trữ sẽ cho kết quả khác.",
+        "Đánh dấu khoảng trắng nằm bên trong mã.",
+        "DATALENGTH đếm byte, cần biết kiểu varchar hay nvarchar khi so với độ dài ký tự."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/string-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "5",
+          "3",
+          "2"
+        ],
+        "en": [
+          "5",
+          "3",
+          "2"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "charindex-origin",
+    "content": {
+      "title": "Vị trí dấu phân cách",
+      "topic": "sql",
+      "subtopic": "CHARINDEX",
+      "tags": [
+        "CHARINDEX",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Vị trí đầu tiên mà bộ tách mã hàng tìm được là bao nhiêu?",
+      "englishPrompt": "Which position identifies the first separator in the item code?",
+      "context": "Mã dạng kho-lô-số có hai dấu nối.",
+      "code": "SELECT CHARINDEX('-', 'HN-A-08');",
+      "hint": "Đếm từ H với vị trí 1.",
+      "nextHint": "CHARINDEX trả vị trí từ 1 của lần xuất hiện đầu tiên, H và N chiếm hai vị trí.",
+      "followUp": "Khi không có dấu nối, phép tách cần xử lý kết quả nào?",
+      "englishFollowUp": "Which result must the parser handle when the separator is absent?",
+      "outline": [
+        "CHARINDEX trả vị trí từ 1 của lần xuất hiện đầu tiên, H và N chiếm hai vị trí.",
+        "Đếm từ H với vị trí 1."
+      ],
+      "shortAnswer": "3 — CHARINDEX trả vị trí từ 1 của lần xuất hiện đầu tiên, H và N chiếm hai vị trí.",
+      "explanation": "CHARINDEX trả vị trí từ 1 của lần xuất hiện đầu tiên, H và N chiếm hai vị trí. CHARINDEX trả 0 nếu không tìm thấy. Kiểm tra giá trị đó trước khi trừ 1 để gọi LEFT.",
+      "alternative": "CHARINDEX trả 0 nếu không tìm thấy. Kiểm tra giá trị đó trước khi trừ 1 để gọi LEFT.",
+      "trap": "Chỉ số từ 0 trong C# dễ làm lệch phép cắt chuỗi T-SQL.",
+      "rubric": [
+        "CHARINDEX trả vị trí từ 1 của lần xuất hiện đầu tiên, H và N chiếm hai vị trí.",
+        "Chỉ số từ 0 trong C# dễ làm lệch phép cắt chuỗi T-SQL.",
+        "Đếm từ H với vị trí 1.",
+        "CHARINDEX trả 0 nếu không tìm thấy. Kiểm tra giá trị đó trước khi trừ 1 để gọi LEFT."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/string-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "5",
+          "3"
+        ],
+        "en": [
+          "2",
+          "5",
+          "3"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "concat-null-label",
+    "content": {
+      "title": "Nhãn giao hàng thiếu tầng",
+      "topic": "sql",
+      "subtopic": "CONCAT",
+      "tags": [
+        "CONCAT",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Hàm ghép nhãn trả chuỗi gì khi tầng chưa được ghi nhận?",
+      "englishPrompt": "What label does the formatter produce when the floor is missing?",
+      "context": "Mẫu in luôn thêm tiền tố F trước số tầng.",
+      "code": "SELECT CONCAT('B2/F', CAST(NULL AS int));",
+      "hint": "Theo dõi tiền tố và đối số số nguyên riêng biệt.",
+      "nextHint": "CONCAT chuyển đối số NULL thành chuỗi rỗng nên phần tiền tố được giữ.",
+      "followUp": "Muốn bỏ cả dấu / và tiền tố F khi thiếu tầng, bạn đặt điều kiện ở đâu?",
+      "englishFollowUp": "Where would you conditionally remove the slash and F together?",
+      "outline": [
+        "CONCAT chuyển đối số NULL thành chuỗi rỗng nên phần tiền tố được giữ.",
+        "Theo dõi tiền tố và đối số số nguyên riêng biệt."
+      ],
+      "shortAnswer": "B2/F — CONCAT chuyển đối số NULL thành chuỗi rỗng nên phần tiền tố được giữ.",
+      "explanation": "CONCAT chuyển đối số NULL thành chuỗi rỗng nên phần tiền tố được giữ. Đặt CASE bao quanh cả thành phần tùy chọn để vẫn phân biệt tầng 0 với tầng chưa biết.",
+      "alternative": "Đặt CASE bao quanh cả thành phần tùy chọn để vẫn phân biệt tầng 0 với tầng chưa biết.",
+      "trap": "Một trường vắng mặt không tự chuyển thành số 0.",
+      "rubric": [
+        "CONCAT chuyển đối số NULL thành chuỗi rỗng nên phần tiền tố được giữ.",
+        "Một trường vắng mặt không tự chuyển thành số 0.",
+        "Theo dõi tiền tố và đối số số nguyên riêng biệt.",
+        "Đặt CASE bao quanh cả thành phần tùy chọn để vẫn phân biệt tầng 0 với tầng chưa biết."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/string-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "sql-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "B2/F",
+          "NULL",
+          "B2/F0"
+        ],
+        "en": [
+          "B2/F",
+          "NULL",
+          "B2/F0"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "replace-occurrences",
+    "content": {
+      "title": "Chuẩn hóa dấu phân cách",
+      "topic": "sql",
+      "subtopic": "REPLACE",
+      "tags": [
+        "REPLACE",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Sau phép chuẩn hóa đường dẫn logic, giá trị nào được lưu?",
+      "englishPrompt": "Which logical path is stored after delimiter normalization?",
+      "context": "Đội tích hợp đổi mọi dấu chấm trong mã phân cấp thành dấu gạch chéo.",
+      "code": "SELECT REPLACE('a.b.c', '.', '/');",
+      "hint": "Tìm cả hai dấu chấm trong mã.",
+      "nextHint": "REPLACE thay tất cả lần xuất hiện của chuỗi tìm kiếm trong biểu thức.",
+      "followUp": "Khi chỉ muốn sửa đoạn ở một vị trí đã biết, lúc nào STUFF phù hợp hơn?",
+      "englishFollowUp": "When would STUFF suit a replacement at a known position?",
+      "outline": [
+        "REPLACE thay tất cả lần xuất hiện của chuỗi tìm kiếm trong biểu thức.",
+        "Tìm cả hai dấu chấm trong mã."
+      ],
+      "shortAnswer": "a/b/c — REPLACE thay tất cả lần xuất hiện của chuỗi tìm kiếm trong biểu thức.",
+      "explanation": "REPLACE thay tất cả lần xuất hiện của chuỗi tìm kiếm trong biểu thức. STUFF dùng vị trí và chiều dài để thay cục bộ, hữu ích khi các dấu khác phải được giữ.",
+      "alternative": "STUFF dùng vị trí và chiều dài để thay cục bộ, hữu ích khi các dấu khác phải được giữ.",
+      "trap": "Chỉ thay kết quả đầu tiên sẽ để lại dấu phân cách cũ.",
+      "rubric": [
+        "REPLACE thay tất cả lần xuất hiện của chuỗi tìm kiếm trong biểu thức.",
+        "Chỉ thay kết quả đầu tiên sẽ để lại dấu phân cách cũ.",
+        "Tìm cả hai dấu chấm trong mã.",
+        "STUFF dùng vị trí và chiều dài để thay cục bộ, hữu ích khi các dấu khác phải được giữ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/string-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "a/b.c",
+          "a/b/c",
+          "a.b/c"
+        ],
+        "en": [
+          "a/b.c",
+          "a/b/c",
+          "a.b/c"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "date-boundaries-minute",
+    "content": {
+      "title": "Đếm mốc phút trong log",
+      "topic": "sql",
+      "subtopic": "DATEDIFF",
+      "tags": [
+        "DATEDIFF",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Hai log chỉ cách nhau một giây. Bộ đếm DATEDIFF theo phút trả bao nhiêu?",
+      "englishPrompt": "Two log entries are one second apart. How many minute boundaries does DATEDIFF count?",
+      "context": "Dashboard thời lượng đang dùng đơn vị phút.",
+      "code": "SELECT DATEDIFF(minute,'2026-05-04T10:59:59','2026-05-04T11:00:00');",
+      "hint": "Quan sát phần phút của hai timestamp.",
+      "nextHint": "DATEDIFF đếm số biên minute đi qua. Phút đổi từ 59 sang 00 đúng một lần.",
+      "followUp": "Đo SLA 30 giây cho timestamp có phần lẻ nên so sánh với hạn chót thế nào?",
+      "englishFollowUp": "How would you compare fractional timestamps against a 30-second SLA deadline?",
+      "outline": [
+        "DATEDIFF đếm số biên minute đi qua. Phút đổi từ 59 sang 00 đúng một lần.",
+        "Quan sát phần phút của hai timestamp."
+      ],
+      "shortAnswer": "1 — DATEDIFF đếm số biên minute đi qua. Phút đổi từ 59 sang 00 đúng một lần.",
+      "explanation": "DATEDIFF đếm số biên minute đi qua. Phút đổi từ 59 sang 00 đúng một lần. Có thể so sánh thời điểm kết thúc trực tiếp với DATEADD(second,30,start) và chốt rõ xử lý khi bằng hạn.",
+      "alternative": "Có thể so sánh thời điểm kết thúc trực tiếp với DATEADD(second,30,start) và chốt rõ xử lý khi bằng hạn.",
+      "trap": "Lấy số giây nguyên chia 60 đo một đại lượng khác.",
+      "rubric": [
+        "DATEDIFF đếm số biên minute đi qua. Phút đổi từ 59 sang 00 đúng một lần.",
+        "Lấy số giây nguyên chia 60 đo một đại lượng khác.",
+        "Quan sát phần phút của hai timestamp.",
+        "Có thể so sánh thời điểm kết thúc trực tiếp với DATEADD(second,30,start) và chốt rõ xử lý khi bằng hạn."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/date-and-time-data-types-and-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "60",
+          "1"
+        ],
+        "en": [
+          "0",
+          "60",
+          "1"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "month-end-renewal",
+    "content": {
+      "title": "Gia hạn ở cuối tháng",
+      "topic": "sql",
+      "subtopic": "DATEADD",
+      "tags": [
+        "DATEADD",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Tài khoản đăng ký ngày cuối tháng Một. Truy vấn trả ngày nào trong tháng Hai?",
+      "englishPrompt": "Which day of February results from adding a month to this subscription date?",
+      "context": "Hệ thống gia hạn trên ngày lịch của năm nhuận.",
+      "code": "SELECT DAY(DATEADD(month,1,CAST('20240131' AS date)));",
+      "hint": "Kiểm tra tháng đích và năm nhuận.",
+      "nextHint": "Tháng đích không có ngày 31 nên DATEADD trả ngày cuối của tháng Hai, năm 2024 có ngày 29.",
+      "followUp": "Nếu tiếp tục cộng một tháng từ kết quả tháng Hai, có còn giữ mốc ngày 31 ban đầu?",
+      "englishFollowUp": "Would adding a month to the February result preserve the original day 31 anchor?",
+      "outline": [
+        "Tháng đích không có ngày 31 nên DATEADD trả ngày cuối của tháng Hai, năm 2024 có ngày 29.",
+        "Kiểm tra tháng đích và năm nhuận."
+      ],
+      "shortAnswer": "29 — Tháng đích không có ngày 31 nên DATEADD trả ngày cuối của tháng Hai, năm 2024 có ngày 29.",
+      "explanation": "Tháng đích không có ngày 31 nên DATEADD trả ngày cuối của tháng Hai, năm 2024 có ngày 29. Muốn quy tắc luôn là cuối tháng, tính từ mốc hợp đồng hoặc dùng EOMONTH cho từng kỳ thay vì nối kết quả đã bị kẹp.",
+      "alternative": "Muốn quy tắc luôn là cuối tháng, tính từ mốc hợp đồng hoặc dùng EOMONTH cho từng kỳ thay vì nối kết quả đã bị kẹp.",
+      "trap": "Cộng một tháng khác cộng cố định 30 ngày.",
+      "rubric": [
+        "Tháng đích không có ngày 31 nên DATEADD trả ngày cuối của tháng Hai, năm 2024 có ngày 29.",
+        "Cộng một tháng khác cộng cố định 30 ngày.",
+        "Kiểm tra tháng đích và năm nhuận.",
+        "Muốn quy tắc luôn là cuối tháng, tính từ mốc hợp đồng hoặc dùng EOMONTH cho từng kỳ thay vì nối kết quả đã bị kẹp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/date-and-time-data-types-and-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "29",
+          "28",
+          "2"
+        ],
+        "en": [
+          "29",
+          "28",
+          "2"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "eomonth-offset",
+    "content": {
+      "title": "Số ngày của kỳ đối soát trước",
+      "topic": "sql",
+      "subtopic": "EOMONTH",
+      "tags": [
+        "EOMONTH",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Kết quả DAY trong biểu thức chọn ngày khóa sổ kỳ trước bằng bao nhiêu?",
+      "englishPrompt": "What day number does the previous-period closing expression return?",
+      "context": "Ngày tham chiếu là đầu tháng Ba của năm không nhuận.",
+      "code": "SELECT DAY(EOMONTH(CAST('20250302' AS date),-1));",
+      "hint": "Tách bước chọn tháng khỏi bước chọn ngày trong tháng.",
+      "nextHint": "Offset -1 chọn tháng Hai 2025 trước khi EOMONTH trả về ngày cuối tháng.",
+      "followUp": "Dùng mốc nào làm cận trên loại trừ để lọc cột datetime của cả tháng?",
+      "englishFollowUp": "Which exclusive upper bound covers every timestamp in a month?",
+      "outline": [
+        "Offset -1 chọn tháng Hai 2025 trước khi EOMONTH trả về ngày cuối tháng.",
+        "Tách bước chọn tháng khỏi bước chọn ngày trong tháng."
+      ],
+      "shortAnswer": "28 — Offset -1 chọn tháng Hai 2025 trước khi EOMONTH trả về ngày cuối tháng.",
+      "explanation": "Offset -1 chọn tháng Hai 2025 trước khi EOMONTH trả về ngày cuối tháng. Cận trên đầu tháng kế tiếp cho phép lấy mọi độ chính xác thời gian bằng điều kiện nhỏ hơn.",
+      "alternative": "Cận trên đầu tháng kế tiếp cho phép lấy mọi độ chính xác thời gian bằng điều kiện nhỏ hơn.",
+      "trap": "Trừ một ngày khỏi 2/3 vẫn nằm trong tháng Ba.",
+      "rubric": [
+        "Offset -1 chọn tháng Hai 2025 trước khi EOMONTH trả về ngày cuối tháng.",
+        "Trừ một ngày khỏi 2/3 vẫn nằm trong tháng Ba.",
+        "Tách bước chọn tháng khỏi bước chọn ngày trong tháng.",
+        "Cận trên đầu tháng kế tiếp cho phép lấy mọi độ chính xác thời gian bằng điều kiện nhỏ hơn."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/date-and-time-data-types-and-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "31",
+          "28",
+          "2"
+        ],
+        "en": [
+          "31",
+          "28",
+          "2"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "count-distinct-null",
+    "content": {
+      "title": "Đếm khách định danh",
+      "topic": "sql",
+      "subtopic": "COUNT DISTINCT",
+      "tags": [
+        "COUNT DISTINCT",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Báo cáo có bao nhiêu mã khách khác nhau khi dùng COUNT DISTINCT?",
+      "englishPrompt": "How many distinct customer identifiers does the report count?",
+      "context": "Một khách xuất hiện hai lần và có một giao dịch vãng lai.",
+      "code": "SELECT COUNT(DISTINCT id) FROM (VALUES (4),(4),(7),(NULL)) AS sales(id);",
+      "hint": "Phân biệt số dòng với số định danh khác nhau.",
+      "nextHint": "COUNT(DISTINCT id) bỏ NULL rồi đếm hai giá trị riêng 4 và 7.",
+      "followUp": "Nếu khách vãng lai phải là một nhóm riêng, bạn tính tổng nhóm thế nào?",
+      "englishFollowUp": "How could anonymous customers count as one separate group?",
+      "outline": [
+        "COUNT(DISTINCT id) bỏ NULL rồi đếm hai giá trị riêng 4 và 7.",
+        "Phân biệt số dòng với số định danh khác nhau."
+      ],
+      "shortAnswer": "2 — COUNT(DISTINCT id) bỏ NULL rồi đếm hai giá trị riêng 4 và 7.",
+      "explanation": "COUNT(DISTINCT id) bỏ NULL rồi đếm hai giá trị riêng 4 và 7. Đếm dòng của bảng dẫn xuất SELECT DISTINCT id giữ một nhóm NULL khi có dữ liệu khuyết.",
+      "alternative": "Đếm dòng của bảng dẫn xuất SELECT DISTINCT id giữ một nhóm NULL khi có dữ liệu khuyết.",
+      "trap": "SELECT DISTINCT id có thể trả thêm một dòng NULL nên đếm dòng của nó khác kết quả này.",
+      "rubric": [
+        "COUNT(DISTINCT id) bỏ NULL rồi đếm hai giá trị riêng 4 và 7.",
+        "SELECT DISTINCT id có thể trả thêm một dòng NULL nên đếm dòng của nó khác kết quả này.",
+        "Phân biệt số dòng với số định danh khác nhau.",
+        "Đếm dòng của bảng dẫn xuất SELECT DISTINCT id giữ một nhóm NULL khi có dữ liệu khuyết."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/aggregate-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "sql-count-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "3",
+          "4",
+          "2"
+        ],
+        "en": [
+          "3",
+          "4",
+          "2"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "avg-int-scale",
+    "content": {
+      "title": "Điểm trung bình kiểu int",
+      "topic": "sql",
+      "subtopic": "AVG",
+      "tags": [
+        "AVG",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Trung bình hai điểm nguyên sẽ trả về giá trị nào ở SQL Server?",
+      "englishPrompt": "What value does SQL Server return when averaging these integer scores?",
+      "context": "Báo cáo học tập bị mất phần thập phân ở một số lớp.",
+      "code": "SELECT AVG(score) FROM (VALUES (2),(3)) AS r(score);",
+      "hint": "Xác định kiểu đầu vào của hàm tổng hợp.",
+      "nextHint": "AVG của biểu thức int trả int nên 2.5 bị bỏ phần lẻ khi trả kết quả.",
+      "followUp": "Nên đặt CAST ở đâu để giữ được giá trị 2.5?",
+      "englishFollowUp": "Where should the cast occur to retain 2.5?",
+      "outline": [
+        "AVG của biểu thức int trả int nên 2.5 bị bỏ phần lẻ khi trả kết quả.",
+        "Xác định kiểu đầu vào của hàm tổng hợp."
+      ],
+      "shortAnswer": "2 — AVG của biểu thức int trả int nên 2.5 bị bỏ phần lẻ khi trả kết quả.",
+      "explanation": "AVG của biểu thức int trả int nên 2.5 bị bỏ phần lẻ khi trả kết quả. Ép từng score thành decimal trước khi AVG để phép tổng hợp dùng miền kiểu phù hợp.",
+      "alternative": "Ép từng score thành decimal trước khi AVG để phép tổng hợp dùng miền kiểu phù hợp.",
+      "trap": "Ép decimal sau AVG chỉ thêm phần thập phân cho số đã bị cắt.",
+      "rubric": [
+        "AVG của biểu thức int trả int nên 2.5 bị bỏ phần lẻ khi trả kết quả.",
+        "Ép decimal sau AVG chỉ thêm phần thập phân cho số đã bị cắt.",
+        "Xác định kiểu đầu vào của hàm tổng hợp.",
+        "Ép từng score thành decimal trước khi AVG để phép tổng hợp dùng miền kiểu phù hợp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/aggregate-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "sql-coalesce-aggregate"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "2.5",
+          "3"
+        ],
+        "en": [
+          "2",
+          "2.5",
+          "3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-negative-floor",
+    "content": {
+      "title": "Phân nhóm độ lệch âm",
+      "topic": "sql",
+      "subtopic": "FLOOR",
+      "tags": [
+        "FLOOR",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "SQL Server 2022",
+      "prompt": "Độ lệch -2,1 nằm ở bucket nào nếu dùng FLOOR?",
+      "englishPrompt": "Which bucket contains the negative drift -2.1 when using FLOOR?",
+      "context": "Các khoảng [n,n+1) dùng để phân nhóm sai số cảm biến.",
+      "code": "SELECT CAST(FLOOR(CAST(-2.1 AS decimal(4,1))) AS int);",
+      "hint": "So sánh -3 và -2 trên trục số.",
+      "nextHint": "FLOOR chọn số nguyên lớn nhất không vượt quá đầu vào, với -2.1 đó là -3.",
+      "followUp": "Nếu nhóm dùng cận phải đóng (n-1,n], hàm nào cho nhãn cận phải?",
+      "englishFollowUp": "Which function labels right-closed buckets by their upper bound?",
+      "outline": [
+        "FLOOR chọn số nguyên lớn nhất không vượt quá đầu vào, với -2.1 đó là -3.",
+        "So sánh -3 và -2 trên trục số."
+      ],
+      "shortAnswer": "-3 — FLOOR chọn số nguyên lớn nhất không vượt quá đầu vào, với -2.1 đó là -3.",
+      "explanation": "FLOOR chọn số nguyên lớn nhất không vượt quá đầu vào, với -2.1 đó là -3. CEILING chọn số nguyên nhỏ nhất lớn hơn hoặc bằng đầu vào, phù hợp cách gán nhãn cận phải.",
+      "alternative": "CEILING chọn số nguyên nhỏ nhất lớn hơn hoặc bằng đầu vào, phù hợp cách gán nhãn cận phải.",
+      "trap": "Bỏ phần lẻ về 0 khác làm tròn xuống phía âm vô cùng.",
+      "rubric": [
+        "FLOOR chọn số nguyên lớn nhất không vượt quá đầu vào, với -2.1 đó là -3.",
+        "Bỏ phần lẻ về 0 khác làm tròn xuống phía âm vô cùng.",
+        "So sánh -3 và -2 trên trục số.",
+        "CEILING chọn số nguyên nhỏ nhất lớn hơn hoặc bằng đầu vào, phù hợp cách gán nhãn cận phải."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/mathematical-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "-2",
+          "-3",
+          "3"
+        ],
+        "en": [
+          "-2",
+          "-3",
+          "3"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-round-away",
+    "content": {
+      "title": "Làm tròn hoàn tiền",
+      "topic": "sql",
+      "subtopic": "ROUND",
+      "tags": [
+        "ROUND",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Sổ cái dùng ROUND của T-SQL trên số tiền âm có chữ số cuối đúng giữa. Kết quả nguyên là gì?",
+      "englishPrompt": "Which integer results when T-SQL rounds this exact negative midpoint?",
+      "context": "Đội kế toán đang đối chiếu quy tắc midpoint giữa SQL và ứng dụng.",
+      "code": "SELECT CONVERT(int,ROUND(CAST(-2.5 AS decimal(4,1)),0));",
+      "hint": "Xét quy tắc ở đúng điểm giữa, sau đó áp dụng dấu.",
+      "nextHint": "T-SQL ROUND xử lý điểm giữa ra xa số 0, nên -2.5 thành -3.",
+      "followUp": "Làm sao bảo đảm hai tầng áp dụng cùng chính sách làm tròn tiền?",
+      "englishFollowUp": "How can application and database agree on monetary midpoint rounding?",
+      "outline": [
+        "T-SQL ROUND xử lý điểm giữa ra xa số 0, nên -2.5 thành -3.",
+        "Xét quy tắc ở đúng điểm giữa, sau đó áp dụng dấu."
+      ],
+      "shortAnswer": "-3 — T-SQL ROUND xử lý điểm giữa ra xa số 0, nên -2.5 thành -3.",
+      "explanation": "T-SQL ROUND xử lý điểm giữa ra xa số 0, nên -2.5 thành -3. Dùng decimal, quy định rõ MidpointRounding và chạy bộ ví dụ dương, âm, đúng giữa ở cả hai tầng.",
+      "alternative": "Dùng decimal, quy định rõ MidpointRounding và chạy bộ ví dụ dương, âm, đúng giữa ở cả hai tầng.",
+      "trap": "Mặc định Math.Round của .NET có thể chọn số chẵn ở đúng điểm giữa.",
+      "rubric": [
+        "T-SQL ROUND xử lý điểm giữa ra xa số 0, nên -2.5 thành -3.",
+        "Mặc định Math.Round của .NET có thể chọn số chẵn ở đúng điểm giữa.",
+        "Xét quy tắc ở đúng điểm giữa, sau đó áp dụng dấu.",
+        "Dùng decimal, quy định rõ MidpointRounding và chạy bộ ví dụ dương, âm, đúng giữa ở cả hai tầng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/mathematical-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "round-to-even"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "-2",
+          "3",
+          "-3"
+        ],
+        "en": [
+          "-2",
+          "3",
+          "-3"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-lead-default",
+    "content": {
+      "title": "Mốc kế tiếp của chuyến cuối",
+      "topic": "sql",
+      "subtopic": "LEAD",
+      "tags": [
+        "LEAD",
+        "T-SQL"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Ở dòng cuối, LEAD dùng giá trị gì nếu không còn chuyến nào ở phía sau?",
+      "englishPrompt": "What does LEAD return for the final trip when there is no following row?",
+      "context": "Bảng điều phối muốn đọc mã chuyến kế tiếp theo thứ tự số vé.",
+      "code": "WITH x AS (SELECT id, LEAD(id,1,-1) OVER(ORDER BY id) AS nxt FROM (VALUES (3),(9)) v(id)) SELECT nxt FROM x WHERE id=9;",
+      "hint": "Định vị id 9 trong thứ tự tăng dần.",
+      "nextHint": "Cửa sổ chạy trên hai dòng trước bước lọc bên ngoài. Với id 9, offset 1 vượt cuối partition nên trả default -1.",
+      "followUp": "Cần đổi gì nếu mỗi tuyến có lịch kế tiếp riêng?",
+      "englishFollowUp": "What change isolates each route's next trip?",
+      "outline": [
+        "Cửa sổ chạy trên hai dòng trước bước lọc bên ngoài. Với id 9, offset 1 vượt cuối partition nên trả default -1.",
+        "Định vị id 9 trong thứ tự tăng dần."
+      ],
+      "shortAnswer": "-1 — Cửa sổ chạy trên hai dòng trước bước lọc bên ngoài. Với id 9, offset 1 vượt cuối partition nên trả default -1.",
+      "explanation": "Cửa sổ chạy trên hai dòng trước bước lọc bên ngoài. Với id 9, offset 1 vượt cuối partition nên trả default -1. PARTITION BY tuyến và ORDER BY khóa thứ tự xác định ngăn dò sang chuyến thuộc tuyến khác.",
+      "alternative": "PARTITION BY tuyến và ORDER BY khóa thứ tự xác định ngăn dò sang chuyến thuộc tuyến khác.",
+      "trap": "Default áp dụng khi vượt biên, không tự thay một giá trị NULL có thật ở dòng sau.",
+      "rubric": [
+        "Cửa sổ chạy trên hai dòng trước bước lọc bên ngoài. Với id 9, offset 1 vượt cuối partition nên trả default -1.",
+        "Default áp dụng khi vượt biên, không tự thay một giá trị NULL có thật ở dòng sau.",
+        "Định vị id 9 trong thứ tự tăng dần.",
+        "PARTITION BY tuyến và ORDER BY khóa thứ tự xác định ngăn dò sang chuyến thuộc tuyến khác."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/analytic-functions-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "window-order"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "-1",
+          "9",
+          "3"
+        ],
+        "en": [
+          "-1",
+          "9",
+          "3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

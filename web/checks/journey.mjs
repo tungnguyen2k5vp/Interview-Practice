@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { updateQaDb } from './qa-sql.mjs'
-import { mkdir } from 'node:fs/promises'
+import { mkdir, readdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { chromium, request } from 'playwright'
@@ -9,6 +9,14 @@ const base = process.env.IP_BASE ?? 'http://127.0.0.1:5094'
 const host = new URL(base)
 assert(['localhost', '127.0.0.1'].includes(host.hostname), 'Checks require a local instance.')
 const artifacts = resolve(import.meta.dirname, '../../.impeccable/review')
+const contentDir = resolve(import.meta.dirname, '../../server/Content')
+const files = await readdir(contentDir)
+async function seedRows(prefix) {
+  const names = files.filter(f => f === prefix+'.json' || f.startsWith(prefix+'-batch-'))
+  return (await Promise.all(names.map(async f=>JSON.parse(await readFile(resolve(contentDir,f),'utf8'))))).flat()
+}
+const questionCount = (await seedRows('questions')).length
+const exerciseSeeds = await seedRows('exercises')
 await mkdir(artifacts, { recursive: true })
 const browser = await chromium.launch({ ...(process.env.IP_BROWSER ? { channel: process.env.IP_BROWSER } : {}) })
 const password = 'Check-' + randomUUID()
@@ -67,12 +75,14 @@ try {
     const dashboard = await send(context.request, '/dashboard')
     assert.equal(dashboard.answers, 0)
     assert.equal(dashboard.completedMocks, 0)
-    assert.equal(dashboard.questionCount, 102)
+    assert.equal(dashboard.questionCount, questionCount)
     assert.equal(dashboard.topics.length, 11)
-    assert.equal((await send(context.request, '/interview-presets')).length, 7)
+    assert.equal((await send(context.request, '/interview-presets')).length, 11)
     assert.deepEqual(await send(context.request, '/questions/technologies'), ['.NET 10','ASP.NET Core 10','EF Core 10','HTTP','SQL Server 2022'])
-    assert.equal((await send(context.request, '/exercises?kind=coding')).length, 14)
-    assert.equal((await send(context.request, '/exercises?kind=sql')).length, 11)
+    for(const kind of ['coding','sql']) assert.equal((await send(context.request, '/exercises?kind='+kind)).length, exerciseSeeds.filter(e=>e.kind===kind).length)
+    const di = await send(context.request,'/questions?search=DI')
+    assert(di.items.some(q=>q.slug==='di-scope-worker') && di.total===3)
+    assert.equal((await send(context.request,'/questions?concept=di')).total,di.total)
     const question = await send(context.request, '/questions/di-lifetimes')
     assert.equal(question.reference, undefined)
     assert.equal(question.hint, undefined)
@@ -404,9 +414,11 @@ try {
         const adminPath = '/admin/questions/' + slug
         const practicePath = '/practice/questions/' + slug
         const client = learner.context.request
+        const transition = (revision, status) => send(admin, adminPath + '/publication', { method: 'POST', body: { revision, status } })
+        const review = async revision => transition((await transition(revision, 'needs-review')).revision, 'verified')
         const v1 = await send(admin, adminPath, { method: 'PUT', status: 201, body: { revision: 0, content } })
         await send(client, '/questions/' + slug, { status: 404 })
-        const published = await send(admin, adminPath + '/publication', { method: 'POST', body: { revision: v1.revision, status: 'published' } })
+        const published = await transition((await review(v1.revision)).revision, 'published')
         const draft = await send(client, practicePath + '/draft', { method: 'PATCH', body: {
           cursor: { id: randomUUID(), revision: 0, version: 1 }, text: 'Nội dung luyện ở v1.',
         } })
@@ -417,14 +429,20 @@ try {
           revision: published.revision, content: { ...content, title: 'Kiểm tra nội dung v2', rubric: ['Mới', ...content.rubric.slice(1)] },
         } })
         assert.equal((await send(client, '/questions/' + slug)).card.version, 1)
-        const publishedAgain = await send(admin, adminPath + '/publication', { method: 'POST', body: { revision: v2.revision, status: 'published' } })
+        const checked = await review(v2.revision)
+        assert.equal((await send(client, '/questions/' + slug)).card.version, 1)
+        const publishedAgain = await transition(checked.revision, 'published')
         assert.equal((await send(client, '/questions/' + slug)).card.version, 2)
         const reference = await send(client, '/practice/attempts/' + attempt.id + '/reference', { method: 'POST' })
         assert.equal(reference.version, 1)
         assert.equal(reference.rubric[0], content.rubric[0])
-        await send(admin, adminPath + '/publication', { method: 'POST', body: { revision: publishedAgain.revision, status: 'retired' } })
+        const retired = await transition(publishedAgain.revision, 'retired')
         await send(client, '/questions/' + slug, { status: 404 })
         assert.equal((await send(client, '/practice/attempts/' + attempt.id)).question.card.version, 1)
+        const restored = await transition((await review(retired.revision)).revision, 'published')
+        assert.equal((await send(client, '/questions/' + slug)).card.version, 2)
+        assert.equal((await send(client, '/practice/attempts/' + attempt.id)).question.card.version, 1)
+        await transition(restored.revision, 'retired')
       } finally { await admin.dispose() }
     })
   } else skip('admin fixture not configured')
@@ -437,7 +455,7 @@ try {
     await send(client, '/profile/account/delete', { method: 'POST', body: { password: 'incorrect' }, status: 400 })
     await send(client, '/profile/account/delete', { method: 'POST', body: { password }, status: 204 })
     await send(client, '/history', { status: 401 })
-    assert.equal((await send(partner, '/questions')).total, 102)
+    assert.equal((await send(partner, '/questions')).total, questionCount)
     await send(partner, '/profile/account/delete', { method: 'POST', body: { password }, status: 204 })
     assert.deepEqual(errors, [])
   })

@@ -1,0 +1,695 @@
+[
+  {
+    "slug": "generic-constraint-create",
+    "content": {
+      "title": "Factory tạo thông điệp tổng quát",
+      "topic": "csharp",
+      "subtopic": "Generic constraints",
+      "tags": [
+        "Generic constraints"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Factory nhận T và thân hàm phải viết `new T()` rồi đặt thuộc tính CorrelationId qua giao diện IMessage. Ràng buộc nào cho phép cả hai thao tác?",
+      "englishPrompt": "A generic factory must run `new T()` and then set CorrelationId through IMessage. Which constraint permits both steps?",
+      "context": "Hai kiểu thông điệp đã có constructor công khai không tham số và cùng triển khai IMessage.",
+      "hint": "Hai thao tác yêu cầu hai khả năng độc lập trên T.",
+      "nextHint": "Ràng buộc giao diện cho phép dùng thành viên của IMessage. Ràng buộc new() phải nằm cuối danh sách.",
+      "followUp": "Nếu một kiểu chỉ có constructor nhận tham số, bạn truyền khả năng khởi tạo vào factory thế nào?",
+      "englishFollowUp": "If a type only has a parameterized constructor, how could you supply construction to the factory?",
+      "outline": [
+        "Nêu đúng yêu cầu từ giao diện.",
+        "Nêu đúng yêu cầu constructor."
+      ],
+      "shortAnswer": "Dùng `where T : IMessage, new()`.",
+      "explanation": "Compiler dùng IMessage để biết T có CorrelationId có thể gán theo hợp đồng. `new()` bảo đảm T hỗ trợ lời gọi constructor không tham số mà `new T()` cần. Ràng buộc `new()` đứng cuối.",
+      "alternative": "Có thể nhận `Func<T>` và giữ ràng buộc IMessage khi việc tạo đối tượng cần tham số hoặc phụ thuộc riêng.",
+      "trap": "`where T : class, IMessage` mô tả kiểu tham chiếu và giao diện nhưng không bảo đảm có constructor công khai không tham số.",
+      "rubric": [
+        "Nêu đúng yêu cầu từ giao diện.",
+        "Nêu đúng yêu cầu constructor.",
+        "Đặt new() ở cuối.",
+        "Đề xuất factory delegate khi cần tham số."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/generics/constraints-on-type-parameters",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "generics-gc",
+        "interface-abstract"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "`where T : IMessage, new()`",
+          "`where T : class, IMessage`",
+          "`where T : new()`"
+        ],
+        "en": [
+          "`where T : IMessage, new()`",
+          "`where T : class, IMessage`",
+          "`where T : new()`"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "generic-variance-readonly-view",
+    "content": {
+      "title": "Đọc danh sách kiểu cụ thể qua kiểu cơ sở",
+      "topic": "csharp",
+      "subtopic": "Generic variance",
+      "tags": [
+        "Generic variance"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "`rows` là `List<InvoiceRow>`, còn `InvoiceRow` kế thừa `ReportRow`. Hàm xuất chỉ duyệt các dòng. Chữ ký nào nhận `rows` trực tiếp và không cho thêm dòng qua tham số?",
+      "englishPrompt": "`rows` is a `List<InvoiceRow>`, and `InvoiceRow` derives from `ReportRow`. The export function only enumerates rows. Which signature accepts `rows` directly without allowing insertion through the parameter?",
+      "context": "Trình xuất dùng thuộc tính định nghĩa trên ReportRow cho nhiều loại báo cáo.",
+      "hint": "Chọn giao diện chỉ đưa T ra cho người đọc.",
+      "nextHint": "IEnumerable<T> có tham số kiểu hiệp biến (out T). Với kiểu tham chiếu, có phép chuyển lên IEnumerable<ReportRow>.",
+      "followUp": "Nếu thay `InvoiceRow` bằng int và `ReportRow` bằng object, phép chuyển hiệp biến còn dùng trực tiếp được không?",
+      "englishFollowUp": "If you replace `InvoiceRow` with int and `ReportRow` with object, does covariance still allow the direct conversion?",
+      "outline": [
+        "Chọn giao diện chỉ duyệt.",
+        "Giải thích tham số out."
+      ],
+      "shortAnswer": "Nhận `IEnumerable<ReportRow>`. Có thể truyền danh sách kiểu con qua hợp đồng duyệt.",
+      "explanation": "Kiểu tham chiếu InvoiceRow chuyển ngầm định lên ReportRow, và IEnumerable<T> có hiệp biến nên phép chuyển giữ được các thao tác đọc. List<T> và ICollection<T> bất biến vì còn cung cấp thao tác nhận T để thêm.",
+      "alternative": "Nếu hàm cần Count và truy cập chỉ số, `IReadOnlyList<ReportRow>` cũng có hiệp biến và cung cấp hai thao tác đó.",
+      "trap": "Ép List<InvoiceRow> sang List<ReportRow> sẽ bỏ qua ràng buộc về kiểu phần tử mà danh sách gốc nhận được.",
+      "rubric": [
+        "Chọn giao diện chỉ duyệt.",
+        "Giải thích tham số out.",
+        "Giới hạn chuyển đổi cho kiểu tham chiếu.",
+        "Mô tả vì sao collection nhận phần tử bất biến."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/generics/covariance-and-contravariance",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "generics-gc",
+        "inheritance-lsp"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "`List<ReportRow>`",
+          "`IEnumerable<ReportRow>`",
+          "`ICollection<ReportRow>`"
+        ],
+        "en": [
+          "`List<ReportRow>`",
+          "`IEnumerable<ReportRow>`",
+          "`ICollection<ReportRow>`"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "generic-default-per-type",
+    "content": {
+      "title": "Giá trị mặc định theo kiểu cụ thể",
+      "topic": "csharp",
+      "subtopic": "Default value expressions",
+      "tags": [
+        "Default value expressions"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một hàm tổng quát dùng default để cấp giá trị ban đầu. Hai lần gọi với int và int? in tuple nào?",
+      "englishPrompt": "A generic function uses default for its initial value. What tuple do the int and int? calls print?",
+      "context": "Bộ nhập cần phân biệt số 0 từ ô số nguyên với trạng thái thiếu của một ô nullable.",
+      "code": "T? Initial<T>() => default;\nvar whole = Initial<int>();\nvar optional = Initial<int?>();\nConsole.Write((whole, optional.HasValue));",
+      "hint": "Xác định giá trị mặc định cho từng kiểu sau khi thay T.",
+      "nextHint": "default của int là 0. default của int? là giá trị nullable không có phần tử.",
+      "followUp": "Nếu helper phải báo rõ đã nhận dữ liệu hay chưa cho cả int, bạn đưa tín hiệu riêng vào API thế nào?",
+      "englishFollowUp": "If the helper must explicitly report whether it received a value even for int, how would you add a separate signal?",
+      "outline": [
+        "Thay T bằng int và int? ở từng lời gọi.",
+        "Nêu giá trị mặc định của int."
+      ],
+      "shortAnswer": "(0, False). Kiểu int nhận 0 còn int? không có giá trị.",
+      "explanation": "`default` phụ thuộc vào kiểu T của mỗi lần gọi. Khi T là int, khai báo `T?` trên tham số kiểu không ràng buộc vẫn cho giá trị int. Khi T là int?, HasValue của giá trị mặc định bằng false.",
+      "alternative": "Dùng mẫu `TryRead(out T value)` hoặc tuple có cờ bool khi caller cần phân biệt default với kết quả thực.",
+      "trap": "Cho rằng default luôn trả null hoặc coi int? mặc định đã chứa 0.",
+      "rubric": [
+        "Thay T bằng int và int? ở từng lời gọi.",
+        "Nêu giá trị mặc định của int.",
+        "Đọc HasValue của int? mặc định.",
+        "Phân biệt giá trị với tín hiệu thành công."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/default",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "generics-gc",
+        "nullable-contract"
+      ],
+      "related": [
+        "dictionary-tryget-default"
+      ],
+      "quiz": {
+        "vi": [
+          "(0, True)",
+          "(1, False)",
+          "(0, False)"
+        ],
+        "en": [
+          "(0, True)",
+          "(1, False)",
+          "(0, False)"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "object-string-equality-static-type",
+    "content": {
+      "title": "So chuỗi sau khi đưa qua object",
+      "topic": "csharp",
+      "subtopic": "Static type and equality",
+      "tags": [
+        "Static type and equality"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai nhãn mới có cùng nội dung và được lưu dưới kiểu object. Hai phép so trong log cho kết quả nào?",
+      "englishPrompt": "Two freshly created labels have identical text and are stored as object. What results do the two comparisons print?",
+      "context": "Bộ kiểm tra dòng nhập gom các giá trị khác kiểu vào cùng một cấu trúc trước khi so sánh.",
+      "code": "object left = new string(new[] { 'O', 'K' });\nobject right = new string(new[] { 'O', 'K' });\nConsole.Write((left == right, left.Equals(right)));",
+      "hint": "Tìm kiểu tĩnh chọn toán tử == rồi xem cách lời gọi Equals chạy.",
+      "nextHint": "`==` với hai biến object dùng đồng nhất tham chiếu. Equals là virtual nên hai chuỗi gọi logic so nội dung.",
+      "followUp": "Nếu chuyển cả hai biến sang string trước khi dùng ==, kết quả phép so đầu thay đổi ra sao?",
+      "englishFollowUp": "If both operands are cast to string before ==, how does the first comparison change?",
+      "outline": [
+        "Nhận ra hai chuỗi riêng biệt.",
+        "Xác định vai trò kiểu tĩnh ở toán tử ==."
+      ],
+      "shortAnswer": "(False, True). Hai tham chiếu khác nhau nhưng Equals của string xác nhận cùng nội dung.",
+      "explanation": "Mỗi lời gọi constructor tạo một chuỗi riêng. Toán tử == chọn theo kiểu tĩnh object của toán hạng. Lời gọi Equals được dispatch đến override của string và so giá trị chuỗi.",
+      "alternative": "Khi hợp đồng chỉ nhận chuỗi, giữ kiểu string ở chữ ký và dùng phép so với StringComparison phù hợp.",
+      "trap": "Dự đoán == dùng toán tử của string chỉ vì hai đối tượng có kiểu runtime là string.",
+      "rubric": [
+        "Nhận ra hai chuỗi riêng biệt.",
+        "Xác định vai trò kiểu tĩnh ở toán tử ==.",
+        "Xác định dispatch của Equals.",
+        "Nêu kết quả đúng thứ tự."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/equality-operators",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "value-reference",
+        "ordinal-key-lookup"
+      ],
+      "related": [
+        "record-equality"
+      ],
+      "quiz": {
+        "vi": [
+          "(False, True)",
+          "(True, True)",
+          "(False, False)"
+        ],
+        "en": [
+          "(False, True)",
+          "(True, True)",
+          "(False, False)"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "json-property-name-overrides-policy",
+    "content": {
+      "title": "Tên trường cố định cho đối tác",
+      "topic": "csharp",
+      "subtopic": "JSON property naming",
+      "tags": [
+        "JSON property naming"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "DTO mới dùng chính sách camel case nhưng đối tác yêu cầu riêng thuộc tính ExternalId xuất và đọc dưới tên `external_id`. Giữ chính sách cho các thuộc tính còn lại bằng cách nào?",
+      "englishPrompt": "A DTO uses camel case, but a partner expects ExternalId to be written and read as `external_id`. How do you preserve the policy for all other properties?",
+      "context": "Adapter dùng System.Text.Json và DTO đã có thuộc tính ExternalId. DTO không dùng constructor tham số trong tình huống này.",
+      "hint": "Tìm tùy chỉnh áp dụng trên một thuộc tính JSON.",
+      "nextHint": "JsonPropertyName áp dụng khi ghi và đọc, đồng thời ưu tiên hơn naming policy cho thuộc tính đó.",
+      "followUp": "Bạn kiểm tra contract độc lập với round trip mặc định như thế nào?",
+      "englishFollowUp": "How would you test the wire contract independently of a default round trip?",
+      "outline": [
+        "Chọn attribute đúng cho từng thuộc tính.",
+        "Ghi đúng tên external_id."
+      ],
+      "shortAnswer": "Gắn `[JsonPropertyName(\"external_id\")]` lên thuộc tính ExternalId.",
+      "explanation": "Attribute xác định tên trên wire cho đúng một thành viên. System.Text.Json dùng nó khi serialize và deserialize. Chính sách camel case vẫn áp dụng cho các thuộc tính khác.",
+      "alternative": "Một DTO riêng cho đối tác cho phép định nghĩa contract khác mà không đổi metadata trên DTO dùng chung.",
+      "trap": "Đổi toàn bộ JsonNamingPolicy sang snake case làm đổi cả các thuộc tính còn lại.",
+      "rubric": [
+        "Chọn attribute đúng cho từng thuộc tính.",
+        "Ghi đúng tên external_id.",
+        "Nêu tác động cả khi đọc và ghi.",
+        "Đề xuất kiểm thử trên JSON có tên trường chính xác."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/customize-properties",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "api-pagination-idempotency"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Bật PropertyNameCaseInsensitive",
+          "Thêm JsonPropertyName trên ExternalId",
+          "Đổi policy chung sang snake case"
+        ],
+        "en": [
+          "Enable PropertyNameCaseInsensitive",
+          "Add JsonPropertyName to ExternalId",
+          "Switch the shared policy to snake case"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "json-required-present-null",
+    "content": {
+      "title": "Thuộc tính bắt buộc xuất hiện",
+      "topic": "csharp",
+      "subtopic": "Required JSON members",
+      "tags": [
+        "Required JSON members"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "DTO có `public required string? Comment { get; init; }`. Dùng System.Text.Json mặc định để đọc `{}` rồi đọc `{\"Comment\":null}`. Kết quả hai lần ra sao?",
+      "englishPrompt": "A DTO has `public required string? Comment { get; init; }`. With default System.Text.Json options, what happens when reading `{}` and then `{\"Comment\":null}`?",
+      "context": "Hợp đồng yêu cầu client chủ động gửi Comment để biểu thị đã xem qua trường này, với null là một lựa chọn hợp lệ.",
+      "hint": "Tách yêu cầu có mặt của trường khỏi giá trị được phép chứa.",
+      "nextHint": "required yêu cầu tên trường có mặt trong JSON. Kiểu string? cho phép null.",
+      "followUp": "Nếu hợp đồng yêu cầu chuỗi khác null và khác toàn khoảng trắng, bạn kiểm tra thêm ở đâu?",
+      "englishFollowUp": "If the contract requires a non-null and non-blank string, where would you add that validation?",
+      "outline": [
+        "Xác định required điều khiển sự có mặt.",
+        "Giải thích lỗi với payload thiếu trường."
+      ],
+      "shortAnswer": "`{}` ném JsonException. `{\"Comment\":null}` hợp lệ và Comment bằng null.",
+      "explanation": "System.Text.Json đánh dấu required là thông tin bắt buộc có mặt. Payload thứ nhất bỏ trường nên lỗi. Payload thứ hai có trường với giá trị null, phù hợp với kiểu nullable.",
+      "alternative": "Thêm xác thực dữ liệu riêng cho quy tắc miền, chẳng hạn non-blank, sau khi deserialize hoặc qua pipeline xác thực của API.",
+      "trap": "Coi required đồng nghĩa với non-null hoặc coi mọi thuộc tính nullable là tùy chọn.",
+      "rubric": [
+        "Xác định required điều khiển sự có mặt.",
+        "Giải thích lỗi với payload thiếu trường.",
+        "Chấp nhận explicit null cho kiểu nullable.",
+        "Tách kiểm tra contract JSON với quy tắc miền."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/required-properties",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "nullable-contract"
+      ],
+      "related": [
+        "json-property-name-overrides-policy"
+      ],
+      "quiz": {
+        "vi": [
+          "Cả hai payload đều bị từ chối",
+          "Cả hai payload đều được đọc thành Comment = null",
+          "Payload đầu bị từ chối, payload sau đọc ra Comment = null"
+        ],
+        "en": [
+          "Both payloads are rejected",
+          "Both payloads deserialize with Comment = null",
+          "The first payload is rejected, the second gives Comment = null"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "json-unmapped-property-policy",
+    "content": {
+      "title": "Phát hiện tên trường viết sai khi nhập",
+      "topic": "csharp",
+      "subtopic": "Unmapped JSON members",
+      "tags": [
+        "Unmapped JSON members"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "API nội bộ phải từ chối tên trường không có trong DTO, kể cả lỗi gõ tên làm giá trị rơi mất. Cấu hình System.Text.Json nào đáp ứng?",
+      "englishPrompt": "An internal API must reject JSON property names absent from its DTO, including typos that would silently lose data. Which System.Text.Json setting fits?",
+      "context": "Hai bên dùng hợp đồng chặt và nhóm có thể phối hợp khi thêm trường mới.",
+      "hint": "Tìm chính sách dành cho thành viên JSON không ánh xạ được.",
+      "nextHint": "UnmappedMemberHandling có chế độ Disallow, báo lỗi nếu JSON gửi trường mà DTO không xử lý.",
+      "followUp": "Với một client cũ đọc payload mới có thêm trường, chế độ này ảnh hưởng khả năng tương thích thế nào?",
+      "englishFollowUp": "How does this mode affect an older client that reads a newer payload with an added field?",
+      "outline": [
+        "Chọn chính sách Disallow.",
+        "Nhận ra hướng JSON gửi thêm trường."
+      ],
+      "shortAnswer": "Đặt UnmappedMemberHandling thành JsonUnmappedMemberHandling.Disallow cho options hoặc DTO phù hợp.",
+      "explanation": "Mặc định thành viên không ánh xạ được thường bị bỏ qua. Chế độ Disallow khiến deserialization ném JsonException khi gặp tên trường không có đích ánh xạ với DTO đang xét. Nó khác với việc đánh dấu một trường đã biết là bắt buộc có mặt.",
+      "alternative": "Có thể dùng JsonUnmappedMemberHandlingAttribute trên riêng DTO nhập nghiêm ngặt để phạm vi khớp hợp đồng.",
+      "trap": "Bật kiểm tra tên không phân biệt chữ hoa và kỳ vọng nó bắt mọi trường dư.",
+      "rubric": [
+        "Chọn chính sách Disallow.",
+        "Nhận ra hướng JSON gửi thêm trường.",
+        "Phân biệt trường dư và trường đã biết nhưng bị thiếu.",
+        "Nêu tác động với bên đọc phiên bản cũ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/missing-members",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "json-required-present-null"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đặt UnmappedMemberHandling = Disallow",
+          "Bật PropertyNameCaseInsensitive",
+          "Đặt DefaultIgnoreCondition = WhenWritingNull"
+        ],
+        "en": [
+          "Set UnmappedMemberHandling = Disallow",
+          "Enable PropertyNameCaseInsensitive",
+          "Set DefaultIgnoreCondition = WhenWritingNull"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "json-ignore-null-keeps-zero",
+    "content": {
+      "title": "Giữ số lượng 0 trong JSON",
+      "topic": "csharp",
+      "subtopic": "JSON ignore conditions",
+      "tags": [
+        "JSON ignore conditions"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Đoạn System.Text.Json với null, 0 và false in ba cờ kiểm tra sự có mặt của trường là gì?",
+      "englishPrompt": "What three property-presence flags does the System.Text.Json example print for null, zero, and false?",
+      "context": "Phía nhận dùng số lượng 0 và cờ false như các thông tin đã được đo.",
+      "code": "var summary = new { Label = (string?)null, Count = 0, Enabled = false };\nvar options = new System.Text.Json.JsonSerializerOptions\n{\n    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull\n};\nvar json = System.Text.Json.JsonSerializer.Serialize(summary, options);\nusing var doc = System.Text.Json.JsonDocument.Parse(json);\nConsole.Write((doc.RootElement.TryGetProperty(\"Label\", out _),\n    doc.RootElement.TryGetProperty(\"Count\", out _),\n    doc.RootElement.TryGetProperty(\"Enabled\", out _)));",
+      "hint": "So sánh null với giá trị mặc định của kiểu giá trị.",
+      "nextHint": "WhenWritingNull bỏ Label. Count và Enabled vẫn có mặt dù chúng đang mang giá trị mặc định.",
+      "followUp": "Nếu dùng WhenWritingDefault, cờ kiểm tra sự có mặt của từng trường đổi thế nào?",
+      "englishFollowUp": "If you use WhenWritingDefault, how would the three property-presence flags change?",
+      "outline": [
+        "Phân biệt null và giá trị mặc định bằng 0 hoặc false.",
+        "Xác định Label bị bỏ."
+      ],
+      "shortAnswer": "(False, True, True). JSON bỏ Label và giữ Count cùng Enabled.",
+      "explanation": "WhenWritingNull loại thuộc tính có giá trị null khi ghi. int bằng 0 và bool bằng false là các giá trị hợp lệ khác null và vẫn được ghi. Ba phép TryGetProperty chỉ kiểm tra sự có mặt của tên trường.",
+      "alternative": "Khai báo điều kiện ghi theo từng thuộc tính khi chỉ một số trường có ngữ nghĩa bỏ null.",
+      "trap": "Đọc WhenWritingNull như WhenWritingDefault rồi làm mất cả 0 và false.",
+      "rubric": [
+        "Phân biệt null và giá trị mặc định bằng 0 hoặc false.",
+        "Xác định Label bị bỏ.",
+        "Xác định Count và Enabled được giữ.",
+        "Đọc đúng ba cờ kiểm tra sự có mặt."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/ignore-properties",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "nullable-contract",
+        "generic-default-per-type"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "(True, True, True)",
+          "(False, True, True)",
+          "(False, False, False)"
+        ],
+        "en": [
+          "(True, True, True)",
+          "(False, True, True)",
+          "(False, False, False)"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "gc-cache-reachable-root",
+    "content": {
+      "title": "Đối tượng hết hạn vẫn còn sống",
+      "topic": "csharp",
+      "subtopic": "GC reachability",
+      "tags": [
+        "GC reachability"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Cache static đánh dấu mục hết hạn nhưng vẫn giữ mọi giá trị trong dictionary. Vì sao heap snapshot còn các đối tượng này sau GC?",
+      "englishPrompt": "A static cache marks entries expired but keeps all values in its dictionary. Why do these objects remain in a heap snapshot after GC?",
+      "context": "Cache thuộc tiến trình chạy lâu, số mục hết hạn tăng sau mỗi đợt đồng bộ.",
+      "hint": "Lần đường tham chiếu từ trường static đến từng giá trị.",
+      "nextHint": "GC giữ các đối tượng còn đường tới từ root và không hiểu cờ hết hạn nghiệp vụ.",
+      "followUp": "Bạn thay đổi vòng đời cache thế nào để đối tượng đủ điều kiện được thu gom?",
+      "englishFollowUp": "How would you change cache lifetime so those objects become eligible for collection?",
+      "outline": [
+        "Chỉ ra trường static là root trong tình huống.",
+        "Lần đường tham chiếu đến giá trị."
+      ],
+      "shortAnswer": "Các mục vẫn đến được từ một GC root qua dictionary static. Cờ hết hạn không cắt đường tham chiếu.",
+      "explanation": "GC bắt đầu từ các root, trong đó có các trường static còn sống, rồi lần các tham chiếu mạnh. Mục hết hạn vẫn nằm trong dictionary nên vẫn reachable. Khi mọi đường tham chiếu mạnh biến mất, mục mới đủ điều kiện được thu gom.",
+      "alternative": "Xóa mục khi hết hạn và áp dụng giới hạn kích thước nếu cache có thể nhận vô số khóa.",
+      "trap": "Gọi GC.Collect để mong GC đọc trạng thái hết hạn rồi tự xóa mục.",
+      "rubric": [
+        "Chỉ ra trường static là root trong tình huống.",
+        "Lần đường tham chiếu đến giá trị.",
+        "Tách trạng thái nghiệp vụ khỏi điều kiện thu gom.",
+        "Đề xuất xóa mục hoặc eviction thật sự."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "generics-gc"
+      ],
+      "related": [
+        "cache-design"
+      ],
+      "quiz": {
+        "vi": [
+          "Cờ hết hạn khiến đối tượng đợi thêm một GC bắt buộc",
+          "Giá trị static chỉ được thu gom trực tiếp bằng Dispose",
+          "Dictionary static vẫn giữ tham chiếu mạnh tới giá trị"
+        ],
+        "en": [
+          "An expired flag forces objects to wait for one more GC",
+          "Static values are collected only by calling Dispose",
+          "The static dictionary still strongly references the values"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "loh-repeated-large-buffers",
+    "content": {
+      "title": "Áp lực GC từ bộ đệm lớn",
+      "topic": "csharp",
+      "subtopic": "Large object heap",
+      "tags": [
+        "Large object heap"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Một worker tạo mới nhiều `byte[100_000]` mỗi giây. Trace cho thấy nhiều cấp phát LOH và các đợt gen 2 thường xuyên. Thử nghiệm nào kiểm tra đúng cơ chế đang nghi ngờ?",
+      "englishPrompt": "A worker allocates many `byte[100_000]` buffers per second. A trace shows LOH allocations and frequent generation 2 collections. Which experiment tests the suspected mechanism?",
+      "context": "Kích thước theo hợp đồng đầu ra. Mỗi buffer chỉ cần trong lúc xử lý một lượt.",
+      "hint": "Đọc mối liên hệ giữa mảng lớn, LOH và gen 2 trước khi đổi cách cấp phát.",
+      "nextHint": "Mảng 100.000 byte vào LOH với ngưỡng mặc định. Thu gom LOH diễn ra cùng gen 2, nên tái sử dụng buffer có thể giảm áp lực cấp phát.",
+      "followUp": "Bạn so sánh những chỉ số nào dưới cùng tải để nhận biết pooling thực sự giúp?",
+      "englishFollowUp": "Which metrics would you compare under the same load to tell whether pooling actually helps?",
+      "outline": [
+        "Nhận ra kích thước rơi vào LOH mặc định.",
+        "Nêu mối liên hệ với gen 2."
+      ],
+      "shortAnswer": "Thử thuê và trả bộ đệm bằng ArrayPool<byte> rồi đo lại LOH allocation, tần suất gen 2 và độ trễ dưới cùng tải.",
+      "explanation": "Mảng này vượt ngưỡng phân bổ LOH mặc định. LOH được thu gom cùng gen 2. Tái sử dụng có thể giảm số mảng lớn mới, đồng thời pool có thể giữ bộ nhớ để dùng lại.",
+      "alternative": "Nếu có thể đổi cách xử lý mà vẫn giữ contract, đọc và ghi theo khối nhỏ để giảm số lần cần mảng lớn.",
+      "trap": "Cố gọi GC.Collect(0) để thu gom trực tiếp các buffer ở LOH.",
+      "rubric": [
+        "Nhận ra kích thước rơi vào LOH mặc định.",
+        "Nêu mối liên hệ với gen 2.",
+        "Chọn thử nghiệm giảm cấp phát mới.",
+        "Đo lợi ích và chi phí giữ bộ nhớ dưới cùng tải."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "generics-gc",
+        "gc-cache-reachable-root"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Thử dùng ArrayPool và đo lại allocation cùng gen 2",
+          "Gọi thêm GC.Collect(0) sau mỗi lượt xử lý",
+          "Thêm các biến local để dời cả mảng sang stack"
+        ],
+        "en": [
+          "Try ArrayPool and remeasure allocations and generation 2 collections",
+          "Call GC.Collect(0) after every item",
+          "Add local variables to move the entire array onto the stack"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "pool-return-after-consumer",
+    "content": {
+      "title": "Vòng đời mảng thuê qua bước async",
+      "topic": "csharp",
+      "subtopic": "ArrayPool ownership",
+      "tags": [
+        "ArrayPool ownership"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Worker thuê mảng, đưa Memory của mảng vào SendAsync và contract nói bên gửi dùng mảng tới khi Task hoàn tất. Mảng phải được trả lúc nào?",
+      "englishPrompt": "A worker rents an array and passes its Memory to SendAsync, whose contract uses the array until the task completes. When should the worker return the array?",
+      "context": "SendAsync có thể tiếp tục đọc sau lần yield đầu và có thể thất bại.",
+      "hint": "Xác định thời điểm cuối cùng bên I/O còn đọc được dữ liệu.",
+      "nextHint": "Sau khi Return, pool có thể cho caller khác thuê mảng đó. Chờ SendAsync kết thúc trước khi trả.",
+      "followUp": "Nếu mảng chứa thông tin nhạy cảm, overload Return có tùy chọn nào liên quan đến việc xóa dữ liệu?",
+      "englishFollowUp": "If the array contains sensitive information, which Return option relates to clearing it?",
+      "outline": [
+        "Xác định vòng đời I/O theo hợp đồng.",
+        "Giữ buffer cho tới khi SendAsync kết thúc."
+      ],
+      "shortAnswer": "Await SendAsync trong try, rồi Return đúng một lần trong finally sau khi thao tác kết thúc.",
+      "explanation": "Mảng phải thuộc worker trong suốt lúc SendAsync còn dùng nó. Trả trước khi task kết thúc mở đường cho tác vụ khác ghi đè. `finally` cũng trả buffer khi task báo lỗi hoặc bị hủy.",
+      "alternative": "Nếu bên nhận cần giữ dữ liệu lâu hơn thời điểm task hoàn tất, thỏa thuận chuyển giao quyền sở hữu hoặc chuyển cho nó một bản sao.",
+      "trap": "Trả mảng ngay sau khi có Task rồi mới await Task, khiến vùng nhớ bị dùng sau khi trả.",
+      "rubric": [
+        "Xác định vòng đời I/O theo hợp đồng.",
+        "Giữ buffer cho tới khi SendAsync kết thúc.",
+        "Trả đúng một lần trên cả đường lỗi.",
+        "Nhắc clearArray nếu phù hợp và hiểu đây là tùy chọn dọn khi pool giữ lại."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.buffers.arraypool-1.return?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "loh-repeated-large-buffers",
+        "dispose-ownership"
+      ],
+      "related": [
+        "span-alias-slice"
+      ],
+      "quiz": {
+        "vi": [
+          "Ngay khi lấy được Task từ SendAsync",
+          "Trong finally sau khi await SendAsync hoàn tất hoặc ném lỗi",
+          "Chỉ sau một lần gửi thành công"
+        ],
+        "en": [
+          "As soon as SendAsync returns a task",
+          "In finally after awaiting SendAsync completes or throws",
+          "Only after a successful send"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "event-publisher-keeps-subscriber",
+    "content": {
+      "title": "Màn hình đã đóng vẫn nhận sự kiện",
+      "topic": "csharp",
+      "subtopic": "Event subscription lifetime",
+      "tags": [
+        "Event subscription lifetime"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Một dịch vụ sống suốt tiến trình giữ event có handler là instance method của màn hình. Màn hình đóng và biến local đã rời scope nhưng vẫn được giữ. Sửa gì ở vòng đời màn hình?",
+      "englishPrompt": "A process-long service has an event with a screen instance method as handler. The screen closes and its local goes out of scope, but it remains alive. What lifecycle change fixes this?",
+      "context": "Mỗi lần mở màn hình, một instance mới đăng ký nghe cùng một publisher.",
+      "hint": "Xem event giữ delegate nào và delegate giữ target nào.",
+      "nextHint": "Publisher giữ tham chiếu đến handler và target của instance method tới khi hủy đăng ký.",
+      "followUp": "Nếu đăng ký bằng lambda, bạn giữ gì để dùng -= đúng delegate sau này?",
+      "englishFollowUp": "If you subscribe with a lambda, what should you keep so you can unsubscribe the correct delegate later?",
+      "outline": [
+        "Lần đường publisher đến delegate rồi target.",
+        "Giải thích vì sao scope không đủ."
+      ],
+      "shortAnswer": "Hủy đăng ký handler khi màn hình đóng hoặc khi vòng đời subscription kết thúc.",
+      "explanation": "Publisher còn sống và event của nó giữ delegate trỏ đến màn hình. Rời scope của biến local chỉ bỏ một tham chiếu. Hủy đăng ký cắt đường tham chiếu từ publisher, nếu không còn đường khác thì màn hình đủ điều kiện thu gom.",
+      "alternative": "Đăng ký với handler có tên hoặc lưu delegate lambda để có thể tháo đúng subscription.",
+      "trap": "Gán biến local về null mà giữ nguyên subscription trong publisher.",
+      "rubric": [
+        "Lần đường publisher đến delegate rồi target.",
+        "Giải thích vì sao scope không đủ.",
+        "Đặt thao tác -= ở điểm kết thúc vòng đời.",
+        "Nhận ra cần cùng delegate khi dùng lambda."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/events/how-to-subscribe-to-and-unsubscribe-from-events",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "gc-cache-reachable-root",
+        "multicast-return"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi GC.Collect mỗi khi đóng màn hình",
+          "Đặt biến local về null lúc đóng",
+          "Hủy đăng ký handler khi đóng hoặc dispose màn hình"
+        ],
+        "en": [
+          "Call GC.Collect each time the screen closes",
+          "Set the local variable to null when closing",
+          "Unsubscribe the handler on close or disposal"
+        ],
+        "correctIndex": 2
+      }
+    }
+  }
+]

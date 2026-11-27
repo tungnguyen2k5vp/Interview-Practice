@@ -1,0 +1,776 @@
+[
+  {
+    "slug": "http-no-content-write",
+    "content": {
+      "title": "Lưu xong, không có body",
+      "topic": "aspnet",
+      "subtopic": "204 No Content",
+      "tags": [
+        "204 No Content",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Một lệnh PUT đã cập nhật tùy chọn hiển thị. Client chỉ cần xác nhận thành công, API chọn 204. Thân phản hồi nên chứa gì?",
+      "englishPrompt": "A PUT updated a display preference. The API chooses 204 because the client only needs confirmation. What should the response body contain?",
+      "context": "Giao diện đã giữ giá trị mới và không cần nhận lại JSON.",
+      "hint": "Đọc tên trạng thái.",
+      "nextHint": "Header và thân phản hồi có quy tắc khác nhau.",
+      "followUp": "Nếu client cần toàn bộ biểu diễn đã lưu thì hợp đồng phản hồi thành công có thể đổi thế nào?",
+      "englishFollowUp": "How could the success response change if the client needs the complete saved representation?",
+      "outline": [
+        "Xác nhận thao tác đã hoàn tất.",
+        "Chọn thân phản hồi trống."
+      ],
+      "shortAnswer": "Để thân phản hồi trống. 204 xác nhận lệnh thành công mà không gửi nội dung.",
+      "explanation": "204 kết thúc ở cuối phần header. Client không cần gọi trình phân tích JSON khi nhận trạng thái này. API vẫn có thể trả metadata phù hợp về tài nguyên.",
+      "alternative": "Trả 200 kèm JSON nếu client cần thấy giá trị server chuẩn hóa.",
+      "trap": "Trình bọc phản hồi tự chèn JSON vào mọi kết quả thành công, kể cả 204.",
+      "rubric": [
+        "Xác nhận thao tác đã hoàn tất.",
+        "Chọn thân phản hồi trống.",
+        "Phân biệt metadata header với body.",
+        "Đổi sang 200 nếu cần biểu diễn mới."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.3.5",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-created-location"
+      ],
+      "quiz": {
+        "vi": [
+          "Gửi lại toàn bộ request PUT",
+          "Để trống thân phản hồi",
+          "Gửi đối tượng JSON rỗng",
+          "Gửi giá trị JSON null"
+        ],
+        "en": [
+          "Echo the entire PUT request",
+          "Leave the response body empty",
+          "Send an empty JSON object",
+          "Send the JSON literal null"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Việc lặp nội dung request mâu thuẫn với 204.",
+          "204 không có nội dung.",
+          "Hai ký tự {} vẫn là nội dung.",
+          "null là một giá trị truyền trên mạng."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "http-method-allow",
+    "content": {
+      "title": "Phương thức được hỗ trợ",
+      "topic": "aspnet",
+      "subtopic": "405 và Allow",
+      "tags": [
+        "405 và Allow",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Tài nguyên công khai /forecast hỗ trợ đúng GET và HEAD. Máy chủ có hỗ trợ POST ở nơi khác. Phản hồi nào mô tả đúng POST tới /forecast?",
+      "englishPrompt": "The public /forecast resource supports exactly GET and HEAD. The server supports POST elsewhere. Which response describes a POST to /forecast?",
+      "context": "Tài nguyên tồn tại và không có chính sách ẩn sự tồn tại của nó.",
+      "hint": "Kiểm tra phương thức theo tài nguyên đích.",
+      "nextHint": "Một header phản hồi liệt kê các phương thức được tài nguyên hỗ trợ.",
+      "followUp": "Vì sao tình huống này khác trường hợp máy chủ hoàn toàn không triển khai phương thức?",
+      "englishFollowUp": "Why does this differ from a server that does not implement the method at all?",
+      "outline": [
+        "Xác định tài nguyên đích tồn tại.",
+        "Tách hỗ trợ của máy chủ và của tài nguyên."
+      ],
+      "shortAnswer": "Trả 405 Method Not Allowed với Allow: GET, HEAD.",
+      "explanation": "405 mô tả phương thức đã biết nhưng không được tài nguyên đích hỗ trợ. Origin server phải đưa danh sách phương thức hiện được hỗ trợ vào Allow.",
+      "alternative": "Một phương thức máy chủ không nhận biết hoặc không có khả năng hỗ trợ có thể dẫn đến 501.",
+      "trap": "Nhầm Allow với Access-Control-Allow-Methods. Header thứ hai phục vụ CORS.",
+      "rubric": [
+        "Xác định tài nguyên đích tồn tại.",
+        "Tách hỗ trợ của máy chủ và của tài nguyên.",
+        "Nêu đúng 405 và Allow.",
+        "Liệt kê cả GET và HEAD."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.6",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-head-body"
+      ],
+      "quiz": {
+        "vi": [
+          "404 vì không có handler POST",
+          "501 vì POST không được hỗ trợ ở URL này",
+          "415 vì endpoint mong đợi GET",
+          "405 với Allow: GET, HEAD"
+        ],
+        "en": [
+          "404 because no POST handler exists",
+          "501 because POST is unsupported at this URL",
+          "415 because the endpoint expects GET",
+          "405 with Allow: GET, HEAD"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Tài nguyên đã được xác định là tồn tại và công khai.",
+          "Máy chủ đã có khả năng xử lý POST.",
+          "415 mô tả định dạng nội dung request.",
+          "405 cần Allow với các phương thức hiện được hỗ trợ."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-safe-preview",
+    "content": {
+      "title": "Link xem trước và GET",
+      "topic": "aspnet",
+      "subtopic": "Phương thức safe",
+      "tags": [
+        "Phương thức safe",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Link GET /drafts/42/preview hiện tự xuất bản bản nháp khi mở. Trình quét link có thể tải URL. Nên đổi hợp đồng thế nào để GET giữ đúng ngữ nghĩa?",
+      "englishPrompt": "Opening GET /drafts/42/preview publishes a draft. A link scanner may fetch the URL automatically. How should the contract change to preserve GET semantics?",
+      "context": "Xem trước và xuất bản là hai ý định riêng của người dùng.",
+      "hint": "Xét thay đổi nghiệp vụ do lời gọi đọc tạo ra.",
+      "nextHint": "Trình duyệt có thể tải trước một URL GET.",
+      "followUp": "Bộ đếm lượt xem phục vụ vận hành có nhất thiết làm GET mất tính safe không?",
+      "englishFollowUp": "Does an operational view counter necessarily make GET unsafe?",
+      "outline": [
+        "Tách ý định xem và xuất bản.",
+        "Lý giải giả định GET của crawler."
+      ],
+      "shortAnswer": "GET chỉ trả bản xem trước. Thêm một thao tác POST riêng nhận yêu cầu xuất bản.",
+      "explanation": "Với phương thức safe, client không yêu cầu thay đổi trạng thái nghiệp vụ. Việc xuất bản cần yêu cầu tường minh. Nhật ký và thống kê phát sinh khi phục vụ request khác với thay đổi nghiệp vụ mà client yêu cầu.",
+      "alternative": "Nếu trạng thái xuất bản là tài nguyên có thể thay thế, một lệnh PUT tường minh cũng có thể phù hợp.",
+      "trap": "Đổi đường dẫn thành /publish nhưng vẫn dùng GET giữ nguyên vấn đề khi crawler mở link.",
+      "rubric": [
+        "Tách ý định xem và xuất bản.",
+        "Lý giải giả định GET của crawler.",
+        "Chọn phương thức thay đổi trạng thái.",
+        "Phân biệt telemetry phụ với thay đổi nghiệp vụ."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-9.2.1",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Giữ GET cho xem trước và dùng POST riêng để xuất bản",
+          "Giữ GET và thêm Cache-Control: no-store",
+          "Giữ GET và đổi đường dẫn thành /publish",
+          "Chuyển cả hai sang HEAD"
+        ],
+        "en": [
+          "Keep GET for previews and use a separate POST to publish",
+          "Keep GET and add Cache-Control: no-store",
+          "Keep GET and rename the path to /publish",
+          "Move both actions to HEAD"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Chỉ thao tác tường minh mới yêu cầu đổi trạng thái bản nháp.",
+          "Chỉ thị cache không ngăn client tải URL.",
+          "Tên đường dẫn không đổi ngữ nghĩa phương thức.",
+          "HEAD cũng safe và không gửi nội dung xem trước."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "http-delete-repeat-effect",
+    "content": {
+      "title": "DELETE lặp và trạng thái cuối",
+      "topic": "aspnet",
+      "subtopic": "Tính idempotent",
+      "tags": [
+        "Tính idempotent",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Lệnh DELETE xóa một liên kết và trả 204. Cùng lệnh được gửi lại ngay, API trả 404 vì liên kết đã mất. Thao tác có còn idempotent không?",
+      "englishPrompt": "A DELETE removes a link and returns 204. The same request immediately returns 404 because the link is gone. Is the operation still idempotent?",
+      "context": "Không có cập nhật xen giữa. Xóa liên kết là tác động nghiệp vụ duy nhất mà client yêu cầu.",
+      "hint": "So sánh trạng thái đích sau một lần và sau hai lần.",
+      "nextHint": "Hai mã phản hồi có thể khác nhau dù tác động yêu cầu giống nhau.",
+      "followUp": "Nếu mỗi lần gọi đều tính thêm phí xóa thì kết luận thay đổi ra sao?",
+      "englishFollowUp": "How would charging a deletion fee on every call change the conclusion?",
+      "outline": [
+        "Chỉ ra tài nguyên vắng mặt sau lần đầu.",
+        "Xác định lần sau không thêm tác động được yêu cầu."
+      ],
+      "shortAnswer": "Vẫn idempotent vì một hoặc hai lệnh giống nhau đều để liên kết ở trạng thái đã xóa.",
+      "explanation": "Idempotency áp dụng cho tác động dự kiến của cùng request lên máy chủ. Client có thể nhận phản hồi khác khi trạng thái đầu vào của lần lặp đã đổi.",
+      "alternative": "API có thể quy ước 204 cho tài nguyên đã vắng mặt nếu không cần phân biệt nó từng tồn tại hay chưa.",
+      "trap": "So sánh status code mà bỏ qua trạng thái tài nguyên và tác động nghiệp vụ.",
+      "rubric": [
+        "Chỉ ra tài nguyên vắng mặt sau lần đầu.",
+        "Xác định lần sau không thêm tác động được yêu cầu.",
+        "Giải thích 204 và 404 có thể cùng hợp lệ.",
+        "Kiểm tra tác động nghiệp vụ đi kèm như phí."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-9.2.2",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "api-pagination-idempotency"
+      ],
+      "quiz": {
+        "vi": [
+          "Chỉ idempotent nếu hai lần đều trả 404",
+          "Là safe vì lần sau không xóa gì",
+          "Vẫn idempotent vì tác động được yêu cầu không đổi",
+          "Mất idempotency vì status khác"
+        ],
+        "en": [
+          "Only idempotent if both responses are 404",
+          "It is safe because the second call removes nothing",
+          "Still idempotent because the intended effect is unchanged",
+          "Not idempotent because the status codes differ"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Xóa thành công lần đầu vẫn tương thích với idempotency.",
+          "Mục đích DELETE vẫn là thay đổi trạng thái.",
+          "Định nghĩa xét tác động của các lần lặp.",
+          "Status không phải tiêu chí kết luận."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-cache-revalidate-use",
+    "content": {
+      "title": "Lưu được, dùng lại có điều kiện",
+      "topic": "aspnet",
+      "subtopic": "Cache-Control no-cache",
+      "tags": [
+        "Cache-Control no-cache",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "HTTP",
+      "prompt": "CDN được lưu phản hồi danh mục công khai nhưng phải xác thực thành công với origin trước mỗi lần dùng lại. Chỉ thị phản hồi nào diễn đạt đúng?",
+      "englishPrompt": "A CDN may store a public catalog response but must successfully validate with the origin before every reuse. Which response directive conveys this?",
+      "context": "Danh mục có ETag và cần phản ánh ngay bản sửa đã phát hành.",
+      "hint": "Tách quyền lưu khỏi quyền dùng lại.",
+      "nextHint": "Origin có thể xác thực ETag mà không gửi lại toàn bộ danh mục.",
+      "followUp": "Nếu origin không liên lạc được, CDN có thể dùng lại phản hồi này không qua xác thực không?",
+      "englishFollowUp": "If the origin is unreachable, may the CDN reuse this response without validating it?",
+      "outline": [
+        "Nhận biết dữ liệu được phép lưu.",
+        "Chọn chỉ thị cho toàn bộ phản hồi."
+      ],
+      "shortAnswer": "Cache-Control: no-cache cho phép lưu nhưng buộc xác thực thành công trước khi dùng lại.",
+      "explanation": "no-cache không kèm đối số áp dụng cho cả phản hồi. Nếu validator vẫn khớp, origin có thể trả 304 để cache dùng lại biểu diễn đã lưu.",
+      "alternative": "Dùng no-store nếu chính sách yêu cầu cache không lưu ngay từ đầu.",
+      "trap": "Hiểu tên no-cache là cấm lưu trữ.",
+      "rubric": [
+        "Nhận biết dữ liệu được phép lưu.",
+        "Chọn chỉ thị cho toàn bộ phản hồi.",
+        "Nêu điều kiện xác thực thành công.",
+        "Liên hệ ETag với phản hồi 304."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9111#section-5.2.2.4",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-304-validation"
+      ],
+      "quiz": {
+        "vi": [
+          "Cache-Control: private",
+          "Cache-Control: no-cache",
+          "Cache-Control: no-store",
+          "Cache-Control: max-age=300"
+        ],
+        "en": [
+          "Cache-Control: private",
+          "Cache-Control: no-cache",
+          "Cache-Control: no-store",
+          "Cache-Control: max-age=300"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "CDN là cache chia sẻ nên không được lưu phản hồi private.",
+          "Buộc xác thực khi dùng lại nhưng không cấm lưu.",
+          "Không đáp ứng yêu cầu được lưu.",
+          "Cho phép dùng lại ngay khi còn tươi."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-vary-language",
+    "content": {
+      "title": "Cache theo ngôn ngữ",
+      "topic": "aspnet",
+      "subtopic": "Vary",
+      "tags": [
+        "Vary",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "HTTP",
+      "prompt": "Cùng URL /help trả bản Việt hoặc Anh dựa trên Accept-Language. Header phản hồi nào hướng dẫn cache phân biệt các bản?",
+      "englishPrompt": "The same /help URL returns Vietnamese or English based on Accept-Language. Which response header tells a cache how to tell the variants apart?",
+      "context": "Cache chia sẻ được phép lưu cả hai bản và hiện chỉ phân biệt theo URL.",
+      "hint": "Một tiêu chí chọn biểu diễn đến từ request header.",
+      "nextHint": "Header phản hồi cần nêu tên trường đã tác động đến lựa chọn.",
+      "followUp": "Nếu origin còn chọn bản nén theo Accept-Encoding, Vary nên bổ sung gì?",
+      "englishFollowUp": "What should Vary include if the origin also selects compression using Accept-Encoding?",
+      "outline": [
+        "Xác định cùng URI có nhiều biểu diễn.",
+        "Chỉ ra trường request ảnh hưởng đến lựa chọn."
+      ],
+      "shortAnswer": "Trả Vary: Accept-Language trên phản hồi được thương lượng theo ngôn ngữ.",
+      "explanation": "Vary cho biết trường request nào ngoài phương thức và URI tác động đến biểu diễn được chọn. Content-Language chỉ mô tả ngôn ngữ của bản đang trả.",
+      "alternative": "Dùng đường dẫn riêng như /vi/help và /en/help nếu muốn ngôn ngữ nằm trong URI.",
+      "trap": "Đặt Content-Language rồi kỳ vọng cache tự so sánh Accept-Language.",
+      "rubric": [
+        "Xác định cùng URI có nhiều biểu diễn.",
+        "Chỉ ra trường request ảnh hưởng đến lựa chọn.",
+        "Dùng đúng Vary.",
+        "Phân biệt với Content-Language."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-12.5.5",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-content-type-accept"
+      ],
+      "quiz": {
+        "vi": [
+          "Vary: Accept-Language",
+          "Content-Language: vi, en",
+          "Vary: Content-Language",
+          "Cache-Control: public"
+        ],
+        "en": [
+          "Vary: Accept-Language",
+          "Content-Language: vi, en",
+          "Vary: Content-Language",
+          "Cache-Control: public"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Nêu trường request cần xét khi dùng lại bản lưu.",
+          "Mô tả ngôn ngữ nhưng không khai báo tiêu chí so khớp request.",
+          "Tên trường được chọn ở đây phải là Accept-Language.",
+          "Quyền lưu khác với việc chọn biến thể."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-private-browser-cache",
+    "content": {
+      "title": "Cache trình duyệt cho dashboard",
+      "topic": "aspnet",
+      "subtopic": "Cache-Control private",
+      "tags": [
+        "Cache-Control private",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "HTTP",
+      "prompt": "Dashboard cá nhân có thể được cache riêng của trình duyệt lưu, nhưng cache chia sẻ không được lưu. Chỉ thị nào thể hiện chính sách này?",
+      "englishPrompt": "A personal dashboard response may be stored by a private browser cache but must never be stored by shared caches. Which directive expresses that policy?",
+      "context": "Nhóm đang chọn chính sách tại origin, độc lập với cấu hình CDN hiện tại.",
+      "hint": "Xét phạm vi người dùng mà cache phục vụ.",
+      "nextHint": "Trình duyệt và CDN có thể là hai loại cache khác nhau.",
+      "followUp": "Nếu chính sách cấm lưu cả ở cache riêng thì chọn gì?",
+      "englishFollowUp": "Which directive fits if private caches must also avoid storage?",
+      "outline": [
+        "Xác định CDN là cache chia sẻ.",
+        "Chọn private."
+      ],
+      "shortAnswer": "Cache-Control: private cấm cache chia sẻ lưu phản hồi và cho phép cache riêng lưu nếu các điều kiện khác cho phép.",
+      "explanation": "private không đối số áp dụng cho toàn bộ phản hồi. Nó giới hạn loại cache được phép lưu và không tự quyết định thời gian tươi.",
+      "alternative": "Chọn no-store nếu phản hồi không được lưu trong bất kỳ HTTP cache nào.",
+      "trap": "Đặt max-age ngắn chỉ giới hạn thời gian tươi, không giới hạn loại cache lưu.",
+      "rubric": [
+        "Xác định CDN là cache chia sẻ.",
+        "Chọn private.",
+        "Nêu cache riêng vẫn chịu điều kiện lưu khác.",
+        "Tách quyền lưu khỏi thời gian tươi."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9111#section-5.2.2.7",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Cache-Control: no-store",
+          "Cache-Control: public, max-age=20",
+          "Cache-Control: no-cache",
+          "Cache-Control: private"
+        ],
+        "en": [
+          "Cache-Control: no-store",
+          "Cache-Control: public, max-age=20",
+          "Cache-Control: no-cache",
+          "Cache-Control: private"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Cấm cả cache riêng lưu phản hồi.",
+          "Cho phép lưu chia sẻ và giới hạn thời gian tươi.",
+          "Buộc xác thực khi dùng lại, nhưng cache chia sẻ vẫn có thể lưu.",
+          "Loại cache chia sẻ khỏi phạm vi được lưu."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-redirect-preserve-post",
+    "content": {
+      "title": "Chuyển tạm endpoint POST",
+      "topic": "aspnet",
+      "subtopic": "307 Temporary Redirect",
+      "tags": [
+        "307 Temporary Redirect",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Endpoint nhận biểu mẫu chuyển tạm sang URL khác. Nếu client đi theo redirect, request mới phải giữ POST và nội dung biểu mẫu. Chọn phản hồi phù hợp.",
+      "englishPrompt": "A form submission endpoint temporarily moves to another URL. If the client follows the redirect, it must preserve POST and the form body. Which response fits?",
+      "context": "URL mới chỉ có hiệu lực trong đợt bảo trì.",
+      "hint": "Giữ hai yêu cầu là tính tạm thời và phương thức.",
+      "nextHint": "Một số mã redirect từng cho phép đổi POST thành GET.",
+      "followUp": "Nếu chuyển vĩnh viễn nhưng vẫn phải giữ phương thức thì chọn mã nào?",
+      "englishFollowUp": "Which status fits a permanent move that still needs to preserve the method?",
+      "outline": [
+        "Xác định thay đổi chỉ tạm thời.",
+        "Chọn 307 để giữ phương thức."
+      ],
+      "shortAnswer": "Trả 307 Temporary Redirect và URL mới trong Location.",
+      "explanation": "User agent tự động theo 307 không được đổi phương thức. 303 hướng tới một lượt truy xuất, còn 308 là chuyển vĩnh viễn với phương thức được giữ.",
+      "alternative": "Chuyển tiếp nội bộ ở reverse proxy có thể giữ URL công khai qua đợt bảo trì.",
+      "trap": "302 là tạm thời nhưng cho phép user agent đổi POST thành GET.",
+      "rubric": [
+        "Xác định thay đổi chỉ tạm thời.",
+        "Chọn 307 để giữ phương thức.",
+        "Dùng Location chỉ URL mới.",
+        "Giải thích vì sao 302 không bảo đảm giữ POST."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.4.8",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "303 và Location của endpoint tạm",
+          "308 và Location của endpoint tạm",
+          "307 và Location của endpoint tạm",
+          "302 và Location của endpoint tạm"
+        ],
+        "en": [
+          "303 with the temporary endpoint in Location",
+          "308 with the temporary endpoint in Location",
+          "307 with the temporary endpoint in Location",
+          "302 with the temporary endpoint in Location"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "303 hướng client sang GET hoặc HEAD.",
+          "308 có ngữ nghĩa chuyển vĩnh viễn.",
+          "307 chuyển tạm và giữ phương thức khi đi theo.",
+          "302 có thể chuyển request mới thành GET."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-range-resume-download",
+    "content": {
+      "title": "Tải tiếp theo khoảng byte",
+      "topic": "aspnet",
+      "subtopic": "206 Partial Content",
+      "tags": [
+        "206 Partial Content",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "HTTP",
+      "prompt": "Client đã lưu byte 0–499 của tệp 1.000 byte không đổi rồi gửi Range: bytes=500-. Origin chấp nhận đúng khoảng yêu cầu. Phản hồi nào hợp lệ?",
+      "englishPrompt": "A client has saved bytes 0–499 of an unchanged 1,000-byte file and sends Range: bytes=500-. The origin honors that range. Which response is valid?",
+      "context": "Chỉ một khoảng byte được phục vụ.",
+      "hint": "Chỉ số byte bắt đầu từ 0 và hai đầu phạm vi đều được tính.",
+      "nextHint": "Header phản hồi nêu cả khoảng đang gửi và chiều dài toàn biểu diễn.",
+      "followUp": "Nếu client gửi If-Range với ETag cũ và tệp đã đổi thì origin trả phần còn lại hay cả tệp?",
+      "englishFollowUp": "If the client sends If-Range with an old ETag and the file has changed, does the origin return the remainder or the full file?",
+      "outline": [
+        "Chọn 206 khi phục vụ khoảng.",
+        "Tính đúng byte đầu và cuối."
+      ],
+      "shortAnswer": "Trả 206 Partial Content với Content-Range: bytes 500-999/1000 và 500 byte tương ứng.",
+      "explanation": "Content-Range nối thân phản hồi với vị trí trong biểu diễn hoàn chỉnh. 999 là chỉ số byte cuối, còn 1000 là chiều dài toàn biểu diễn.",
+      "alternative": "Nếu origin bỏ qua Range, client có thể nhận 200 với cả tệp và phải thay dữ liệu đã lưu.",
+      "trap": "Content-Length có thể là 500 nhưng không thể hiện độ lệch.",
+      "rubric": [
+        "Chọn 206 khi phục vụ khoảng.",
+        "Tính đúng byte đầu và cuối.",
+        "Khai báo tổng chiều dài.",
+        "Tách vị trí byte khỏi kích thước body."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.3.7",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-head-body"
+      ],
+      "quiz": {
+        "vi": [
+          "206 với Content-Range: bytes 0-499/1000",
+          "204 với Content-Length: 500",
+          "206 với Content-Range: bytes 500-999/1000",
+          "206 với Content-Range: bytes 500-1000/1000"
+        ],
+        "en": [
+          "206 with Content-Range: bytes 0-499/1000",
+          "204 with Content-Length: 500",
+          "206 with Content-Range: bytes 500-999/1000",
+          "206 with Content-Range: bytes 500-1000/1000"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Đây là phần client đã có.",
+          "204 không mang phần nội dung tệp.",
+          "Mô tả đúng đoạn truyền và kích thước toàn tệp.",
+          "Chỉ số 1000 vượt byte cuối."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-problem-type-machine",
+    "content": {
+      "title": "Khóa phân nhánh lỗi ở client",
+      "topic": "aspnet",
+      "subtopic": "Problem Details",
+      "tags": [
+        "Problem Details",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "API trả Problem Details cho lỗi hết hạn mức và lỗi tài khoản bị tạm khóa. Hai lỗi cùng status HTTP và có thông báo dịch. Client nên đọc trường nào để chọn cách xử lý?",
+      "englishPrompt": "An API returns Problem Details for exhausted quota and for a suspended account. Both have the same status and localized messages. Which field should drive the client’s recovery behavior?",
+      "context": "API duy trì URI loại lỗi riêng cho từng vấn đề.",
+      "hint": "Tách định danh loại lỗi khỏi câu hiển thị.",
+      "nextHint": "Khóa phân nhánh phải phân biệt được hai lỗi dùng chung status.",
+      "followUp": "Nếu cần mã tham chiếu hỗ trợ cho một lần lỗi cụ thể, trường chuẩn nào biểu diễn được?",
+      "englishFollowUp": "Which standard field can represent a support reference for a specific occurrence?",
+      "outline": [
+        "Chọn type làm khóa phân nhánh.",
+        "Nêu tính ổn định của URI theo loại lỗi."
+      ],
+      "shortAnswer": "Đọc type theo URI đã công bố. Giữ title và detail cho người đọc.",
+      "explanation": "type xác định loại vấn đề. detail mô tả lần xảy ra cụ thể và có thể thay đổi. instance có thể định danh riêng lần xảy ra đó.",
+      "alternative": "Một trường mở rộng đã công bố có thể mang dữ liệu có cấu trúc như hạn mức còn lại.",
+      "trap": "So sánh title đã dịch hoặc phân tích câu văn trong detail.",
+      "rubric": [
+        "Chọn type làm khóa phân nhánh.",
+        "Nêu tính ổn định của URI theo loại lỗi.",
+        "Giải thích status chưa đủ.",
+        "Nêu vai trò riêng của instance."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9457#section-3.1",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "detail",
+          "title",
+          "instance",
+          "type"
+        ],
+        "en": [
+          "detail",
+          "title",
+          "instance",
+          "type"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Mô tả chi tiết theo từng lần xảy ra.",
+          "Tiêu đề để hiển thị và có thể được bản địa hóa.",
+          "Định danh một lần xảy ra thay vì cả loại vấn đề.",
+          "URI type định danh loại vấn đề."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-media-type-rejected",
+    "content": {
+      "title": "Định dạng request không hỗ trợ",
+      "topic": "aspnet",
+      "subtopic": "415 Unsupported Media Type",
+      "tags": [
+        "415 Unsupported Media Type",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Endpoint chỉ nhận application/json. Client gửi XML đúng cú pháp và khai báo Content-Type: application/xml. Máy chủ từ chối vì không hỗ trợ XML. Status nào phù hợp?",
+      "englishPrompt": "An endpoint only consumes application/json. A client sends well-formed XML with Content-Type: application/xml. The server rejects XML as unsupported. Which status fits?",
+      "context": "Phương thức và URL hợp lệ. Accept: application/json chỉ nói về phản hồi mong muốn.",
+      "hint": "Lỗi thuộc kiểu request hay kiểu response?",
+      "nextHint": "Quy trình chưa đến bước xác thực các trường nghiệp vụ.",
+      "followUp": "Nếu client khai đúng Content-Type nhưng JSON thiếu dấu đóng, lỗi thuộc giai đoạn nào?",
+      "englishFollowUp": "If the Content-Type is correct but JSON lacks a closing delimiter, which stage fails?",
+      "outline": [
+        "Đọc kiểu dữ liệu gửi từ Content-Type.",
+        "Chọn 415 theo giới hạn endpoint."
+      ],
+      "shortAnswer": "Trả 415 Unsupported Media Type vì endpoint không đọc định dạng XML.",
+      "explanation": "415 mô tả nội dung request có kiểu hoặc mã hóa không được hỗ trợ. 406 liên quan đến biểu diễn phản hồi mà client chấp nhận.",
+      "alternative": "Nếu hợp đồng cần cả XML, bổ sung input formatter và kiểm thử trước khi công bố kiểu mới.",
+      "trap": "Kỳ vọng Accept cũng quy định kiểu dữ liệu của request body.",
+      "rubric": [
+        "Đọc kiểu dữ liệu gửi từ Content-Type.",
+        "Chọn 415 theo giới hạn endpoint.",
+        "Tách điều kiện 406.",
+        "Phân biệt kiểu không hỗ trợ với cú pháp JSON lỗi."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-content-type-accept"
+      ],
+      "quiz": {
+        "vi": [
+          "415 Unsupported Media Type",
+          "406 Not Acceptable",
+          "405 Method Not Allowed",
+          "422 Unprocessable Content"
+        ],
+        "en": [
+          "415 Unsupported Media Type",
+          "406 Not Acceptable",
+          "405 Method Not Allowed",
+          "422 Unprocessable Content"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Kiểu body ngoài danh sách được hỗ trợ.",
+          "406 liên quan định dạng phản hồi.",
+          "Phương thức đã hợp lệ.",
+          "422 giả định kiểu nội dung được hiểu và cú pháp hợp lệ."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "http-content-too-large",
+    "content": {
+      "title": "Tệp vượt giới hạn tải lên",
+      "topic": "aspnet",
+      "subtopic": "413 Content Too Large",
+      "tags": [
+        "413 Content Too Large",
+        "HTTP"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "HTTP",
+      "prompt": "Cổng tải hồ sơ nhận PDF, giới hạn mỗi request 5 MiB. Client gửi PDF 18 MiB đúng địa chỉ và phương thức. Status nào mô tả việc từ chối vì kích thước?",
+      "englishPrompt": "An upload gateway accepts PDF and limits requests to 5 MiB. A client sends an 18 MiB PDF to the correct URL with the right method. Which status describes the size rejection?",
+      "context": "Đây là giới hạn cố định cho từng request.",
+      "hint": "Dữ liệu lớn dù loại tệp được chấp nhận.",
+      "nextHint": "Giới hạn kích thước một request khác giới hạn tần suất.",
+      "followUp": "Nếu gateway và ứng dụng đặt giới hạn khác nhau, ở đâu client có thể bị chặn trước?",
+      "englishFollowUp": "If the gateway and application use different limits, where may the client encounter the first rejection?",
+      "outline": [
+        "Xác định định dạng được hỗ trợ.",
+        "Tách kích thước khỏi tần suất."
+      ],
+      "shortAnswer": "413 Content Too Large vì nội dung vượt kích thước cho phép.",
+      "explanation": "413 dành cho nội dung request quá lớn. Nếu giới hạn chỉ mang tính tạm thời, origin nên đưa Retry-After. Gửi lại nguyên tệp không giúp khi chính sách cố định.",
+      "alternative": "Nếu API công bố tải nhiều phần, client có thể gửi từng phần theo kích thước quy định.",
+      "trap": "Chọn 429 chỉ vì tình huống có một giới hạn.",
+      "rubric": [
+        "Xác định định dạng được hỗ trợ.",
+        "Tách kích thước khỏi tần suất.",
+        "Chọn đúng 413.",
+        "Nêu khi nào retry có thể hữu ích."
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110#section-15.5.14",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-retry-after"
+      ],
+      "quiz": {
+        "vi": [
+          "414 URI Too Long",
+          "413 Content Too Large",
+          "429 Too Many Requests",
+          "415 Unsupported Media Type"
+        ],
+        "en": [
+          "414 URI Too Long",
+          "413 Content Too Large",
+          "429 Too Many Requests",
+          "415 Unsupported Media Type"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Body quá lớn, URI hợp lệ.",
+          "Nội dung request vượt giới hạn kích thước.",
+          "Vấn đề không nằm ở số request.",
+          "PDF là kiểu hợp lệ."
+        ]
+      }
+    }
+  }
+]

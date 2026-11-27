@@ -1,0 +1,650 @@
+[
+  {
+    "slug": "ef-enrollment-payload",
+    "content": {
+      "title": "Ngày tham gia nằm ở đâu?",
+      "topic": "efcore",
+      "subtopic": "Quan hệ nhiều-nhiều",
+      "tags": [
+        "Quan hệ nhiều-nhiều"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một học viên có thể tham gia nhiều câu lạc bộ. JoinedOn khác nhau theo từng lần tham gia một câu lạc bộ. Trong EF Core, đặt thuộc tính này ở đâu?",
+      "englishPrompt": "A student may join several clubs. JoinedOn belongs to a particular student's membership of a particular club. Where should EF Core map it?",
+      "context": "Mỗi cặp học viên và câu lạc bộ chỉ có một tư cách thành viên hiện tại.",
+      "hint": "Sự kiện xảy ra với học viên, với câu lạc bộ hay với mối liên kết?",
+      "nextHint": "Bảng liên kết chứa một dòng cho từng cặp. Ngày tham gia là dữ liệu của chính dòng đó.",
+      "followUp": "Nếu thành viên có vai trò riêng trong từng câu lạc bộ, đặt Role ở đâu?",
+      "englishFollowUp": "Where would you store a role that varies by club membership?",
+      "outline": [
+        "Đặt JoinedOn trên entity Membership liên kết Student và Club",
+        "Bảng liên kết chứa một dòng cho từng cặp. Ngày tham gia là dữ liệu của chính dòng đó."
+      ],
+      "shortAnswer": "Đặt JoinedOn trên entity Membership liên kết Student và Club. Bảng liên kết chứa một dòng cho từng cặp. Ngày tham gia là dữ liệu của chính dòng đó.",
+      "explanation": "Bảng liên kết chứa một dòng cho từng cặp. Ngày tham gia là dữ liệu của chính dòng đó. Một trường ở Student sẽ bị ghi đè khi học viên tham gia câu lạc bộ thứ hai vào ngày khác.",
+      "alternative": "Dùng khóa ghép StudentId và ClubId để giới hạn một tư cách thành viên cho mỗi cặp.",
+      "trap": "Một trường ở Student sẽ bị ghi đè khi học viên tham gia câu lạc bộ thứ hai vào ngày khác.",
+      "rubric": [
+        "Đặt JoinedOn trên entity Membership liên kết Student và Club",
+        "Bảng liên kết chứa một dòng cho từng cặp. Ngày tham gia là dữ liệu của chính dòng đó.",
+        "Một trường ở Student sẽ bị ghi đè khi học viên tham gia câu lạc bộ thứ hai vào ngày khác.",
+        "Dùng khóa ghép StudentId và ClubId để giới hạn một tư cách thành viên cho mỗi cặp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/relationships/many-to-many",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đặt JoinedOn trên Student và lấy cùng ngày cho mọi câu lạc bộ",
+          "Đặt JoinedOn trên entity Membership liên kết Student và Club",
+          "Đặt JoinedOn trên Club rồi dùng cho mọi học viên của câu lạc bộ"
+        ],
+        "en": [
+          "Put JoinedOn on Student and use it for all their clubs",
+          "Put JoinedOn on the Membership join entity linking Student and Club",
+          "Put JoinedOn on Club and use it for all its students"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-relationship-principal-code",
+    "content": {
+      "title": "Liên kết bằng mã trường",
+      "topic": "efcore",
+      "subtopic": "Alternate key",
+      "tags": [
+        "Alternate key"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "School có PK số Id và mã SchoolCode duy nhất, ổn định. Bảng nhập Enrollment chỉ chứa SchoolCode. Cấu hình quan hệ nào chỉ định rõ khóa đích?",
+      "englishPrompt": "School has a numeric Id primary key and a stable, unique SchoolCode. Imported Enrollment rows contain only SchoolCode. Which relationship configuration explicitly chooses the target key?",
+      "context": "Hai thuộc tính SchoolCode đều là string. Không thể sửa định dạng dữ liệu nhập.",
+      "hint": "HasForeignKey xác định phía nào và HasPrincipalKey xác định phía nào?",
+      "nextHint": "Khi khóa đích khác PK, HasPrincipalKey chỉ ra alternate key tương ứng với FK trên Enrollment.",
+      "followUp": "Trường có thể có nhiều Enrollment cùng SchoolCode không, và tại sao?",
+      "englishFollowUp": "Can multiple enrollments share one SchoolCode, and why?",
+      "outline": [
+        "Chọn Enrollment.SchoolCode làm FK và School.SchoolCode làm principal key",
+        "Khi khóa đích khác PK, HasPrincipalKey chỉ ra alternate key tương ứng với FK trên Enrollment."
+      ],
+      "shortAnswer": "Chọn Enrollment.SchoolCode làm FK và School.SchoolCode làm principal key. Khi khóa đích khác PK, HasPrincipalKey chỉ ra alternate key tương ứng với FK trên Enrollment.",
+      "explanation": "Khi khóa đích khác PK, HasPrincipalKey chỉ ra alternate key tương ứng với FK trên Enrollment. Đổi tên thuộc tính không làm khóa chuỗi tương thích với PK kiểu số. Nhiều học viên cũng có thể cùng mã trường.",
+      "alternative": "Nếu nguồn nhập cung cấp School.Id, có thể dùng FK số đến PK theo quy ước.",
+      "trap": "Đổi tên thuộc tính không làm khóa chuỗi tương thích với PK kiểu số. Nhiều học viên cũng có thể cùng mã trường.",
+      "rubric": [
+        "Chọn Enrollment.SchoolCode làm FK và School.SchoolCode làm principal key",
+        "Khi khóa đích khác PK, HasPrincipalKey chỉ ra alternate key tương ứng với FK trên Enrollment.",
+        "Đổi tên thuộc tính không làm khóa chuỗi tương thích với PK kiểu số. Nhiều học viên cũng có thể cùng mã trường.",
+        "Nếu nguồn nhập cung cấp School.Id, có thể dùng FK số đến PK theo quy ước."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/relationships/foreign-and-principal-keys",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chọn Enrollment.SchoolCode làm FK và School.SchoolCode làm principal key",
+          "Chỉ đổi tên Enrollment.SchoolCode thành SchoolId nhưng giữ kiểu string",
+          "Đánh dấu Enrollment.SchoolCode là khóa chính để EF suy ra quan hệ đến mã trường"
+        ],
+        "en": [
+          "Set Enrollment.SchoolCode as FK and School.SchoolCode as principal key",
+          "Only rename Enrollment.SchoolCode to SchoolId while retaining its string type",
+          "Make Enrollment.SchoolCode the primary key so EF infers a relationship to the school code"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-count-navigation-query",
+    "content": {
+      "title": "Đếm bình luận mà không nạp danh sách",
+      "topic": "efcore",
+      "subtopic": "Explicit loading",
+      "tags": [
+        "Explicit loading"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Đang theo dõi một Post và chưa nạp Comments. Làm sao dùng API Entry để đếm số bình luận đã duyệt trong cơ sở dữ liệu mà không materialize các Comment?",
+      "englishPrompt": "A Post is tracked and Comments is unloaded. How can the Entry API count approved comments in the database without materializing any Comment entities?",
+      "context": "Một bài viết có hàng chục nghìn bình luận. Lazy loading đã tắt.",
+      "hint": "Collection(...).Query() cho phép ghép thêm toán tử nào?",
+      "nextHint": "Query() cho truy vấn giới hạn theo quan hệ. CountAsync trên truy vấn đã lọc cho phép provider tính tổng ở máy chủ.",
+      "followUp": "Nếu chỉ có PostId và chưa nạp Post, bạn sẽ bắt đầu truy vấn từ đâu?",
+      "englishFollowUp": "Where would you start the query if you only had PostId and no loaded Post?",
+      "outline": [
+        "Dùng Collection(...).Query(), lọc Approved rồi gọi CountAsync",
+        "Query() cho truy vấn giới hạn theo quan hệ. CountAsync trên truy vấn đã lọc cho phép provider tính tổng ở máy chủ."
+      ],
+      "shortAnswer": "Dùng Collection(...).Query(), lọc Approved rồi gọi CountAsync. Query() cho truy vấn giới hạn theo quan hệ. CountAsync trên truy vấn đã lọc cho phép provider tính tổng ở máy chủ.",
+      "explanation": "Query() cho truy vấn giới hạn theo quan hệ. CountAsync trên truy vấn đã lọc cho phép provider tính tổng ở máy chủ. LoadAsync nạp các entity. Việc Post được theo dõi cũng chưa chứng minh collection đã được nạp.",
+      "alternative": "Có thể truy vấn DbSet Comments theo PostId và Approved rồi đếm để đạt cùng mục tiêu.",
+      "trap": "LoadAsync nạp các entity. Việc Post được theo dõi cũng chưa chứng minh collection đã được nạp.",
+      "rubric": [
+        "Dùng Collection(...).Query(), lọc Approved rồi gọi CountAsync",
+        "Query() cho truy vấn giới hạn theo quan hệ. CountAsync trên truy vấn đã lọc cho phép provider tính tổng ở máy chủ.",
+        "LoadAsync nạp các entity. Việc Post được theo dõi cũng chưa chứng minh collection đã được nạp.",
+        "Có thể truy vấn DbSet Comments theo PostId và Approved rồi đếm để đạt cùng mục tiêu."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/related-data/explicit",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi LoadAsync trên collection rồi đếm bằng LINQ trong bộ nhớ",
+          "Đếm trên Post.Comments hiện tại vì theo dõi Post đã bao gồm mọi Comment",
+          "Dùng Collection(...).Query(), lọc Approved rồi gọi CountAsync"
+        ],
+        "en": [
+          "Load the collection with LoadAsync, then count with in-memory LINQ",
+          "Count the current Post.Comments because tracking a Post includes all comments",
+          "Use Collection(...).Query(), filter on Approved, then call CountAsync"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-soft-delete-named-filter",
+    "content": {
+      "title": "Xem bản ghi lưu trữ trong một tenant",
+      "topic": "efcore",
+      "subtopic": "Named query filter",
+      "tags": [
+        "Named query filter"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "EF Core 10",
+      "prompt": "Trong EF Core 10, hồ sơ có hai named query filter là TenantFilter và ArchiveFilter. Màn hình nội bộ cần xem cả hồ sơ lưu trữ của đúng tenant hiện tại. Chọn truy vấn nào?",
+      "englishPrompt": "In EF Core 10, records have two named query filters, TenantFilter and ArchiveFilter. An internal screen must include archived records for the current tenant only. Which query fits?",
+      "context": "TenantFilter đã lấy đúng tenant từ context. ArchiveFilter mặc định loại các hồ sơ đã lưu trữ.",
+      "hint": "Có thể vô hiệu hóa một named filter theo tên.",
+      "nextHint": "Danh sách tên cho EF biết chỉ bỏ bộ lọc lưu trữ. Điều kiện tenant vẫn áp dụng khi dịch truy vấn.",
+      "followUp": "Hai hồ sơ mẫu nên thuộc những tenant nào để kiểm tra phạm vi màn hình?",
+      "englishFollowUp": "Which tenants should your sample archived records belong to when verifying the screen?",
+      "outline": [
+        "Chỉ truyền tên ArchiveFilter vào IgnoreQueryFilters",
+        "Danh sách tên cho EF biết chỉ bỏ bộ lọc lưu trữ. Điều kiện tenant vẫn áp dụng khi dịch truy vấn."
+      ],
+      "shortAnswer": "Chỉ truyền tên ArchiveFilter vào IgnoreQueryFilters. Danh sách tên cho EF biết chỉ bỏ bộ lọc lưu trữ. Điều kiện tenant vẫn áp dụng khi dịch truy vấn.",
+      "explanation": "Danh sách tên cho EF biết chỉ bỏ bộ lọc lưu trữ. Điều kiện tenant vẫn áp dụng khi dịch truy vấn. Bỏ toàn bộ bộ lọc sẽ mở rộng phạm vi dữ liệu. Thêm WHERE không thể đưa dòng đã bị lọc trở lại.",
+      "alternative": "Kiểm thử với hồ sơ lưu trữ cùng tenant và hồ sơ lưu trữ của tenant khác.",
+      "trap": "Bỏ toàn bộ bộ lọc sẽ mở rộng phạm vi dữ liệu. Thêm WHERE không thể đưa dòng đã bị lọc trở lại.",
+      "rubric": [
+        "Chỉ truyền tên ArchiveFilter vào IgnoreQueryFilters",
+        "Danh sách tên cho EF biết chỉ bỏ bộ lọc lưu trữ. Điều kiện tenant vẫn áp dụng khi dịch truy vấn.",
+        "Bỏ toàn bộ bộ lọc sẽ mở rộng phạm vi dữ liệu. Thêm WHERE không thể đưa dòng đã bị lọc trở lại.",
+        "Kiểm thử với hồ sơ lưu trữ cùng tenant và hồ sơ lưu trữ của tenant khác."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/filters",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi IgnoreQueryFilters không đối số rồi lấy toàn bộ hồ sơ",
+          "Giữ cả hai filter và thêm điều kiện IsArchived bằng true",
+          "Chỉ truyền tên ArchiveFilter vào IgnoreQueryFilters"
+        ],
+        "en": [
+          "Call IgnoreQueryFilters without arguments and fetch all records",
+          "Keep both filters and add a condition requiring IsArchived to be true",
+          "Pass only ArchiveFilter by name to IgnoreQueryFilters"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-sibling-cartesian",
+    "content": {
+      "title": "Hai collection cùng cấp",
+      "topic": "efcore",
+      "subtopic": "Split queries",
+      "tags": [
+        "Split queries"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "EF Core 10",
+      "prompt": "Một Blog có 10 Posts và 8 Contributors. Một truy vấn quan hệ Include cả hai collection cùng cấp bằng JOIN. Vì sao kết quả SQL có thể chứa 80 dòng cho một Blog?",
+      "englishPrompt": "A Blog has 10 Posts and 8 Contributors. A relational query uses JOINs to include both sibling collections. Why can its SQL result contain 80 rows for one Blog?",
+      "context": "Nhóm đang đo lượng dữ liệu qua mạng dù ứng dụng cuối cùng chỉ nhận một Blog.",
+      "hint": "Đếm số cặp Post và Contributor ghép được cho cùng Blog.",
+      "nextHint": "Hai JOIN độc lập vào cùng Blog tạo tích giữa các dòng con cùng cấp. Identity resolution sau đó không thu lại lượng dữ liệu đã truyền.",
+      "followUp": "Khi chuyển sang AsSplitQuery, chi phí nào có thể tăng nếu DB ở xa?",
+      "englishFollowUp": "Which cost can rise with AsSplitQuery when the database is remote?",
+      "outline": [
+        "Mỗi Post kết hợp với mỗi Contributor của Blog",
+        "Hai JOIN độc lập vào cùng Blog tạo tích giữa các dòng con cùng cấp. Identity resolution sau đó không thu lại lượng dữ liệu đã truyền."
+      ],
+      "shortAnswer": "Mỗi Post kết hợp với mỗi Contributor của Blog. Hai JOIN độc lập vào cùng Blog tạo tích giữa các dòng con cùng cấp. Identity resolution sau đó không thu lại lượng dữ liệu đã truyền.",
+      "explanation": "Hai JOIN độc lập vào cùng Blog tạo tích giữa các dòng con cùng cấp. Identity resolution sau đó không thu lại lượng dữ liệu đã truyền. Vấn đề nằm ở dạng tập kết quả SQL. Chỉ đổi truy vấn sang AsNoTracking vẫn giữ các JOIN đó.",
+      "alternative": "AsSplitQuery tách truy vấn collection, đổi chi phí nhân dòng lấy các lệnh đọc bổ sung.",
+      "trap": "Vấn đề nằm ở dạng tập kết quả SQL. Chỉ đổi truy vấn sang AsNoTracking vẫn giữ các JOIN đó.",
+      "rubric": [
+        "Mỗi Post kết hợp với mỗi Contributor của Blog",
+        "Hai JOIN độc lập vào cùng Blog tạo tích giữa các dòng con cùng cấp. Identity resolution sau đó không thu lại lượng dữ liệu đã truyền.",
+        "Vấn đề nằm ở dạng tập kết quả SQL. Chỉ đổi truy vấn sang AsNoTracking vẫn giữ các JOIN đó.",
+        "AsSplitQuery tách truy vấn collection, đổi chi phí nhân dòng lấy các lệnh đọc bổ sung."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/single-split-queries",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "EF thêm một bản sao Blog riêng cho mỗi thuộc tính scalar",
+          "Mỗi Post kết hợp với mỗi Contributor của Blog",
+          "SQL nhân số dòng do hai collection dùng cùng một kiểu khóa số"
+        ],
+        "en": [
+          "EF creates a separate blog copy for every scalar property",
+          "Each post combines with each contributor of the blog",
+          "SQL multiplies rows because both collections use the same numeric key type"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-enum-provider-string",
+    "content": {
+      "title": "Giữ enum trong mã và chuỗi trong DB",
+      "topic": "efcore",
+      "subtopic": "Value conversion",
+      "tags": [
+        "Value conversion"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Thuộc tính Status trong C# là enum, cột Status trong cơ sở dữ liệu cũ chứa tên dạng chuỗi. Chọn cấu hình EF để đọc và ghi qua lại.",
+      "englishPrompt": "The C# Status property is an enum, but a legacy Status column stores enum names as text. Which EF configuration handles both reads and writes?",
+      "context": "Mọi giá trị cũ đều là tên enum hợp lệ và nhóm muốn giữ chữ ký thuộc tính hiện tại.",
+      "hint": "Cần ánh xạ giữa kiểu của model và kiểu phía provider.",
+      "nextHint": "Value converter chuyển enum sang chuỗi cho provider và chuyển chuỗi về enum khi materialize.",
+      "followUp": "Một lần đổi tên giá trị enum có thể ảnh hưởng đến những dòng cũ thế nào?",
+      "englishFollowUp": "How could renaming an enum member affect existing rows?",
+      "outline": [
+        "Áp dụng HasConversion<string>() cho thuộc tính enum",
+        "Value converter chuyển enum sang chuỗi cho provider và chuyển chuỗi về enum khi materialize."
+      ],
+      "shortAnswer": "Áp dụng HasConversion<string>() cho thuộc tính enum. Value converter chuyển enum sang chuỗi cho provider và chuyển chuỗi về enum khi materialize.",
+      "explanation": "Value converter chuyển enum sang chuỗi cho provider và chuyển chuỗi về enum khi materialize. Đặt tên hoặc độ dài cột không chỉ định cách diễn giải chuỗi đã lưu.",
+      "alternative": "Nếu đổi tên enum, lên kế hoạch đổi dữ liệu cũ hoặc dùng ánh xạ chuỗi ổn định.",
+      "trap": "Đặt tên hoặc độ dài cột không chỉ định cách diễn giải chuỗi đã lưu.",
+      "rubric": [
+        "Áp dụng HasConversion<string>() cho thuộc tính enum",
+        "Value converter chuyển enum sang chuỗi cho provider và chuyển chuỗi về enum khi materialize.",
+        "Đặt tên hoặc độ dài cột không chỉ định cách diễn giải chuỗi đã lưu.",
+        "Nếu đổi tên enum, lên kế hoạch đổi dữ liệu cũ hoặc dùng ánh xạ chuỗi ổn định."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/value-conversions",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Áp dụng HasConversion<string>() cho thuộc tính enum",
+          "Đổi tên cột thành StatusString bằng HasColumnName",
+          "Dùng HasMaxLength để EF tự chuyển giá trị số enum thành tên"
+        ],
+        "en": [
+          "Apply HasConversion<string>() to the enum property",
+          "Rename the column to StatusString using HasColumnName",
+          "Set HasMaxLength so EF automatically turns enum numbers into names"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-client-predicate-translation",
+    "content": {
+      "title": "Hàm chuẩn hóa riêng trong Where",
+      "topic": "efcore",
+      "subtopic": "Dịch truy vấn",
+      "tags": [
+        "Dịch truy vấn"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Where gọi một hàm C# tùy chỉnh trên từng cột, không có bản dịch tương ứng ở SQL Server provider. EF Core 10 làm gì khi thực thi truy vấn?",
+      "englishPrompt": "Where calls a custom C# function on a column, and the SQL Server provider has no translation for it. What happens when EF Core 10 executes the query?",
+      "context": "Hàm không được map thành SQL function. Nó nằm trong điều kiện lọc, trước Select cuối cùng.",
+      "hint": "Vị trí của biểu thức là projection cuối hay bộ lọc quyết định tập dòng?",
+      "nextHint": "EF cho phép một số đánh giá phía client trong projection cuối. Điều kiện Where không dịch được trong tình huống này làm truy vấn thất bại.",
+      "followUp": "Nếu chỉ dùng hàm riêng để định dạng nhãn trong Select cuối, chuyện gì có thể khác?",
+      "englishFollowUp": "What could change if the custom function only formatted a label in the final Select?",
+      "outline": [
+        "EF báo lỗi dịch truy vấn khi thực thi",
+        "EF cho phép một số đánh giá phía client trong projection cuối. Điều kiện Where không dịch được trong tình huống này làm truy vấn thất bại."
+      ],
+      "shortAnswer": "EF báo lỗi dịch truy vấn khi thực thi. EF cho phép một số đánh giá phía client trong projection cuối. Điều kiện Where không dịch được trong tình huống này làm truy vấn thất bại.",
+      "explanation": "EF cho phép một số đánh giá phía client trong projection cuối. Điều kiện Where không dịch được trong tình huống này làm truy vấn thất bại. Đưa AsEnumerable quá sớm có thể kéo về nhiều dòng vì phần lọc sau đó chạy ở client.",
+      "alternative": "Có thể viết lại thành biểu thức provider dịch được hoặc lọc hẹp trên server trước khi chủ động chuyển sang client.",
+      "trap": "Đưa AsEnumerable quá sớm có thể kéo về nhiều dòng vì phần lọc sau đó chạy ở client.",
+      "rubric": [
+        "EF báo lỗi dịch truy vấn khi thực thi",
+        "EF cho phép một số đánh giá phía client trong projection cuối. Điều kiện Where không dịch được trong tình huống này làm truy vấn thất bại.",
+        "Đưa AsEnumerable quá sớm có thể kéo về nhiều dòng vì phần lọc sau đó chạy ở client.",
+        "Có thể viết lại thành biểu thức provider dịch được hoặc lọc hẹp trên server trước khi chủ động chuyển sang client."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/client-eval",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "EF luôn tự tải toàn bảng để chạy Where trong bộ nhớ",
+          "EF bỏ điều kiện chưa dịch được rồi vẫn trả các dòng còn lại",
+          "EF báo lỗi dịch truy vấn khi thực thi"
+        ],
+        "en": [
+          "EF always loads the entire table and applies Where in memory",
+          "EF drops the untranslatable condition and returns the remaining rows",
+          "EF throws a query translation error at execution"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-review-rename-migration",
+    "content": {
+      "title": "Đổi tên cột đã có dữ liệu",
+      "topic": "efcore",
+      "subtopic": "Migration rename",
+      "tags": [
+        "Migration rename"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "EF Core 10",
+      "prompt": "Migration do EF tạo sau khi đổi DisplayName thành PublicName chứa DropColumn và AddColumn. Bạn cần giữ mọi tên đã có. Trước khi chạy migration, nên làm gì?",
+      "englishPrompt": "After DisplayName becomes PublicName, EF scaffolds DropColumn and AddColumn. All existing names must survive. What should you do before applying this migration?",
+      "context": "Cùng bảng và cùng kiểu dữ liệu. Migration chưa dùng ở môi trường nào.",
+      "hint": "EF có thể phân biệt chắc chắn việc đổi tên và việc xóa rồi thêm cột khác không?",
+      "nextHint": "Hai thao tác do scaffold đề xuất không biểu đạt việc giữ nguyên giá trị. RenameColumn mô tả đúng thay đổi tên tại chỗ.",
+      "followUp": "Nếu PublicName cần ghép từ hai cột cũ, vì sao RenameColumn chưa đủ?",
+      "englishFollowUp": "Why would RenameColumn be insufficient if PublicName had to combine two old columns?",
+      "outline": [
+        "Sửa Up dùng RenameColumn và Down đổi tên ngược lại, rồi thử với dữ liệu có sẵn",
+        "Hai thao tác do scaffold đề xuất không biểu đạt việc giữ nguyên giá trị. RenameColumn mô tả đúng thay đổi tên tại chỗ."
+      ],
+      "shortAnswer": "Sửa Up dùng RenameColumn và Down đổi tên ngược lại, rồi thử với dữ liệu có sẵn. Hai thao tác do scaffold đề xuất không biểu đạt việc giữ nguyên giá trị. RenameColumn mô tả đúng thay đổi tên tại chỗ.",
+      "explanation": "Hai thao tác do scaffold đề xuất không biểu đạt việc giữ nguyên giá trị. RenameColumn mô tả đúng thay đổi tên tại chỗ. Model snapshot giúp tạo migration về sau và không phải bản sao dữ liệu của bảng.",
+      "alternative": "Nếu cần tách một cột thành hai, thêm cột, backfill và kiểm tra dữ liệu trước khi bỏ cột nguồn.",
+      "trap": "Model snapshot giúp tạo migration về sau và không phải bản sao dữ liệu của bảng.",
+      "rubric": [
+        "Sửa Up dùng RenameColumn và Down đổi tên ngược lại, rồi thử với dữ liệu có sẵn",
+        "Hai thao tác do scaffold đề xuất không biểu đạt việc giữ nguyên giá trị. RenameColumn mô tả đúng thay đổi tên tại chỗ.",
+        "Model snapshot giúp tạo migration về sau và không phải bản sao dữ liệu của bảng.",
+        "Nếu cần tách một cột thành hai, thêm cột, backfill và kiểm tra dữ liệu trước khi bỏ cột nguồn."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/managing",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Sửa Up dùng RenameColumn và Down đổi tên ngược lại, rồi thử với dữ liệu có sẵn",
+          "Giữ cặp DropColumn và AddColumn vì snapshot tự chép dữ liệu",
+          "Sắp AddColumn lên trước DropColumn để EF tự điền tên cũ"
+        ],
+        "en": [
+          "Edit Up to use RenameColumn and Down to reverse it, then test with existing data",
+          "Keep DropColumn and AddColumn because the snapshot copies the existing values",
+          "Move AddColumn before DropColumn so EF auto-populates the old names"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "arch-layer-deployment",
+    "content": {
+      "title": "Ba project, một lần triển khai",
+      "topic": "systems",
+      "subtopic": "Kiến trúc phân lớp",
+      "tags": [
+        "Kiến trúc phân lớp"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Một API có ba project UI, nghiệp vụ và truy cập dữ liệu. Cả ba chạy trong một tiến trình và phát hành cùng nhau. Điều gì xác định đơn vị triển khai ở đây?",
+      "englishPrompt": "An API has UI, business and data-access projects. All three run in one process and ship together. What determines the deployment unit here?",
+      "context": "Nhóm có thể kiểm thử từng project và build ra nhiều assembly.",
+      "hint": "Phân biệt ranh giới tổ chức mã và ranh giới chạy độc lập.",
+      "nextHint": "Các project giúp phân chia trách nhiệm trong mã. Việc phát hành và chạy chung xác định mô hình triển khai của ứng dụng.",
+      "followUp": "Khi tăng từ một lên hai bản sao tiến trình, những lớp nào cũng được nhân bản?",
+      "englishFollowUp": "When scaling from one to two process replicas, which layers are replicated?",
+      "outline": [
+        "Toàn ứng dụng là một đơn vị triển khai, bên trong có các lớp logic",
+        "Các project giúp phân chia trách nhiệm trong mã. Việc phát hành và chạy chung xác định mô hình triển khai của ứng dụng."
+      ],
+      "shortAnswer": "Toàn ứng dụng là một đơn vị triển khai, bên trong có các lớp logic. Các project giúp phân chia trách nhiệm trong mã. Việc phát hành và chạy chung xác định mô hình triển khai của ứng dụng.",
+      "explanation": "Các project giúp phân chia trách nhiệm trong mã. Việc phát hành và chạy chung xác định mô hình triển khai của ứng dụng. Tách thư mục hoặc assembly chưa tạo ra tiến trình hay vòng đời triển khai độc lập.",
+      "alternative": "Nhân bản tiến trình này sẽ nhân bản toàn ứng dụng, gồm cả ba lớp.",
+      "trap": "Tách thư mục hoặc assembly chưa tạo ra tiến trình hay vòng đời triển khai độc lập.",
+      "rubric": [
+        "Toàn ứng dụng là một đơn vị triển khai, bên trong có các lớp logic",
+        "Các project giúp phân chia trách nhiệm trong mã. Việc phát hành và chạy chung xác định mô hình triển khai của ứng dụng.",
+        "Tách thư mục hoặc assembly chưa tạo ra tiến trình hay vòng đời triển khai độc lập.",
+        "Nhân bản tiến trình này sẽ nhân bản toàn ứng dụng, gồm cả ba lớp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Mỗi assembly là một microservice có thể tăng số bản sao độc lập",
+          "Toàn ứng dụng là một đơn vị triển khai, bên trong có các lớp logic",
+          "Mỗi project bắt buộc phải có một máy chủ riêng"
+        ],
+        "en": [
+          "Every assembly is a microservice that can scale independently",
+          "The application is one deployment unit with internal logical layers",
+          "Every project requires its own server"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "arch-dependency-inversion",
+    "content": {
+      "title": "Lõi ứng dụng cần gửi thông báo",
+      "topic": "systems",
+      "subtopic": "Đảo ngược phụ thuộc",
+      "tags": [
+        "Đảo ngược phụ thuộc"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Use case cần gửi thông báo nhưng project lõi không được tham chiếu SDK nhà cung cấp. Nên đặt hợp đồng gửi thông báo và phần triển khai ở đâu?",
+      "englishPrompt": "A use case sends notifications, but the application core must have no reference to the vendor SDK. Where should the notification contract and its implementation live?",
+      "context": "Nhóm sẽ thay nhà cung cấp mà vẫn giữ nguyên cách use case yêu cầu gửi.",
+      "hint": "Xét chiều tham chiếu khi biên dịch, khác với chiều gọi khi chạy.",
+      "nextHint": "Adapter phụ thuộc vào hợp đồng của lõi. Khi chạy, use case gọi qua hợp đồng và nhận implementation đã được cấu hình.",
+      "followUp": "Khi unit test use case, thay adapter ở điểm nào?",
+      "englishFollowUp": "Where can a unit test replace the real adapter?",
+      "outline": [
+        "Lõi định nghĩa hợp đồng, infrastructure triển khai và được nối tại điểm khởi động",
+        "Adapter phụ thuộc vào hợp đồng của lõi. Khi chạy, use case gọi qua hợp đồng và nhận implementation đã được cấu hình."
+      ],
+      "shortAnswer": "Lõi định nghĩa hợp đồng, infrastructure triển khai và được nối tại điểm khởi động. Adapter phụ thuộc vào hợp đồng của lõi. Khi chạy, use case gọi qua hợp đồng và nhận implementation đã được cấu hình.",
+      "explanation": "Adapter phụ thuộc vào hợp đồng của lõi. Khi chạy, use case gọi qua hợp đồng và nhận implementation đã được cấu hình. Đưa interface vào project chứa SDK vẫn buộc lõi tham chiếu lớp triển khai bên ngoài.",
+      "alternative": "Trong unit test có thể truyền một adapter giả ghi lại yêu cầu gửi mà không gọi nhà cung cấp.",
+      "trap": "Đưa interface vào project chứa SDK vẫn buộc lõi tham chiếu lớp triển khai bên ngoài.",
+      "rubric": [
+        "Lõi định nghĩa hợp đồng, infrastructure triển khai và được nối tại điểm khởi động",
+        "Adapter phụ thuộc vào hợp đồng của lõi. Khi chạy, use case gọi qua hợp đồng và nhận implementation đã được cấu hình.",
+        "Đưa interface vào project chứa SDK vẫn buộc lõi tham chiếu lớp triển khai bên ngoài.",
+        "Trong unit test có thể truyền một adapter giả ghi lại yêu cầu gửi mà không gọi nhà cung cấp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lõi tham chiếu SDK và tự chọn nhà cung cấp trong mỗi use case",
+          "Lõi định nghĩa hợp đồng, infrastructure triển khai và được nối tại điểm khởi động",
+          "Đặt hợp đồng trong project của adapter rồi cho lõi tham chiếu project đó"
+        ],
+        "en": [
+          "Have the core reference the SDK and choose a vendor inside every use case",
+          "Define the contract in the core, implement it in infrastructure and wire it at startup",
+          "Place the contract in the adapter project and have the core reference that project"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "arch-queue-burst",
+    "content": {
+      "title": "Nhận yêu cầu nhập ảnh theo đợt",
+      "topic": "systems",
+      "subtopic": "Hàng đợi và tải đột biến",
+      "tags": [
+        "Hàng đợi và tải đột biến"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Thi thoảng 300 ảnh đến cùng lúc. Dịch vụ xử lý chỉ chịu được 10 ảnh mỗi giây. Người dùng chấp nhận nhận kết quả sau. Thiết kế nào hấp thụ được đợt tăng ngắn này?",
+      "englishPrompt": "Sometimes 300 images arrive together. A processor can sustain ten images per second and users accept delayed results. Which design absorbs this short burst?",
+      "context": "Khi hết đợt cao điểm, lượng ảnh đến thường thấp hơn công suất xử lý.",
+      "hint": "Thành phần nào có thể giữ phần việc chưa làm xong?",
+      "nextHint": "Hàng đợi lưu phần tải đến nhanh hơn công suất tức thời, cho phép worker rút dần khi có tài nguyên.",
+      "followUp": "Nếu liên tục nhận 15 ảnh mỗi giây trong một giờ, xu hướng thời gian chờ ra sao?",
+      "englishFollowUp": "What happens to waiting time if fifteen images per second keep arriving for an hour?",
+      "outline": [
+        "Ghi công việc vào hàng đợi bền vững và giới hạn tốc độ lấy việc của worker",
+        "Hàng đợi lưu phần tải đến nhanh hơn công suất tức thời, cho phép worker rút dần khi có tài nguyên."
+      ],
+      "shortAnswer": "Ghi công việc vào hàng đợi bền vững và giới hạn tốc độ lấy việc của worker. Hàng đợi lưu phần tải đến nhanh hơn công suất tức thời, cho phép worker rút dần khi có tài nguyên.",
+      "explanation": "Hàng đợi lưu phần tải đến nhanh hơn công suất tức thời, cho phép worker rút dần khi có tài nguyên. Hàng đợi không tạo thêm thông lượng. Nếu tốc độ đến luôn cao hơn tốc độ xử lý, thời gian chờ tiếp tục tăng.",
+      "alternative": "Theo dõi tuổi của công việc cũ nhất cùng độ dài hàng đợi để biết độ trễ thực tế.",
+      "trap": "Hàng đợi không tạo thêm thông lượng. Nếu tốc độ đến luôn cao hơn tốc độ xử lý, thời gian chờ tiếp tục tăng.",
+      "rubric": [
+        "Ghi công việc vào hàng đợi bền vững và giới hạn tốc độ lấy việc của worker",
+        "Hàng đợi lưu phần tải đến nhanh hơn công suất tức thời, cho phép worker rút dần khi có tài nguyên.",
+        "Hàng đợi không tạo thêm thông lượng. Nếu tốc độ đến luôn cao hơn tốc độ xử lý, thời gian chờ tiếp tục tăng.",
+        "Theo dõi tuổi của công việc cũ nhất cùng độ dài hàng đợi để biết độ trễ thực tế."
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/queue-based-load-leveling",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tăng timeout HTTP nhưng vẫn cho phép mọi request gọi bộ xử lý cùng lúc",
+          "Gửi lại ngay mỗi ảnh đang chờ để giữ bộ xử lý luôn bận",
+          "Ghi công việc vào hàng đợi bền vững và giới hạn tốc độ lấy việc của worker"
+        ],
+        "en": [
+          "Increase the HTTP timeout while letting every request invoke the processor simultaneously",
+          "Immediately resubmit every waiting image to keep the processor busy",
+          "Persist jobs in a queue and limit the rate at which workers consume them"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "arch-pipeline-contract",
+    "content": {
+      "title": "Dùng lại bước kiểm tra bản ghi",
+      "topic": "systems",
+      "subtopic": "Pipes and filters",
+      "tags": [
+        "Pipes and filters"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Hai luồng nhập CSV và JSON cần dùng chung một bước kiểm tra bản ghi sau khi parse. Ghép các bước thế nào để bộ kiểm tra không cần biết định dạng tệp gốc?",
+      "englishPrompt": "CSV and JSON imports need the same record-validation step after parsing. How can the steps be connected so the validator need not know the source file format?",
+      "context": "Một quy tắc mới phải áp dụng giống nhau cho cả hai luồng nhập.",
+      "hint": "Hãy chọn dữ liệu chuyển giữa parser và validator.",
+      "nextHint": "Hợp đồng đầu vào chung cho phép nối cùng một bước xử lý sau các parser khác nhau.",
+      "followUp": "Nếu thêm XML, bước nào có thể giữ nguyên nhờ hợp đồng này?",
+      "englishFollowUp": "If XML is added, which step can be reused because of this contract?",
+      "outline": [
+        "Mỗi parser xuất cùng dạng bản ghi để một validator xử lý",
+        "Hợp đồng đầu vào chung cho phép nối cùng một bước xử lý sau các parser khác nhau."
+      ],
+      "shortAnswer": "Mỗi parser xuất cùng dạng bản ghi để một validator xử lý. Hợp đồng đầu vào chung cho phép nối cùng một bước xử lý sau các parser khác nhau.",
+      "explanation": "Hợp đồng đầu vào chung cho phép nối cùng một bước xử lý sau các parser khác nhau. Khi mỗi parser có một bản sao quy tắc, sửa một bản có thể làm hai luồng trả kết quả khác nhau.",
+      "alternative": "Một parser XML có thể tham gia nếu xuất đúng dạng bản ghi và cùng quy ước xử lý lỗi.",
+      "trap": "Khi mỗi parser có một bản sao quy tắc, sửa một bản có thể làm hai luồng trả kết quả khác nhau.",
+      "rubric": [
+        "Mỗi parser xuất cùng dạng bản ghi để một validator xử lý",
+        "Hợp đồng đầu vào chung cho phép nối cùng một bước xử lý sau các parser khác nhau.",
+        "Khi mỗi parser có một bản sao quy tắc, sửa một bản có thể làm hai luồng trả kết quả khác nhau.",
+        "Một parser XML có thể tham gia nếu xuất đúng dạng bản ghi và cùng quy ước xử lý lỗi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/pipes-and-filters",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Mỗi parser xuất cùng dạng bản ghi để một validator xử lý",
+          "Cho validator tự mở lại tệp gốc để chọn parser theo đuôi tệp",
+          "Sao chép toàn bộ quy tắc riêng vào mỗi parser"
+        ],
+        "en": [
+          "Have both parsers emit the same record representation for one validator",
+          "Have the validator reopen the source file and pick a parser by extension",
+          "Copy the complete set of validation rules into each parser"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

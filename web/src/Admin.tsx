@@ -3,15 +3,19 @@ import { MaterialEditor } from './MaterialEditor'
 import { ChevronRight, Download, Plus, ShieldCheck } from 'lucide-react'
 import { api, useAction, useResource } from './api'
 import { useSession } from './session'
-import type { Editorial, EditorialRow, QuestionContent } from './types'
+import type { Editorial, EditorialRow, Page, QuestionContent } from './types'
 import { label, labels, rubricTitles } from './types'
-import { ActionLink, Badge, Button, Dialog, Empty, Field, Link, Loading, Options, PageTitle, Problem, navigate } from './ui'
+import { ActionLink, Badge, Button, Dialog, Empty, Field, Link, Loading, Options, PageTitle, Pagination, Problem, navigate } from './ui'
 
 export function AdminRoute({ slug }: { slug?: string }) {
   const { user } = useSession()
-  const list = useResource<EditorialRow[]>(user?.admin && !slug ? '/admin/questions' : null)
-  const detail = useResource<Editorial>(user?.admin && slug && slug !== 'new' && slug !== 'hoc-lieu' ? '/admin/questions/' + encodeURIComponent(slug) : null)
   const [search, setSearch] = useState('')
+  const [statusFilter,setStatusFilter] = useState('')
+  const [page,setPage] = useState(1)
+  const [term,setTerm] = useState('')
+  const list = useResource<Page<EditorialRow>>(user?.admin && !slug ? '/admin/questions?'+new URLSearchParams({page:String(page),search:term,status:statusFilter}) : null)
+  const coverage = useResource<{published:number;pending:number;counts:{topic:string;level:string;format:string;count:number}[]}>(user?.admin && !slug ? '/admin/questions/coverage' : null)
+  const detail = useResource<Editorial>(user?.admin && slug && slug !== 'new' && slug !== 'hoc-lieu' ? '/admin/questions/' + encodeURIComponent(slug) : null)
   const [importStatus, setImportStatus] = useState('')
   const importer = useAction()
   if (!user?.admin) return <div className="page">
@@ -25,6 +29,15 @@ export function AdminRoute({ slug }: { slug?: string }) {
       action={<div className="action-row"><ActionLink href="/quan-tri/hoc-lieu">Biên tập học liệu</ActionLink><ActionLink tone="primary" href="/quan-tri/new"><Plus size={16} /> Tạo câu hỏi</ActionLink></div>} />
     {(list.loading || detail.loading) && <Loading />}
     <Problem text={list.error || detail.error} retry={list.error ? list.reload : detail.reload} />
+    <Problem text={coverage.error} retry={coverage.reload} />
+    {coverage.data && <details className="panel content-panel details"><summary>Độ phủ nội dung · {coverage.data.published} câu đang xuất bản</summary>
+      <p>{coverage.data.pending} câu có bản biên tập chờ xuất bản.</p>
+      {(['level','topic','format'] as const).map(dimension=><div key={dimension}>
+        <h3>{{level:'Theo trình độ',topic:'Theo chủ đề',format:'Theo dạng câu'}[dimension]}</h3>
+        <ul>{Object.entries(coverage.data!.counts.reduce<Record<string,number>>((totals,row)=>{
+          const key=row[dimension];totals[key]=(totals[key]??0)+row.count;return totals
+        },{})).sort(([a],[b])=>a.localeCompare(b)).map(([key,count])=><li key={key}>{label(dimension==='topic'?'topics':dimension,key)} · {count}</li>)}</ul>
+      </div>)}</details>}
     {list.data && <section className="panel content-panel stack">
       <details className="details"><summary>Nhập câu hỏi từ JSON</summary><p className="small muted">Tối đa 20 câu, 200 KB. Các câu hợp lệ được lưu thành bản nháp.</p>
         <Field label="Tệp ngân hàng JSON"><input type="file" accept=".json,application/json" disabled={importer.busy} onChange={e=>{
@@ -33,16 +46,19 @@ export function AdminRoute({ slug }: { slug?: string }) {
             setImportStatus('')
             if (!file.name.toLowerCase().endsWith('.json') || file.size > 204800) { setImportStatus('Chọn tệp JSON tối đa 200 KB.'); return }
             let items: unknown; try { items=JSON.parse(await file.text()) } catch { setImportStatus('Tệp JSON không hợp lệ.'); return }
-            const result=await api<{imported:number}>('/admin/questions/import',{method:'POST',body:items})
-            setImportStatus('Đã nhập '+result.imported+' câu nháp.'); list.reload()
+            const result=await api<{imported:number;unchanged:number}>('/admin/questions/import',{method:'POST',body:items})
+            setImportStatus('Đã nhập '+result.imported+' câu nháp. Có '+result.unchanged+' câu đã khớp nội dung.'); list.reload(); coverage.reload()
           })
         }}/></Field><span role="status">{importStatus}</span><Problem text={importer.error}/></details>
-      <Field label="Tìm trong nội dung"><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tiêu đề hoặc slug…" /></Field>
-      <div>{list.data.filter(x => (x.title + ' ' + x.slug).toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi'))).map(x =>
+      <form className="form-grid" onSubmit={e=>{e.preventDefault();setPage(1);setTerm(search.trim())}}><Field label="Tìm trong nội dung"><input value={search} maxLength={120} onChange={e => setSearch(e.target.value)} placeholder="Tiêu đề hoặc slug…" /></Field>
+      <Field label="Trạng thái biên tập"><select value={statusFilter} onChange={e=>{setPage(1);setStatusFilter(e.target.value)}}><option value="">Tất cả</option><Options values={labels.publication}/></select></Field><div><Button type="submit">Tìm trong ngân hàng</Button></div></form>
+      <p role="status">{list.data.total} câu hỏi</p>
+      <div>{list.data.items.map(x =>
         <Link className="study-row" key={x.slug} href={'/quan-tri/' + x.slug}>
           <span className="topic-icon tone-indigo"><ShieldCheck size={18} /></span><span><strong>{x.title}</strong><small>{x.slug} · Bản v{x.latest}{x.published ? ' · Hiển thị v' + x.published : ''}</small></span>
           <Badge tone={x.status === 'published' ? 'green' : 'neutral'}>{label('publication', x.status)}</Badge><ChevronRight size={16} className="row-arrow" />
         </Link>)}</div>
+      <Pagination page={list.data.page} size={list.data.pageSize} total={list.data.total} change={setPage}/>
     </section>}
   </div>
 }
@@ -76,7 +92,7 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
     setDirty(true)
     setStatus('')
   }
-  function publish(next: 'published' | 'retired') {
+  function publish(next: 'published' | 'retired' | 'verified' | 'needs-review') {
     if (!editorial) return
     void action.run(async () => {
       const result = await api<Editorial>('/admin/questions/' + slug + '/publication', {
@@ -84,7 +100,7 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
       })
       setEditorial(result)
       setRetire(false)
-      setStatus(next === 'published' ? 'Đã xuất bản v' + result.latest + '.' : 'Đã ngừng xuất bản.')
+      setStatus(label('publication',next)+' · v'+result.latest+'.')
     })
   }
   function areas(fields: typeof prompts) {
@@ -159,7 +175,9 @@ function EditorialEdit({ initial }: { initial?: Editorial }) {
           <ul>{content.rubric.map((line,i)=><li key={i}>{line}</li>)}</ul></details>
         {editorial && <a className="text-link" download href={'/api/admin/questions/'+encodeURIComponent(slug)+'/export'}><Download size={16}/> Xuất bản đã lưu ra JSON</a>}
         <div className="action-row"><Button type="submit" tone="primary" disabled={action.busy}>Lưu bản nháp</Button>
-          {editorial && <Button disabled={dirty || action.busy || editorial.status === 'published'} onClick={() => publish('published')}>Xuất bản v{editorial.latest}</Button>}
+          {(editorial?.status==='draft' || editorial?.status==='retired') && <Button disabled={dirty || action.busy} onClick={()=>publish('needs-review')}>Gửi thẩm định</Button>}
+          {editorial?.status==='needs-review' && <Button disabled={dirty || action.busy} onClick={()=>publish('verified')}>Xác nhận đã kiểm định</Button>}
+          {editorial && <Button disabled={dirty || action.busy || editorial.status !== 'verified'} onClick={() => publish('published')}>Xuất bản v{editorial.latest}</Button>}
           {editorial?.published && <Button tone="quiet" disabled={action.busy} onClick={() => setRetire(true)}>Ngừng xuất bản</Button>}
         </div><Problem text={action.error} />{status && <span role="status" className="success">{status}</span>}
       </div>

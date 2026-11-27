@@ -1,6 +1,6 @@
 # 04. .NET Interview Practice
 
-Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 102 câu Việt–Anh, 11 chủ đề, 14 bài C#, 11 bài T-SQL, 15 tình huống code review, 8 đề thiết kế hệ thống và 7 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
+Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 256 câu Việt–Anh, 11 chủ đề, 24 bài C#, 21 bài T-SQL, 23 tình huống code review, 20 đề thiết kế hệ thống, 10 tình huống dự án và 11 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
 
 ## Học và theo dõi tiến độ
 
@@ -96,7 +96,7 @@ dotnet build server --no-restore
 npm.cmd run test:content --prefix web
 ~~~
 
-test:content kiểm định 102 bản ghi câu hỏi, 52 bài vận dụng và 25 bài thực hành. 111 ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot.
+test:content kiểm tra câu hỏi, bài vận dụng và bài thực hành theo từng batch. Các ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot. Kết quả của bản V3 nằm trong [CONTENT_QUALITY_REPORT.md](CONTENT_QUALITY_REPORT.md).
 
 Trên Windows, sau khi build frontend, chạy các lệnh sau từ thư mục dự án. Hai lượt QA dùng Chrome đã cài, cơ sở dữ liệu InterviewPractice_QA, tài khoản thử nghiệm và tiến trình loopback tạm. Lần chạy sau phải bắt đầu sau khi lần trước đã kết thúc.
 

@@ -1,0 +1,218 @@
+[
+  {
+    "slug": "parcel-scan-reconciliation",
+    "version": 1,
+    "title": "Ghép lịch sử quét kiện liên tỉnh",
+    "brief": "Máy quét tại điểm trung chuyển Đà Nẵng có thể mất mạng 6 giờ. Tổng đài ở TP.HCM cần xem hành trình của một vận đơn khi các máy gửi bù và sự kiện đến sai thứ tự.",
+    "requirements": [
+      "Mỗi lần quét có mã sự kiện ổn định, mã kiện, địa điểm và giờ trên máy. Đồng hồ thiết bị có thể lệch 5 phút.",
+      "Nhận lại cùng lần quét không được thêm một chặng. Khi có mạng, sự kiện mới phải hiện trong 60 giây.",
+      "Nếu bằng chứng mâu thuẫn, cho nhân viên tra cứu cả hai sự kiện và nguồn phát."
+    ],
+    "rubric": [
+      "Vẽ luồng từ máy quét đến màn hình tổng đài, chỉ nơi giữ sự kiện khi mất mạng.",
+      "Chọn khóa phát hiện lần gửi lại, phân biệt với hai lần quét hợp lệ cùng địa điểm.",
+      "Giải thích cách hiển thị khi sự kiện đến kho nhận xuất hiện trước sự kiện rời kho gửi.",
+      "Nêu cách xử lý thứ tự khi hai đồng hồ lệch nhau và chưa đủ bằng chứng để kết luận.",
+      "Mô phỏng mất mạng 6 giờ rồi gửi bù có lặp. Đo số sự kiện duy nhất và độ trễ của luồng đang trực tuyến."
+    ]
+  },
+  {
+    "slug": "dispatch-cutoff-manifest",
+    "version": 1,
+    "title": "Chốt bảng kê xe đêm",
+    "brief": "Xe Hà Nội đi Hải Phòng chốt bảng kê lúc 21:30. Hai điều phối viên có thể sửa cùng chuyến, trong khi máy in tại cửa xuất đôi lúc in xong mới báo lỗi.",
+    "requirements": [
+      "Bảng kê đã chốt có số phiên bản và danh sách kiện cố định.",
+      "Kiện bổ sung sau khi chốt cần phiếu điều chỉnh gắn với bảng kê gốc.",
+      "Bản in lại phải nhận diện được cùng bảng kê. Điều phối viên cần thấy danh sách còn chờ in."
+    ],
+    "rubric": [
+      "Xác định thao tác chuyển trạng thái từ đang soạn sang đã chốt và dữ liệu được đóng băng.",
+      "Cho ví dụ hai lần sửa dựa trên cùng phiên bản và cách báo xung đột cho người đến sau.",
+      "Theo dõi một kiện bổ sung từ phiếu điều chỉnh tới lịch sử mà không làm thay đổi bản đã ký.",
+      "Giải thích cách thử in lại khi máy in đã ra giấy nhưng mất phản hồi và cách ghi nhận bản sao.",
+      "Đặt phép đối chiếu giữa phiên bản trên giấy, số kiện và dữ liệu tại thời điểm chốt."
+    ]
+  },
+  {
+    "slug": "cold-chain-excursions",
+    "version": 1,
+    "title": "Theo dõi nhiệt độ thùng lạnh",
+    "brief": "Tuyến Cần Thơ – TP.HCM gửi một mẫu nhiệt độ mỗi phút cho mỗi thùng. Điều phối viên chỉ mở một sự cố cho một chuỗi mẫu trên 8°C kéo dài ít nhất 10 phút theo thời gian đo.",
+    "requirements": [
+      "Hai mẫu cách nhau quá 2 phút làm gián đoạn chuỗi. Khoảng thiếu dữ liệu cần được hiển thị.",
+      "Mẫu có thể đến trễ 20 phút hoặc được gửi lặp. Bản hiệu chỉnh cần giữ được lịch sử.",
+      "Bảng vận hành cần phân biệt thùng có dữ liệu bình thường với thùng đã im lặng 5 phút."
+    ],
+    "rubric": [
+      "Định nghĩa khóa mẫu và cách phân vùng lịch sử theo thùng.",
+      "Dùng ví dụ mẫu tại phút 0, 1 và 11 để giải thích tiêu chí liên tục và ý nghĩa của dữ liệu thiếu.",
+      "Theo dấu một mẫu đến trễ làm thay đổi kết luận và cách ghi phiên bản sự cố.",
+      "Chỉ ra cách giữ một sự cố mở cho cùng chuỗi nhiệt cao và khi nào đóng nó.",
+      "Kiểm thử riêng chuỗi đủ 10 phút, đúng ngưỡng 8°C và cảm biến ngừng gửi."
+    ]
+  },
+  {
+    "slug": "erp-shift-corrections",
+    "version": 1,
+    "title": "Đính chính ca sau khi khóa kỳ",
+    "brief": "ERP của ba nhà máy tổng hợp công mỗi tuần theo múi giờ Việt Nam. Sau khi kỳ đã duyệt, tổ trưởng phát hiện một ca đêm của thứ Bảy bị ghi thiếu hai giờ.",
+    "requirements": [
+      "Ca đi qua nửa đêm phải phân bổ theo quy ước ngày làm việc đã công bố của nhà máy.",
+      "Báo cáo kỳ đã duyệt phải có thể tái tạo. Điều chỉnh phải có người đề nghị, người duyệt và lý do.",
+      "Chạy lại báo cáo nhiều lần không được cộng lặp hai giờ điều chỉnh."
+    ],
+    "rubric": [
+      "Chọn cách biểu diễn mốc giờ bắt đầu, kết thúc và phiên bản quy tắc gán ngày làm việc.",
+      "Chỉ cách phục dựng tổng số giờ của bản đã duyệt trước khi có điều chỉnh.",
+      "Theo dấu hai giờ bổ sung qua yêu cầu, phê duyệt và báo cáo mới.",
+      "Nêu định danh giúp việc chạy lại không áp cùng điều chỉnh hai lần.",
+      "Dùng một ca qua nửa đêm cuối kỳ để đối chiếu số giờ từng kỳ trước và sau phê duyệt."
+    ]
+  },
+  {
+    "slug": "erp-bom-effective-date",
+    "version": 1,
+    "title": "Định mức theo lô sản xuất",
+    "brief": "Xưởng lắp quạt ở Bình Dương thay động cơ trong định mức từ thứ Hai. Hai lệnh sản xuất lập cuối tuần nhưng chỉ một lệnh được phát hành trước thời điểm thay đổi.",
+    "requirements": [
+      "Bản định mức có khoảng hiệu lực. Lệnh đã phát hành phải giữ đúng định mức lúc phát hành.",
+      "Tổ trưởng có thể tạo bản nháp thay thế. Với cùng mã thành phẩm, các bản đã duyệt không được chồng khoảng hiệu lực.",
+      "Tổ chất lượng cần truy ngược một lô đã hoàn tất tới mã linh kiện và số lượng dự kiến."
+    ],
+    "rubric": [
+      "Xác định lúc chọn phiên bản cho một lệnh còn nháp và lúc cố định phiên bản.",
+      "Nêu quy ước đóng/mở của hai đầu khoảng hiệu lực khi bản mới bắt đầu đúng nửa đêm.",
+      "Đưa ra cơ chế chống hai người cùng duyệt hai khoảng chồng nhau.",
+      "Mô tả truy vấn truy vết từ lô tới định mức đã dùng sau khi xuất hiện bản mới.",
+      "Thử hai lệnh hai phía mốc hiệu lực và chỉ rõ kết quả khi xem lại sau một tháng."
+    ]
+  },
+  {
+    "slug": "erp-asset-maintenance",
+    "version": 1,
+    "title": "Lịch bảo trì theo giờ máy",
+    "brief": "Nhà máy nhựa lên lịch bảo trì sau mỗi 500 giờ vận hành. Đồng hồ có thể được thay giữa kỳ và bắt đầu lại từ 0. Tổ kỹ thuật xác nhận lúc hoàn tất bảo trì.",
+    "requirements": [
+      "Giữ lịch sử chỉ số từng đồng hồ và thời điểm lắp hoặc tháo.",
+      "Khi vượt ngưỡng, chỉ tạo một phiếu cho chu kỳ bảo trì đang mở.",
+      "Sau hoàn tất, đếm chu kỳ mới từ tổng giờ tại thời điểm hoàn tất."
+    ],
+    "rubric": [
+      "Tách định danh thiết bị và đồng hồ, minh họa cách nối số giờ qua một lần thay đồng hồ.",
+      "Nêu cách xử lý chỉ số giảm mà chưa có biên bản thay đồng hồ.",
+      "Cho ví dụ hai lần nhận cùng chỉ số vượt ngưỡng và cơ chế tránh mở hai phiếu.",
+      "Chỉ cách giữ mốc 500 giờ tiếp theo khi đăng biên bản hoàn tất muộn.",
+      "Đưa dữ liệu mẫu gồm thay đồng hồ, chậm xác nhận và kiểm tra chính xác số phiếu cùng mốc giờ dự kiến."
+    ]
+  },
+  {
+    "slug": "lms-exam-submission",
+    "version": 1,
+    "title": "Nộp bài sát giờ khóa đề",
+    "brief": "Phòng khảo thí cho 1.500 học viên nộp bài trong 30 giây cuối. Đồng hồ máy chủ quyết định hạn nộp. Học viên có thể bấm nộp lại khi trình duyệt mất phản hồi.",
+    "requirements": [
+      "Mỗi lượt thi được nộp một bản cuối. Bản nháp có thể được lưu nhiều lần trước đó.",
+      "Cấp biên nhận cho bài được nhận đúng hạn và giữ nguyên nội dung đã nhận.",
+      "Chấm điểm có thể hoàn tất sau hạn nộp. Lượt gửi lại cùng bản phải tra được biên nhận cũ."
+    ],
+    "rubric": [
+      "Định nghĩa thời điểm hệ thống coi là đã nhận và cách xử lý biên đúng giờ khóa đề.",
+      "Chỉ ra dữ liệu phải ghi bền vững trước khi trả biên nhận.",
+      "Nêu điều xảy ra khi hai tab gửi hai nội dung khác nhau cho cùng lượt thi.",
+      "Ước tính tải trung bình cuối kỳ từ 1.500 lượt trong 30 giây và đề xuất phép đo tải đỉnh.",
+      "Thử mất phản hồi ngay sau khi ghi nhận, nộp lại sau hạn và đối chiếu biên nhận lẫn bản đã chấm."
+    ]
+  },
+  {
+    "slug": "lms-grade-appeals",
+    "version": 1,
+    "title": "Phúc khảo kết quả học phần",
+    "brief": "Sau khi LMS công bố điểm, học viên có 72 giờ gửi phúc khảo. Giảng viên thứ hai có thể giữ nguyên hoặc sửa điểm. Phòng đào tạo cần xem được cả kết quả đã công bố ban đầu.",
+    "requirements": [
+      "Mỗi lần công bố có thời điểm và phiên bản thang điểm.",
+      "Một yêu cầu gắn với đúng bản điểm đã xem. Chỉ một quyết định cuối có hiệu lực cho mỗi yêu cầu.",
+      "Bảng điểm chính thức phản ánh quyết định đã duyệt, kể cả khi xử lý thông báo bị trễ."
+    ],
+    "rubric": [
+      "Theo một yêu cầu từ bản điểm ban đầu đến quyết định và chỉ ra khi nào điểm mới có hiệu lực.",
+      "Quy định rõ biên 72 giờ và dùng một ví dụ ở phút cuối để kiểm tra.",
+      "Giải quyết trường hợp hai giám khảo cùng hoàn tất yêu cầu với điểm khác nhau.",
+      "Chứng minh cách dựng lại cả điểm cũ, điểm mới, người duyệt và lý do.",
+      "Mô phỏng lỗi gửi thông báo sau khi đã duyệt và xác nhận bảng điểm đọc đúng kết quả."
+    ]
+  },
+  {
+    "slug": "lms-prerequisite-eligibility",
+    "version": 1,
+    "title": "Mở lớp theo học phần tiên quyết",
+    "brief": "Một trường nghề yêu cầu học viên hoàn thành cả A và B trước khi vào lớp C. Phòng đào tạo có thể công nhận môn tương đương hoặc thu hồi kết quả nhập nhầm.",
+    "requirements": [
+      "Công bố lộ trình theo phiên bản và chặn vòng phụ thuộc trước khi áp dụng.",
+      "Trang tư vấn phải giải thích còn thiếu học phần nào hoặc bằng chứng tương đương nào đã được chấp nhận.",
+      "Thu hồi bằng chứng trước ngày khai giảng phải cập nhật danh sách đủ điều kiện trong 10 phút."
+    ],
+    "rubric": [
+      "Mô hình hóa quan hệ cần hoàn thành tất cả và bằng chứng tương đương cho một môn cụ thể.",
+      "Dùng ví dụ C phụ thuộc A rồi A phụ thuộc C để minh họa kiểm tra vòng.",
+      "Xác định phiên bản chương trình được dùng cho từng khóa tuyển sinh.",
+      "Theo dấu một lần thu hồi tới đúng các danh sách cần tính lại và đo độ trễ lan truyền.",
+      "Đưa bảng kết quả cho ba học viên: chỉ có A, có A và B tương đương, có cả hai nhưng B vừa bị thu hồi."
+    ]
+  },
+  {
+    "slug": "crm-merge-contacts",
+    "version": 1,
+    "title": "Hợp nhất hồ sơ khách hàng",
+    "brief": "Một CRM dịch vụ nhận hồ sơ từ quầy và tổng đài. Hai người dùng chung số điện thoại gia đình, còn một khách có thể có hai email. Nhân viên chỉ được gộp hồ sơ sau khi kiểm tra.",
+    "requirements": [
+      "Tìm ứng viên có dấu hiệu trùng và trình bày lý do cho nhân viên.",
+      "Sau khi gộp, tra cứu bằng cả hai mã cũ phải về hồ sơ đang dùng và giữ lịch sử cuộc gọi.",
+      "Cho phép hoàn tác có kiểm soát, kể cả khi đã có tương tác mới sau thời điểm gộp."
+    ],
+    "rubric": [
+      "Tách bước đề xuất cặp trùng với thao tác quyết định gộp, minh họa bằng số điện thoại dùng chung.",
+      "Chọn mã hồ sơ đích và cách duy trì liên kết từ hai mã cũ.",
+      "Nêu cách bảo toàn nguồn gốc từng email và từng tương tác khi gộp.",
+      "Giải thích chính sách phân bổ tương tác mới khi hoàn tác nếu chưa biết nó thuộc hồ sơ nào.",
+      "Thử hai nhân viên gộp cùng cặp theo hướng ngược nhau và đối chiếu kết quả sau xử lý."
+    ]
+  },
+  {
+    "slug": "crm-sla-business-calendar",
+    "version": 1,
+    "title": "Đồng hồ SLA theo giờ làm việc",
+    "brief": "Trung tâm chăm sóc khách tính hạn phản hồi đầu tiên sau bốn giờ làm việc. Ca trực giả định từ 08:00 đến 17:00, thứ Hai đến thứ Sáu. Lịch nghỉ được cấu hình theo chi nhánh.",
+    "requirements": [
+      "Gán lịch chi nhánh khi nhận phiếu và lưu phiên bản lịch áp dụng.",
+      "Thời gian ngoài ca, cuối tuần và ngày nghỉ của chi nhánh không làm giảm ngân sách SLA.",
+      "Sau phản hồi đầu tiên, giữ một bản ghi để đối chiếu thời điểm phản hồi thực và hạn đã tính."
+    ],
+    "rubric": [
+      "Tính hạn cho phiếu đến 16:00 thứ Sáu khi thứ Hai làm việc bình thường.",
+      "Lặp lại phép tính khi thứ Hai là ngày nghỉ và chỉ ra lịch nào quyết định kết quả.",
+      "Chọn cách biểu diễn khoảng làm việc, múi giờ và các ngày ngoại lệ.",
+      "Giải thích khả năng tái tạo hạn cũ sau khi cấu hình lịch được sửa.",
+      "Mô phỏng hai phản hồi đến gần nhau và chỉ cách ghi nhận đúng phản hồi đầu."
+    ]
+  },
+  {
+    "slug": "crm-territory-handoff",
+    "version": 1,
+    "title": "Bàn giao khách theo địa bàn",
+    "brief": "Đầu tháng, một nhóm khách tại miền Trung chuyển từ đội kinh doanh Đà Nẵng sang đội Huế. CRM phải xử lý 20.000 hồ sơ mà vẫn cho phép nhân viên thêm ghi chú trong lúc chuyển.",
+    "requirements": [
+      "Mỗi khách có đúng một đội phụ trách tại mỗi thời điểm.",
+      "Tra cứu lịch sử phải cho biết đội phụ trách vào ngày diễn ra cuộc hẹn.",
+      "Nếu job dừng ở giữa, tiếp tục từ phần đã xử lý và báo được các hồ sơ có xung đột."
+    ],
+    "rubric": [
+      "Chọn biểu diễn khoảng hiệu lực và minh họa một cuộc hẹn trước hoặc sau ngày chuyển.",
+      "Xác định mốc chụp danh sách 20.000 khách để kết quả nhất quán khi chạy lại.",
+      "Chỉ ra khóa hoặc phiên bản ngăn một hồ sơ được gán hai đội cùng lúc.",
+      "Mô tả cách cập nhật quyền phụ trách mà vẫn giữ ghi chú được thêm đồng thời.",
+      "Thử dừng ở hồ sơ thứ 7.000, chạy lại rồi đối chiếu số đã chuyển, số bị xung đột và số ghi chú."
+    ]
+  }
+]

@@ -1,0 +1,186 @@
+[
+  {
+    "slug": "assessment-score-bands",
+    "kind": "sql",
+    "title": "Hai mức điểm tốt nhất của từng bài",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "assessment",
+      "DENSE_RANK",
+      "MAX"
+    ],
+    "minutes": 20,
+    "description": "Lập bảng thành tích riêng cho từng bài kiểm tra. Lấy điểm tốt nhất đã chấm của từng học viên, sau đó giữ mọi học viên thuộc hai mức điểm khác nhau cao nhất của bài.",
+    "input": "Một cặp (learner_id, assessment_id) có nhiều attempt_no. NULL là chưa chấm. Mọi mã học viên và bài trong #Attempts đều tồn tại trong danh mục.",
+    "output": "assessment_id, learner_id, best_score (int). Sắp theo assessment_id tăng, best_score giảm, learner_id tăng.",
+    "constraints": [
+      "Điểm bằng nhau chiếm chung một mức. Mỗi học viên xuất hiện tối đa một lần trong một bài.",
+      "Bài chỉ có một mức điểm trả mọi học viên đạt mức đó. Bỏ học viên chỉ có NULL ở bài đang xét."
+    ],
+    "examples": [
+      {
+        "input": "Bài 10 có các điểm tốt nhất 90, 85, 85.",
+        "output": "10 | 1 | 85",
+        "explanation": "Học viên 1 đồng hạng hai với học viên 2, cả hai được giữ."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Học viên 2 chấm hai lần cùng 85 ở bài 10.",
+        "output": "10 | 2 | 85",
+        "explanation": "Thành tích chỉ có một dòng cho cặp học viên và bài."
+      }
+    ],
+    "schema": "CREATE TABLE #Participants (learner_id int PRIMARY KEY);\nCREATE TABLE #Assessments (\n    assessment_id int PRIMARY KEY,\n    required bit NOT NULL,\n    pass_score int NOT NULL CHECK (pass_score BETWEEN 0 AND 100)\n);\nCREATE TABLE #Attempts (\n    learner_id int NOT NULL,\n    assessment_id int NOT NULL,\n    attempt_no int NOT NULL CHECK (attempt_no > 0),\n    score int NULL CHECK (score BETWEEN 0 AND 100),\n    PRIMARY KEY (learner_id, assessment_id, attempt_no)\n);",
+    "dataset": "INSERT #Participants VALUES (1),(2),(3),(4),(5);\nINSERT #Assessments VALUES (10,1,60),(20,1,70),(30,0,55),(40,0,50);\nINSERT #Attempts (learner_id, assessment_id, attempt_no, score) VALUES\n(1,10,1,50),(1,10,3,85),(1,10,4,70),(1,20,1,75),(1,30,1,100),\n(2,10,1,85),(2,10,2,85),(2,20,1,60),(2,20,2,NULL),\n(3,10,1,90),(3,20,1,70),(3,20,2,40),\n(4,10,1,NULL),(4,30,1,20),(4,30,2,50);",
+    "expected": "assessment_id | learner_id | best_score\n10 | 3 | 90\n10 | 1 | 85\n10 | 2 | 85\n20 | 1 | 75\n20 | 3 | 70\n30 | 1 | 100\n30 | 4 | 50",
+    "ordered": true,
+    "starter": "SELECT learner_id, assessment_id, attempt_no, score\nFROM #Attempts;",
+    "solution": "WITH best AS (\n    SELECT assessment_id, learner_id, MAX(score) AS best_score\n    FROM #Attempts\n    WHERE score IS NOT NULL\n    GROUP BY assessment_id, learner_id\n), ranked AS (\n    SELECT *, DENSE_RANK() OVER (PARTITION BY assessment_id ORDER BY best_score DESC) AS place\n    FROM best\n)\nSELECT assessment_id, learner_id, best_score\nFROM ranked\nWHERE place <= 2\nORDER BY assessment_id, best_score DESC, learner_id;",
+    "hint": "Thu gọn từng cặp học viên và bài trước khi xếp hạng theo điểm.",
+    "explanation": "DENSE_RANK cấp số liên tục cho các mức điểm khác nhau. Đưa learner_id vào ORDER BY ngoài cùng để ổn định thứ tự trình bày mà vẫn giữ đồng hạng.",
+    "complexity": "Chi phí xếp hạng nằm trên số cặp học viên và bài đã có điểm sau khi nhóm.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "assessment-required-completion",
+    "kind": "sql",
+    "title": "Hoàn thành tất cả bài bắt buộc",
+    "difficulty": "hard",
+    "topic": "sql",
+    "tags": [
+      "assessment",
+      "NOT EXISTS",
+      "Phép chia quan hệ"
+    ],
+    "minutes": 22,
+    "description": "Tìm mọi học viên đã đạt tất cả các bài bắt buộc. Chỉ cần một lần đạt của từng bài, kể cả khi lần làm lại gần đây bị trượt.",
+    "input": "#Participants liệt kê toàn bộ học viên. #Assessments có cờ required và ngưỡng pass_score riêng. Mã trong #Attempts đều hợp lệ.",
+    "output": "learner_id (int), tăng dần.",
+    "constraints": [
+      "Điểm bằng ngưỡng được tính đạt. NULL và bài tùy chọn không thay thế cho lần đạt bài bắt buộc.",
+      "Nếu không có bài bắt buộc, mọi học viên đều thỏa, kể cả học viên chưa thi."
+    ],
+    "examples": [
+      {
+        "input": "Học viên 3 từng đạt 90 ở bài 10 và 70 ở bài 20 trước khi làm lại bài 20 được 40.",
+        "output": "3",
+        "explanation": "Mỗi bài bắt buộc đều có ít nhất một lần đạt."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Học viên 2 đạt bài 10 hai lần, còn bài 20 có một lần 60 và một lần chưa chấm.",
+        "output": "(không có dòng)",
+        "explanation": "Hai lần đạt cùng một bài không bù cho một bài bắt buộc còn thiếu."
+      }
+    ],
+    "schema": "CREATE TABLE #Participants (learner_id int PRIMARY KEY);\nCREATE TABLE #Assessments (\n    assessment_id int PRIMARY KEY,\n    required bit NOT NULL,\n    pass_score int NOT NULL CHECK (pass_score BETWEEN 0 AND 100)\n);\nCREATE TABLE #Attempts (\n    learner_id int NOT NULL,\n    assessment_id int NOT NULL,\n    attempt_no int NOT NULL CHECK (attempt_no > 0),\n    score int NULL CHECK (score BETWEEN 0 AND 100),\n    PRIMARY KEY (learner_id, assessment_id, attempt_no)\n);",
+    "dataset": "INSERT #Participants VALUES (1),(2),(3),(4),(5);\nINSERT #Assessments VALUES (10,1,60),(20,1,70),(30,0,55),(40,0,50);\nINSERT #Attempts (learner_id, assessment_id, attempt_no, score) VALUES\n(1,10,1,50),(1,10,3,85),(1,10,4,70),(1,20,1,75),(1,30,1,100),\n(2,10,1,85),(2,10,2,85),(2,20,1,60),(2,20,2,NULL),\n(3,10,1,90),(3,20,1,70),(3,20,2,40),\n(4,10,1,NULL),(4,30,1,20),(4,30,2,50);",
+    "expected": "learner_id\n1\n3",
+    "ordered": true,
+    "starter": "SELECT learner_id\nFROM #Participants\nORDER BY learner_id;",
+    "solution": "SELECT p.learner_id\nFROM #Participants AS p\nWHERE NOT EXISTS (\n    SELECT 1 FROM #Assessments AS a\n    WHERE a.required = 1 AND NOT EXISTS (\n        SELECT 1 FROM #Attempts AS t\n        WHERE t.learner_id = p.learner_id AND t.assessment_id = a.assessment_id\n          AND t.score >= a.pass_score\n    )\n)\nORDER BY p.learner_id;",
+    "hint": "Đảo điều kiện: một học viên bị loại khi tồn tại bài bắt buộc mà người đó chưa có lần đạt.",
+    "explanation": "Hai lớp NOT EXISTS thể hiện “không còn bài bắt buộc nào thiếu lần đạt”. Khi tập bài bắt buộc rỗng, truy vấn con ngoài rỗng cho từng học viên.",
+    "complexity": "Khóa đầu (learner_id, assessment_id) của #Attempts hỗ trợ xét các lần thi của đúng cặp.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "assessment-first-last-change",
+    "kind": "sql",
+    "title": "Chênh lệch giữa lần chấm đầu và cuối",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "assessment",
+      "MIN / MAX",
+      "Khóa ghép"
+    ],
+    "minutes": 18,
+    "description": "Mỗi cặp học viên và bài có ít nhất hai lần đã chấm cần một dòng chênh lệch. Lấy điểm lần đã chấm cuối trừ điểm lần đã chấm đầu theo attempt_no.",
+    "input": "attempt_no xác định thứ tự trong mỗi cặp và có thể nhảy số. score NULL là chưa chấm. Các mã trong #Attempts đều hợp lệ.",
+    "output": "learner_id, assessment_id, score_change (int), tăng dần theo learner_id rồi assessment_id.",
+    "constraints": [
+      "Giữ cả chênh lệch âm và bằng 0. Không dùng điểm cao nhất trừ điểm thấp nhất.",
+      "Bỏ mọi lần chưa chấm trước khi xác định thứ tự."
+    ],
+    "examples": [
+      {
+        "input": "Học viên 1 ở bài 10 có điểm lần lượt 50, 85, 70.",
+        "output": "1 | 10 | 20",
+        "explanation": "Điểm cuối 70 trừ điểm đầu 50, bỏ qua đỉnh 85."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Học viên 3 làm bài 20 được 70 rồi 40.",
+        "output": "3 | 20 | -30",
+        "explanation": "Điểm giảm nên chênh lệch phải âm."
+      }
+    ],
+    "schema": "CREATE TABLE #Participants (learner_id int PRIMARY KEY);\nCREATE TABLE #Assessments (\n    assessment_id int PRIMARY KEY,\n    required bit NOT NULL,\n    pass_score int NOT NULL CHECK (pass_score BETWEEN 0 AND 100)\n);\nCREATE TABLE #Attempts (\n    learner_id int NOT NULL,\n    assessment_id int NOT NULL,\n    attempt_no int NOT NULL CHECK (attempt_no > 0),\n    score int NULL CHECK (score BETWEEN 0 AND 100),\n    PRIMARY KEY (learner_id, assessment_id, attempt_no)\n);",
+    "dataset": "INSERT #Participants VALUES (1),(2),(3),(4),(5);\nINSERT #Assessments VALUES (10,1,60),(20,1,70),(30,0,55),(40,0,50);\nINSERT #Attempts (learner_id, assessment_id, attempt_no, score) VALUES\n(1,10,1,50),(1,10,3,85),(1,10,4,70),(1,20,1,75),(1,30,1,100),\n(2,10,1,85),(2,10,2,85),(2,20,1,60),(2,20,2,NULL),\n(3,10,1,90),(3,20,1,70),(3,20,2,40),\n(4,10,1,NULL),(4,30,1,20),(4,30,2,50);",
+    "expected": "learner_id | assessment_id | score_change\n1 | 10 | 20\n2 | 10 | 0\n3 | 20 | -30\n4 | 30 | 30",
+    "ordered": true,
+    "starter": "SELECT learner_id, assessment_id, attempt_no, score\nFROM #Attempts\nWHERE score IS NOT NULL;",
+    "solution": "WITH ends AS (\n    SELECT learner_id, assessment_id, MIN(attempt_no) AS first_no, MAX(attempt_no) AS last_no\n    FROM #Attempts\n    WHERE score IS NOT NULL\n    GROUP BY learner_id, assessment_id\n    HAVING COUNT(*) >= 2\n)\nSELECT e.learner_id, e.assessment_id, z.score - f.score AS score_change\nFROM ends AS e\nJOIN #Attempts AS f ON f.learner_id = e.learner_id AND f.assessment_id = e.assessment_id AND f.attempt_no = e.first_no\nJOIN #Attempts AS z ON z.learner_id = e.learner_id AND z.assessment_id = e.assessment_id AND z.attempt_no = e.last_no\nORDER BY e.learner_id, e.assessment_id;",
+    "hint": "MIN và MAX có ích nếu áp dụng lên số thứ tự lần làm, sau đó tra lại hai điểm.",
+    "explanation": "Khóa ghép xác định duy nhất hai dòng đầu cuối. Đếm các lần đã chấm cho phép hai lần điểm bằng nhau vẫn tạo chênh lệch 0.",
+    "complexity": "Tìm hai mốc cho từng cặp rồi dùng khóa ghép để tra hai điểm.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "assessment-grading-desk",
+    "kind": "sql",
+    "title": "Tách số lượt đạt, trượt và chờ chấm",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "assessment",
+      "CASE",
+      "Conditional aggregation"
+    ],
+    "minutes": 14,
+    "description": "Bảng điều phối chấm thi cần tổng số lượt đạt, trượt và chờ chấm của mỗi bài. Các lần làm lại được tính thành các lượt riêng.",
+    "input": "#Assessments là danh mục bài có pass_score riêng. score NULL trong #Attempts nghĩa là có một lượt đang chờ chấm. Mọi lượt đều tham chiếu bài tồn tại.",
+    "output": "assessment_id, passed, failed, pending (int), tăng dần theo assessment_id.",
+    "constraints": [
+      "Điểm đúng ngưỡng được tính đạt. Giữ cả bài chưa có lượt nào với ba số 0.",
+      "Một dòng NULL sinh ra từ LEFT JOIN trên bài rỗng không phải một lượt đang chờ."
+    ],
+    "examples": [
+      {
+        "input": "Bài 20 có bốn lượt đã chấm, gồm hai đạt, hai trượt, và thêm một lượt chờ.",
+        "output": "20 | 2 | 2 | 1",
+        "explanation": "Điểm 70 bằng ngưỡng và được tính vào nhóm đạt."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Bài 40 có trong danh mục nhưng chưa có lượt làm.",
+        "output": "40 | 0 | 0 | 0",
+        "explanation": "Không được cộng một lượt chờ từ dòng trống sau khi nối."
+      }
+    ],
+    "schema": "CREATE TABLE #Participants (learner_id int PRIMARY KEY);\nCREATE TABLE #Assessments (\n    assessment_id int PRIMARY KEY,\n    required bit NOT NULL,\n    pass_score int NOT NULL CHECK (pass_score BETWEEN 0 AND 100)\n);\nCREATE TABLE #Attempts (\n    learner_id int NOT NULL,\n    assessment_id int NOT NULL,\n    attempt_no int NOT NULL CHECK (attempt_no > 0),\n    score int NULL CHECK (score BETWEEN 0 AND 100),\n    PRIMARY KEY (learner_id, assessment_id, attempt_no)\n);",
+    "dataset": "INSERT #Participants VALUES (1),(2),(3),(4),(5);\nINSERT #Assessments VALUES (10,1,60),(20,1,70),(30,0,55),(40,0,50);\nINSERT #Attempts (learner_id, assessment_id, attempt_no, score) VALUES\n(1,10,1,50),(1,10,3,85),(1,10,4,70),(1,20,1,75),(1,30,1,100),\n(2,10,1,85),(2,10,2,85),(2,20,1,60),(2,20,2,NULL),\n(3,10,1,90),(3,20,1,70),(3,20,2,40),\n(4,10,1,NULL),(4,30,1,20),(4,30,2,50);",
+    "expected": "assessment_id | passed | failed | pending\n10 | 5 | 1 | 1\n20 | 2 | 2 | 1\n30 | 1 | 2 | 0\n40 | 0 | 0 | 0",
+    "ordered": true,
+    "starter": "SELECT assessment_id, pass_score\nFROM #Assessments\nORDER BY assessment_id;",
+    "solution": "SELECT a.assessment_id,\n       COUNT(CASE WHEN t.score >= a.pass_score THEN 1 END) AS passed,\n       COUNT(CASE WHEN t.score < a.pass_score THEN 1 END) AS failed,\n       COUNT(CASE WHEN t.score IS NULL THEN t.attempt_no END) AS pending\nFROM #Assessments AS a\nLEFT JOIN #Attempts AS t ON t.assessment_id = a.assessment_id\nGROUP BY a.assessment_id\nORDER BY a.assessment_id;",
+    "hint": "Với nhóm chờ, đếm khóa thật của lượt làm thay cho hằng 1.",
+    "explanation": "COUNT bỏ NULL ở từng biểu thức CASE. Với bài chưa có lượt, attempt_no do LEFT JOIN sinh ra cũng là NULL nên cả ba số đếm đều bằng 0.",
+    "complexity": "Một phép nối và một bước nhóm tính cả ba số đếm, không phải quét bảng lượt thi riêng cho từng nhóm.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  }
+]

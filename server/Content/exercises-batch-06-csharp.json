@@ -1,0 +1,485 @@
+[
+  {
+    "slug": "warehouse-pick-expiry",
+    "kind": "coding",
+    "title": "Chọn lô hàng gần hết hạn trước",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "sorting",
+      "inventory"
+    ],
+    "minutes": 17,
+    "description": "Kho nhận đơn và lấy từ các lô còn dùng được, ưu tiên ngày hết hạn sớm nhất. Nếu nhiều lô cùng hết hạn, lấy lô có mã nhỏ trước. Lấy tối đa số đơn vị đơn yêu cầu. Khi thiếu hàng, trả các lượt lấy thực hiện được.",
+    "input": "Mảng lots với mỗi dòng [lotId, expiryDay, available], ngày xử lý today và số lượng requested.",
+    "output": "Mảng [lotId, quantity] theo thứ tự lấy. Chỉ gồm các lượt lấy có quantity dương.",
+    "constraints": [
+      "lots có tối đa 250 dòng, lotId dương và duy nhất.",
+      "Ngày đánh số từ 1 đến 1.000.000. Lô có expiryDay bằng today vẫn dùng được.",
+      "available từ 1 đến 1.000.000. requested từ 0 đến 1.000.000. Không sửa mảng đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[9,5,4],[4,3,2],[2,5,3],[1,2,8]], 3, 6",
+        "output": "[[4,2],[2,3],[9,1]]",
+        "explanation": "Lô 1 đã hết hạn. Lô 4 hết hạn hôm nay, tiếp theo là lô 2 và lô 9 theo mã lô."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[[8,8,2],[2,10,3],[7,9,1]], 9, 99",
+        "output": "[[7,1],[2,3]]",
+        "explanation": "Thiếu hàng vẫn trả mọi lượt lấy hợp lệ."
+      },
+      {
+        "input": "[[4,9,5],[5,9,8]], 9, 0",
+        "output": "[]",
+        "explanation": "Đơn có số lượng 0 không lấy lô nào."
+      },
+      {
+        "input": "[[4,3,2]], 4, 8",
+        "output": "[]",
+        "explanation": "Lô hết hạn trước ngày xử lý."
+      },
+      {
+        "input": "[], 1, 1",
+        "output": "[]",
+        "explanation": "Không có lô hàng."
+      },
+      {
+        "input": "[[10,4,8],[5,4,3]], 4, 3",
+        "output": "[[5,3]]",
+        "explanation": "Mã lô nhỏ hơn lấy trước và đủ số lượng ngay."
+      }
+    ],
+    "starter": "public static int[][] PickLots(int[][] lots, int today, int requested)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Lọc theo ngày rồi sắp xếp theo ngày hết hạn và mã lô. Số lượng lấy mỗi lần phụ thuộc vào phần đơn còn thiếu.",
+    "solution": "public static int[][] PickLots(int[][] lots, int today, int requested)\n{\n    var picks = new List<int[]>();\n    foreach (var lot in lots.Where(lot => lot[1] >= today).OrderBy(lot => lot[1]).ThenBy(lot => lot[0]))\n    {\n        if (requested == 0)\n            break;\n\n        int quantity = Math.Min(requested, lot[2]);\n        picks.Add([lot[0], quantity]);\n        requested -= quantity;\n    }\n\n    return picks.ToArray();\n}",
+    "explanation": "Loại lô hết hạn rồi tạo thứ tự lấy cố định bằng hai khóa. Với mỗi lô hợp lệ, lấy phần nhỏ hơn giữa số lượng còn thiếu và số lượng sẵn có. Kết quả dừng khi đủ hoặc hết lô hợp lệ.",
+    "complexity": "O(n log n) thời gian và O(n) bộ nhớ với n là số lô.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "dispatch-prerequisite-order",
+    "kind": "coding",
+    "title": "Xếp việc theo quan hệ phụ thuộc",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "graph",
+      "topological-sort",
+      "priority-queue"
+    ],
+    "minutes": 24,
+    "description": "Bộ điều phối phải xếp các bước triển khai có quan hệ phụ thuộc. Ở mỗi lượt chọn bước có mã nhỏ nhất trong các bước chưa xếp và đã đủ điều kiện. Nếu không thể xếp mọi bước, trả mảng rỗng.",
+    "input": "Số bước count. Mã bước là 0 đến count − 1. Mỗi dòng trong dependencies là [before, after], nghĩa là before phải đứng trước after.",
+    "output": "Mảng mã bước theo thứ tự triển khai. Nếu đồ thị có chu trình, trả [].",
+    "constraints": [
+      "0 ≤ count ≤ 500. Có tối đa 700 cặp phụ thuộc hợp lệ, không lặp cặp.",
+      "Một bước có thể phụ thuộc vào chính nó. Khi đó không thể xếp đầy đủ.",
+      "Không giả định dependencies đã có thứ tự."
+    ],
+    "examples": [
+      {
+        "input": "4, [[2,1],[0,1]]",
+        "output": "[0,2,1,3]",
+        "explanation": "Sau bước 0, bước 1 còn phải đợi 2. Sau bước 2, mã 1 nhỏ hơn mã 3."
+      }
+    ],
+    "tests": [
+      {
+        "input": "4, [[0,1],[1,0],[2,3]]",
+        "output": "[]",
+        "explanation": "Xếp được một phần vẫn phải trả rỗng nếu phần còn lại có chu trình."
+      },
+      {
+        "input": "3, [[1,1]]",
+        "output": "[]",
+        "explanation": "Phụ thuộc vào chính mình là chu trình."
+      },
+      {
+        "input": "4, []",
+        "output": "[0,1,2,3]",
+        "explanation": "Mọi bước đều đủ điều kiện ngay."
+      },
+      {
+        "input": "0, []",
+        "output": "[]",
+        "explanation": "Không có bước nào cần xếp."
+      },
+      {
+        "input": "5, [[3,2],[1,2],[2,0],[1,4]]",
+        "output": "[1,3,2,0,4]",
+        "explanation": "Mã 0 chỉ được chọn sau khi 2 hoàn tất dù nhỏ hơn mọi mã còn lại."
+      }
+    ],
+    "starter": "public static int[] OrderJobs(int count, int[][] dependencies)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Đếm số điều kiện chưa hoàn tất của mỗi bước. Dùng PriorityQueue để lấy mã nhỏ nhất khi nhiều bước cùng sẵn sàng.",
+    "solution": "public static int[] OrderJobs(int count, int[][] dependencies)\n{\n    var after = new List<int>[count];\n    var pending = new int[count];\n    for (int job = 0; job < count; job++)\n        after[job] = [];\n\n    foreach (var pair in dependencies)\n    {\n        after[pair[0]].Add(pair[1]);\n        pending[pair[1]]++;\n    }\n\n    var ready = new PriorityQueue<int, int>();\n    for (int job = 0; job < count; job++)\n        if (pending[job] == 0)\n            ready.Enqueue(job, job);\n\n    var order = new List<int>(count);\n    while (ready.TryDequeue(out int job, out _))\n    {\n        order.Add(job);\n        foreach (int next in after[job])\n            if (--pending[next] == 0)\n                ready.Enqueue(next, next);\n    }\n\n    return order.Count == count ? order.ToArray() : [];\n}",
+    "explanation": "Khi một bước hoàn thành, giảm số điều kiện còn thiếu của các bước theo sau. PriorityQueue giữ chính xác các bước có thể xếp ở lượt hiện tại và lấy mã nhỏ nhất. Nếu hàng đợi rỗng trước khi xếp đủ, phần chưa xếp chứa chu trình.",
+    "complexity": "O(e + v log v) thời gian và O(e + v) bộ nhớ với v bước và e phụ thuộc.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "billing-usage-tiers",
+    "kind": "coding",
+    "title": "Tính cước theo bậc sử dụng",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "billing",
+      "numeric-bounds"
+    ],
+    "minutes": 18,
+    "description": "Nhà cung cấp tính phí lũy tiến. Các đơn vị đầu được tính theo bậc đầu, chỉ phần vượt ngưỡng sang bậc sau. Tính phí theo đơn vị tiền nhỏ nhất.",
+    "input": "Số đơn vị units, mảng ngưỡng cộng dồn limits và mảng đơn giá rates. Ví dụ limits [100, 200] tạo các bậc 1–100, 101–200 và trên 200.",
+    "output": "Tổng phí kiểu long.",
+    "constraints": [
+      "0 ≤ units ≤ 1.000.000.000. limits tăng nghiêm ngặt, có tối đa 300 ngưỡng dương không vượt 1.000.000.000.",
+      "rates có đúng limits.Length + 1 phần tử; mỗi đơn giá từ 0 đến 1.000.000.",
+      "Bậc cuối không giới hạn. Nếu không có ngưỡng thì mọi đơn vị dùng rates[0]."
+    ],
+    "examples": [
+      {
+        "input": "130, [100,200], [2,3,5]",
+        "output": "290",
+        "explanation": "100 đơn vị đầu tính 2 và 30 đơn vị tiếp theo tính 3."
+      }
+    ],
+    "tests": [
+      {
+        "input": "100, [100,200], [2,3,5]",
+        "output": "200",
+        "explanation": "Đơn vị tại ngưỡng còn thuộc bậc hiện tại."
+      },
+      {
+        "input": "230, [100,200], [2,3,5]",
+        "output": "650",
+        "explanation": "30 đơn vị vượt ngưỡng cuối dùng đơn giá 5."
+      },
+      {
+        "input": "8, [], [7]",
+        "output": "56",
+        "explanation": "Không có ngưỡng thì một đơn giá áp dụng cho cả lượt."
+      },
+      {
+        "input": "0, [5], [2,4]",
+        "output": "0",
+        "explanation": "Không sử dụng đơn vị nào."
+      },
+      {
+        "input": "1000000000, [10], [600000,500000]",
+        "output": "500000001000000",
+        "explanation": "Nhân trong long để giữ phí của bậc lớn."
+      }
+    ],
+    "starter": "public static long CalculateCharge(int units, int[] limits, int[] rates)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Mỗi bậc chỉ tính cho phần lượng sử dụng nằm trong biên của nó. Chuyển sang long trước phép nhân.",
+    "solution": "public static long CalculateCharge(int units, int[] limits, int[] rates)\n{\n    long charge = 0;\n    int previous = 0;\n    for (int tier = 0; tier < limits.Length && previous < units; tier++)\n    {\n        int billedThrough = Math.Min(units, limits[tier]);\n        charge += (long)(billedThrough - previous) * rates[tier];\n        previous = billedThrough;\n    }\n\n    return charge + (long)(units - previous) * rates[^1];\n}",
+    "explanation": "Biến previous là điểm đã tính phí đến trước khi xét bậc tiếp theo. Chỉ tính thêm từ previous tới ngưỡng của bậc hoặc điểm kết thúc sử dụng. Sau các ngưỡng hữu hạn, phần chưa tính dùng đơn giá cuối.",
+    "complexity": "O(k) thời gian theo số ngưỡng và O(1) bộ nhớ phụ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "stock-next-higher-day",
+    "kind": "coding",
+    "title": "Tìm ngày tiếp theo có tồn cao hơn",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "monotonic-stack",
+      "inventory"
+    ],
+    "minutes": 23,
+    "description": "Kho cần biết từ mỗi bản ghi phải đợi bao nhiêu ngày để lượng tồn lần đầu cao hơn ngày hiện tại. Mức bằng nhau chưa phải là tăng.",
+    "input": "Mảng stock theo từng ngày liên tiếp, sắp từ ngày cũ đến ngày mới.",
+    "output": "Mảng cùng độ dài. Phần tử i là khoảng cách đến ngày gần nhất sau i có tồn lớn hơn stock[i], hoặc 0 nếu không có.",
+    "constraints": [
+      "Có tối đa 800 bản ghi. Lượng tồn nằm trong [0, 1.000.000].",
+      "Mục tiêu O(n) thời gian với n ngày."
+    ],
+    "examples": [
+      {
+        "input": "[20,18,18,21,19,22]",
+        "output": "[3,2,1,2,1,0]",
+        "explanation": "Ngày thứ hai phải đợi qua mức 18 bằng nó để gặp mức 21."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[5,5,5]",
+        "output": "[0,0,0]",
+        "explanation": "Mức bằng nhau không tăng."
+      },
+      {
+        "input": "[0,1,2,3]",
+        "output": "[1,1,1,0]",
+        "explanation": "Mọi ngày trừ ngày cuối có mức cao hơn ngay hôm sau."
+      },
+      {
+        "input": "[9,8,7]",
+        "output": "[0,0,0]",
+        "explanation": "Không có mức tăng nào về sau."
+      },
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có bản ghi."
+      },
+      {
+        "input": "[3,5,4,4,6]",
+        "output": "[1,3,2,1,0]",
+        "explanation": "Chọn mức cao hơn gần nhất, không chọn mức cao nhất cả đoạn."
+      }
+    ],
+    "starter": "public static int[] DaysUntilHigher(int[] stock)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Duyệt từ phải sang trái. Bỏ các chỉ số gần nằm trên đỉnh stack nếu giá trị của chúng nhỏ hơn hoặc bằng mức vừa gặp.",
+    "solution": "public static int[] DaysUntilHigher(int[] stock)\n{\n    var days = new int[stock.Length];\n    var candidates = new Stack<int>();\n    for (int day = stock.Length - 1; day >= 0; day--)\n    {\n        while (candidates.TryPeek(out int next) && stock[next] <= stock[day])\n            candidates.Pop();\n\n        if (candidates.TryPeek(out int higher))\n            days[day] = higher - day;\n        candidates.Push(day);\n    }\n\n    return days;\n}",
+    "explanation": "Một ngày xa hơn có tồn thấp hơn hoặc bằng ngày hiện tại không còn là ứng viên hữu ích cho các ngày ở bên trái. Bỏ các ngày đó ở đỉnh. Đỉnh còn lại là ngày gần nhất có tồn cao hơn. Đưa ngày hiện tại vào cho các lượt sau.",
+    "complexity": "O(n) thời gian vì mỗi chỉ số được thêm và bỏ tối đa một lần. O(n) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "room-peak-occupancy",
+    "kind": "coding",
+    "title": "Tính số phòng cần mở cùng lúc",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "sweep-line",
+      "interval",
+      "capacity"
+    ],
+    "minutes": 18,
+    "description": "Điều phối viên muốn dùng ít phòng nhất cho các lượt đặt. Mỗi lượt chiếm một phòng trong khoảng nửa mở [start, end). Hãy tìm số lượt chồng nhau lớn nhất.",
+    "input": "Mảng bookings với mỗi dòng là [start, end] tính bằng phút.",
+    "output": "Số phòng tối thiểu để phục vụ mọi lượt. Trả 0 nếu danh sách trống.",
+    "constraints": [
+      "Có tối đa 350 lượt; 0 ≤ start < end ≤ 1.000.000.",
+      "Có thể có các lượt trùng nhau hoàn toàn. Đầu vào không được sắp xếp. Không sửa đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[10,20],[15,25],[20,30]]",
+        "output": "2",
+        "explanation": "Phòng của lượt đầu trống đúng lúc lượt thứ ba bắt đầu."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[[4,10],[1,4],[4,6],[2,4],[3,9]]",
+        "output": "3",
+        "explanation": "Hai lượt kết thúc ở phút 4 trước khi tính hai lượt mới."
+      },
+      {
+        "input": "[[2,8],[2,8],[2,8]]",
+        "output": "3",
+        "explanation": "Ba lượt trùng nhau chiếm ba phòng."
+      },
+      {
+        "input": "[[6,10],[0,3],[3,6]]",
+        "output": "1",
+        "explanation": "Ba đoạn nối nhau dùng lại một phòng."
+      },
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Không có lịch đặt."
+      },
+      {
+        "input": "[[0,100],[7,15],[8,21],[40,60]]",
+        "output": "3",
+        "explanation": "Đỉnh diễn ra ở phút 8 khi lượt dài vẫn còn hiệu lực."
+      }
+    ],
+    "starter": "public static int PeakRooms(int[][] bookings)\n{\n    throw new NotImplementedException();\n}",
+    "hint": "Chỉ cần phân loại thời điểm bắt đầu và kết thúc. Tại cùng phút, tính các lượt kết thúc trước rồi mới thêm lượt bắt đầu.",
+    "solution": "public static int PeakRooms(int[][] bookings)\n{\n    var starts = bookings.Select(slot => slot[0]).ToArray();\n    var ends = bookings.Select(slot => slot[1]).ToArray();\n    Array.Sort(starts);\n    Array.Sort(ends);\n\n    int departed = 0;\n    int peak = 0;\n    for (int arrived = 0; arrived < starts.Length; arrived++)\n    {\n        while (departed < ends.Length && ends[departed] <= starts[arrived])\n            departed++;\n\n        peak = Math.Max(peak, arrived + 1 - departed);\n    }\n\n    return peak;\n}",
+    "explanation": "Đỉnh chỉ có thể tăng tại một thời điểm bắt đầu. Ở mỗi thời điểm đó, đếm các lượt đã bắt đầu rồi trừ các lượt có end nhỏ hơn hoặc bằng thời điểm này. Lấy giá trị lớn nhất. Lịch theo nửa mở cho phép tái sử dụng ngay phòng vừa trống.",
+    "complexity": "O(n log n) thời gian để sắp xếp và O(n) bộ nhớ với n lượt.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "debug-frozen-ready-list",
+    "kind": "coding",
+    "title": "Đợt chạy bị đổi danh sách sau khi chốt",
+    "difficulty": "easy",
+    "topic": "linq",
+    "tags": [
+      "debug-lab",
+      "deferred-execution"
+    ],
+    "minutes": 12,
+    "description": "Worker chốt các mục sẵn sàng ở đầu đợt, đổi trạng thái một mục, rồi tạo danh sách sẵn sàng mới. Starter trả sai danh sách đầu khi cập nhật làm thay đổi trạng thái của mục.",
+    "input": "Mảng bool ready biểu diễn trạng thái ban đầu theo mã mục 0-based, mục ticket được cập nhật và trạng thái nextState của mục đó.",
+    "output": "Mảng hai dòng. Dòng đầu gồm các mã sẵn sàng trước cập nhật, dòng sau gồm các mã sẵn sàng sau cập nhật. Mỗi dòng sắp mã tăng dần.",
+    "constraints": [
+      "1 ≤ ready.Length ≤ 600. ticket là chỉ số trong mảng.",
+      "Thực hiện cập nhật trên bản sao. Không sửa mảng caller truyền vào."
+    ],
+    "examples": [
+      {
+        "input": "[true,false,true], 0, false",
+        "output": "[[0,2],[2]]",
+        "explanation": "Mục 0 đã sẵn sàng lúc chốt và bị tắt cho đợt sau."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[false,false], 1, true",
+        "output": "[[],[1]]",
+        "explanation": "Mục vừa bật chỉ xuất hiện trong đợt sau."
+      },
+      {
+        "input": "[false,true,false,true], 2, true",
+        "output": "[[1,3],[1,2,3]]",
+        "explanation": "Cập nhật thêm mục ở giữa chỉ làm đổi danh sách đợt sau."
+      },
+      {
+        "input": "[true], 0, true",
+        "output": "[[0],[0]]",
+        "explanation": "Thay đổi không làm lệch hai danh sách."
+      },
+      {
+        "input": "[false,true,true], 2, false",
+        "output": "[[1,2],[1]]",
+        "explanation": "Mục cuối vẫn có trong ảnh chụp đầu đợt."
+      }
+    ],
+    "reproduce": "Chạy [true,false,true], 0, false. Starter trả [[2],[2]] vì đợi đến sau cập nhật mới đọc cả hai danh sách.",
+    "starter": "public static int[][] FreezeReady(bool[] ready, int ticket, bool nextState)\n{\n    var current = ready.ToArray();\n    var ids = Enumerable.Range(0, current.Length);\n    var batch = ids.Where(id => current[id]);\n    current[ticket] = nextState;\n    return [batch.ToArray(), ids.Where(id => current[id]).ToArray()];\n}",
+    "hint": "Where tạo truy vấn trì hoãn. Xác định thời điểm ToArray phải thực thi.",
+    "solution": "public static int[][] FreezeReady(bool[] ready, int ticket, bool nextState)\n{\n    var current = ready.ToArray();\n    var ids = Enumerable.Range(0, current.Length);\n    var batch = ids.Where(id => current[id]).ToArray();\n    current[ticket] = nextState;\n    return [batch, ids.Where(id => current[id]).ToArray()];\n}",
+    "explanation": "Where đọc giá trị khi truy vấn được duyệt. Đưa ToArray về trước cập nhật để cố định danh sách đầu. Lượt truy vấn sau đọc bản sao đã đổi để tạo danh sách sau cập nhật.",
+    "complexity": "O(n) thời gian và O(n) bộ nhớ với n mục.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "debug-device-code-comparer",
+    "kind": "coding",
+    "title": "Mã thiết bị khác chữ hoa bị báo lạ",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "debug-lab",
+      "string-comparison",
+      "hash-set"
+    ],
+    "minutes": 12,
+    "description": "Hệ thống nhận diện thiết bị bằng mã so khớp OrdinalIgnoreCase. Starter báo mã lạ khi thiết bị gửi một cách viết hoa khác với đăng ký. Sửa cách so sánh khóa.",
+    "input": "Mảng tracked là các mã đã đăng ký và mảng received là mã trong đợt nhận, theo thứ tự đến.",
+    "output": "Mảng bool theo thứ tự received. true nếu mã tương ứng có trong tracked theo OrdinalIgnoreCase.",
+    "constraints": [
+      "Mỗi mảng có tối đa 50 mã. Mỗi mã là chuỗi Unicode không rỗng, tối đa 64 ký tự UTF-16.",
+      "So mã chính xác theo ordinal không phân biệt hoa thường. Giữ nguyên khoảng trắng và dạng biểu diễn Unicode."
+    ],
+    "examples": [
+      {
+        "input": "[\"M-01\",\"café\"], [\"m-01\",\"Café\",\"CAFÉ\",\"X\"]",
+        "output": "[true,false,true,false]",
+        "explanation": "Chữ hoa thường khớp. Dạng Unicode ghép và tách dấu vẫn được giữ riêng."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[\"A\",\"a\",\"B\"], [\"a\",\"b\",\"c\",\"A\"]",
+        "output": "[true,true,false,true]",
+        "explanation": "Mã đăng ký lặp vẫn dùng cùng quy tắc."
+      },
+      {
+        "input": "[], [\"A\",\"A\"]",
+        "output": "[false,false]",
+        "explanation": "Giữ thứ tự và số phần tử của đầu vào nhận."
+      },
+      {
+        "input": "[\" A\",\"B \"], [\"a\",\" A\",\"b\",\"b \"]",
+        "output": "[false,true,false,true]",
+        "explanation": "So mã không tự xóa khoảng trắng."
+      },
+      {
+        "input": "[\"A\"], []",
+        "output": "[]",
+        "explanation": "Đợt nhận rỗng cho kết quả rỗng."
+      }
+    ],
+    "reproduce": "Chạy [\"M-01\"], [\"m-01\"]. Starter trả [false], dù hợp đồng nhận mã không phân biệt hoa thường.",
+    "starter": "public static bool[] CheckRegistered(string[] tracked, string[] received)\n{\n    var codes = new HashSet<string>(tracked);\n    return received.Select(codes.Contains).ToArray();\n}",
+    "hint": "Chọn StringComparer khi dựng HashSet để thao tác lưu và tra mã dùng cùng quy tắc.",
+    "solution": "public static bool[] CheckRegistered(string[] tracked, string[] received)\n{\n    var codes = new HashSet<string>(tracked, StringComparer.OrdinalIgnoreCase);\n    return received.Select(codes.Contains).ToArray();\n}",
+    "explanation": "HashSet dùng comparer để băm và so sánh các khóa. Với OrdinalIgnoreCase, cả thao tác thêm lẫn Contains cùng bỏ qua khác biệt hoa thường theo quy tắc ordinal. Cách làm giữ nguyên khoảng trắng, dạng biểu diễn Unicode và thứ tự received.",
+    "complexity": "O(a + b) thời gian kỳ vọng với tổng độ dài mã ở hai mảng là a và b. Dùng O(u + r) ô nhớ phụ với u mã khác nhau và r kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "debug-prune-adjacent-closed",
+    "kind": "coding",
+    "title": "Danh sách còn mục đã đóng liền nhau",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "debug-lab",
+      "list",
+      "index"
+    ],
+    "minutes": 12,
+    "description": "Bảng công việc dùng số 0 đánh dấu mục đã đóng. Khi hai mục đã đóng đứng liền nhau, starter còn sót một mục. Sửa việc dọn danh sách để giữ đúng thứ tự các mã đang mở.",
+    "input": "Mảng queue theo thứ tự hiển thị, trong đó 0 là mục đã đóng và mọi mã dương là mục cần giữ.",
+    "output": "Mảng chỉ gồm các mã dương theo thứ tự ban đầu, giữ cả mã lặp.",
+    "constraints": [
+      "queue có tối đa 800 phần tử, mỗi phần tử trong [0, 1.000.000].",
+      "Mục tiêu O(n) thời gian. Không sửa mảng đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[8,0,0,5,0]",
+        "output": "[8,5]",
+        "explanation": "Hai số 0 kế tiếp đều cần được xóa."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[0,0,6,6,0,0]",
+        "output": "[6,6]",
+        "explanation": "Xóa cả đầu và cuối, giữ các mã dương trùng nhau."
+      },
+      {
+        "input": "[0,0,0]",
+        "output": "[]",
+        "explanation": "Toàn bộ mục đã đóng."
+      },
+      {
+        "input": "[4,2,4]",
+        "output": "[4,2,4]",
+        "explanation": "Không có mục đóng, thứ tự và mã lặp giữ nguyên."
+      },
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Danh sách rỗng."
+      }
+    ],
+    "reproduce": "Chạy [8,0,0,5,0]. Starter in [8,0,5] vì sau RemoveAt, số 0 tiếp theo trượt vào chỉ số vừa bỏ.",
+    "starter": "public static int[] PruneClosed(int[] queue)\n{\n    var open = queue.ToList();\n    for (int index = 0; index < open.Count; index++)\n        if (open[index] == 0)\n            open.RemoveAt(index);\n\n    return open.ToArray();\n}",
+    "hint": "Tránh tăng chỉ số qua một mục vừa dịch sang trái. Có thể lọc các mục đóng trong một lượt.",
+    "solution": "public static int[] PruneClosed(int[] queue)\n{\n    return queue.Where(id => id != 0).ToArray();\n}",
+    "explanation": "RemoveAt dời các phần tử sau chỉ số bị xóa. Vòng lặp lại tăng chỉ số nên bỏ qua mục vừa dời vào chỗ trống. Lọc trực tiếp xét mỗi phần tử ban đầu đúng một lần và giữ thứ tự các mã còn lại.",
+    "complexity": "O(n) thời gian và O(n) bộ nhớ trong trường hợp kết quả giữ hầu hết phần tử.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  }
+]

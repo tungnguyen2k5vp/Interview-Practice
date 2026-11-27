@@ -1,5 +1,13 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V3 · Ngân hàng cốt lõi và nội dung thực hành · 27/11/2026
+
+Mốc cốt lõi đạt **256 câu song ngữ** từ baseline 102. Đã xuất bản 14 batch mới (06–19), bổ sung 10 bài C#, 10 bài SQL, 8 code review, 12 system design và 10 phỏng vấn dự án. Bảy lab sửa lỗi là tập con của 24 bài C#. Mười concept liên kết câu hỏi, flashcard, bài áp dụng và code review với bằng chứng học hiện có. Có 11 mock preset và 9 lựa chọn roadmap.
+
+Ngân hàng cho phép tìm không dấu, tiếng Anh, alias như DI và lọc theo concept, kỹ năng, chủ đề con. Phân trang và lọc diễn ra ở server. Admin xem độ phủ bản đang xuất bản, nhập lại cùng JSON an toàn, thẩm định và xuất bản theo version dưới khóa giao dịch. Đã kiểm tra một lượt nộp vẫn đọc đúng rubric sau khi đổi version.
+
+Đã đạt 218 ca thực thi, 206 URL nguồn, 29 nhóm Chrome/API. Mốc tiếp theo là 500 câu với ưu tiên security phòng vệ, tình huống dự án, độ tin cậy và kỹ năng giao tiếp. Bảng kết quả tách riêng seed, số bài thực hành và mục tiêu dài hạn. [Audit](CONTENT_AUDIT.md) · [Nguồn](SOURCES.md) · [Nghiên cứu](COMPETITIVE_RESEARCH.md) · [Kiểm định](CONTENT_QUALITY_REPORT.md) · [Lộ trình](CONTENT_ROADMAP.md)
+
 ## V2 · Phase 8 · Xác minh bản phát hành
 
 Build React/TypeScript, ESLint, .NET Release và publish đạt. Các check .NET, import repository và đồng bộ verdict sau restart trên SQL Server đạt. EF xác nhận model khớp migration mới nhất. npm audit cho dependency runtime và NuGet audit cho dependency trực tiếp/bắc cầu không báo gói có lỗ hổng theo nguồn đã truy vấn.

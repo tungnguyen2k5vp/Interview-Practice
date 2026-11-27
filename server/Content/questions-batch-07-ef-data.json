@@ -1,0 +1,450 @@
+[
+  {
+    "slug": "ef-single-roundtrip",
+    "content": {
+      "title": "Lưu hóa đơn và dòng hàng",
+      "topic": "efcore",
+      "subtopic": "SaveChanges",
+      "tags": [
+        "SaveChanges"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Hai entity mới cùng context, cùng SQL Server và cần cùng thành công. Cách lưu nào có tính nguyên tử mặc định?",
+      "englishPrompt": "Two new entities share a context and a SQL Server database. Which save is atomic by default?",
+      "context": "Mất một dòng hàng sẽ làm sai tổng hóa đơn.",
+      "hint": "Đếm số lần commit có thể quan sát được từ bên ngoài.",
+      "nextHint": "Provider quan hệ mặc định đặt các thay đổi trong một SaveChanges vào một transaction. Lỗi ở một lệnh làm cả lần lưu bị rollback.",
+      "followUp": "Nếu còn phải gửi email sau khi lưu, transaction này bao phủ phần nào?",
+      "englishFollowUp": "Which part would this transaction cover if an email must also be sent?",
+      "outline": [
+        "Thêm cả hai rồi gọi SaveChanges một lần",
+        "Provider quan hệ mặc định đặt các thay đổi trong một SaveChanges vào một transaction. Lỗi ở một lệnh làm cả lần lưu bị rollback."
+      ],
+      "shortAnswer": "Thêm cả hai rồi gọi SaveChanges một lần. Provider quan hệ mặc định đặt các thay đổi trong một SaveChanges vào một transaction. Lỗi ở một lệnh làm cả lần lưu bị rollback.",
+      "explanation": "Provider quan hệ mặc định đặt các thay đổi trong một SaveChanges vào một transaction. Lỗi ở một lệnh làm cả lần lưu bị rollback. Nếu nhiều lần lưu phải cùng commit, mở transaction tường minh và xem xét execution strategy khi bật retry.",
+      "alternative": "Nếu nhiều lần lưu phải cùng commit, mở transaction tường minh và xem xét execution strategy khi bật retry.",
+      "trap": "Lần SaveChanges thứ nhất có thể đã commit trước khi lần thứ hai thất bại; await cả hai không tạo transaction chung.",
+      "rubric": [
+        "Thêm cả hai rồi gọi SaveChanges một lần",
+        "Provider quan hệ mặc định đặt các thay đổi trong một SaveChanges vào một transaction. Lỗi ở một lệnh làm cả lần lưu bị rollback.",
+        "Đếm số lần commit có thể quan sát được từ bên ngoài.",
+        "Nếu nhiều lần lưu phải cùng commit, mở transaction tường minh và xem xét execution strategy khi bật retry."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/transactions",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "dbcontext-unit-of-work"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi SaveChanges riêng cho từng entity",
+          "Dùng hai context độc lập rồi await cả hai",
+          "Thêm cả hai rồi gọi SaveChanges một lần"
+        ],
+        "en": [
+          "Call SaveChanges separately per entity",
+          "Use independent contexts and await both",
+          "Add both and call SaveChanges once"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-context-parallel",
+    "content": {
+      "title": "Hai widget tải song song",
+      "topic": "efcore",
+      "subtopic": "DbContext",
+      "tags": [
+        "DbContext"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Hai widget đều truy vấn cùng scoped DbContext. Cách nào tuân thủ hợp đồng của context?",
+      "englishPrompt": "Two widgets query the same scoped DbContext. Which approach respects its concurrency contract?",
+      "context": "Request gọi hai phương thức ToListAsync trước khi await.",
+      "hint": "Xét đối tượng nào sở hữu cả hai hoạt động database.",
+      "nextHint": "DbContext không hỗ trợ nhiều thao tác chạy đồng thời trên cùng instance. Tắt tracking chỉ đổi cách materialize entity.",
+      "followUp": "Hai context đọc ở hai thời điểm có chắc nhìn cùng snapshot không?",
+      "englishFollowUp": "Must two independent contexts see the same snapshot?",
+      "outline": [
+        "Await xong truy vấn thứ nhất rồi mới bắt đầu truy vấn thứ hai",
+        "DbContext không hỗ trợ nhiều thao tác chạy đồng thời trên cùng instance. Tắt tracking chỉ đổi cách materialize entity."
+      ],
+      "shortAnswer": "Await xong truy vấn thứ nhất rồi mới bắt đầu truy vấn thứ hai. DbContext không hỗ trợ nhiều thao tác chạy đồng thời trên cùng instance. Tắt tracking chỉ đổi cách materialize entity.",
+      "explanation": "DbContext không hỗ trợ nhiều thao tác chạy đồng thời trên cùng instance. Tắt tracking chỉ đổi cách materialize entity. Khi buộc phải chạy song song, mỗi tác vụ có thể dùng context riêng nhưng phải tính tải kết nối và tính nhất quán giữa các lần đọc.",
+      "alternative": "Khi buộc phải chạy song song, mỗi tác vụ có thể dùng context riêng nhưng phải tính tải kết nối và tính nhất quán giữa các lần đọc.",
+      "trap": "Sửa AsNoTracking chỉ thay tracking. Cả hai câu truy vấn vẫn dùng cùng một instance DbContext.",
+      "rubric": [
+        "Await xong truy vấn thứ nhất rồi mới bắt đầu truy vấn thứ hai",
+        "DbContext không hỗ trợ nhiều thao tác chạy đồng thời trên cùng instance. Tắt tracking chỉ đổi cách materialize entity.",
+        "Xét đối tượng nào sở hữu cả hai hoạt động database.",
+        "Khi buộc phải chạy song song, mỗi tác vụ có thể dùng context riêng nhưng phải tính tải kết nối và tính nhất quán giữa các lần đọc."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "dbcontext-unit-of-work"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Await xong truy vấn thứ nhất rồi mới bắt đầu truy vấn thứ hai",
+          "Chỉ đổi cả hai sang AsNoTracking",
+          "Gọi WhenAll trên hai thao tác đã bắt đầu"
+        ],
+        "en": [
+          "Await the first query before starting the second",
+          "Only switch both queries to AsNoTracking",
+          "Call WhenAll on the two started operations"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-filtered-include",
+    "content": {
+      "title": "Collection có cả dòng cũ",
+      "topic": "efcore",
+      "subtopic": "Filtered Include",
+      "tags": [
+        "Filtered Include"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một context đã track cả dòng hàng hủy. Filtered Include chỉ lấy dòng mở nhưng navigation vẫn có dòng hủy. Cơ chế nào giải thích?",
+      "englishPrompt": "A tracked cancelled line appears in a collection after a filtered Include for open lines. What explains it?",
+      "context": "Hai truy vấn chạy liên tiếp trong cùng một context khi dựng màn hình chi tiết.",
+      "hint": "Phân biệt dòng SQL trả về với entity đã có trong bộ nhớ.",
+      "nextHint": "EF nối quan hệ từ change tracker trong tracking query. Kết quả navigation vì vậy có thể chứa entity đã biết không thỏa filter mới.",
+      "followUp": "Filtered navigation đã được đánh dấu loaded, explicit loading sau đó có hệ quả gì?",
+      "englishFollowUp": "What does the loaded flag imply for a later explicit load?",
+      "outline": [
+        "Navigation fix-up nối các entity liên quan đã được track",
+        "EF nối quan hệ từ change tracker trong tracking query. Kết quả navigation vì vậy có thể chứa entity đã biết không thỏa filter mới."
+      ],
+      "shortAnswer": "Navigation fix-up nối các entity liên quan đã được track. EF nối quan hệ từ change tracker trong tracking query. Kết quả navigation vì vậy có thể chứa entity đã biết không thỏa filter mới.",
+      "explanation": "EF nối quan hệ từ change tracker trong tracking query. Kết quả navigation vì vậy có thể chứa entity đã biết không thỏa filter mới. Dùng projection theo màn hình hoặc context mới/no-tracking khi cần một tập kết quả đúng theo filter.",
+      "alternative": "Dùng projection theo màn hình hoặc context mới/no-tracking khi cần một tập kết quả đúng theo filter.",
+      "trap": "Kết luận WHERE đã hỏng chỉ từ nội dung navigation bỏ qua các entity mà context đã theo dõi.",
+      "rubric": [
+        "Navigation fix-up nối các entity liên quan đã được track",
+        "EF nối quan hệ từ change tracker trong tracking query. Kết quả navigation vì vậy có thể chứa entity đã biết không thỏa filter mới.",
+        "Phân biệt dòng SQL trả về với entity đã có trong bộ nhớ.",
+        "Dùng projection theo màn hình hoặc context mới/no-tracking khi cần một tập kết quả đúng theo filter."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/related-data/eager",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "ef-identity-resolution"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "SQL Server luôn bỏ WHERE ở JOIN",
+          "Navigation fix-up nối các entity liên quan đã được track",
+          "Include tự phục hồi bản ghi đã xóa khỏi database"
+        ],
+        "en": [
+          "SQL Server always discards WHERE in joins",
+          "Navigation fix-up reconnects related tracked entities",
+          "Include restores deleted database rows"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-find-local",
+    "content": {
+      "title": "Tìm lại bản ghi theo khóa",
+      "topic": "efcore",
+      "subtopic": "Change tracker",
+      "tags": [
+        "Change tracker"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Entity đã được context track theo khóa. Khi gọi Find cùng khóa, EF ưu tiên nguồn nào?",
+      "englishPrompt": "An entity with this key is already tracked. Where does Find look first?",
+      "context": "Form chỉnh sửa giữ thay đổi Name chưa lưu.",
+      "hint": "Xem liệu có cần round trip để trả về instance hiện tại.",
+      "nextHint": "Find kiểm tra entity theo khóa trong tracker trước. Nếu tìm thấy, nó trả cùng instance và có thể giữ sửa đổi chưa lưu.",
+      "followUp": "Khi cần so sánh trước khi ghi đè, bạn lấy các giá trị trong database bằng cách nào?",
+      "englishFollowUp": "How could you inspect current database values before overwriting edits?",
+      "outline": [
+        "Entity đang được track trong context",
+        "Find kiểm tra entity theo khóa trong tracker trước. Nếu tìm thấy, nó trả cùng instance và có thể giữ sửa đổi chưa lưu."
+      ],
+      "shortAnswer": "Entity đang được track trong context. Find kiểm tra entity theo khóa trong tracker trước. Nếu tìm thấy, nó trả cùng instance và có thể giữ sửa đổi chưa lưu.",
+      "explanation": "Find kiểm tra entity theo khóa trong tracker trước. Nếu tìm thấy, nó trả cùng instance và có thể giữ sửa đổi chưa lưu. Muốn đọc dữ liệu database hiện tại phải chốt chính sách refresh, vì Reload có thể ghi đè thay đổi chưa lưu.",
+      "alternative": "Muốn đọc dữ liệu database hiện tại phải chốt chính sách refresh, vì Reload có thể ghi đè thay đổi chưa lưu.",
+      "trap": "Coi Find là phép đọc mới từ database có thể làm giao diện hiển thị dữ liệu cũ.",
+      "rubric": [
+        "Entity đang được track trong context",
+        "Find kiểm tra entity theo khóa trong tracker trước. Nếu tìm thấy, nó trả cùng instance và có thể giữ sửa đổi chưa lưu.",
+        "Xem liệu có cần round trip để trả về instance hiện tại.",
+        "Muốn đọc dữ liệu database hiện tại phải chốt chính sách refresh, vì Reload có thể ghi đè thay đổi chưa lưu."
+      ],
+        "source": "https://learn.microsoft.com/en-us/ef/core/change-tracking/entity-entries#find-and-findasync",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "dbcontext-unit-of-work"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Luôn SELECT mới với UPDLOCK",
+          "HTTP cache của trình duyệt",
+          "Entity đang được track trong context"
+        ],
+        "en": [
+          "Always issue a new SELECT with UPDLOCK",
+          "The browser HTTP cache",
+          "The entity tracked by the context"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-bulk-stale",
+    "content": {
+      "title": "Số dư trong tracker sau bulk update",
+      "topic": "efcore",
+      "subtopic": "ExecuteUpdate",
+      "tags": [
+        "ExecuteUpdate"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "ExecuteUpdate vừa cập nhật số dư trong SQL. Entity đã load trong cùng context sẽ có giá trị gì trước khi reload?",
+      "englishPrompt": "ExecuteUpdate changed the balance in SQL. What value is held by an already tracked entity before reloading?",
+      "context": "Màn hình quản trị dùng một instance đã đọc trước thao tác điều chỉnh hàng loạt.",
+      "hint": "Xác định thao tác nào thực hiện trên server mà không materialize đối tượng.",
+      "nextHint": "ExecuteUpdate gửi UPDATE trực tiếp và bỏ qua change tracker. Instance đang giữ trong ứng dụng không tự đồng bộ.",
+      "followUp": "Làm sao kiểm tra xung đột nếu dùng ExecuteUpdate với concurrency token?",
+      "englishFollowUp": "How would you detect a concurrency conflict in a bulk update?",
+      "outline": [
+        "Giá trị cũ đã materialize",
+        "ExecuteUpdate gửi UPDATE trực tiếp và bỏ qua change tracker. Instance đang giữ trong ứng dụng không tự đồng bộ."
+      ],
+      "shortAnswer": "Giá trị cũ đã materialize. ExecuteUpdate gửi UPDATE trực tiếp và bỏ qua change tracker. Instance đang giữ trong ứng dụng không tự đồng bộ.",
+      "explanation": "ExecuteUpdate gửi UPDATE trực tiếp và bỏ qua change tracker. Instance đang giữ trong ứng dụng không tự đồng bộ. Tránh trộn các cách ghi trên cùng entity hoặc reload có chủ đích. Một lần SaveChanges sau có thể ghi đè giá trị mới nếu property bị sửa.",
+      "alternative": "Tránh trộn các cách ghi trên cùng entity hoặc reload có chủ đích. Một lần SaveChanges sau có thể ghi đè giá trị mới nếu property bị sửa.",
+      "trap": "Dùng giá trị trong tracker để tính tiếp sau bulk update có thể ghi đè kết quả mới.",
+      "rubric": [
+        "Giá trị cũ đã materialize",
+        "ExecuteUpdate gửi UPDATE trực tiếp và bỏ qua change tracker. Instance đang giữ trong ứng dụng không tự đồng bộ.",
+        "Xác định thao tác nào thực hiện trên server mà không materialize đối tượng.",
+        "Tránh trộn các cách ghi trên cùng entity hoặc reload có chủ đích. Một lần SaveChanges sau có thể ghi đè giá trị mới nếu property bị sửa."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "optimistic-concurrency"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Giá trị cũ đã materialize",
+          "Giá trị SQL mới lập tức",
+          "Giá trị mặc định của kiểu"
+        ],
+        "en": [
+          "The previously materialized value",
+          "The new SQL value immediately",
+          "The type default"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-keyset-back",
+    "content": {
+      "title": "Quay về trang hóa đơn trước",
+      "topic": "efcore",
+      "subtopic": "Keyset pagination",
+      "tags": [
+        "Keyset pagination"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Danh sách tăng dần theo (CreatedAt, Id). Từ dòng đầu trang hiện tại, lấy đúng trang trước bằng keyset như thế nào?",
+      "englishPrompt": "Invoices sort by (CreatedAt, Id) ascending. How do you use the first row on the current page to retrieve the immediately preceding page?",
+      "context": "Nút Trước phải trả trang liền kề theo thứ tự hiển thị; không có cursor được lưu ở client cho các trang cũ.",
+      "hint": "Phân biệt thứ tự chọn các dòng gần con trỏ nhất với thứ tự hiển thị cho người đọc.",
+      "nextHint": "Dò các khóa nhỏ hơn con trỏ theo thứ tự giảm dần trước khi Take.",
+      "followUp": "Nếu nhiều hóa đơn cùng thời điểm, vì sao phải đảo cả hai khóa sắp xếp?",
+      "englishFollowUp": "Why must both sort keys be reversed when invoices tie on time?",
+      "outline": [
+        "Dùng cặp khóa của dòng đầu hiện tại làm cận trên loại trừ.",
+        "Đảo thứ tự trên cả hai khóa trước khi giới hạn, rồi đảo danh sách để hiển thị."
+      ],
+      "shortAnswer": "Lọc các khóa nhỏ hơn tuple đầu trang, ORDER BY CreatedAt DESC, Id DESC rồi Take(size). Đảo kết quả trong bộ nhớ để hiển thị tăng dần.",
+      "explanation": "Khi lấy từ phía nhỏ hơn, sắp giảm dần giúp database chọn các dòng sát con trỏ nhất. Nếu sắp tăng ngay rồi Take, client có thể nhảy về trang đầu thay vì trang liền trước.",
+      "alternative": "Nếu client đã lưu cursor của các trang từng ghé, có thể dùng lại cursor tương ứng. Dữ liệu có thể đổi giữa hai lần đọc.",
+      "trap": "Đảo mỗi thứ tự hiển thị sau Take không sửa được việc lấy nhầm nhóm dòng ở truy vấn.",
+      "rubric": [
+        "Viết đúng điều kiện nhỏ hơn theo thứ tự từ điển.",
+        "Lấy các dòng sát cursor bằng thứ tự giảm trên cả hai khóa.",
+        "Đảo kết quả đã lấy để khôi phục thứ tự hiển thị.",
+        "Nêu chi phí lưu cursor nếu muốn hỗ trợ lịch sử điều hướng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/pagination",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "api-pagination-idempotency"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lọc khóa nhỏ hơn rồi Take theo thứ tự tăng",
+          "Lọc nhỏ hơn, sắp giảm, Take rồi đảo danh sách để hiển thị",
+          "Chỉ đảo danh sách hiện tại"
+        ],
+        "en": [
+          "Filter smaller keys then take in ascending order",
+          "Filter smaller keys, sort descending, take, then reverse for display",
+          "Only reverse the current page"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-provider-test",
+    "content": {
+      "title": "Kiểm tra semantics SQL Server",
+      "topic": "efcore",
+      "subtopic": "Integration testing",
+      "tags": [
+        "Integration testing"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một test cần kiểm chứng collation và bản dịch LINQ của SQL Server. Chọn môi trường nào tái hiện cả hai?",
+      "englishPrompt": "A test must verify SQL Server collation and LINQ translation. Which environment exercises both?",
+      "context": "Bộ lọc tên từng cho kết quả khác nhau giữa unit test và staging.",
+      "hint": "Xác định hai thành phần thật sự cần được thực thi.",
+      "nextHint": "Provider dịch expression tree sang dialect cụ thể; phép so sánh chuỗi trong database phụ thuộc collation. Một danh sách trong CLR không thực hiện hai bước đó.",
+      "followUp": "Vì sao SQLite in-memory vẫn có thể pass cho truy vấn hỏng trên SQL Server?",
+      "englishFollowUp": "Why can in-memory SQLite still pass a query that fails on SQL Server?",
+      "outline": [
+        "SQL Server test dùng đúng provider và collation mục tiêu",
+        "Provider dịch expression tree sang dialect cụ thể; phép so sánh chuỗi trong database phụ thuộc collation. Một danh sách trong CLR không thực hiện hai bước đó."
+      ],
+      "shortAnswer": "SQL Server test dùng đúng provider và collation mục tiêu. Provider dịch expression tree sang dialect cụ thể; phép so sánh chuỗi trong database phụ thuộc collation. Một danh sách trong CLR không thực hiện hai bước đó.",
+      "explanation": "Provider dịch expression tree sang dialect cụ thể; phép so sánh chuỗi trong database phụ thuộc collation. Một danh sách trong CLR không thực hiện hai bước đó. Tách logic nghiệp vụ thuần ra unit test nhanh và dành truy vấn cho integration test với dữ liệu độc lập.",
+      "alternative": "Tách logic nghiệp vụ thuần ra unit test nhanh và dành truy vấn cho integration test với dữ liệu độc lập.",
+      "trap": "Mock trả sẵn kết quả không hề chạy bộ dịch LINQ hoặc so sánh chuỗi theo collation.",
+      "rubric": [
+        "SQL Server test dùng đúng provider và collation mục tiêu",
+        "Provider dịch expression tree sang dialect cụ thể; phép so sánh chuỗi trong database phụ thuộc collation. Một danh sách trong CLR không thực hiện hai bước đó.",
+        "Xác định hai thành phần thật sự cần được thực thi.",
+        "Tách logic nghiệp vụ thuần ra unit test nhanh và dành truy vấn cho integration test với dữ liệu độc lập."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/testing/choosing-a-testing-strategy",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "enumerable-queryable"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "List<T>.AsQueryable trong bộ nhớ",
+          "Mock trả luôn một danh sách đã lọc",
+          "SQL Server test dùng đúng provider và collation mục tiêu"
+        ],
+        "en": [
+          "An in-memory List<T>.AsQueryable",
+          "A mock returning a prefiltered list",
+          "A test SQL Server with the target provider and collation"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-index-prefix",
+    "content": {
+      "title": "Tận dụng đầu khóa index",
+      "topic": "efcore",
+      "subtopic": "Composite index",
+      "tags": [
+        "Composite index"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Có index (TenantId, CreatedAt). Truy vấn nào phù hợp trực tiếp nhất với thứ tự khóa cho danh sách một tenant?",
+      "englishPrompt": "Given an index on (TenantId, CreatedAt), which listing naturally matches its key order?",
+      "context": "Nhật ký có nhiều tenant và màn hình lọc theo một tenant.",
+      "hint": "Xác định cột nào có giá trị cố định trước khi cần thứ tự thời gian.",
+      "nextHint": "Sau khi định vị prefix TenantId, các dòng của tenant được sắp theo CreatedAt trong index. Đây là đường truy cập khả dĩ, optimizer vẫn xét chi phí.",
+      "followUp": "Khi hai log đúng cùng thời điểm, làm sao khiến thứ tự phân trang xác định?",
+      "englishFollowUp": "How would you make paging deterministic for equal timestamps?",
+      "outline": [
+        "WHERE TenantId = @t ORDER BY CreatedAt",
+        "Sau khi định vị prefix TenantId, các dòng của tenant được sắp theo CreatedAt trong index. Đây là đường truy cập khả dĩ, optimizer vẫn xét chi phí."
+      ],
+      "shortAnswer": "WHERE TenantId = @t ORDER BY CreatedAt. Sau khi định vị prefix TenantId, các dòng của tenant được sắp theo CreatedAt trong index. Đây là đường truy cập khả dĩ, optimizer vẫn xét chi phí.",
+      "explanation": "Sau khi định vị prefix TenantId, các dòng của tenant được sắp theo CreatedAt trong index. Đây là đường truy cập khả dĩ, optimizer vẫn xét chi phí. Xác nhận bằng plan thực tế và số logical reads. Index mới tăng chi phí ghi và dung lượng.",
+      "alternative": "Xác nhận bằng plan thực tế và số logical reads. Index mới tăng chi phí ghi và dung lượng.",
+      "trap": "Một index có chứa CreatedAt không bảo đảm mọi hàm bọc cột này đều cho phép tìm theo index.",
+      "rubric": [
+        "WHERE TenantId = @t ORDER BY CreatedAt",
+        "Sau khi định vị prefix TenantId, các dòng của tenant được sắp theo CreatedAt trong index. Đây là đường truy cập khả dĩ, optimizer vẫn xét chi phí.",
+        "Xác định cột nào có giá trị cố định trước khi cần thứ tự thời gian.",
+        "Xác nhận bằng plan thực tế và số logical reads. Index mới tăng chi phí ghi và dung lượng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/indexes",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "index-plan"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "WHERE TenantId = @t ORDER BY CreatedAt",
+          "WHERE DATEPART(day, CreatedAt) = 1 cho mọi tenant",
+          "ORDER BY tiêu đề chưa có trong index"
+        ],
+        "en": [
+          "WHERE TenantId = @t ORDER BY CreatedAt",
+          "WHERE DATEPART(day, CreatedAt) = 1 for all tenants",
+          "ORDER BY an unindexed title"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

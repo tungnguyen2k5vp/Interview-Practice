@@ -13,7 +13,9 @@ internal sealed class KnowledgeChecks
 
     public KnowledgeChecks(IWebHostEnvironment environment)
     {
-        var items = DataJson.Read<CheckDefinition[]>(File.ReadAllText(Path.Combine(environment.ContentRootPath, "Content", "knowledge-checks.json")));
+        var dir = Path.Combine(environment.ContentRootPath, "Content");
+        var items = Directory.GetFiles(dir, "knowledge-checks-batch-*.json").Order(StringComparer.Ordinal)
+            .Prepend(Path.Combine(dir,"knowledge-checks.json")).SelectMany(f=>DataJson.Read<CheckDefinition[]>(File.ReadAllText(f))).ToArray();
         if (items.Any(x => x.Version < 1 || string.IsNullOrWhiteSpace(x.Prompt) || string.IsNullOrWhiteSpace(x.EnglishPrompt)
             || x.Choices.Length is < 2 or > 6 || x.EnglishChoices.Length != x.Choices.Length
             || x.CorrectIndex < 0 || x.CorrectIndex >= x.Choices.Length || x.Choices.Any(string.IsNullOrWhiteSpace)

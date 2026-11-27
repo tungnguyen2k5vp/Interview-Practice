@@ -17,7 +17,8 @@ internal sealed record InterviewReviewRequest(Guid Id, int? Position);
 internal sealed record InterviewRewriteRequest(int Revision, string Text);
 
 /// <summary>Cấu hình phỏng vấn có sẵn.</summary>
-internal sealed record InterviewPreset(string Id, string Name, string Description, string[] Topics, string[] Suggested);
+internal sealed record InterviewPreset(string Id, string Name, string Description, string[] Topics, string[] Suggested,
+    string? TargetLevel=null, int? Minutes=null);
 
 internal sealed record QuestionPointer(string Slug, int Version);
 internal sealed record InterviewPlan(string Level, string[] Topics, string? Difficulty, QuestionPointer[] Questions,
@@ -60,6 +61,13 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
 {
     internal static bool Guided(string mode) => mode is "offline" or "guided" or "guided-ai";
     private static bool Automatic(string mode) => mode is "guided-ai" or "realistic-ai";
+    private static string PromptText(QuestionContent c, bool english)
+    {
+        var text = english ? c.EnglishPrompt : c.Prompt;
+        if (c.Quiz is not {} quiz) return text;
+        var choices = english ? quiz.En : quiz.Vi;
+        return text + "\n" + string.Join("\n",choices.Select((answer,i)=>$"{i+1}. {answer}"));
+    }
 
     public static readonly InterviewPreset[] Presets =
     [
@@ -69,7 +77,15 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
         new("coding", "Coding Interview", "Đọc code và giải thích thuật toán bằng lời.", ["algorithms", "csharp"], ["binary-search-boundary", "hash-frequency"]),
         new("sql-round", "SQL Interview", "JOIN, chỉ mục và tính nhất quán.", ["sql"], ["index-plan", "join-duplicates"]),
         new("design", "System Design", "Chọn biên nhất quán, xử lý lỗi và đánh đổi.", ["systems", "delivery"], ["outbox-commit", "cache-invalidation"]),
-        new("people", "HR & Dự án", "Quyết định, phối hợp và bằng chứng trong dự án.", ["behavioral", "testing"], ["behavioral-disagreement", "project-star"])
+        new("people", "HR & Dự án", "Quyết định, phối hợp và bằng chứng trong dự án.", ["behavioral", "testing"], ["behavioral-disagreement", "project-star"]),
+        new("intern-import","Intern · Nhập dữ liệu C#","Phân tích hợp đồng đầu vào, nhãn rỗng và khóa trùng. Giải thích từng quyết định.",["csharp"],
+            ["split-trim-empty","dict-tryadd-original","tryparse-zero","nullable-coalesce-zero","list-removeall-count","tuple-swap-snapshot"],"intern",15),
+        new("fresher-git","Fresher · Bàn giao bản sửa lỗi","Theo một hotfix từ working tree đến nhánh bảo trì, đối chiếu rủi ro và cách kiểm tra.",["delivery"],
+            ["git-stage-hunk","git-ignore-tracked","git-restore-staged","git-hotfix-pick","git-revert-shared","git-bisect-signal"],"fresher",15),
+        new("junior-ef","Junior · Điều tra truy vấn EF Core","Giải thích kết quả quan sát được, kiểm chứng bằng truy vấn và xác định phạm vi context.",["efcore"],
+            ["ef-context-parallel","ef-filtered-include","ef-bulk-stale","ef-provider-test","ef-keyset-back","ef-index-prefix","ef-projection","n-plus-one"],"junior",30),
+        new("fresher-reporting","Fresher · Báo cáo SQL","Phân tích ngày chốt sổ, kiểu dữ liệu và ý nghĩa của NULL trước khi đọc kết quả.",["sql"],
+            ["count-distinct-null","month-end-renewal","date-boundaries-minute","sql-negative-floor","sql-round-away","avg-int-scale","eomonth-offset","concat-null-label"],"fresher",30)
     ];
 
     public static void Map(RouteGroupBuilder api)
@@ -121,6 +137,8 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             weak = (await View(previous, ct)).Report!.Where(item => item.ReviewReason != null).Select(item => item.Slug).ToArray();
         }
         var source = catalog.PublishedQuery().Where(x => topics.Contains(x.Topic));
+        if (preset.TargetLevel != null && request.ReviewOf == null && topics.ToHashSet().SetEquals(preset.Topics))
+            source = source.Where(x => preset.Suggested.Contains(x.Slug));
         if (!string.IsNullOrWhiteSpace(request.Difficulty))
             source = source.Where(x => x.Difficulty == request.Difficulty);
         var candidates = await source.Select(x => new { x.Slug, x.Version, x.Level }).ToArrayAsync(ct);
@@ -341,7 +359,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
         var revision = row.Revision;
         var pointer = plan.Questions[position];
         var material = Catalog.Content(await catalog.Version(pointer.Slug, pointer.Version, ct));
-        var prompt = stage == "question" ? row.Language == "en" ? material.EnglishPrompt : material.Prompt :
+        var prompt = stage == "question" ? PromptText(material,row.Language == "en") :
             plan.FollowUps?.GetValueOrDefault(position) ?? (row.Language == "en" ? material.EnglishFollowUp : material.FollowUp);
         var priorTurns = await db.Turns.AsNoTracking().Where(t => t.SessionId == row.Id && !t.Skipped &&
             (t.Position < position || t.Position == position && t.Kind == "question" && stage == "followup"))
@@ -352,7 +370,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             var p = plan.Questions[turn.Position];
             var c = Catalog.Content(await catalog.Version(p.Slug, p.Version, ct));
             var previousPrompt = turn.Kind == "followup" ? plan.FollowUps?.GetValueOrDefault(turn.Position) ??
-                (row.Language == "en" ? c.EnglishFollowUp : c.FollowUp) : row.Language == "en" ? c.EnglishPrompt : c.Prompt;
+                (row.Language == "en" ? c.EnglishFollowUp : c.FollowUp) : PromptText(c,row.Language=="en");
             prior.Add(new(previousPrompt, turn.Text[..Math.Min(1800, turn.Text.Length)]));
         }
         var state = "assessed";
@@ -452,7 +470,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             var main = turns.SingleOrDefault(x => x.Kind == "question");
             var follow = turns.SingleOrDefault(x => x.Kind == "followup");
             current = new(q.Slug, q.Version, q.Title, q.Topic,
-                row.Stage == "followup" ? plan.FollowUps?.GetValueOrDefault(row.Position) ?? (english ? c.EnglishFollowUp : c.FollowUp) : english ? c.EnglishPrompt : c.Prompt,
+                row.Stage == "followup" ? plan.FollowUps?.GetValueOrDefault(row.Position) ?? (english ? c.EnglishFollowUp : c.FollowUp) : PromptText(c,english),
                 row.Stage == "question" && !english ? c.Context : null,
                 row.Stage == "question" ? c.Code : null,
                 Guided(row.Mode) && row.Stage == "question" && row.HintSeen ? c.Hint : null,
@@ -475,7 +493,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
                 var main = turns.SingleOrDefault(x => x.Position == index && x.Kind == "question");
                 var follow = turns.SingleOrDefault(x => x.Position == index && x.Kind == "followup");
                 var english = row.Language == "en";
-                items.Add(new(index, q.Slug, q.Title, q.Topic, english ? c.EnglishPrompt : c.Prompt,
+                items.Add(new(index, q.Slug, q.Title, q.Topic, PromptText(c,english),
                     main is null ? index <= row.Position ? "unanswered" : "unasked" : main.Skipped ? "skipped" : "answered",
                     main is { Skipped: false } ? main.Text : null, main?.HintSeen ?? false,
                     follow is not null || (row.Position == index && row.Stage == "followup") ? plan.FollowUps?.GetValueOrDefault(index) ?? (english ? c.EnglishFollowUp : c.FollowUp) : null,

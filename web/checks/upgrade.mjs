@@ -37,6 +37,45 @@ try {
   page.on('pageerror', e => errors.push(e.message))
   page.setDefaultTimeout(9000)
   let session, attempt, transferId, liveMock, reportMock
+  await check('concept search, linked study, project scenarios and coverage at desktop/mobile widths',async()=>{
+    const concepts=await send(client,'/concepts')
+    assert(concepts.some(c=>c.id==='di'))
+    const evidence=await send(client,'/concepts/di/evidence')
+    assert.equal(evidence.verified,0);assert.equal(evidence.total,3)
+    const facets=await send(client,'/questions/facets')
+    assert(facets.skills.includes('DI') && facets.subtopics.includes('LEN'))
+    const tagged=await send(client,'/questions?skill=DI')
+    assert(tagged.total>0 && tagged.items.every(q=>q.tags.some(t=>t.toLowerCase()==='di')))
+    assert((await send(client,'/questions?subtopic=LEN')).items.some(q=>q.slug==='len-pad'))
+    await send(client,'/admin/questions/coverage','GET',undefined,[403])
+    const admin=await browser.newContext({baseURL})
+    try{
+      await send(admin.request,'/auth/login','POST',{email:process.env.IP_ADMIN_EMAIL,password:process.env.IP_ADMIN_PASSWORD})
+      const coverage=await send(admin.request,'/admin/questions/coverage')
+      assert.equal(coverage.published,(await send(client,'/questions')).total)
+      const editor=await admin.newPage()
+      for(const width of [1440,390]){
+        const size={width,height:width===390?844:960}
+        await page.setViewportSize(size);await editor.setViewportSize(size)
+        await page.goto('/cau-hoi?concept=di')
+        await page.getByText('3 câu hỏi',{exact:true}).waitFor()
+        await page.screenshot({path:resolve(screenshots,'v3-concept-'+width+'.png')})
+        await page.getByRole('link',{name:'Luyện code review'}).click()
+        await page.waitForFunction(()=>document.querySelector('select')?.value==='scope-worker')
+        await page.goto('/thuc-hanh')
+        await page.getByLabel('Phỏng vấn theo tình huống dự án').selectOption('booking-expiry')
+        await page.getByLabel('Lập luận cho tình huống').fill('Kiểm tra chuyển trạng thái khi ghi.')
+        await page.getByText('Câu đào sâu và tiêu chí tự đối chiếu').click()
+        await page.screenshot({path:resolve(screenshots,'v3-project-'+width+'.png')})
+        await editor.goto('/quan-tri')
+        await editor.getByText(/Độ phủ nội dung ·/).click()
+        await editor.getByRole('heading',{name:'Theo trình độ'}).waitFor()
+        assert(await editor.evaluate(()=>document.documentElement.scrollWidth<=innerWidth))
+        await editor.screenshot({path:resolve(screenshots,'v3-coverage-'+width+'.png')})
+      }
+    }finally{await admin.close()}
+    await page.setViewportSize({width:1280,height:900})
+  })
   const begin = (mode, minutes=10, topic=null) => send(client, '/study-sessions','POST',{id:randomUUID(),minutes,mode,topic})
   await check('all time budgets and study modes, no matches, input and owner checks', async () => {
     for (const minutes of [5,10,15,30]) {
@@ -51,7 +90,7 @@ try {
     }
     for (const mode of ['due','wrong','weak']) await send(client,'/study-sessions','POST',{id:randomUUID(),mode,minutes:10},[422])
     await send(client,'/study-sessions','POST',{id:randomUUID(),mode:'quiz',minutes:6},[400])
-    const body = {id:randomUUID(),mode:'quiz',minutes:30,topic:'sql'}
+    const body = {id:randomUUID(),mode:'quiz',minutes:30,topic:'sql',concept:'sql-null'}
     const [a,b] = await Promise.all([0,1].map(()=>send(client,'/study-sessions','POST',body)))
     assert.deepEqual(a,b); session = a
     await send(peer.request,'/study-sessions/'+a.id,'GET',undefined,[404])
@@ -179,12 +218,14 @@ try {
       await send(admin.request,'/auth/login','POST',{email:process.env.IP_ADMIN_EMAIL,password:process.env.IP_ADMIN_PASSWORD})
       const seed=(await send(admin.request,'/admin/questions/integer-division/export'))[0]
       await send(client,'/admin/questions/import','POST',[seed],[403])
-      await send(admin.request,'/admin/questions/import','POST',[seed],[409])
+      assert.deepEqual(await send(admin.request,'/admin/questions/import','POST',[seed]),{imported:0,unchanged:1})
       const id=randomUUID()
       const item={slug:'import-'+id,content:{...seed.content,title:'Kiểm định '+id,prompt:'Đề kiểm định '+id}}
       await send(admin.request,'/admin/questions/import','POST',[item,item],[400])
       await send(admin.request,'/admin/questions/'+item.slug,'GET',undefined,[404])
       const imported=await send(admin.request,'/admin/questions/import','POST',[item]);assert.equal(imported.imported,1)
+      assert.deepEqual(await send(admin.request,'/admin/questions/import','POST',[item]),{imported:0,unchanged:1})
+      await send(admin.request,'/admin/questions/import','POST',[{...item,content:{...item.content,title:'Nội dung khác'}}],[409])
       assert.deepEqual((await send(admin.request,'/admin/questions/'+item.slug+'/export'))[0],item)
       const editor = await admin.newPage()
       editor.setDefaultTimeout(9000)
@@ -201,7 +242,46 @@ try {
       const { revision }=await send(admin.request,path)
       await send(admin.request,path,'PUT',{revision,content:{...changed.content,related:['unavailable-'+id]}},[400])
       await send(admin.request,path,'PUT',{revision,content:{...changed.content,format:'quiz',quiz:null}},[400])
+      const publish=editor.getByRole('button',{name:'Xuất bản v2'})
+      assert(await publish.isDisabled())
+      await send(admin.request,path+'/publication','POST',{revision,status:'published'},[400])
+      await editor.getByRole('button',{name:'Gửi thẩm định'}).click()
+      const verify=editor.getByRole('button',{name:'Xác nhận đã kiểm định'})
+      await verify.waitFor()
+      assert(await publish.isDisabled())
+      const pending=await send(admin.request,path)
+      await send(admin.request,path+'/publication','POST',{revision:pending.revision,status:'published'},[400])
+      await verify.click()
+      await editor.getByText('Đã kiểm định · v2.').waitFor()
+      assert(await publish.isEnabled())
+      const cycle=[1,2].map(n=>({...item,slug:item.slug+'-'+n,content:{...item.content,prompt:item.content.prompt+n,prerequisites:[item.slug+'-'+(3-n)]}}))
+      await send(admin.request,'/admin/questions/import','POST',cycle,[400])
       await send(client,'/questions/'+item.slug,'GET',undefined,[404])
+
+      const [aSlug,bSlug]=cycle.map(q=>q.slug)
+      const revise=(slug,revision,prerequisites)=>send(admin.request,'/admin/questions/'+slug,'PUT',{
+        revision,content:{...item.content,prompt:'Tiên quyết '+slug,prerequisites},
+      },[revision===0?201:200])
+      const apply=(row,status,expected=[200])=>send(admin.request,'/admin/questions/'+row.slug+'/publication','POST',{
+        revision:row.revision,status,
+      },expected)
+      const review=async row=>apply(await apply(row,'needs-review'),'verified')
+      const b1=await revise(bSlug,0,[])
+      const a1=await review(await revise(aSlug,0,[bSlug]))
+      await apply(a1,'published',[400])
+      const releasedB1=await apply(await review(b1),'published')
+      const releasedA1=await apply(a1,'published')
+      const a2=await review(await revise(aSlug,releasedA1.revision,[]))
+      const b2=await review(await revise(bSlug,releasedB1.revision,[aSlug]))
+      await apply(b2,'published',[400])
+      await apply(b2,'retired',[400])
+      assert.equal((await send(client,'/questions/'+bSlug)).card.version,1)
+      const releasedA2=await apply(a2,'published')
+      const releasedB2=await apply(b2,'published')
+      assert.equal((await send(client,'/questions/'+bSlug)).card.version,2)
+      await apply(releasedA2,'retired',[400])
+      await apply(releasedB2,'retired')
+      await apply(releasedA2,'retired')
     } finally {await admin.close()}
   })
   await check('shared draft, simultaneous submit in two sessions and stale standalone tab', async () => {
@@ -395,7 +475,7 @@ try {
     state=await act('answer','QA advance');assert.equal(state.current.aiState,'quota')
     assert.equal(state.stage,'followup')
   })
-  await check('scoped project ZIP, source lines, fifteen review rubrics, account history and editable debugging labs', () =>
+  await check('scoped project ZIP, source lines, published review rubrics, account history and editable debugging labs', () =>
     checkLabs({page,client,peer,send,screenshots}))
   await check('local PDF and DOCX extraction, consent and deletion, placement levels and prerequisite navigation', () =>
     checkPersonalization({page,ctx,peer,send}))

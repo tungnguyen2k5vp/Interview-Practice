@@ -1,0 +1,442 @@
+[
+  {
+    "slug": "git-stage-hunk",
+    "content": {
+      "title": "Review đúng phần sẽ commit",
+      "topic": "delivery",
+      "subtopic": "Git staging",
+      "tags": [
+        "Git staging"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "File đã git add rồi được sửa tiếp. Lệnh nào cho reviewer thấy đúng snapshot đang chờ commit?",
+      "englishPrompt": "After staging a file you edit it again. Which command shows the snapshot difference that will be committed?",
+      "context": "Một file chứa cả thay đổi hotfix lẫn thay đổi đang thử.",
+      "hint": "Theo dõi riêng ba trạng thái HEAD, index và working tree.",
+      "nextHint": "git diff --cached so sánh index với HEAD. Nội dung sửa sau lần add vẫn nằm ở working tree cho tới khi stage.",
+      "followUp": "Làm sao stage chỉ hunk sửa lỗi trong cùng một file?",
+      "englishFollowUp": "How would you stage only the bug-fix hunk within the same file?",
+      "outline": [
+        "git diff --cached",
+        "git diff --cached so sánh index với HEAD. Nội dung sửa sau lần add vẫn nằm ở working tree cho tới khi stage."
+      ],
+      "shortAnswer": "git diff --cached. git diff --cached so sánh index với HEAD. Nội dung sửa sau lần add vẫn nằm ở working tree cho tới khi stage.",
+      "explanation": "git diff --cached so sánh index với HEAD. Nội dung sửa sau lần add vẫn nằm ở working tree cho tới khi stage. Dùng git add -p để chọn hunk. Sau đó đối chiếu cả diff staged và unstaged trước khi tạo commit.",
+      "alternative": "Dùng git add -p để chọn hunk. Sau đó đối chiếu cả diff staged và unstaged trước khi tạo commit.",
+      "trap": "git diff không tham số bỏ qua thay đổi đã nằm trong index, nên reviewer có thể xem nhầm phần sắp commit.",
+      "rubric": [
+        "git diff --cached",
+        "git diff --cached so sánh index với HEAD. Nội dung sửa sau lần add vẫn nằm ở working tree cho tới khi stage.",
+        "Theo dõi riêng ba trạng thái HEAD, index và working tree.",
+        "Dùng git add -p để chọn hunk. Sau đó đối chiếu cả diff staged và unstaged trước khi tạo commit."
+      ],
+      "source": "https://git-scm.com/docs/git-diff",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "git diff không tham số",
+          "git log --stat -1",
+          "git diff --cached"
+        ],
+        "en": [
+          "git diff with no arguments",
+          "git log --stat -1",
+          "git diff --cached"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "git-ignore-tracked",
+    "content": {
+      "title": "File cấu hình vẫn xuất hiện",
+      "topic": "delivery",
+      "subtopic": "Git ignore",
+      "tags": [
+        "Git ignore"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Một file cấu hình mẫu đã được track trước khi thêm vào .gitignore. Vì sao Git vẫn hiện thay đổi?",
+      "englishPrompt": "Why does Git still show changes to a config template tracked before it was added to .gitignore?",
+      "context": "Nhóm muốn đưa tùy chỉnh local ra khỏi lịch sử thay đổi trong tương lai.",
+      "hint": "Kiểm tra file đã nằm trong index hay mới chỉ có ở working tree.",
+      "nextHint": "Index vẫn chứa entry cho file đã track. .gitignore điều khiển việc phát hiện file chưa track.",
+      "followUp": "Nếu file từng chứa bí mật thật, việc ngừng track giải quyết được phần nào?",
+      "englishFollowUp": "If the file once contained a real secret, what does untracking actually address?",
+      "outline": [
+        "Quy tắc ignore chỉ áp dụng cho file chưa track",
+        "Index vẫn chứa entry cho file đã track. .gitignore điều khiển việc phát hiện file chưa track."
+      ],
+      "shortAnswer": "Quy tắc ignore chỉ áp dụng cho file chưa track. Index vẫn chứa entry cho file đã track. .gitignore điều khiển việc phát hiện file chưa track.",
+      "explanation": "Index vẫn chứa entry cho file đã track. .gitignore điều khiển việc phát hiện file chưa track. Nếu cả nhóm muốn ngừng track, giữ lại file mẫu riêng và review thay đổi index; các commit cũ vẫn có bản trước.",
+      "alternative": "Nếu cả nhóm muốn ngừng track, giữ lại file mẫu riêng và review thay đổi index; các commit cũ vẫn có bản trước.",
+      "trap": "Ignore không làm mất entry cũ trong index; chờ thêm một commit không thay đổi trạng thái đã track.",
+      "rubric": [
+        "Quy tắc ignore chỉ áp dụng cho file chưa track",
+        "Index vẫn chứa entry cho file đã track. .gitignore điều khiển việc phát hiện file chưa track.",
+        "Kiểm tra file đã nằm trong index hay mới chỉ có ở working tree.",
+        "Nếu cả nhóm muốn ngừng track, giữ lại file mẫu riêng và review thay đổi index; các commit cũ vẫn có bản trước."
+      ],
+      "source": "https://git-scm.com/docs/gitignore",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Quy tắc ignore chỉ áp dụng cho file chưa track",
+          "Phải chờ commit tiếp theo thì ignore mới đọc file",
+          "Git không hỗ trợ ignore file văn bản"
+        ],
+        "en": [
+          "Ignore rules apply to untracked files",
+          "Ignore rules take effect only after the next commit",
+          "Git cannot ignore text files"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "git-restore-staged",
+    "content": {
+      "title": "Bỏ stage nhưng giữ nội dung",
+      "topic": "delivery",
+      "subtopic": "Git restore",
+      "tags": [
+        "Git restore"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Một lập trình viên stage nhầm ghi chú cục bộ. Lệnh nào bỏ stage và giữ phần sửa trong working tree?",
+      "englishPrompt": "Which command unstages an accidentally staged note while keeping its working-tree edits?",
+      "context": "HEAD có bản cũ và file hiện tại chứa nội dung cần giữ để làm tiếp.",
+      "hint": "Xác định đích cần đổi là index hay file đang mở.",
+      "nextHint": "Với --staged, restore cập nhật index từ HEAD theo mặc định, còn working tree giữ nguyên.",
+      "followUp": "Nếu file mới hoàn toàn, sau khi bỏ stage file sẽ ở trạng thái gì?",
+      "englishFollowUp": "What state would a newly added file have after unstaging?",
+      "outline": [
+        "git restore --staged notes.txt",
+        "Với --staged, restore cập nhật index từ HEAD theo mặc định, còn working tree giữ nguyên."
+      ],
+      "shortAnswer": "git restore --staged notes.txt. Với --staged, restore cập nhật index từ HEAD theo mặc định, còn working tree giữ nguyên.",
+      "explanation": "Với --staged, restore cập nhật index từ HEAD theo mặc định, còn working tree giữ nguyên. Đọc git diff và git diff --cached để kiểm chứng cả hai phía, nhất là khi cùng file có cả hunk đã stage lẫn chưa stage.",
+      "alternative": "Đọc git diff và git diff --cached để kiểm chứng cả hai phía, nhất là khi cùng file có cả hunk đã stage lẫn chưa stage.",
+      "trap": "git add đưa bản hiện tại vào index. Dùng restore không có --staged có thể thay đổi working tree.",
+      "rubric": [
+        "git restore --staged notes.txt",
+        "Với --staged, restore cập nhật index từ HEAD theo mặc định, còn working tree giữ nguyên.",
+        "Xác định đích cần đổi là index hay file đang mở.",
+        "Đọc git diff và git diff --cached để kiểm chứng cả hai phía, nhất là khi cùng file có cả hunk đã stage lẫn chưa stage."
+      ],
+      "source": "https://git-scm.com/docs/git-restore",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "git-stage-hunk"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "git restore notes.txt sau khi đã stage",
+          "git restore --staged notes.txt",
+          "git add notes.txt lần nữa"
+        ],
+        "en": [
+          "git restore notes.txt after staging",
+          "git restore --staged notes.txt",
+          "git add notes.txt again"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "git-bisect-signal",
+    "content": {
+      "title": "Khoanh vùng hồi quy bằng test",
+      "topic": "delivery",
+      "subtopic": "Git bisect",
+      "tags": [
+        "Git bisect"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Có một commit tốt, một commit lỗi và test tái lập ổn định. Git bisect dùng thông tin nào ở mỗi bước?",
+      "englishPrompt": "Given known good and bad commits and a reliable regression test, what information does each bisect step need?",
+      "context": "Hóa đơn bắt đầu sai sau nhiều tuần thay đổi; nhóm chạy lại một test xác định.",
+      "hint": "Phân biệt bằng chứng hồi quy với việc build không thực hiện được.",
+      "nextHint": "Bisect thu hẹp các commit ứng viên theo kết quả phân loại. Một test flaky có thể đánh dấu nhầm nhánh và dẫn tới kết luận sai.",
+      "followUp": "Khi hai commit cùng thay đổi triệu chứng, bạn xác nhận commit tìm thấy bằng cách nào?",
+      "englishFollowUp": "How would you confirm the reported culprit if multiple changes affect the symptom?",
+      "outline": [
+        "Kết quả tốt, lỗi hoặc không thể kiểm tại commit đang xét",
+        "Bisect thu hẹp các commit ứng viên theo kết quả phân loại. Một test flaky có thể đánh dấu nhầm nhánh và dẫn tới kết luận sai."
+      ],
+      "shortAnswer": "Kết quả tốt, lỗi hoặc không thể kiểm tại commit đang xét. Bisect thu hẹp các commit ứng viên theo kết quả phân loại. Một test flaky có thể đánh dấu nhầm nhánh và dẫn tới kết luận sai.",
+      "explanation": "Bisect thu hẹp các commit ứng viên theo kết quả phân loại. Một test flaky có thể đánh dấu nhầm nhánh và dẫn tới kết luận sai. Nếu một revision không build được vì lý do không liên quan, dùng skip; nhiều revision bị skip có thể để lại nhiều thủ phạm khả dĩ.",
+      "alternative": "Nếu một revision không build được vì lý do không liên quan, dùng skip; nhiều revision bị skip có thể để lại nhiều thủ phạm khả dĩ.",
+      "trap": "Đồng nhất commit không build được với commit gây hồi quy sẽ dẫn bisect sai nhánh.",
+      "rubric": [
+        "Kết quả tốt, lỗi hoặc không thể kiểm tại commit đang xét",
+        "Bisect thu hẹp các commit ứng viên theo kết quả phân loại. Một test flaky có thể đánh dấu nhầm nhánh và dẫn tới kết luận sai.",
+        "Phân biệt bằng chứng hồi quy với việc build không thực hiện được.",
+        "Nếu một revision không build được vì lý do không liên quan, dùng skip; nhiều revision bị skip có thể để lại nhiều thủ phạm khả dĩ."
+      ],
+      "source": "https://git-scm.com/docs/git-bisect",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tên tác giả gần nhất chỉnh file hóa đơn",
+          "Kích thước diff lớn nhất trong lịch sử",
+          "Kết quả tốt, lỗi hoặc không thể kiểm tại commit đang xét"
+        ],
+        "en": [
+          "The last author of the invoice file",
+          "The largest diff size in history",
+          "A good, bad or untestable verdict for the commit under test"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "git-hotfix-pick",
+    "content": {
+      "title": "Đưa hotfix sang nhánh bảo trì",
+      "topic": "delivery",
+      "subtopic": "Cherry-pick",
+      "tags": [
+        "Cherry-pick"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Nhánh chính còn nhiều tính năng chưa phát hành. Cần đưa đúng một commit độc lập sang nhánh bảo trì. Thao tác nào phù hợp?",
+      "englishPrompt": "How should a maintenance branch take a single independent fix while leaving unreleased features on main?",
+      "context": "Release 1.x vẫn phải được vá và có bộ smoke test riêng.",
+      "hint": "Xác định thay đổi cần chuyển và các giả định của nó về nhánh đích.",
+      "nextHint": "Cherry-pick áp dụng thay đổi của commit lên HEAD hiện tại rồi thường tạo commit mới. Phải kiểm tra dependency và hành vi trong môi trường cũ.",
+      "followUp": "Commit backport có buộc giữ cùng hash với commit gốc không, vì sao?",
+      "englishFollowUp": "Must the backported commit keep the original hash, and why?",
+      "outline": [
+        "Cherry-pick commit sửa lỗi rồi test trên nhánh bảo trì",
+        "Cherry-pick áp dụng thay đổi của commit lên HEAD hiện tại rồi thường tạo commit mới. Phải kiểm tra dependency và hành vi trong môi trường cũ."
+      ],
+      "shortAnswer": "Cherry-pick commit sửa lỗi rồi test trên nhánh bảo trì. Cherry-pick áp dụng thay đổi của commit lên HEAD hiện tại rồi thường tạo commit mới. Phải kiểm tra dependency và hành vi trong môi trường cũ.",
+      "explanation": "Cherry-pick áp dụng thay đổi của commit lên HEAD hiện tại rồi thường tạo commit mới. Phải kiểm tra dependency và hành vi trong môi trường cũ. Với cả chuỗi thay đổi phụ thuộc nhau, một nhánh hotfix chung hoặc backport thủ công có kiểm thử có thể dễ theo dõi hơn.",
+      "alternative": "Với cả chuỗi thay đổi phụ thuộc nhau, một nhánh hotfix chung hoặc backport thủ công có kiểm thử có thể dễ theo dõi hơn.",
+      "trap": "Một commit gọi API mới từ commit khác có thể cherry-pick sạch nhưng vẫn không chạy trên nhánh bảo trì.",
+      "rubric": [
+        "Cherry-pick commit sửa lỗi rồi test trên nhánh bảo trì",
+        "Cherry-pick áp dụng thay đổi của commit lên HEAD hiện tại rồi thường tạo commit mới. Phải kiểm tra dependency và hành vi trong môi trường cũ.",
+        "Xác định thay đổi cần chuyển và các giả định của nó về nhánh đích.",
+        "Với cả chuỗi thay đổi phụ thuộc nhau, một nhánh hotfix chung hoặc backport thủ công có kiểm thử có thể dễ theo dõi hơn."
+      ],
+      "source": "https://git-scm.com/docs/git-cherry-pick",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "git-stage-hunk"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Cherry-pick commit sửa lỗi rồi test trên nhánh bảo trì",
+          "Merge toàn bộ main ngay vào release",
+          "Chỉ ghi hash vào changelog"
+        ],
+        "en": [
+          "Cherry-pick the fix and test on the maintenance branch",
+          "Immediately merge all of main into release",
+          "Only add the hash to the changelog"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "docker-multi-runtime",
+    "content": {
+      "title": "SDK trong image production",
+      "topic": "delivery",
+      "subtopic": "Multi-stage build",
+      "tags": [
+        "Multi-stage build"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Nhóm dùng SDK để publish nhưng chỉ cần ASP.NET runtime khi chạy. Thiết kế Dockerfile nào thể hiện điều đó?",
+      "englishPrompt": "How should a Dockerfile use the SDK to publish while shipping only the ASP.NET runtime and the output?",
+      "context": "Dịch vụ deploy dưới dạng framework-dependent trên Linux.",
+      "hint": "Xác định artifact nào thực sự cần sau bước dotnet publish.",
+      "nextHint": "Mỗi FROM bắt đầu một stage. Chỉ output được COPY --from xuất hiện trong filesystem stage cuối ngoài các layer runtime cơ sở.",
+      "followUp": "Tại sao một binary chạy được ở build stage vẫn có thể thiếu thư viện ở stage cuối?",
+      "englishFollowUp": "Why might a binary work in the build stage and still miss a library in the final stage?",
+      "outline": [
+        "Build ở stage SDK và COPY output sang stage runtime tương thích",
+        "Mỗi FROM bắt đầu một stage. Chỉ output được COPY --from xuất hiện trong filesystem stage cuối ngoài các layer runtime cơ sở."
+      ],
+      "shortAnswer": "Build ở stage SDK và COPY output sang stage runtime tương thích. Mỗi FROM bắt đầu một stage. Chỉ output được COPY --from xuất hiện trong filesystem stage cuối ngoài các layer runtime cơ sở.",
+      "explanation": "Mỗi FROM bắt đầu một stage. Chỉ output được COPY --from xuất hiện trong filesystem stage cuối ngoài các layer runtime cơ sở. Chốt kiến trúc CPU, runtime và native dependencies. Kích thước giảm không tự chứng minh app khởi động được.",
+      "alternative": "Chốt kiến trúc CPU, runtime và native dependencies. Kích thước giảm không tự chứng minh app khởi động được.",
+      "trap": "Chép cả thư mục SDK và mã nguồn sang stage cuối đánh mất lợi ích tách môi trường build.",
+      "rubric": [
+        "Build ở stage SDK và COPY output sang stage runtime tương thích",
+        "Mỗi FROM bắt đầu một stage. Chỉ output được COPY --from xuất hiện trong filesystem stage cuối ngoài các layer runtime cơ sở.",
+        "Xác định artifact nào thực sự cần sau bước dotnet publish.",
+        "Chốt kiến trúc CPU, runtime và native dependencies. Kích thước giảm không tự chứng minh app khởi động được."
+      ],
+      "source": "https://docs.docker.com/build/building/multi-stage/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "COPY toàn bộ cây SDK sang stage cuối",
+          "Build ở stage SDK và COPY output sang stage runtime tương thích",
+          "Giữ mã nguồn trong volume bắt buộc ở production"
+        ],
+        "en": [
+          "Copy the entire SDK tree into the final stage",
+          "Build in an SDK stage and copy published output to a compatible runtime stage",
+          "Require a source-code volume in production"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "docker-restore-layer",
+    "content": {
+      "title": "Restore lại khi sửa controller",
+      "topic": "delivery",
+      "subtopic": "Build cache",
+      "tags": [
+        "Build cache"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Mỗi lần sửa một controller, Docker chạy lại restore. Với dự án có lock file, cách xếp layer nào giúp tái sử dụng restore đúng cách?",
+      "englishPrompt": "How should a locked .NET project's layers be ordered to reuse restore when only a controller changes?",
+      "context": "Build hiện copy toàn bộ source rồi mới restore.",
+      "hint": "Liệt kê những file dotnet restore thực sự đọc trong repository.",
+      "nextHint": "Cache phụ thuộc instruction và đầu vào của layer. Tách file ít đổi khỏi source thường đổi giúp tránh invalidate restore khi đồ thị dependency giữ nguyên.",
+      "followUp": "Thay package tập trung trong Directory.Packages.props phải làm layer nào chạy lại?",
+      "englishFollowUp": "Which layer must rerun after a change to central package versions?",
+      "outline": [
+        "Copy đủ file quyết định dependency, restore, rồi copy source còn lại",
+        "Cache phụ thuộc instruction và đầu vào của layer. Tách file ít đổi khỏi source thường đổi giúp tránh invalidate restore khi đồ thị dependency giữ nguyên."
+      ],
+      "shortAnswer": "Copy đủ file quyết định dependency, restore, rồi copy source còn lại. Cache phụ thuộc instruction và đầu vào của layer. Tách file ít đổi khỏi source thường đổi giúp tránh invalidate restore khi đồ thị dependency giữ nguyên.",
+      "explanation": "Cache phụ thuộc instruction và đầu vào của layer. Tách file ít đổi khỏi source thường đổi giúp tránh invalidate restore khi đồ thị dependency giữ nguyên. Bao gồm lock, project references, props/targets, NuGet.config thích hợp. Thiếu một input có thể cache sai kết quả.",
+      "alternative": "Bao gồm lock, project references, props/targets, NuGet.config thích hợp. Thiếu một input có thể cache sai kết quả.",
+      "trap": "Copy thiếu file quản lý package tập trung khiến cache có thể trả dependency của cấu hình cũ.",
+      "rubric": [
+        "Copy đủ file quyết định dependency, restore, rồi copy source còn lại",
+        "Cache phụ thuộc instruction và đầu vào của layer. Tách file ít đổi khỏi source thường đổi giúp tránh invalidate restore khi đồ thị dependency giữ nguyên.",
+        "Liệt kê những file dotnet restore thực sự đọc trong repository.",
+        "Bao gồm lock, project references, props/targets, NuGet.config thích hợp. Thiếu một input có thể cache sai kết quả."
+      ],
+      "source": "https://docs.docker.com/build/cache/optimize/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "docker-multi-runtime"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ copy .csproj và bỏ Directory.Packages.props ở mọi repo",
+          "Giữ cache bất kể lock file thay đổi",
+          "Copy đủ file quyết định dependency, restore, rồi copy source còn lại"
+        ],
+        "en": [
+          "Always copy only the csproj and omit central package props",
+          "Keep the cache even when the lock changes",
+          "Copy dependency inputs, restore, then copy remaining source"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "docker-health-state",
+    "content": {
+      "title": "Process sống nhưng mất khả năng phục vụ",
+      "topic": "delivery",
+      "subtopic": "Health check",
+      "tags": [
+        "Health check"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Process còn sống nhưng endpoint không đáp ứng. HEALTHCHECK trong Docker bổ sung tín hiệu nào?",
+      "englishPrompt": "A process is alive but the endpoint is unresponsive. Which signal can Docker HEALTHCHECK add?",
+      "context": "Dịch vụ được giám sát theo trạng thái container và endpoint.",
+      "hint": "Tách phép đo sức khỏe khỏi quyết định thay container.",
+      "nextHint": "Docker chạy probe theo lịch và ghi trạng thái healthy hoặc unhealthy theo kết quả và ngưỡng. Main process sống không chứng minh nó còn phục vụ tốt.",
+      "followUp": "Làm sao phân biệt readiness và liveness nếu dependency tạm thời chậm?",
+      "englishFollowUp": "How would you separate readiness and liveness when a dependency is temporarily slow?",
+      "outline": [
+        "Trạng thái sức khỏe dựa trên kết quả lệnh probe",
+        "Docker chạy probe theo lịch và ghi trạng thái healthy hoặc unhealthy theo kết quả và ngưỡng. Main process sống không chứng minh nó còn phục vụ tốt."
+      ],
+      "shortAnswer": "Trạng thái sức khỏe dựa trên kết quả lệnh probe. Docker chạy probe theo lịch và ghi trạng thái healthy hoặc unhealthy theo kết quả và ngưỡng. Main process sống không chứng minh nó còn phục vụ tốt.",
+      "explanation": "Docker chạy probe theo lịch và ghi trạng thái healthy hoặc unhealthy theo kết quả và ngưỡng. Main process sống không chứng minh nó còn phục vụ tốt. Hành động điều phối phụ thuộc nền tảng. Tránh probe tốn kém hoặc phụ thuộc tùy chọn gây báo động dây chuyền.",
+      "alternative": "Hành động điều phối phụ thuộc nền tảng. Tránh probe tốn kém hoặc phụ thuộc tùy chọn gây báo động dây chuyền.",
+      "trap": "Gắn nhãn unhealthy không đảm bảo container được thay thế; hành động tiếp theo do hệ thống điều phối quyết định.",
+      "rubric": [
+        "Trạng thái sức khỏe dựa trên kết quả lệnh probe",
+        "Docker chạy probe theo lịch và ghi trạng thái healthy hoặc unhealthy theo kết quả và ngưỡng. Main process sống không chứng minh nó còn phục vụ tốt.",
+        "Tách phép đo sức khỏe khỏi quyết định thay container.",
+        "Hành động điều phối phụ thuộc nền tảng. Tránh probe tốn kém hoặc phụ thuộc tùy chọn gây báo động dây chuyền."
+      ],
+      "source": "https://docs.docker.com/reference/dockerfile/#healthcheck",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "docker-multi-runtime"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Trạng thái sức khỏe dựa trên kết quả lệnh probe",
+          "Bảo đảm runtime tự sửa mọi request bị treo",
+          "Tự động thay đổi dữ liệu ứng dụng về bản tốt"
+        ],
+        "en": [
+          "A health status based on the probe command's result",
+          "A guarantee that the runtime repairs every stuck request",
+          "Automatic restoration of application data"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

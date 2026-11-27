@@ -7,6 +7,7 @@ import type { ExerciseCard } from './types'
 
 type ProjectPrompt = { path:string; line:number; symbol:string; area:string; question:string; check:string }
 type ProjectIndex = { fingerprint:string; files:string[]; questions:ProjectPrompt[] }
+type Scenario = {slug:string;title:string;brief:string;prompt:string;followUp:string;rubric:string;questions:{slug:string;title:string}[]}
 
 export function Labs({ mode }: {mode:string}) {
   const { user } = useSession()
@@ -26,7 +27,7 @@ const severities:Record<string,string> = {moderate:'Vừa',major:'Cao',critical:
 
 function ReviewLab() {
   const catalog=useResource<ReviewChoice[]>('/labs/reviews')
-  const [slug,setSlug]=useState('')
+  const [slug,setSlug]=useState(()=>new URLSearchParams(location.search).get('case') ?? '')
   const chosen=catalog.data?.find(c=>c.slug===slug) ?? catalog.data?.[0]
   const path=chosen?'/labs/reviews/'+chosen.slug+'/'+chosen.version:null
   const question=useResource<ReviewDiff>(path)
@@ -90,6 +91,9 @@ function DebugLab() {
 }
 
 function ProjectInterview() {
+  const scenarios = useResource<Scenario[]>('/labs/project/scenarios')
+  const [scenario,setScenario] = useState('')
+  const selectedScenario = scenarios.data?.find(s=>s.slug===scenario)
   const [source,setSource] = useState('github')
   const [url,setUrl] = useState('')
   const [file,setFile] = useState<File>()
@@ -120,6 +124,14 @@ function ProjectInterview() {
   const key=question && [question.path,question.line,question.area].join(':')
   const validFile=file && file.size>0 && file.size<=2*1024*1024
   return <div className="stack">
+    <section className="panel content-panel stack"><Field label="Phỏng vấn theo tình huống dự án"><select value={scenario} onChange={e=>setScenario(e.target.value)}>
+      <option value="">Chọn tình huống</option>{scenarios.data?.map(s=><option key={s.slug} value={s.slug}>{s.title}</option>)}</select></Field>
+      <Problem text={scenarios.error} retry={scenarios.reload}/>
+      {selectedScenario && <div className="stack" key={scenario}><p>{selectedScenario.brief}</p><h3>{selectedScenario.prompt}</h3>
+        <Field label="Lập luận cho tình huống"><textarea rows={3} maxLength={6000} value={answers[scenario]??''} onChange={e=>setAnswers({...answers,[scenario]:e.target.value})}/></Field>
+        <details className="details"><summary>Câu đào sâu và tiêu chí tự đối chiếu</summary><p>{selectedScenario.followUp}</p><p>{selectedScenario.rubric}</p></details>
+        <ul>{selectedScenario.questions.map(q=><li key={q.slug}><Link href={'/cau-hoi/'+q.slug}>{q.title}</Link></li>)}</ul>
+      </div>}</section>
     <section className="panel content-panel stack"><h2>Mã nguồn dự án</h2>
       <p>Chọn tối đa 12 tệp để luyện theo các dòng mã trong dự án. Máy chủ đọc mã trong bộ nhớ. Phần trả lời chỉ nằm trong trang này.</p>
       <fieldset className="stack lab-inputs" disabled={action.busy}><legend className="sr-only">Nguồn dự án</legend>

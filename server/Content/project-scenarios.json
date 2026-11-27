@@ -1,0 +1,132 @@
+[
+  {
+    "slug": "inventory-receipt",
+    "title": "Kho · Nhận một lô hàng hai lần",
+    "brief": "Hai máy quét gửi cùng phiếu nhập. Một máy mất kết nối trước khi nhận xác nhận.",
+    "prompt": "Đặt khóa nghiệp vụ và khoanh giao dịch nào để tồn chỉ tăng một lần?",
+    "followUp": "Nếu hai phiếu có cùng mã nhưng số lượng khác nhau, bạn trả kết quả nào cho nhân viên?",
+    "rubric": "Ràng buộc duy nhất theo kho và mã phiếu; ghi phiếu cùng biến động tồn trong một transaction; đối chiếu payload khi retry.",
+    "questions": [
+      "api-pagination-idempotency",
+      "ef-single-roundtrip",
+      "optimistic-concurrency"
+    ]
+  },
+  {
+    "slug": "booking-expiry",
+    "title": "Đặt chỗ · Hết hạn khi đang thanh toán",
+    "brief": "Một khách thanh toán đúng lúc tác vụ nền nhả chỗ sau 5 phút.",
+    "prompt": "Vẽ các chuyển trạng thái hợp lệ và chọn nơi phân xử lần cuối.",
+    "followUp": "Sau khi chỗ đã cấp cho khách khác, callback thanh toán trễ dẫn đến bước bù nào?",
+    "rubric": "Ràng buộc cập nhật có điều kiện theo trạng thái; hạn theo đồng hồ nhất quán; hòa giải tiền và chỗ qua một tác vụ có thể thử lại.",
+    "questions": [
+      "optimistic-concurrency",
+      "outbox-commit",
+      "testable-clock"
+    ]
+  },
+  {
+    "slug": "lms-progress",
+    "title": "LMS · Tiến độ trên hai thiết bị",
+    "brief": "Một học viên mở khóa học trên điện thoại và laptop. Điện thoại offline rồi gửi tiến độ cũ.",
+    "prompt": "Điểm xem gần nhất và trạng thái hoàn thành nên có cùng quy tắc merge không?",
+    "followUp": "Giảng viên thu hồi chứng nhận thì quy tắc chỉ tăng có còn phù hợp?",
+    "rubric": "Tách resume position khỏi completion; đặt ID và version cho sự kiện; xác định ai được quyền đảo trạng thái đã hoàn tất.",
+    "questions": [
+      "optimistic-concurrency",
+      "resource-authorization",
+      "ef-context-parallel"
+    ]
+  },
+  {
+    "slug": "crm-contact-merge",
+    "title": "CRM · Gộp hai liên hệ",
+    "brief": "Hai bản ghi cùng số điện thoại nhưng thuộc hai chi nhánh và có lịch sử chăm sóc riêng.",
+    "prompt": "Cần chứng cứ gì để gộp và làm sao giữ dấu vết cho lịch hẹn cũ?",
+    "followUp": "Nếu cuối ngày phát hiện đây là hai người khác nhau, bạn tách lịch sử bằng dữ liệu nào?",
+    "rubric": "Chốt phạm vi tenant và quyền; lưu ánh xạ ID cũ; định nghĩa cách hoàn tác từng quan hệ và ghi audit.",
+    "questions": [
+      "resource-authorization",
+      "ef-single-roundtrip",
+      "sql-constraints"
+    ]
+  },
+  {
+    "slug": "erp-close-books",
+    "title": "ERP · Khóa sổ cuối tháng",
+    "brief": "Hóa đơn thuộc tháng trước tới sau thời điểm khóa sổ. Báo cáo đã gửi kế toán.",
+    "prompt": "Chọn quy tắc hạch toán và cách tái tạo đúng báo cáo đã phát hành.",
+    "followUp": "Kế toán điều chỉnh hồi tố thì người đọc thấy những phiên bản nào?",
+    "rubric": "Phân biệt thời gian phát sinh và hạch toán; lưu phiên bản sổ cùng lịch điều chỉnh; kiểm thử giao tháng.",
+    "questions": [
+      "eomonth-offset",
+      "sql-between-boundary",
+      "expand-contract"
+    ]
+  },
+  {
+    "slug": "notifications-optout",
+    "title": "Thông báo · Hủy đăng ký giữa chiến dịch",
+    "brief": "Một chiến dịch đã xếp 20.000 email vào queue. Người dùng tắt nhận tin trong lúc worker đang xử lý.",
+    "prompt": "Thời điểm nào cần kiểm consent, quyết định nào phải lưu để giải trình?",
+    "followUp": "Nếu nhà cung cấp đã nhận email mà worker timeout thì retry như thế nào?",
+    "rubric": "Tách xếp hàng với gửi; kiểm consent sát side effect; dùng mã gửi và đối soát trạng thái với provider.",
+    "questions": [
+      "outbox-commit",
+      "cancellation",
+      "logs-correlation"
+    ]
+  },
+  {
+    "slug": "chat-read-cursor",
+    "title": "Chat · Đã đọc trên nhiều thiết bị",
+    "brief": "Laptop gửi ‘đã đọc tới 105’, vài giây sau điện thoại gửi ‘đã đọc tới 98’.",
+    "prompt": "Thiết kế con trỏ theo người và hội thoại để số chưa đọc không tăng nhầm.",
+    "followUp": "Nếu tin nhắn bị xóa hoặc người dùng rời hội thoại, điều gì cần kiểm lại?",
+    "rubric": "Mốc đọc đơn điệu theo thứ tự server; cập nhật atomically; chốt quyền truy cập và xử lý khoảng trống.",
+    "questions": [
+      "resource-authorization",
+      "interlocked-compareexchange",
+      "sql-keyset-tie"
+    ]
+  },
+  {
+    "slug": "store-return",
+    "title": "Thương mại điện tử · Hoàn một phần đơn",
+    "brief": "Đơn có nhiều dòng. Kho đã nhận lại một sản phẩm nhưng dịch vụ thanh toán báo timeout.",
+    "prompt": "Ghi nhận hoàn kho và hoàn tiền như thế nào để nhân viên có thể xử lý tiếp?",
+    "followUp": "Khách trả tiếp sản phẩm thứ hai cùng đơn thì khóa giao dịch đặt ở cấp nào?",
+    "rubric": "Định danh từng lượt trả; ghi trạng thái tách tiền và kho; hạn tổng tiền hoàn; tra nhà cung cấp trước khi phát lại.",
+    "questions": [
+      "outbox-commit",
+      "api-pagination-idempotency",
+      "ef-single-roundtrip"
+    ]
+  },
+  {
+    "slug": "auth-role-revoke",
+    "title": "Xác thực · Thu hồi quyền duyệt phiếu",
+    "brief": "Nhân viên chuyển bộ phận trong khi vẫn có phiên đang mở và một phiếu chờ duyệt.",
+    "prompt": "Bạn bảo đảm thao tác duyệt kiểm quyền nào ngay khi ghi?",
+    "followUp": "Nếu có cache quyền theo người dùng, chốt thời hạn hiệu lực và kiểm thử việc thu hồi ra sao?",
+    "rubric": "Đối chiếu chính sách và phạm vi tài nguyên lúc duyệt; định nghĩa độ trễ thu hồi; test với hai tài khoản lệch quyền.",
+    "questions": [
+      "resource-authorization",
+      "cache-invalidation",
+      "http-auth-challenge"
+    ]
+  },
+  {
+    "slug": "rest-api-contract",
+    "title": "REST API · Đổi định dạng cho đối tác",
+    "brief": "Máy quét cầm tay của đối tác không thể nâng cấp đồng loạt nhưng API sắp đổi định dạng số lượng.",
+    "prompt": "Lập kế hoạch triển khai tương thích và đo trước khi bỏ định dạng cũ.",
+    "followUp": "Nếu chỉ còn một đối tác dùng bản trước, bạn cân nhắc các phương án nào?",
+    "rubric": "Fixture cho cả client cũ và mới; giai đoạn đọc tương thích; tín hiệu theo version và kịch bản rollback.",
+    "questions": [
+      "expand-contract",
+      "http-content-type-accept",
+      "test-boundary"
+    ]
+  }
+]

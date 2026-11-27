@@ -1,0 +1,650 @@
+[
+  {
+    "slug": "sql-repeating-contacts",
+    "content": {
+      "title": "Thêm số liên hệ thứ tư",
+      "topic": "sql",
+      "subtopic": "Chuẩn hóa",
+      "tags": [
+        "Chuẩn hóa"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Hồ sơ học viên có Phone1, Phone2 và Phone3. Mỗi số có nhãn riêng. Thiết kế nào cho phép nhập số thứ tư mà không đổi schema?",
+      "englishPrompt": "Student records have Phone1, Phone2 and Phone3, each with a label. Which design accepts a fourth number without a schema change?",
+      "context": "Màn hình cần tìm mọi học viên có số mang nhãn “khẩn cấp”.",
+      "hint": "Một học viên có thể có bao nhiêu dòng liên hệ?",
+      "nextHint": "Mỗi số cùng nhãn tạo thành một bản ghi con, dùng StudentId để xác định chủ sở hữu.",
+      "followUp": "Bạn sẽ đặt khóa ngoại ở bảng nào?",
+      "englishFollowUp": "Which table should hold the foreign key?",
+      "outline": [
+        "Tạo bảng liên hệ gồm StudentId, số và nhãn, mỗi số một dòng",
+        "Mỗi số cùng nhãn tạo thành một bản ghi con, dùng StudentId để xác định chủ sở hữu."
+      ],
+      "shortAnswer": "Tạo bảng liên hệ gồm StudentId, số và nhãn, mỗi số một dòng. Mỗi số cùng nhãn tạo thành một bản ghi con, dùng StudentId để xác định chủ sở hữu.",
+      "explanation": "Mỗi số cùng nhãn tạo thành một bản ghi con, dùng StudentId để xác định chủ sở hữu. Một cột cho mỗi vị trí đặt giới hạn cứng lên số liên hệ. Chuỗi ghép còn làm mất liên kết giữa số và nhãn.",
+      "alternative": "Đặt khóa ngoại từ bảng liên hệ đến học viên để chặn bản ghi mồ côi.",
+      "trap": "Một cột cho mỗi vị trí đặt giới hạn cứng lên số liên hệ. Chuỗi ghép còn làm mất liên kết giữa số và nhãn.",
+      "rubric": [
+        "Tạo bảng liên hệ gồm StudentId, số và nhãn, mỗi số một dòng",
+        "Mỗi số cùng nhãn tạo thành một bản ghi con, dùng StudentId để xác định chủ sở hữu.",
+        "Một cột cho mỗi vị trí đặt giới hạn cứng lên số liên hệ. Chuỗi ghép còn làm mất liên kết giữa số và nhãn.",
+        "Đặt khóa ngoại từ bảng liên hệ đến học viên để chặn bản ghi mồ côi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/previous-versions/troubleshoot/microsoft-365/microsoft-365-apps/access/database-normalization-description",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Thêm Phone4 và Label4 vào bảng học viên",
+          "Tạo bảng liên hệ gồm StudentId, số và nhãn, mỗi số một dòng",
+          "Ghép số thứ tư vào Phone3 bằng dấu phẩy và dùng nhãn của Phone3"
+        ],
+        "en": [
+          "Add Phone4 and Label4 to the student table",
+          "Store one row per number in a contact table with StudentId, number and label",
+          "Append the fourth number to Phone3 with a comma and reuse its label"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-transitive-department",
+    "content": {
+      "title": "Đổi tên khoa một lần",
+      "topic": "sql",
+      "subtopic": "Phụ thuộc hàm",
+      "tags": [
+        "Phụ thuộc hàm"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Mỗi giảng viên thuộc một khoa. DepartmentId xác định duy nhất tên hiện tại của khoa. Đặt tên khoa ở đâu để một lần đổi tên có hiệu lực cho tất cả giảng viên?",
+      "englishPrompt": "Each lecturer belongs to one department. DepartmentId uniquely determines its current name. Where should the name live so one rename takes effect for all lecturers?",
+      "context": "Bản nhập cũ lặp lại tên khoa trên 80 hồ sơ và ba tên đã sai chính tả.",
+      "hint": "Hãy xác định đối tượng thực sự sở hữu tên.",
+      "nextHint": "Tên khoa phụ thuộc vào mã khoa. Liên kết qua khóa cho phép mọi hồ sơ đọc cùng một giá trị.",
+      "followUp": "Yêu cầu in lại chứng nhận với tên khoa tại ngày cấp thay đổi thiết kế ở đâu?",
+      "englishFollowUp": "Where would you preserve the historical name for reprinting a certificate?",
+      "outline": [
+        "Lưu tên ở Departments và tham chiếu DepartmentId từ Lecturers",
+        "Tên khoa phụ thuộc vào mã khoa. Liên kết qua khóa cho phép mọi hồ sơ đọc cùng một giá trị."
+      ],
+      "shortAnswer": "Lưu tên ở Departments và tham chiếu DepartmentId từ Lecturers. Tên khoa phụ thuộc vào mã khoa. Liên kết qua khóa cho phép mọi hồ sơ đọc cùng một giá trị.",
+      "explanation": "Tên khoa phụ thuộc vào mã khoa. Liên kết qua khóa cho phép mọi hồ sơ đọc cùng một giá trị. Chỉ mục hỗ trợ truy vấn nhưng vẫn để nhiều bản sao tên có thể lệch nhau.",
+      "alternative": "Nếu phải giữ tên trên chứng nhận cũ, lưu ảnh chụp tên tại thời điểm cấp chứng nhận.",
+      "trap": "Chỉ mục hỗ trợ truy vấn nhưng vẫn để nhiều bản sao tên có thể lệch nhau.",
+      "rubric": [
+        "Lưu tên ở Departments và tham chiếu DepartmentId từ Lecturers",
+        "Tên khoa phụ thuộc vào mã khoa. Liên kết qua khóa cho phép mọi hồ sơ đọc cùng một giá trị.",
+        "Chỉ mục hỗ trợ truy vấn nhưng vẫn để nhiều bản sao tên có thể lệch nhau.",
+        "Nếu phải giữ tên trên chứng nhận cũ, lưu ảnh chụp tên tại thời điểm cấp chứng nhận."
+      ],
+      "source": "https://learn.microsoft.com/en-us/previous-versions/troubleshoot/microsoft-365/microsoft-365-apps/access/database-normalization-description",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lưu tên ở Departments và tham chiếu DepartmentId từ Lecturers",
+          "Lưu cả hai ở Lecturers và tạo chỉ mục trên DepartmentName",
+          "Duy trì tên độc lập trong từng hồ sơ và thêm UNIQUE cho cặp LecturerId, DepartmentName"
+        ],
+        "en": [
+          "Store the name in Departments and reference DepartmentId from Lecturers",
+          "Store both in Lecturers and index DepartmentName",
+          "Keep a separate name per lecturer and make LecturerId, DepartmentName unique"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-parent-delete-action",
+    "content": {
+      "title": "Giữ lại hồ sơ khi xóa khoa",
+      "topic": "sql",
+      "subtopic": "Khóa ngoại",
+      "tags": [
+        "Khóa ngoại"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một khoa còn giảng viên phải bị từ chối xóa. Khóa ngoại Lecturers.DepartmentId nên dùng hành vi xóa nào trên SQL Server?",
+      "englishPrompt": "Deleting a department must fail while it still has lecturers. Which delete action should the SQL Server foreign key use?",
+      "context": "DepartmentId bắt buộc có giá trị. Quản trị viên có thể chuyển giảng viên sang khoa khác trước khi xóa.",
+      "hint": "Hành vi nào để các dòng con nguyên vẹn và báo lỗi cho lệnh xóa?",
+      "nextHint": "NO ACTION làm lệnh xóa dòng cha thất bại khi còn dòng con tham chiếu.",
+      "followUp": "Điều gì thay đổi sau khi chuyển toàn bộ giảng viên sang khoa mới?",
+      "englishFollowUp": "What changes after every lecturer has been moved to a different department?",
+      "outline": [
+        "ON DELETE NO ACTION",
+        "NO ACTION làm lệnh xóa dòng cha thất bại khi còn dòng con tham chiếu."
+      ],
+      "shortAnswer": "ON DELETE NO ACTION. NO ACTION làm lệnh xóa dòng cha thất bại khi còn dòng con tham chiếu.",
+      "explanation": "NO ACTION làm lệnh xóa dòng cha thất bại khi còn dòng con tham chiếu. CASCADE sẽ xóa cả giảng viên. SET NULL yêu cầu khóa ngoại cho phép NULL.",
+      "alternative": "Sau khi chuyển hết giảng viên và không còn tham chiếu khác, có thể xóa khoa.",
+      "trap": "CASCADE sẽ xóa cả giảng viên. SET NULL yêu cầu khóa ngoại cho phép NULL.",
+      "rubric": [
+        "ON DELETE NO ACTION",
+        "NO ACTION làm lệnh xóa dòng cha thất bại khi còn dòng con tham chiếu.",
+        "CASCADE sẽ xóa cả giảng viên. SET NULL yêu cầu khóa ngoại cho phép NULL.",
+        "Sau khi chuyển hết giảng viên và không còn tham chiếu khác, có thể xóa khoa."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "ON DELETE CASCADE",
+          "ON DELETE SET NULL",
+          "ON DELETE NO ACTION"
+        ],
+        "en": [
+          "ON DELETE CASCADE",
+          "ON DELETE SET NULL",
+          "ON DELETE NO ACTION"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-paired-foreign-key",
+    "content": {
+      "title": "Khóa phòng theo cơ sở",
+      "topic": "sql",
+      "subtopic": "Khóa ngoại ghép",
+      "tags": [
+        "Khóa ngoại ghép"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "SQL Server 2022",
+      "prompt": "Mã phòng chỉ duy nhất trong một cơ sở. Bookings có CampusId và RoomCode đều bắt buộc. Ràng buộc nào đảm bảo đúng phòng thuộc đúng cơ sở?",
+      "englishPrompt": "Room codes are unique only within a campus. Bookings requires both CampusId and RoomCode. Which constraint ensures that the room belongs to that campus?",
+      "context": "Phòng A12 tồn tại ở cơ sở Bắc. Chưa có phòng A12 ở cơ sở Nam.",
+      "hint": "Cần kiểm tra sự tồn tại của từng giá trị hay của cả cặp?",
+      "nextHint": "SQL Server so khớp cả cặp giá trị với cùng một dòng trong bảng Rooms.",
+      "followUp": "Nếu dùng RoomId duy nhất toàn hệ thống, có cần chép CampusId vào Bookings nữa không?",
+      "englishFollowUp": "With a globally unique RoomId, must Bookings duplicate CampusId?",
+      "outline": [
+        "Một FK ghép từ Bookings đến khóa duy nhất (CampusId, RoomCode) của Rooms",
+        "SQL Server so khớp cả cặp giá trị với cùng một dòng trong bảng Rooms."
+      ],
+      "shortAnswer": "Một FK ghép từ Bookings đến khóa duy nhất (CampusId, RoomCode) của Rooms. SQL Server so khớp cả cặp giá trị với cùng một dòng trong bảng Rooms.",
+      "explanation": "SQL Server so khớp cả cặp giá trị với cùng một dòng trong bảng Rooms. UNIQUE trên Bookings giới hạn số lần đặt cùng phòng mà chưa kiểm tra phòng đó tồn tại.",
+      "alternative": "Có thể dùng RoomId toàn cục làm khóa ngoại và suy ra cơ sở từ Rooms nếu bỏ CampusId khỏi Bookings.",
+      "trap": "UNIQUE trên Bookings giới hạn số lần đặt cùng phòng mà chưa kiểm tra phòng đó tồn tại.",
+      "rubric": [
+        "Một FK ghép từ Bookings đến khóa duy nhất (CampusId, RoomCode) của Rooms",
+        "SQL Server so khớp cả cặp giá trị với cùng một dòng trong bảng Rooms.",
+        "UNIQUE trên Bookings giới hạn số lần đặt cùng phòng mà chưa kiểm tra phòng đó tồn tại.",
+        "Có thể dùng RoomId toàn cục làm khóa ngoại và suy ra cơ sở từ Rooms nếu bỏ CampusId khỏi Bookings."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/statements/alter-table-table-constraint-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ tạo FK cho CampusId rồi kiểm tra RoomCode khác chuỗi rỗng",
+          "Thêm UNIQUE trên (CampusId, RoomCode) ngay ở Bookings",
+          "Một FK ghép từ Bookings đến khóa duy nhất (CampusId, RoomCode) của Rooms"
+        ],
+        "en": [
+          "Reference CampusId alone and require a nonempty RoomCode",
+          "Make (CampusId, RoomCode) unique in Bookings",
+          "One composite FK from Bookings to the unique (CampusId, RoomCode) key of Rooms"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-check-unknown",
+    "content": {
+      "title": "Giới hạn sức chứa bắt buộc",
+      "topic": "sql",
+      "subtopic": "CHECK và NULL",
+      "tags": [
+        "CHECK và NULL"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Capacity hiện cho phép NULL và có CHECK (Capacity > 0). Điều gì xảy ra khi INSERT giá trị NULL trên SQL Server?",
+      "englishPrompt": "Capacity is nullable and has CHECK (Capacity > 0). What happens when a row explicitly supplies NULL in SQL Server?",
+      "context": "Bảng chưa có trigger, default hoặc ràng buộc khác liên quan đến Capacity.",
+      "hint": "SQL so sánh NULL với số 0 cho ra trạng thái logic nào?",
+      "nextHint": "Biểu thức cho kết quả UNKNOWN. CHECK từ chối khi biểu thức là FALSE.",
+      "followUp": "Thêm ràng buộc nào để chặn cả sức chứa bị bỏ trống?",
+      "englishFollowUp": "Which additional constraint rejects a missing capacity?",
+      "outline": [
+        "Dòng được nhận và Capacity vẫn là NULL",
+        "Biểu thức cho kết quả UNKNOWN. CHECK từ chối khi biểu thức là FALSE."
+      ],
+      "shortAnswer": "Dòng được nhận và Capacity vẫn là NULL. Biểu thức cho kết quả UNKNOWN. CHECK từ chối khi biểu thức là FALSE.",
+      "explanation": "Biểu thức cho kết quả UNKNOWN. CHECK từ chối khi biểu thức là FALSE. CHECK không tự thay giá trị NULL và điều kiện so sánh này không bắt được NULL.",
+      "alternative": "Muốn luôn có số dương, đặt NOT NULL cùng với CHECK (Capacity > 0).",
+      "trap": "CHECK không tự thay giá trị NULL và điều kiện so sánh này không bắt được NULL.",
+      "rubric": [
+        "Dòng được nhận và Capacity vẫn là NULL",
+        "Biểu thức cho kết quả UNKNOWN. CHECK từ chối khi biểu thức là FALSE.",
+        "CHECK không tự thay giá trị NULL và điều kiện so sánh này không bắt được NULL.",
+        "Muốn luôn có số dương, đặt NOT NULL cùng với CHECK (Capacity > 0)."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/unique-constraints-and-check-constraints?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dòng bị từ chối vì điều kiện phải trả về TRUE",
+          "Dòng được nhận và Capacity vẫn là NULL",
+          "Dòng được nhận và Capacity được đổi thành 0"
+        ],
+        "en": [
+          "The row is rejected because the predicate must return TRUE",
+          "The row is accepted with a NULL Capacity",
+          "The row is accepted and Capacity becomes zero"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-default-explicit-null",
+    "content": {
+      "title": "Bỏ cột hay truyền NULL",
+      "topic": "sql",
+      "subtopic": "DEFAULT",
+      "tags": [
+        "DEFAULT"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Bảng Tasks có Priority cho phép NULL và DEFAULT 3. Một lệnh INSERT bỏ cột Priority, lệnh kế tiếp truyền NULL. Hai dòng lần lượt lưu gì?",
+      "englishPrompt": "Tasks.Priority is nullable with DEFAULT 3. One insert omits Priority and the next explicitly supplies NULL. What do the two rows store, in order?",
+      "context": "Cả hai lệnh đều cung cấp đủ các cột bắt buộc khác và bảng không có trigger.",
+      "hint": "Trong lệnh nào SQL Server cần tự điền giá trị?",
+      "nextHint": "Khi bỏ cột, SQL Server dùng default. Giá trị NULL được truyền tường minh hợp lệ cho cột nullable.",
+      "followUp": "Trong VALUES, có thể dùng từ khóa nào để yêu cầu giá trị mặc định?",
+      "englishFollowUp": "Which keyword can request the default explicitly in VALUES?",
+      "outline": [
+        "3 rồi NULL",
+        "Khi bỏ cột, SQL Server dùng default. Giá trị NULL được truyền tường minh hợp lệ cho cột nullable."
+      ],
+      "shortAnswer": "3 rồi NULL. Khi bỏ cột, SQL Server dùng default. Giá trị NULL được truyền tường minh hợp lệ cho cột nullable.",
+      "explanation": "Khi bỏ cột, SQL Server dùng default. Giá trị NULL được truyền tường minh hợp lệ cho cột nullable. Default không đóng vai trò chuyển mọi NULL thành 3.",
+      "alternative": "Từ khóa DEFAULT trong danh sách VALUES cũng yêu cầu SQL Server dùng giá trị mặc định.",
+      "trap": "Default không đóng vai trò chuyển mọi NULL thành 3.",
+      "rubric": [
+        "3 rồi NULL",
+        "Khi bỏ cột, SQL Server dùng default. Giá trị NULL được truyền tường minh hợp lệ cho cột nullable.",
+        "Default không đóng vai trò chuyển mọi NULL thành 3.",
+        "Từ khóa DEFAULT trong danh sách VALUES cũng yêu cầu SQL Server dùng giá trị mặc định."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/specify-default-values-for-columns?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "3 rồi NULL",
+          "3 rồi 3",
+          "NULL rồi NULL"
+        ],
+        "en": [
+          "3 then NULL",
+          "3 then 3",
+          "NULL then NULL"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-identity-rollback-gap",
+    "content": {
+      "title": "Khoảng trống trong mã tự tăng",
+      "topic": "sql",
+      "subtopic": "IDENTITY",
+      "tags": [
+        "IDENTITY"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một dòng nhận IDENTITY rồi transaction bị rollback. Có thể khẳng định gì về số đã cấp khi một transaction khác thêm dòng?",
+      "englishPrompt": "An insert receives an IDENTITY value and its transaction rolls back. What can you conclude about that value when another transaction inserts a row?",
+      "context": "Bảng nhật ký dùng IDENTITY(1,1), không có thao tác reseed.",
+      "hint": "Phân biệt việc hủy dòng và việc hoàn lại số đã cấp.",
+      "nextHint": "Bộ sinh identity không thu hồi giá trị vì giao dịch thất bại. Hai dòng tồn tại có thể có mã không liên tiếp.",
+      "followUp": "Vì sao MAX(Id) không cho biết có bao nhiêu dòng đang tồn tại?",
+      "englishFollowUp": "Why does MAX(Id) fail to tell you how many rows still exist?",
+      "outline": [
+        "Số đã cấp bị tiêu thụ nên có thể có khoảng trống",
+        "Bộ sinh identity không thu hồi giá trị vì giao dịch thất bại. Hai dòng tồn tại có thể có mã không liên tiếp."
+      ],
+      "shortAnswer": "Số đã cấp bị tiêu thụ nên có thể có khoảng trống. Bộ sinh identity không thu hồi giá trị vì giao dịch thất bại. Hai dòng tồn tại có thể có mã không liên tiếp.",
+      "explanation": "Bộ sinh identity không thu hồi giá trị vì giao dịch thất bại. Hai dòng tồn tại có thể có mã không liên tiếp. Khoảng trống đơn lẻ không chứng minh có người xóa bản ghi.",
+      "alternative": "Dùng COUNT trên tập dòng cần đếm nếu muốn số lượng bản ghi hiện tại.",
+      "trap": "Khoảng trống đơn lẻ không chứng minh có người xóa bản ghi.",
+      "rubric": [
+        "Số đã cấp bị tiêu thụ nên có thể có khoảng trống",
+        "Bộ sinh identity không thu hồi giá trị vì giao dịch thất bại. Hai dòng tồn tại có thể có mã không liên tiếp.",
+        "Khoảng trống đơn lẻ không chứng minh có người xóa bản ghi.",
+        "Dùng COUNT trên tập dòng cần đếm nếu muốn số lượng bản ghi hiện tại."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql-identity-property?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lần INSERT thành công kế tiếp phải lấy đúng số đó",
+          "SQL Server đánh lại số cho mọi dòng sau khi rollback",
+          "Số đã cấp bị tiêu thụ nên có thể có khoảng trống"
+        ],
+        "en": [
+          "The next successful insert must receive that value",
+          "SQL Server renumbers all rows after rollback",
+          "The allocated value is consumed, so a gap can remain"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-utf-eight-bytes",
+    "content": {
+      "title": "Độ dài cột mã UTF-8",
+      "topic": "sql",
+      "subtopic": "varchar và UTF-8",
+      "tags": [
+        "varchar và UTF-8"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "SQL Server 2022",
+      "prompt": "Một cột varchar(4) dùng collation UTF-8. Ký tự tiếng Việt “ế” dạng dựng sẵn chiếm ba byte UTF-8. Hai ký tự như vậy có vừa cột không?",
+      "englishPrompt": "A varchar(4) column uses a UTF-8 collation. A precomposed Vietnamese “ế” takes three UTF-8 bytes. Do two such characters fit?",
+      "context": "Ứng dụng kiểm tra độ dài bằng cách đếm hai ký tự hiển thị trước khi gửi.",
+      "hint": "So sánh dung lượng theo byte của dữ liệu và cột.",
+      "nextHint": "Với varchar(n), n là giới hạn byte. UTF-8 dùng số byte thay đổi tùy ký tự.",
+      "followUp": "Bạn sẽ dùng đại lượng nào khi chẩn đoán giá trị quá dài trên cơ sở dữ liệu?",
+      "englishFollowUp": "Which measurement would help diagnose an oversized value at the database?",
+      "outline": [
+        "Không, hai ký tự cần sáu byte",
+        "Với varchar(n), n là giới hạn byte. UTF-8 dùng số byte thay đổi tùy ký tự."
+      ],
+      "shortAnswer": "Không, hai ký tự cần sáu byte. Với varchar(n), n là giới hạn byte. UTF-8 dùng số byte thay đổi tùy ký tự.",
+      "explanation": "Với varchar(n), n là giới hạn byte. UTF-8 dùng số byte thay đổi tùy ký tự. Đếm ký tự hiển thị ở giao diện không đủ để suy ra số byte cần lưu.",
+      "alternative": "Kiểm tra DATALENGTH trên giá trị đã mã hóa với collation đích để xác nhận kích thước.",
+      "trap": "Đếm ký tự hiển thị ở giao diện không đủ để suy ra số byte cần lưu.",
+      "rubric": [
+        "Không, hai ký tự cần sáu byte",
+        "Với varchar(n), n là giới hạn byte. UTF-8 dùng số byte thay đổi tùy ký tự.",
+        "Đếm ký tự hiển thị ở giao diện không đủ để suy ra số byte cần lưu.",
+        "Kiểm tra DATALENGTH trên giá trị đã mã hóa với collation đích để xác nhận kích thước."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/data-types/char-and-varchar-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, hai ký tự cần sáu byte",
+          "Có, varchar(4) chứa mọi chuỗi dài tới bốn ký tự Unicode",
+          "Có, collation tự nén mỗi ký tự xuống một byte"
+        ],
+        "en": [
+          "No, the two characters need six bytes",
+          "Yes, varchar(4) fits any sequence of up to four Unicode characters",
+          "Yes, the collation compresses each character into one byte"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-filter-open-subset",
+    "content": {
+      "title": "Chỉ mục cho hàng chờ nhỏ",
+      "topic": "sql",
+      "subtopic": "Filtered index",
+      "tags": [
+        "Filtered index"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "SQL Server 2022",
+      "prompt": "Chỉ 1% phiếu có ClosedAt IS NULL. Worker luôn lọc đúng điều kiện này và lấy CreatedAt cũ nhất. Chỉ mục nào trực tiếp giới hạn số dòng được lập chỉ mục?",
+      "englishPrompt": "Only 1% of tickets have ClosedAt IS NULL. A worker always filters on that condition and requests the earliest CreatedAt. Which index directly limits the rows indexed?",
+      "context": "ClosedAt chuyển từ NULL sang timestamp khi đóng phiếu, còn lịch sử phiếu đóng phải giữ nguyên.",
+      "hint": "Điều kiện lọc có thể xuất hiện ngay trong định nghĩa chỉ mục.",
+      "nextHint": "Filtered index chỉ có các phiếu thỏa điều kiện. Khóa CreatedAt phục vụ thứ tự đọc trong tập nhỏ này.",
+      "followUp": "Điều gì xảy ra với mục chỉ mục khi một phiếu được đóng?",
+      "englishFollowUp": "What happens to the index entry when the ticket closes?",
+      "outline": [
+        "Lập chỉ mục theo CreatedAt, INCLUDE ClosedAt, WHERE ClosedAt IS NULL",
+        "Filtered index chỉ có các phiếu thỏa điều kiện. Khóa CreatedAt phục vụ thứ tự đọc trong tập nhỏ này."
+      ],
+      "shortAnswer": "Lập chỉ mục theo CreatedAt, INCLUDE ClosedAt, WHERE ClosedAt IS NULL. Filtered index chỉ có các phiếu thỏa điều kiện. Khóa CreatedAt phục vụ thứ tự đọc trong tập nhỏ này.",
+      "explanation": "Filtered index chỉ có các phiếu thỏa điều kiện. Khóa CreatedAt phục vụ thứ tự đọc trong tập nhỏ này. Chỉ mục toàn bảng vẫn có mục cho phiếu đã đóng dù truy vấn có thể dùng seek.",
+      "alternative": "Khi ClosedAt được cập nhật thành giá trị khác NULL, dòng ra khỏi tập của filtered index.",
+      "trap": "Chỉ mục toàn bảng vẫn có mục cho phiếu đã đóng dù truy vấn có thể dùng seek.",
+      "rubric": [
+        "Lập chỉ mục theo CreatedAt, INCLUDE ClosedAt, WHERE ClosedAt IS NULL",
+        "Filtered index chỉ có các phiếu thỏa điều kiện. Khóa CreatedAt phục vụ thứ tự đọc trong tập nhỏ này.",
+        "Chỉ mục toàn bảng vẫn có mục cho phiếu đã đóng dù truy vấn có thể dùng seek.",
+        "Khi ClosedAt được cập nhật thành giá trị khác NULL, dòng ra khỏi tập của filtered index."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/indexes/create-filtered-indexes?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lập chỉ mục toàn bảng theo ClosedAt rồi CreatedAt",
+          "Lập chỉ mục theo CreatedAt, INCLUDE ClosedAt, WHERE ClosedAt IS NULL",
+          "Lập chỉ mục toàn bảng theo CreatedAt giảm dần"
+        ],
+        "en": [
+          "Index the entire table on ClosedAt followed by CreatedAt",
+          "Index CreatedAt, INCLUDE ClosedAt, with WHERE ClosedAt IS NULL",
+          "Index the entire table on descending CreatedAt"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-derived-column",
+    "content": {
+      "title": "Một công thức cho mọi lần đọc",
+      "topic": "sql",
+      "subtopic": "Computed column",
+      "tags": [
+        "Computed column"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Tổng thời lượng của một video bằng IntroSeconds cộng MainSeconds, cả hai là số nguyên bắt buộc. Cách nào để SQL Server tự tính tổng theo dòng khi đọc, không cần lưu thêm một số nguyên?",
+      "englishPrompt": "A video's total duration is IntroSeconds plus MainSeconds, both required integers. How can SQL Server derive the total per row when read without storing an extra integer?",
+      "context": "Người biên tập có thể sửa IntroSeconds bằng nhiều công cụ khác nhau.",
+      "hint": "Giá trị tổng là dữ liệu gốc hay kết quả của biểu thức?",
+      "nextHint": "Computed column không persisted tính từ các cột của dòng và mặc định là cột ảo.",
+      "followUp": "PERSISTED thay đổi việc lưu giá trị tổng như thế nào?",
+      "englishFollowUp": "How would PERSISTED change storage of the total?",
+      "outline": [
+        "Khai báo computed column theo biểu thức cộng và bỏ PERSISTED",
+        "Computed column không persisted tính từ các cột của dòng và mặc định là cột ảo."
+      ],
+      "shortAnswer": "Khai báo computed column theo biểu thức cộng và bỏ PERSISTED. Computed column không persisted tính từ các cột của dòng và mặc định là cột ảo.",
+      "explanation": "Computed column không persisted tính từ các cột của dòng và mặc định là cột ảo. DEFAULT chỉ khởi tạo giá trị khi chèn và không tính lại sau khi sửa thời lượng.",
+      "alternative": "PERSISTED cho SQL Server lưu giá trị tính toán và cập nhật nó khi cột nguồn thay đổi.",
+      "trap": "DEFAULT chỉ khởi tạo giá trị khi chèn và không tính lại sau khi sửa thời lượng.",
+      "rubric": [
+        "Khai báo computed column theo biểu thức cộng và bỏ PERSISTED",
+        "Computed column không persisted tính từ các cột của dòng và mặc định là cột ảo.",
+        "DEFAULT chỉ khởi tạo giá trị khi chèn và không tính lại sau khi sửa thời lượng.",
+        "PERSISTED cho SQL Server lưu giá trị tính toán và cập nhật nó khi cột nguồn thay đổi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/specify-computed-columns-in-a-table?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tạo cột thường có DEFAULT 0 và cập nhật IntroSeconds độc lập",
+          "Khai báo computed column theo biểu thức cộng và bỏ PERSISTED",
+          "Thêm một cột IDENTITY đứng sau hai cột thời lượng"
+        ],
+        "en": [
+          "Create a regular column with DEFAULT 0 and update IntroSeconds independently",
+          "Declare a computed column using the sum expression without PERSISTED",
+          "Add an IDENTITY column after the two duration columns"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-case-insensitive-code",
+    "content": {
+      "title": "Mã phân biệt chữ hoa",
+      "topic": "sql",
+      "subtopic": "Collation",
+      "tags": [
+        "Collation"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Cột Code dùng collation Latin1_General_100_CI_AS và có UNIQUE. Bảng đã có mã RoomA. Điều gì xảy ra khi thêm rooma?",
+      "englishPrompt": "Code uses Latin1_General_100_CI_AS and has a UNIQUE constraint. RoomA already exists. What happens when rooma is inserted?",
+      "context": "Hai chuỗi chỉ khác chữ hoa và chữ thường, không có dấu cách.",
+      "hint": "Trong tên collation, CI mô tả quy tắc so sánh nào?",
+      "nextHint": "Collation CI không phân biệt hoa thường, nên hai giá trị xung đột với tính duy nhất của cột.",
+      "followUp": "Nếu RoomA và rooma đại diện hai phòng khác nhau, cần xem lại thuộc tính nào của cột?",
+      "englishFollowUp": "Which column setting deserves review if RoomA and rooma mean different rooms?",
+      "outline": [
+        "SQL Server từ chối mã mới vì hai giá trị so sánh bằng nhau",
+        "Collation CI không phân biệt hoa thường, nên hai giá trị xung đột với tính duy nhất của cột."
+      ],
+      "shortAnswer": "SQL Server từ chối mã mới vì hai giá trị so sánh bằng nhau. Collation CI không phân biệt hoa thường, nên hai giá trị xung đột với tính duy nhất của cột.",
+      "explanation": "Collation CI không phân biệt hoa thường, nên hai giá trị xung đột với tính duy nhất của cột. AS liên quan đến dấu, còn sự khác biệt giữa RoomA và rooma chỉ là hoa thường.",
+      "alternative": "Nếu nghiệp vụ phân biệt hoa thường, cân nhắc collation CS cho cột và rà lại cách tìm mã.",
+      "trap": "AS liên quan đến dấu, còn sự khác biệt giữa RoomA và rooma chỉ là hoa thường.",
+      "rubric": [
+        "SQL Server từ chối mã mới vì hai giá trị so sánh bằng nhau",
+        "Collation CI không phân biệt hoa thường, nên hai giá trị xung đột với tính duy nhất của cột.",
+        "AS liên quan đến dấu, còn sự khác biệt giữa RoomA và rooma chỉ là hoa thường.",
+        "Nếu nghiệp vụ phân biệt hoa thường, cân nhắc collation CS cho cột và rà lại cách tìm mã."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/collations/collation-and-unicode-support?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Cả hai mã được nhận do UNIQUE luôn so sánh theo byte",
+          "SQL Server chuyển mã cũ sang chữ thường rồi bỏ qua lệnh INSERT",
+          "SQL Server từ chối mã mới vì hai giá trị so sánh bằng nhau"
+        ],
+        "en": [
+          "Both codes are accepted because UNIQUE always compares bytes",
+          "SQL Server lowercases the old code and skips the insert",
+          "SQL Server rejects the new code because the values compare equal"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-fk-index-implicit",
+    "content": {
+      "title": "Tra phiếu theo lớp học",
+      "topic": "sql",
+      "subtopic": "Chỉ mục khóa ngoại",
+      "tags": [
+        "Chỉ mục khóa ngoại"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Bookings.ClassId đã có foreign key đến Classes.Id. Có thể suy ra gì về chỉ mục trên Bookings.ClassId sau khi tạo riêng ràng buộc này?",
+      "englishPrompt": "Bookings.ClassId has a foreign key to Classes.Id. What can you infer about indexes on Bookings.ClassId from creating this constraint alone?",
+      "context": "Truy vấn theo lớp phải đọc nhiều phiếu. Bạn chuẩn bị kiểm tra kế hoạch thực thi.",
+      "hint": "Xét chỉ mục phía tham chiếu, không phải khóa của bảng cha.",
+      "nextHint": "FK kiểm tra tính hợp lệ của tham chiếu. Việc tạo chỉ mục hỗ trợ tra cứu phía bảng con là quyết định riêng.",
+      "followUp": "Bạn sẽ kiểm tra gì trước khi bổ sung index cho truy vấn theo lớp?",
+      "englishFollowUp": "What would you inspect before adding an index for class lookups?",
+      "outline": [
+        "SQL Server không tự tạo chỉ mục trên cột con khi thêm FK",
+        "FK kiểm tra tính hợp lệ của tham chiếu. Việc tạo chỉ mục hỗ trợ tra cứu phía bảng con là quyết định riêng."
+      ],
+      "shortAnswer": "SQL Server không tự tạo chỉ mục trên cột con khi thêm FK. FK kiểm tra tính hợp lệ của tham chiếu. Việc tạo chỉ mục hỗ trợ tra cứu phía bảng con là quyết định riêng.",
+      "explanation": "FK kiểm tra tính hợp lệ của tham chiếu. Việc tạo chỉ mục hỗ trợ tra cứu phía bảng con là quyết định riêng. ClassId có thể lặp trên nhiều phiếu, vì thế một unique index chỉ trên cột này sẽ áp thêm quy tắc nghiệp vụ.",
+      "alternative": "Xem chỉ mục và kế hoạch hiện tại trước khi thêm chỉ mục theo ClassId.",
+      "trap": "ClassId có thể lặp trên nhiều phiếu, vì thế một unique index chỉ trên cột này sẽ áp thêm quy tắc nghiệp vụ.",
+      "rubric": [
+        "SQL Server không tự tạo chỉ mục trên cột con khi thêm FK",
+        "FK kiểm tra tính hợp lệ của tham chiếu. Việc tạo chỉ mục hỗ trợ tra cứu phía bảng con là quyết định riêng.",
+        "ClassId có thể lặp trên nhiều phiếu, vì thế một unique index chỉ trên cột này sẽ áp thêm quy tắc nghiệp vụ.",
+        "Xem chỉ mục và kế hoạch hiện tại trước khi thêm chỉ mục theo ClassId."
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/primary-and-foreign-key-constraints?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "SQL Server không tự tạo chỉ mục trên cột con khi thêm FK",
+          "SQL Server luôn tạo clustered index trên cột con",
+          "FK chỉ tạo được khi bảng con đã có unique index theo ClassId"
+        ],
+        "en": [
+          "SQL Server does not automatically index the child column when adding the FK",
+          "SQL Server always creates a clustered index on the child column",
+          "The FK can only be added if the child already has a unique ClassId index"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

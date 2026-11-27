@@ -11,6 +11,23 @@ internal static class Placement
 {
     public static void Map(RouteGroupBuilder api)
     {
+        api.MapGet("/concepts/{id}/evidence", async (string id, ClaimsPrincipal user, Materials materials, Catalog catalog,
+            PracticeDb db, TimeProvider clock, CancellationToken ct) => {
+            var concept = materials.Concepts.SingleOrDefault(c => c.Id == id) ?? throw ApiProblem.Missing();
+            var owner = user.Id();
+            await Recall.Expire(db,owner,await Learning.Today(db,owner,clock,ct),ct);
+            var questions = catalog.PublishedQuery().Where(q => concept.Questions.Contains(q.Slug));
+            var verified = await (from q in questions join s in db.StudyStates on q.Slug equals s.Slug
+                where s.UserId == owner && s.ScheduledVersion == q.Version && s.VerifiedDays > 0 && s.Mastery != "review"
+                select q.Slug).CountAsync(ct);
+            bool? practical = null;
+            if (concept.Exercise is {} path) {
+                var exercise = materials.Find<ExerciseContent>("exercise",path.Split('/')[1],null);
+                practical = await db.ExerciseSubmissions.AnyAsync(s => s.UserId == owner && s.Slug == exercise.Slug &&
+                    s.Version == exercise.Version && s.TestVersion == exercise.TestVersion && s.Action == "submit" && s.Status == "accepted" && !s.Assisted,ct);
+            }
+            return new { total = await questions.CountAsync(ct), verified, practical };
+        }).RequireAuthorization();
         api.MapPost("/placement", async (PlacementRequest request, ClaimsPrincipal user, PracticeDb db, Catalog catalog, ExerciseCatalog exercises,
             TimeProvider clock, CancellationToken ct) => {
             if(request.Id == Guid.Empty || request.Level is not ("intern" or "fresher" or "junior")) throw ApiProblem.Invalid("Chọn mức mục tiêu hợp lệ.");

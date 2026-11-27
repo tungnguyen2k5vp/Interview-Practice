@@ -1,0 +1,186 @@
+[
+  {
+    "slug": "library-overdue-as-of",
+    "kind": "sql",
+    "title": "Phiếu còn quá hạn vào cuối ngày",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "library",
+      "NULL",
+      "DATEDIFF"
+    ],
+    "minutes": 12,
+    "description": "Chốt sổ tại cuối ngày 07/01/2026. Liệt kê phiếu còn giữ sách và đã quá hạn vào thời điểm đó, kèm số ngày quá hạn. Dữ liệu được xuất sau ngày chốt nên có cả ngày trả trong tương lai.",
+    "input": "Mỗi dòng #Loans là một lượt mượn. Ngày đến hạn vẫn được giữ sách mà chưa quá hạn.",
+    "output": "loan_id, days_late (int). Ưu tiên days_late giảm dần rồi loan_id tăng dần.",
+    "constraints": [
+      "Phiếu đã trả vào ngày chốt không còn giữ sách cuối ngày.",
+      "Tính chênh lệch ngày lịch với ngày đến hạn, không dùng ngày hệ thống."
+    ],
+    "examples": [
+      {
+        "input": "Phiếu 9 đến hạn 04/01 và trả 08/01.",
+        "output": "9 | 3",
+        "explanation": "Tại cuối 07/01 phiếu vẫn mở và quá hạn ba ngày."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Phiếu 5 đến hạn 06/01 và trả 09/01.",
+        "output": "5 | 1",
+        "explanation": "Giá trị returned_on khác NULL nhưng việc trả diễn ra sau ngày chốt."
+      }
+    ],
+    "schema": "CREATE TABLE #Loans (\n    loan_id int PRIMARY KEY,\n    copy_id int NOT NULL,\n    reader_id int NOT NULL,\n    checked_out date NOT NULL,\n    due_on date NOT NULL,\n    returned_on date NULL,\n    UNIQUE (copy_id, checked_out),\n    CHECK (due_on >= checked_out),\n    CHECK (returned_on IS NULL OR returned_on >= checked_out)\n);\nCREATE TABLE #ReportDays (day_id int PRIMARY KEY, report_on date NOT NULL UNIQUE);",
+    "dataset": "INSERT #Loans (loan_id, copy_id, reader_id, checked_out, due_on, returned_on) VALUES\n(1,11,7,'20260101','20260103','20260104'),\n(2,11,8,'20260104','20260107','20260107'),\n(3,11,7,'20260109','20260112',NULL),\n(4,12,7,'20260102','20260106','20260105'),\n(5,12,7,'20260105','20260106','20260109'),\n(6,13,9,'20260105','20260105','20260105'),\n(7,14,8,'20260106','20260109',NULL),\n(8,15,10,'20260112','20260115',NULL),\n(9,16,11,'20260101','20260104','20260108');\nINSERT #ReportDays VALUES (1,'20251231'),(2,'20260104'),(3,'20260105'),(4,'20260107'),(5,'20260112');",
+    "expected": "loan_id | days_late\n9 | 3\n5 | 1",
+    "ordered": true,
+    "starter": "SELECT loan_id, due_on, returned_on\nFROM #Loans;",
+    "solution": "SELECT loan_id, DATEDIFF(day, due_on, '20260107') AS days_late\nFROM #Loans\nWHERE checked_out <= '20260107' AND due_on < '20260107'\n  AND (returned_on IS NULL OR returned_on > '20260107')\nORDER BY days_late DESC, loan_id;",
+    "hint": "Xét riêng ngày mượn, ngày đến hạn và ngày trả so với ngày chốt.",
+    "explanation": "Điều kiện trả sau ngày chốt hoặc chưa trả dựng lại trạng thái lịch sử. Phiếu đến hạn đúng ngày chốt có độ trễ bằng 0 nên bị loại.",
+    "complexity": "Bộ lọc xử lý mỗi phiếu một lần trước khi sắp xếp các phiếu còn quá hạn.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "library-loyal-borrowers",
+    "kind": "sql",
+    "title": "Độc giả quay lại mượn cùng bản sách",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "library",
+      "GROUP BY",
+      "HAVING"
+    ],
+    "minutes": 10,
+    "description": "Thủ thư muốn biết độc giả nào mượn lại đúng cùng bản sách vật lý. Mỗi cặp độc giả và bản sách có từ hai phiếu trở lên xuất hiện đúng một lần.",
+    "input": "loan_id phân biệt lượt mượn. copy_id nhận diện từng bản vật lý. Tính mọi phiếu trong #Loans kể cả phiếu chưa trả.",
+    "output": "reader_id, copy_id, visits (int). Chấp nhận mọi thứ tự.",
+    "constraints": [
+      "Nhiều người cùng mượn một bản không tạo lượt mượn lặp của riêng một người.",
+      "Hai lần mượn liên tiếp tại cùng ngày trả/mượn mới vẫn là hai phiếu."
+    ],
+    "examples": [
+      {
+        "input": "Độc giả 7 mượn bản 11 qua phiếu 1 rồi phiếu 3.",
+        "output": "7 | 11 | 2",
+        "explanation": "Cùng cặp độc giả và bản sách dù xen giữa có người mượn khác."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Độc giả 7 mượn bản 12 qua các phiếu 4 và 5.",
+        "output": "7 | 12 | 2",
+        "explanation": "Ngày trả phiếu 4 cũng là ngày bắt đầu phiếu 5."
+      }
+    ],
+    "schema": "CREATE TABLE #Loans (\n    loan_id int PRIMARY KEY,\n    copy_id int NOT NULL,\n    reader_id int NOT NULL,\n    checked_out date NOT NULL,\n    due_on date NOT NULL,\n    returned_on date NULL,\n    UNIQUE (copy_id, checked_out),\n    CHECK (due_on >= checked_out),\n    CHECK (returned_on IS NULL OR returned_on >= checked_out)\n);\nCREATE TABLE #ReportDays (day_id int PRIMARY KEY, report_on date NOT NULL UNIQUE);",
+    "dataset": "INSERT #Loans (loan_id, copy_id, reader_id, checked_out, due_on, returned_on) VALUES\n(1,11,7,'20260101','20260103','20260104'),\n(2,11,8,'20260104','20260107','20260107'),\n(3,11,7,'20260109','20260112',NULL),\n(4,12,7,'20260102','20260106','20260105'),\n(5,12,7,'20260105','20260106','20260109'),\n(6,13,9,'20260105','20260105','20260105'),\n(7,14,8,'20260106','20260109',NULL),\n(8,15,10,'20260112','20260115',NULL),\n(9,16,11,'20260101','20260104','20260108');\nINSERT #ReportDays VALUES (1,'20251231'),(2,'20260104'),(3,'20260105'),(4,'20260107'),(5,'20260112');",
+    "expected": "reader_id | copy_id | visits\n7 | 11 | 2\n7 | 12 | 2",
+    "ordered": false,
+    "starter": "SELECT reader_id, copy_id, loan_id\nFROM #Loans;",
+    "solution": "SELECT reader_id, copy_id, COUNT(*) AS visits\nFROM #Loans\nGROUP BY reader_id, copy_id\nHAVING COUNT(*) >= 2;",
+    "hint": "Đơn vị cần đếm là phiếu, còn đơn vị báo cáo là cặp độc giả và bản sách.",
+    "explanation": "Khóa loan_id ngăn trùng dòng phiếu. Nhóm cả reader_id và copy_id trước khi dùng HAVING để loại các nhóm chỉ có một lượt.",
+    "complexity": "Hash aggregate có thể đọc một lần toàn tập phiếu. Chỉ mục theo hai khóa nhóm có thể hỗ trợ stream aggregate.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "library-same-day-handoffs",
+    "kind": "sql",
+    "title": "Bàn giao bản sách trong ngày",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "library",
+      "SELF JOIN",
+      "Khoảng thời gian"
+    ],
+    "minutes": 16,
+    "description": "Tìm các cặp phiếu mà bản sách vừa được trả thì một độc giả khác mượn đúng ngày đó. Trả mã phiếu cũ và mới cho thủ thư kiểm tra.",
+    "input": "Dữ liệu #Loans không có hai phiếu cùng copy_id có chung ngày bắt đầu. Lịch sử của một bản không chồng lấn. Một phiếu có thể mượn và trả trong cùng ngày.",
+    "output": "returned_loan_id, next_loan_id (int), tăng dần theo mã phiếu cũ rồi mã phiếu mới.",
+    "constraints": [
+      "Phải là hai phiếu khác nhau của cùng copy_id và hai độc giả khác nhau.",
+      "Phiếu mới bắt đầu đúng ngày trả phiếu trước. Bắt đầu ngày hôm sau không tính."
+    ],
+    "examples": [
+      {
+        "input": "Phiếu 1 của độc giả 7 trả bản 11 ngày 04/01. Phiếu 2 của độc giả 8 bắt đầu cùng ngày.",
+        "output": "1 | 2",
+        "explanation": "Đúng ngày, đúng bản sách và đổi người giữ."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Bản 12 chuyển từ phiếu 4 sang phiếu 5 đúng ngày nhưng đều là của độc giả 7.",
+        "output": "(không có dòng)",
+        "explanation": "Đây là người cũ mượn lại, không phải bàn giao cho người khác."
+      }
+    ],
+    "schema": "CREATE TABLE #Loans (\n    loan_id int PRIMARY KEY,\n    copy_id int NOT NULL,\n    reader_id int NOT NULL,\n    checked_out date NOT NULL,\n    due_on date NOT NULL,\n    returned_on date NULL,\n    UNIQUE (copy_id, checked_out),\n    CHECK (due_on >= checked_out),\n    CHECK (returned_on IS NULL OR returned_on >= checked_out)\n);\nCREATE TABLE #ReportDays (day_id int PRIMARY KEY, report_on date NOT NULL UNIQUE);",
+    "dataset": "INSERT #Loans (loan_id, copy_id, reader_id, checked_out, due_on, returned_on) VALUES\n(1,11,7,'20260101','20260103','20260104'),\n(2,11,8,'20260104','20260107','20260107'),\n(3,11,7,'20260109','20260112',NULL),\n(4,12,7,'20260102','20260106','20260105'),\n(5,12,7,'20260105','20260106','20260109'),\n(6,13,9,'20260105','20260105','20260105'),\n(7,14,8,'20260106','20260109',NULL),\n(8,15,10,'20260112','20260115',NULL),\n(9,16,11,'20260101','20260104','20260108');\nINSERT #ReportDays VALUES (1,'20251231'),(2,'20260104'),(3,'20260105'),(4,'20260107'),(5,'20260112');",
+    "expected": "returned_loan_id | next_loan_id\n1 | 2",
+    "ordered": true,
+    "starter": "SELECT loan_id, copy_id, reader_id, checked_out, returned_on\nFROM #Loans;",
+    "solution": "SELECT a.loan_id AS returned_loan_id, b.loan_id AS next_loan_id\nFROM #Loans AS a\nJOIN #Loans AS b ON b.copy_id = a.copy_id AND b.checked_out = a.returned_on\nWHERE b.reader_id <> a.reader_id\nORDER BY a.loan_id, b.loan_id;",
+    "hint": "Đặt hai bí danh cho cùng bảng: phiếu A cung cấp ngày trả, phiếu B cung cấp ngày mượn.",
+    "explanation": "Điều kiện khác độc giả cũng loại trường hợp một phiếu trong ngày tự ghép với nó. So sánh ngày trên cùng copy_id để các bản khác trả cùng ngày không tạo cặp sai.",
+    "complexity": "Khóa duy nhất (copy_id, checked_out) cho phép tìm phiếu kế tiếp theo bản sách và ngày trả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "library-closing-census",
+    "kind": "sql",
+    "title": "Đếm bản sách đang mượn mỗi ngày chốt",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "library",
+      "LEFT JOIN",
+      "Khoảng nửa mở"
+    ],
+    "minutes": 18,
+    "description": "Lập báo cáo số bản sách còn ở chỗ độc giả vào cuối từng ngày trong #ReportDays. Phải trả dòng có số 0 cho cả ngày không có ai mượn.",
+    "input": "Mỗi phiếu giữ bản sách từ checked_out đến trước returned_on. NULL là chưa trả. Các phiếu cùng bản không chồng lấn.",
+    "output": "day_id, copies_out (int), tăng dần theo day_id.",
+    "constraints": [
+      "Chỉ báo cáo các ngày được liệt kê, có thể cách nhau nhiều ngày.",
+      "Mượn và trả cùng ngày không chiếm bản sách vào cuối ngày đó."
+    ],
+    "examples": [
+      {
+        "input": "Ngày 1 (31/12) xảy ra trước tất cả các phiếu.",
+        "output": "1 | 0",
+        "explanation": "Ngày chốt phải có mặt ngay cả khi không khớp phiếu nào."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Ngày 3 (05/01) có phiếu 2, 5 và 9 còn giữ sách.",
+        "output": "3 | 3",
+        "explanation": "Phiếu 4 vừa trả và phiếu 6 mượn trả trong ngày đều đã đóng."
+      }
+    ],
+    "schema": "CREATE TABLE #Loans (\n    loan_id int PRIMARY KEY,\n    copy_id int NOT NULL,\n    reader_id int NOT NULL,\n    checked_out date NOT NULL,\n    due_on date NOT NULL,\n    returned_on date NULL,\n    UNIQUE (copy_id, checked_out),\n    CHECK (due_on >= checked_out),\n    CHECK (returned_on IS NULL OR returned_on >= checked_out)\n);\nCREATE TABLE #ReportDays (day_id int PRIMARY KEY, report_on date NOT NULL UNIQUE);",
+    "dataset": "INSERT #Loans (loan_id, copy_id, reader_id, checked_out, due_on, returned_on) VALUES\n(1,11,7,'20260101','20260103','20260104'),\n(2,11,8,'20260104','20260107','20260107'),\n(3,11,7,'20260109','20260112',NULL),\n(4,12,7,'20260102','20260106','20260105'),\n(5,12,7,'20260105','20260106','20260109'),\n(6,13,9,'20260105','20260105','20260105'),\n(7,14,8,'20260106','20260109',NULL),\n(8,15,10,'20260112','20260115',NULL),\n(9,16,11,'20260101','20260104','20260108');\nINSERT #ReportDays VALUES (1,'20251231'),(2,'20260104'),(3,'20260105'),(4,'20260107'),(5,'20260112');",
+    "expected": "day_id | copies_out\n1 | 0\n2 | 3\n3 | 3\n4 | 3\n5 | 3",
+    "ordered": true,
+    "starter": "SELECT day_id, report_on\nFROM #ReportDays\nORDER BY day_id;",
+    "solution": "SELECT d.day_id, COUNT(l.loan_id) AS copies_out\nFROM #ReportDays AS d\nLEFT JOIN #Loans AS l\n  ON l.checked_out <= d.report_on AND (l.returned_on IS NULL OR l.returned_on > d.report_on)\nGROUP BY d.day_id\nORDER BY d.day_id;",
+    "hint": "Dẫn từ bảng ngày và để điều kiện khoảng thời gian trong ON.",
+    "explanation": "Khoảng đóng ở đầu, mở ở cuối cho phép một bản được trả và mượn lại mà chỉ đếm phiếu mới. COUNT trên khóa phiếu bỏ qua dòng NULL của ngày trống.",
+    "complexity": "Cách nối theo khoảng có thể xét nhiều cặp ngày và phiếu. Với lịch báo cáo dài, có thể cộng dồn biến động số bản theo ngày.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  }
+]

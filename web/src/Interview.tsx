@@ -60,7 +60,7 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
       <Problem text={presets.error} retry={presets.reload} />
       <div className="card-grid preset-grid">{presets.data?.map(item => {
         const Icon = presetIcons[item.id as keyof typeof presetIcons] ?? Mic
-        return <button className="panel preset-card" key={item.id} type="button" aria-pressed={preset === item.id} onClick={() => { setPreset(item.id); setTopics(null) }}>
+        return <button className="panel preset-card" key={item.id} type="button" aria-pressed={preset === item.id} onClick={() => { setPreset(item.id); setTopics(null); setLevel(item.targetLevel??''); setMinutes(String(item.minutes??15)); setCount('') }}>
           <span className="topic-icon tone-oop"><Icon size={21} /></span><strong>{item.name}</strong><span>{item.description}</span>
         </button>
       })}</div>

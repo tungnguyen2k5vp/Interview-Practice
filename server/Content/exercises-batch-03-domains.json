@@ -1,0 +1,204 @@
+[
+  {
+    "slug": "course-vacancies",
+    "kind": "sql",
+    "title": "Chỗ trống trong lớp còn nhận học viên",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "education",
+      "LEFT JOIN",
+      "HAVING"
+    ],
+    "minutes": 12,
+    "description": "Báo số chỗ còn lại cho các lớp còn nhận được ít nhất một người. Chỉ đăng ký đã xác nhận chiếm chỗ. Một học viên có thể đăng ký nhiều lớp.",
+    "input": "#Courses định nghĩa sức chứa không âm. #Enrollments có tối đa một dòng cho mỗi cặp lớp và học viên; dữ liệu đầu vào chỉ tham chiếu lớp tồn tại.",
+    "output": "course_id, free_seats (int), tăng dần theo course_id.",
+    "constraints": [
+      "Giữ lớp chưa có đăng ký nếu còn chỗ.",
+      "Loại lớp kín, quá tải và sức chứa 0."
+    ],
+    "examples": [
+      {
+        "input": "Lớp 20 có 1 chỗ, 1 đăng ký chờ.",
+        "output": "20 | 1",
+        "explanation": "Đăng ký chờ chưa chiếm chỗ."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Lớp 40 có một xác nhận và một đăng ký chờ.",
+        "output": "40 | 3",
+        "explanation": "Chỉ trừ người đã xác nhận."
+      }
+    ],
+    "schema": "CREATE TABLE #Courses(id int PRIMARY KEY, seats int NOT NULL CHECK(seats >= 0));\nCREATE TABLE #Enrollments(course_id int NOT NULL, learner int NOT NULL, confirmed bit NOT NULL, PRIMARY KEY(course_id, learner));",
+    "dataset": "INSERT #Courses VALUES (10,2),(20,1),(30,0),(40,4),(50,1);\nINSERT #Enrollments VALUES (10,1,1),(10,2,1),(20,1,0),(40,1,1),(40,3,0),(50,2,1);",
+    "expected": "course_id | free_seats\n20 | 1\n40 | 3",
+    "ordered": true,
+    "starter": "SELECT id AS course_id, seats AS free_seats\nFROM #Courses\nORDER BY id;",
+    "solution": "SELECT c.id AS course_id, c.seats - COUNT(e.learner) AS free_seats\nFROM #Courses AS c\nLEFT JOIN #Enrollments AS e ON e.course_id = c.id AND e.confirmed = 1\nGROUP BY c.id, c.seats\nHAVING c.seats > COUNT(e.learner)\nORDER BY c.id;",
+    "hint": "Đặt điều kiện đã xác nhận ở phía JOIN để lớp rỗng vẫn có mặt.",
+    "explanation": "COUNT(e.learner) bỏ dòng NULL do LEFT JOIN tạo ra. COUNT(*) sẽ trừ nhầm một chỗ ở lớp rỗng. HAVING so sức chứa với số đăng ký thực tế.",
+    "complexity": "Đọc theo khóa course_id và nhóm theo lớp. Kiểm tra plan khi tỷ lệ confirmed thấp.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "learners-across-courses",
+    "kind": "sql",
+    "title": "Học viên đã xác nhận ở nhiều lớp",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "education",
+      "GROUP BY",
+      "HAVING"
+    ],
+    "minutes": 10,
+    "description": "Phòng đào tạo cần tìm học viên đã xác nhận đăng ký ít nhất hai lớp khác nhau. Chỉ tính đăng ký confirmed=1.",
+    "input": "#Enrollments có khóa chính (course_id,learner). #Courses lưu sức chứa.",
+    "output": "learner, courses (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Khóa chính ngăn lặp cùng học viên trong một lớp.",
+      "Đăng ký chờ không góp vào số lớp."
+    ],
+    "examples": [
+      {
+        "input": "Học viên 2 xác nhận ở lớp 10 và 50.",
+        "output": "2 | 2",
+        "explanation": "Cả hai đăng ký đều hợp lệ."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Học viên 1 có hai xác nhận và một đăng ký chờ.",
+        "output": "1 | 2",
+        "explanation": "Lớp 20 chưa xác nhận không được cộng."
+      }
+    ],
+    "schema": "CREATE TABLE #Courses(id int PRIMARY KEY, seats int NOT NULL CHECK(seats >= 0));\nCREATE TABLE #Enrollments(course_id int NOT NULL, learner int NOT NULL, confirmed bit NOT NULL, PRIMARY KEY(course_id, learner));",
+    "dataset": "INSERT #Courses VALUES (10,2),(20,1),(30,0),(40,4),(50,1);\nINSERT #Enrollments VALUES (10,1,1),(10,2,1),(20,1,0),(40,1,1),(40,3,0),(50,2,1);",
+    "expected": "learner | courses\n1 | 2\n2 | 2",
+    "ordered": false,
+    "starter": "SELECT learner, COUNT(*) AS courses\nFROM #Enrollments\nGROUP BY learner;",
+    "solution": "SELECT learner, COUNT(*) AS courses\nFROM #Enrollments\nWHERE confirmed=1\nGROUP BY learner\nHAVING COUNT(*) >= 2;",
+    "hint": "Lọc trạng thái trước khi nhóm, lọc số lượng sau khi nhóm.",
+    "explanation": "Khóa ghép bảo đảm mỗi dòng đã lọc đóng góp một lớp khác nhau với người học. Nếu schema cho phép nhiều phiên bản cho một đăng ký, cần chọn trạng thái có hiệu lực trước khi đếm.",
+    "complexity": "Không cần JOIN với #Courses vì việc xác nhận nằm trọn trong dữ liệu đăng ký.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL"
+  },
+  {
+    "slug": "crm-canonical-tags",
+    "kind": "coding",
+    "title": "Lọc nhãn liên hệ khi nhập CRM",
+    "topic": "csharp",
+    "difficulty": "easy",
+    "tags": [
+      "CRM",
+      "HashSet",
+      "ordinal"
+    ],
+    "minutes": 12,
+    "description": "Nhập nhãn ASCII cho một liên hệ. Trim hai đầu, bỏ nhãn rỗng và trùng theo OrdinalIgnoreCase. Giữ thứ tự và cách viết đầu tiên sau trim.",
+    "input": "string[] tags; mỗi chuỗi chỉ có chữ cái ASCII hoặc khoảng trắng.",
+    "output": "Mảng nhãn hợp lệ theo thứ tự xuất hiện đầu tiên.",
+    "constraints": [
+      "0–5.000 nhãn, tối đa 100 ký tự mỗi nhãn; không có null.",
+      "Không thay đổi mảng đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[\" Vip \",\"VIP\",\"New\"]",
+        "output": "[\"Vip\",\"New\"]",
+        "explanation": "Hai biến thể đầu là cùng một nhãn."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Danh sách rỗng."
+      },
+      {
+        "input": "[\" \",\"a b\",\"A B\",\"ab\"]",
+        "output": "[\"a b\",\"ab\"]",
+        "explanation": "Giữ khoảng trắng ở giữa nhãn."
+      },
+      {
+        "input": "[\"z\",\"A\",\" Z \"]",
+        "output": "[\"z\",\"A\"]",
+        "explanation": "Không sort theo chữ cái."
+      }
+    ],
+    "starter": "public static string[] ContactTags(string[] tags)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static string[] ContactTags(string[] tags)\n{\n    var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);\n    var result = new List<string>();\n    foreach (var raw in tags)\n    {\n        var tag = raw.Trim();\n        if (tag.Length > 0 && seen.Add(tag)) result.Add(tag);\n    }\n    return result.ToArray();\n}",
+    "hint": "Tách trách nhiệm phát hiện trùng khỏi thứ tự trả về.",
+    "explanation": "HashSet dùng comparer theo hợp đồng. List chỉ thêm biến thể đầu tiên. ToUpper toàn bộ rồi trả kết quả sẽ làm mất cách viết người dùng chọn.",
+    "complexity": "Thời gian kỳ vọng O(tổng ký tự); bộ nhớ phụ O(tổng độ dài các nhãn giữ lại).",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "debug-page-offset",
+    "kind": "coding",
+    "title": "Trang cuối bị âm offset",
+    "topic": "aspnet",
+    "difficulty": "easy",
+    "tags": [
+      "debug-lab",
+      "pagination",
+      "overflow"
+    ],
+    "minutes": 10,
+    "description": "API đếm trang từ 1. Sửa hàm tính offset cho page và size hợp lệ, kể cả khi kết quả vượt Int32.",
+    "input": "Hai số nguyên page và size.",
+    "output": "long, số mục bỏ qua trước trang yêu cầu.",
+    "constraints": [
+      "1 ≤ page ≤ 2.000.000.000, 1 ≤ size ≤ 500.",
+      "Giữ chữ ký và số trang bắt đầu từ 1."
+    ],
+    "examples": [
+      {
+        "input": "3, 25",
+        "output": "50",
+        "explanation": "Hai trang đứng trước."
+      },
+      {
+        "input": "100000001, 30",
+        "output": "3000000000",
+        "explanation": "Offset vượt Int32."
+      }
+    ],
+    "tests": [
+      {
+        "input": "1, 50",
+        "output": "0",
+        "explanation": "Trang đầu."
+      },
+      {
+        "input": "2000000000, 500",
+        "output": "999999999500",
+        "explanation": "Biên trên."
+      },
+      {
+        "input": "2, 1",
+        "output": "1",
+        "explanation": "Trang chỉ có một mục."
+      }
+    ],
+    "reproduce": "Chạy starter với page=100000001 và size=30. Kết quả cần là 3000000000.",
+    "starter": "public static long PageOffset(int page, int size)\n{\n    return (page - 1) * size;\n}",
+    "solution": "public static long PageOffset(int page, int size)\n{\n    return (long)(page - 1) * size;\n}",
+    "hint": "Kiểm tra kiểu của phép nhân trước khi phương thức trả kết quả.",
+    "explanation": "C# thực hiện nhân int trước khi đổi sang long. Mở rộng một toán hạng trước phép nhân. Ép kiểu kết quả sau phép nhân vẫn giữ giá trị tràn.",
+    "complexity": "O(1) thời gian và bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  }
+]

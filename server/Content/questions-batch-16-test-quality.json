@@ -1,0 +1,650 @@
+[
+  {
+    "slug": "test-theory-boundary-rows",
+    "content": {
+      "title": "Kiểm tra ngưỡng theo bảng dữ liệu",
+      "topic": "testing",
+      "subtopic": "xUnit Theory",
+      "tags": [
+        "xUnit Theory"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Phiếu hợp lệ khi số khách từ 1 đến 4, kể cả hai đầu. Bộ dữ liệu nào cho một xUnit Theory kiểm được cả bốn vị trí ngay sát hai biên?",
+      "englishPrompt": "A pass accepts one through four visitors, inclusive. Which xUnit theory data covers all four positions immediately around the two boundaries?",
+      "context": "Mỗi dòng dữ liệu gồm số khách và kết quả hợp lệ mong đợi.",
+      "hint": "Với mỗi ngưỡng hãy lấy một điểm vừa trong và một điểm vừa ngoài.",
+      "nextHint": "Bốn cặp đầu vào và kỳ vọng dùng chung một thân test, chạy độc lập cho từng dòng InlineData.",
+      "followUp": "Nếu điều kiện trên bị đổi từ <= 4 thành < 4, dòng nào phải đỏ?",
+      "englishFollowUp": "Which data row should fail if the upper check changes from <= 4 to < 4?",
+      "outline": [
+        "0 sai, 1 đúng, 4 đúng, 5 sai",
+        "Bốn cặp đầu vào và kỳ vọng dùng chung một thân test, chạy độc lập cho từng dòng InlineData."
+      ],
+      "shortAnswer": "0 sai, 1 đúng, 4 đúng, 5 sai. Bốn cặp đầu vào và kỳ vọng dùng chung một thân test, chạy độc lập cho từng dòng InlineData.",
+      "explanation": "Bốn cặp đầu vào và kỳ vọng dùng chung một thân test, chạy độc lập cho từng dòng InlineData. Chỉ dùng các điểm ở giữa sẽ bỏ lọt lỗi loại nhầm chính giá trị 1 hoặc 4.",
+      "alternative": "Cho số khách và kết quả mong đợi làm hai tham số để mỗi dòng thể hiện rõ quy tắc.",
+      "trap": "Chỉ dùng các điểm ở giữa sẽ bỏ lọt lỗi loại nhầm chính giá trị 1 hoặc 4.",
+      "rubric": [
+        "0 sai, 1 đúng, 4 đúng, 5 sai",
+        "Bốn cặp đầu vào và kỳ vọng dùng chung một thân test, chạy độc lập cho từng dòng InlineData.",
+        "Chỉ dùng các điểm ở giữa sẽ bỏ lọt lỗi loại nhầm chính giá trị 1 hoặc 4.",
+        "Cho số khách và kết quả mong đợi làm hai tham số để mỗi dòng thể hiện rõ quy tắc."
+      ],
+      "source": "https://xunit.net/docs/getting-started/v3/getting-started",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1 đúng, 2 đúng, 3 đúng, 4 đúng",
+          "0 sai, 1 đúng, 4 đúng, 5 sai",
+          "0 sai, 2 đúng, 3 đúng, 5 sai"
+        ],
+        "en": [
+          "1 true, 2 true, 3 true, 4 true",
+          "0 false, 1 true, 4 true, 5 false",
+          "0 false, 2 true, 3 true, 5 false"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-public-behavior-refactor",
+    "content": {
+      "title": "Đổi tên hàm private",
+      "topic": "testing",
+      "subtopic": "Hành vi công khai",
+      "tags": [
+        "Hành vi công khai"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một test dùng reflection gọi private NormalizeTitle. Nhóm muốn cho phép đổi tên hoặc gộp helper này mà vẫn phát hiện tiêu đề hiển thị sai. Nên thay assert như thế nào?",
+      "englishPrompt": "A test calls private NormalizeTitle via reflection. The team wants to allow renaming or inlining it while still detecting incorrect displayed titles. What should the test assert?",
+      "context": "Phương thức public BuildHeading nhận tiêu đề gốc và trả lại chuỗi dùng trên màn hình.",
+      "hint": "Thay đổi nào người dùng của lớp có thể quan sát?",
+      "nextHint": "Đầu ra của BuildHeading là hành vi công khai mà yêu cầu cần bảo vệ. Helper có thể được tổ chức lại mà kết quả vẫn đúng.",
+      "followUp": "Nếu bỏ bước trim khỏi bản build, dữ liệu test nào sẽ làm lỗi lộ ra?",
+      "englishFollowUp": "What test input would reveal removal of the trimming step?",
+      "outline": [
+        "Gọi BuildHeading với đầu vào đại diện rồi so tiêu đề đầu ra với kỳ vọng",
+        "Đầu ra của BuildHeading là hành vi công khai mà yêu cầu cần bảo vệ. Helper có thể được tổ chức lại mà kết quả vẫn đúng."
+      ],
+      "shortAnswer": "Gọi BuildHeading với đầu vào đại diện rồi so tiêu đề đầu ra với kỳ vọng. Đầu ra của BuildHeading là hành vi công khai mà yêu cầu cần bảo vệ. Helper có thể được tổ chức lại mà kết quả vẫn đúng.",
+      "explanation": "Đầu ra của BuildHeading là hành vi công khai mà yêu cầu cần bảo vệ. Helper có thể được tổ chức lại mà kết quả vẫn đúng. Kiểm tra tên private method biến một thay đổi nội bộ hợp lệ thành lỗi test.",
+      "alternative": "Thêm đầu vào có khoảng trắng thừa nếu thao tác chuẩn hóa khoảng trắng là một phần hợp đồng.",
+      "trap": "Kiểm tra tên private method biến một thay đổi nội bộ hợp lệ thành lỗi test.",
+      "rubric": [
+        "Gọi BuildHeading với đầu vào đại diện rồi so tiêu đề đầu ra với kỳ vọng",
+        "Đầu ra của BuildHeading là hành vi công khai mà yêu cầu cần bảo vệ. Helper có thể được tổ chức lại mà kết quả vẫn đúng.",
+        "Kiểm tra tên private method biến một thay đổi nội bộ hợp lệ thành lỗi test.",
+        "Thêm đầu vào có khoảng trắng thừa nếu thao tác chuẩn hóa khoảng trắng là một phần hợp đồng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi BuildHeading với đầu vào đại diện rồi so tiêu đề đầu ra với kỳ vọng",
+          "Kiểm tra private NormalizeTitle vẫn có đúng tên và tham số",
+          "Chỉ kiểm tra số private method trong lớp không đổi"
+        ],
+        "en": [
+          "Call BuildHeading with representative input and compare the resulting title with the expected text",
+          "Verify that private NormalizeTitle retains its name and parameter list",
+          "Assert that the count of private methods on the class remains unchanged"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-coverage-oracle",
+    "content": {
+      "title": "Dòng đã chạy và kết quả sai",
+      "topic": "testing",
+      "subtopic": "Code coverage",
+      "tags": [
+        "Code coverage"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Unit test chạy qua toàn bộ hàm đổi phút sang giây nhưng chỉ kiểm tra kết quả khác null. Báo cáo line coverage 100%. Thay đổi nào bắt được lỗi nhân 6 thay vì 60?",
+      "englishPrompt": "A test executes the entire minutes-to-seconds function but only checks for a non-null result. Line coverage is 100%. Which change detects multiplication by six instead of sixty?",
+      "context": "Đầu vào là số nguyên dương. Bản sửa nhầm vẫn tạo kết quả khác null.",
+      "hint": "Số liệu coverage cho biết gì về kỳ vọng số học?",
+      "nextHint": "Coverage ghi nhận dòng mã đã chạy. Assert giá trị 120 mới phân biệt được hai phép nhân.",
+      "followUp": "Tại sao dùng riêng trường hợp 0 phút vẫn bỏ lọt lỗi này?",
+      "englishFollowUp": "Why would a test using only zero minutes still miss this bug?",
+      "outline": [
+        "Với 2 phút, assert kết quả chính xác là 120 giây",
+        "Coverage ghi nhận dòng mã đã chạy. Assert giá trị 120 mới phân biệt được hai phép nhân."
+      ],
+      "shortAnswer": "Với 2 phút, assert kết quả chính xác là 120 giây. Coverage ghi nhận dòng mã đã chạy. Assert giá trị 120 mới phân biệt được hai phép nhân.",
+      "explanation": "Coverage ghi nhận dòng mã đã chạy. Assert giá trị 120 mới phân biệt được hai phép nhân. Hai implementation có thể chạy cùng số dòng và tạo ra kết quả khác nhau.",
+      "alternative": "Chọn thêm một đầu vào khác 0 để phép nhân sai không tình cờ cho kết quả đúng.",
+      "trap": "Hai implementation có thể chạy cùng số dòng và tạo ra kết quả khác nhau.",
+      "rubric": [
+        "Với 2 phút, assert kết quả chính xác là 120 giây",
+        "Coverage ghi nhận dòng mã đã chạy. Assert giá trị 120 mới phân biệt được hai phép nhân.",
+        "Hai implementation có thể chạy cùng số dòng và tạo ra kết quả khác nhau.",
+        "Chọn thêm một đầu vào khác 0 để phép nhân sai không tình cờ cho kết quả đúng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-code-coverage",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tăng số lượt gọi với đầu vào 2 nhưng giữ assert khác null",
+          "Yêu cầu cùng báo cáo line coverage đạt 100% trên hai máy CI",
+          "Với 2 phút, assert kết quả chính xác là 120 giây"
+        ],
+        "en": [
+          "Repeat the call with input two and keep the non-null assertion",
+          "Require the same 100% line coverage on two CI agents",
+          "For two minutes, assert that the exact result is 120 seconds"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-awaited-assertion",
+    "content": {
+      "title": "Assert bất đồng bộ bị bỏ quên",
+      "topic": "testing",
+      "subtopic": "xUnit async assertion",
+      "tags": [
+        "xUnit async assertion"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một test xUnit gọi Assert.ThrowsAsync rồi bỏ qua Task trả về. Có lần test xanh dù phương thức không ném lỗi mong đợi. Sửa gì để kết quả assertion đến được runner?",
+      "englishPrompt": "An xUnit test calls Assert.ThrowsAsync and ignores the returned Task. It can pass even when the method never throws as expected. How should the test deliver the assertion's result to the runner?",
+      "context": "Thao tác được kiểm tra có thể hoàn tất sau khi test method đã trả về.",
+      "hint": "Runner đang theo dõi Task của lời gọi nào?",
+      "nextHint": "Await nối kết quả và lỗi assertion với Task mà runner theo dõi, nên ngoại lệ sai loại sẽ làm test thất bại.",
+      "followUp": "Chuyện gì phải xảy ra với test nếu thao tác ném loại exception khác?",
+      "englishFollowUp": "What should happen if the operation throws a different exception type?",
+      "outline": [
+        "Cho test trả Task và await Assert.ThrowsAsync",
+        "Await nối kết quả và lỗi assertion với Task mà runner theo dõi, nên ngoại lệ sai loại sẽ làm test thất bại."
+      ],
+      "shortAnswer": "Cho test trả Task và await Assert.ThrowsAsync. Await nối kết quả và lỗi assertion với Task mà runner theo dõi, nên ngoại lệ sai loại sẽ làm test thất bại.",
+      "explanation": "Await nối kết quả và lỗi assertion với Task mà runner theo dõi, nên ngoại lệ sai loại sẽ làm test thất bại. Chờ một khoảng thời gian không truyền lỗi của Task assertion sang kết quả test.",
+      "alternative": "Nếu chỉ có một assertion async, test cũng có thể trả trực tiếp Task của assertion.",
+      "trap": "Chờ một khoảng thời gian không truyền lỗi của Task assertion sang kết quả test.",
+      "rubric": [
+        "Cho test trả Task và await Assert.ThrowsAsync",
+        "Await nối kết quả và lỗi assertion với Task mà runner theo dõi, nên ngoại lệ sai loại sẽ làm test thất bại.",
+        "Chờ một khoảng thời gian không truyền lỗi của Task assertion sang kết quả test.",
+        "Nếu chỉ có một assertion async, test cũng có thể trả trực tiếp Task của assertion."
+      ],
+      "source": "https://xunit.net/xunit.analyzers/rules/xUnit2021",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Thêm Task.Delay cố định sau khi gọi assertion nhưng không await assertion",
+          "Dùng try/catch quanh lời gọi chưa await rồi bỏ qua lỗi",
+          "Cho test trả Task và await Assert.ThrowsAsync"
+        ],
+        "en": [
+          "Add a fixed Task.Delay after the assertion and continue to ignore its task",
+          "Wrap the unawaited call in try/catch and discard any error",
+          "Return Task from the test and await Assert.ThrowsAsync"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-fixture-lifetime",
+    "content": {
+      "title": "Chia sẻ tài nguyên đắt trong xUnit",
+      "topic": "testing",
+      "subtopic": "Class fixture",
+      "tags": [
+        "Class fixture"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Năm test trong cùng một lớp xUnit cần dùng chung server đọc dữ liệu bất biến, rất chậm khởi tạo. Test class hiện tạo server trong constructor. Cách nào khởi tạo một lần cho lớp?",
+      "englishPrompt": "Five tests in one xUnit class use a read-only server with expensive startup. The test class currently creates it in its constructor. How can the server be started once for this class?",
+      "context": "Server là tài nguyên cần dispose sau khi tất cả test của lớp hoàn thành.",
+      "hint": "xUnit tạo instance test class mới cho mỗi test.",
+      "nextHint": "Class fixture có vòng đời chung cho các test trong lớp. Framework quản lý việc khởi tạo và dọn fixture.",
+      "followUp": "Nếu một test sửa dữ liệu dùng chung, vì sao chạy theo thứ tự khác có thể cho kết quả khác?",
+      "englishFollowUp": "Why might a different execution order matter if a test mutates the shared data?",
+      "outline": [
+        "Đưa server vào class fixture và nhận fixture qua constructor",
+        "Class fixture có vòng đời chung cho các test trong lớp. Framework quản lý việc khởi tạo và dọn fixture."
+      ],
+      "shortAnswer": "Đưa server vào class fixture và nhận fixture qua constructor. Class fixture có vòng đời chung cho các test trong lớp. Framework quản lý việc khởi tạo và dọn fixture.",
+      "explanation": "Class fixture có vòng đời chung cho các test trong lớp. Framework quản lý việc khởi tạo và dọn fixture. Instance field initializer vẫn chạy cho từng instance test class và lặp lại chi phí khởi tạo.",
+      "alternative": "Nếu test thay đổi dữ liệu, tách dữ liệu từng test dù vẫn dùng chung tiến trình server.",
+      "trap": "Instance field initializer vẫn chạy cho từng instance test class và lặp lại chi phí khởi tạo.",
+      "rubric": [
+        "Đưa server vào class fixture và nhận fixture qua constructor",
+        "Class fixture có vòng đời chung cho các test trong lớp. Framework quản lý việc khởi tạo và dọn fixture.",
+        "Instance field initializer vẫn chạy cho từng instance test class và lặp lại chi phí khởi tạo.",
+        "Nếu test thay đổi dữ liệu, tách dữ liệu từng test dù vẫn dùng chung tiến trình server."
+      ],
+      "source": "https://xunit.net/docs/shared-context",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chuyển lệnh tạo server sang trường instance có initializer",
+          "Đưa server vào class fixture và nhận fixture qua constructor",
+          "Giữ constructor rồi gắn Fact cho constructor thay vì phương thức test"
+        ],
+        "en": [
+          "Move server construction to an instance field initializer",
+          "Move the server into a class fixture and receive the fixture in the constructor",
+          "Keep the constructor and put Fact on it instead of the test methods"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-first-redirect",
+    "content": {
+      "title": "Kiểm chứng phản hồi chuyển hướng đầu tiên",
+      "topic": "testing",
+      "subtopic": "HTTP integration test",
+      "tags": [
+        "HTTP integration test"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "GET một URL cũ phải trả 301 và Location trỏ đến URL mới. Client do WebApplicationFactory tạo đang tự theo redirect rồi nhận 200. Cấu hình test nào kiểm tra được phản hồi đầu tiên?",
+      "englishPrompt": "A legacy URL must return 301 with Location pointing to its replacement. The WebApplicationFactory client follows redirects and gets 200. Which test setup exposes the first response?",
+      "context": "Trang đích mới đã tồn tại và cũng có thể được truy cập trực tiếp.",
+      "hint": "Cần quan sát phản hồi trước hay sau khi client gửi request kế tiếp?",
+      "nextHint": "Tắt tự theo chuyển hướng giữ lại phản hồi ban đầu để kiểm tra cả mã trạng thái và đích.",
+      "followUp": "Nếu server đổi 301 thành 302 nhưng giữ Location, assertion nào phải thất bại?",
+      "englishFollowUp": "Which assertion should fail if the server changes 301 to 302 but keeps Location?",
+      "outline": [
+        "Đặt AllowAutoRedirect = false rồi assert 301 và Location trên response",
+        "Tắt tự theo chuyển hướng giữ lại phản hồi ban đầu để kiểm tra cả mã trạng thái và đích."
+      ],
+      "shortAnswer": "Đặt AllowAutoRedirect = false rồi assert 301 và Location trên response. Tắt tự theo chuyển hướng giữ lại phản hồi ban đầu để kiểm tra cả mã trạng thái và đích.",
+      "explanation": "Tắt tự theo chuyển hướng giữ lại phản hồi ban đầu để kiểm tra cả mã trạng thái và đích. Trang đích trả 200 chưa chứng minh URL cũ dùng chuyển hướng vĩnh viễn thay vì tạm thời.",
+      "alternative": "Test riêng việc URL đích hoạt động nếu đó cũng là một yêu cầu độc lập.",
+      "trap": "Trang đích trả 200 chưa chứng minh URL cũ dùng chuyển hướng vĩnh viễn thay vì tạm thời.",
+      "rubric": [
+        "Đặt AllowAutoRedirect = false rồi assert 301 và Location trên response",
+        "Tắt tự theo chuyển hướng giữ lại phản hồi ban đầu để kiểm tra cả mã trạng thái và đích.",
+        "Trang đích trả 200 chưa chứng minh URL cũ dùng chuyển hướng vĩnh viễn thay vì tạm thời.",
+        "Test riêng việc URL đích hoạt động nếu đó cũng là một yêu cầu độc lập."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đặt AllowAutoRedirect = false rồi assert 301 và Location trên response",
+          "Chỉ assert nội dung HTML của trang trả 200 sau cùng",
+          "Gọi trực tiếp URL mới và kiểm tra nó trả 200"
+        ],
+        "en": [
+          "Set AllowAutoRedirect to false and assert 301 and Location on the response",
+          "Assert only the HTML content of the final 200 page",
+          "Request the new URL directly and assert it returns 200"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-http-binding",
+    "content": {
+      "title": "Gửi văn bản vào trường số",
+      "topic": "testing",
+      "subtopic": "Model binding",
+      "tags": [
+        "Model binding"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "API nhận JSON với Seats kiểu int và phải trả 400 khi Seats là chuỗi “nhiều”. Test nào đi qua bộ đọc JSON và pipeline ASP.NET Core thật?",
+      "englishPrompt": "An API accepts JSON with an integer Seats and must return 400 if Seats is the string “many”. Which test exercises the actual ASP.NET Core JSON input and request pipeline?",
+      "context": "Controller dùng ApiController. Một test cũ tạo trực tiếp đối tượng request C# với Seats = 0.",
+      "hint": "Giá trị sai kiểu phải đến ứng dụng trước hay sau bước tạo model C#?",
+      "nextHint": "Request qua test host đi vào bước đọc body và chuyển kiểu. Gọi trực tiếp action đã bỏ qua bước tạo model từ JSON.",
+      "followUp": "Nếu API có hợp đồng lỗi JSON riêng, ngoài 400 bạn cần xác nhận thêm gì?",
+      "englishFollowUp": "What else should be asserted if the API publishes a JSON error contract?",
+      "outline": [
+        "Gửi HTTP POST chứa JSON sai kiểu đến test host và assert 400",
+        "Request qua test host đi vào bước đọc body và chuyển kiểu. Gọi trực tiếp action đã bỏ qua bước tạo model từ JSON."
+      ],
+      "shortAnswer": "Gửi HTTP POST chứa JSON sai kiểu đến test host và assert 400. Request qua test host đi vào bước đọc body và chuyển kiểu. Gọi trực tiếp action đã bỏ qua bước tạo model từ JSON.",
+      "explanation": "Request qua test host đi vào bước đọc body và chuyển kiểu. Gọi trực tiếp action đã bỏ qua bước tạo model từ JSON. Giá trị số 0 là một số nguyên hợp lệ về kiểu, khác với chuỗi không chuyển được thành số.",
+      "alternative": "Nếu client phụ thuộc vào nội dung lỗi, kiểm tra cấu trúc phản hồi đã công bố bên cạnh status.",
+      "trap": "Giá trị số 0 là một số nguyên hợp lệ về kiểu, khác với chuỗi không chuyển được thành số.",
+      "rubric": [
+        "Gửi HTTP POST chứa JSON sai kiểu đến test host và assert 400",
+        "Request qua test host đi vào bước đọc body và chuyển kiểu. Gọi trực tiếp action đã bỏ qua bước tạo model từ JSON.",
+        "Giá trị số 0 là một số nguyên hợp lệ về kiểu, khác với chuỗi không chuyển được thành số.",
+        "Nếu client phụ thuộc vào nội dung lỗi, kiểm tra cấu trúc phản hồi đã công bố bên cạnh status."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/mvc/controllers/testing?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Khởi tạo DTO với Seats = 0 rồi gọi thẳng action",
+          "Mock action để luôn trả BadRequest và gọi mock với DTO hợp lệ",
+          "Gửi HTTP POST chứa JSON sai kiểu đến test host và assert 400"
+        ],
+        "en": [
+          "Construct the DTO with Seats = 0 and invoke the action directly",
+          "Mock the action to return BadRequest and call it with a valid DTO",
+          "POST the invalid JSON to the test host and assert 400"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-host-replace-mailer",
+    "content": {
+      "title": "Chạy endpoint mà không gửi thư thật",
+      "topic": "testing",
+      "subtopic": "Thay dịch vụ trong test host",
+      "tags": [
+        "Thay dịch vụ trong test host"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Integration test cần đi qua route đăng ký và use case thật, ghi nhận người nhận email nhưng không gửi email ra mạng. Đặt test double ở đâu?",
+      "englishPrompt": "An integration test must exercise the real enrollment route and use case, recording the email recipient without sending external mail. Where should the test double go?",
+      "context": "Ứng dụng đã inject IEmailSender. Test có thể cấu hình WebApplicationFactory riêng.",
+      "hint": "Giữ nguyên các thành phần nào đang được test?",
+      "nextHint": "ConfigureTestServices cho phép cấu hình DI của host test. Route và use case vẫn chạy qua HTTP, còn mailer ghi nhận người nhận.",
+      "followUp": "Ngoài status thành công, dữ liệu nào ở test double xác nhận đúng người nhận?",
+      "englishFollowUp": "Besides the success status, what recorded data verifies the intended recipient?",
+      "outline": [
+        "Thay registration IEmailSender trong test host bằng bản ghi lại lời gọi",
+        "ConfigureTestServices cho phép cấu hình DI của host test. Route và use case vẫn chạy qua HTTP, còn mailer ghi nhận người nhận."
+      ],
+      "shortAnswer": "Thay registration IEmailSender trong test host bằng bản ghi lại lời gọi. ConfigureTestServices cho phép cấu hình DI của host test. Route và use case vẫn chạy qua HTTP, còn mailer ghi nhận người nhận.",
+      "explanation": "ConfigureTestServices cho phép cấu hình DI của host test. Route và use case vẫn chạy qua HTTP, còn mailer ghi nhận người nhận. Stub ngay ở đầu vào sẽ bỏ qua hành vi đang được kiểm tra. Chỉ assert 200 cũng không xác minh địa chỉ nhận.",
+      "alternative": "Dùng bộ ghi riêng cho từng test để thư của test chạy song song không lẫn nhau.",
+      "trap": "Stub ngay ở đầu vào sẽ bỏ qua hành vi đang được kiểm tra. Chỉ assert 200 cũng không xác minh địa chỉ nhận.",
+      "rubric": [
+        "Thay registration IEmailSender trong test host bằng bản ghi lại lời gọi",
+        "ConfigureTestServices cho phép cấu hình DI của host test. Route và use case vẫn chạy qua HTTP, còn mailer ghi nhận người nhận.",
+        "Stub ngay ở đầu vào sẽ bỏ qua hành vi đang được kiểm tra. Chỉ assert 200 cũng không xác minh địa chỉ nhận.",
+        "Dùng bộ ghi riêng cho từng test để thư của test chạy song song không lẫn nhau."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Thay registration IEmailSender trong test host bằng bản ghi lại lời gọi",
+          "Thay chính request handler bằng hàm trả 200 cố định",
+          "Giữ mailer thật nhưng stub HttpClient dùng để gọi route đăng ký"
+        ],
+        "en": [
+          "Replace IEmailSender in the test host with an implementation that records calls",
+          "Replace the request handler itself with a function that always returns 200",
+          "Keep the real mailer but stub the HttpClient used to call the enrollment route"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-db-reload-proof",
+    "content": {
+      "title": "Bắt lỗi quên lưu thay đổi",
+      "topic": "testing",
+      "subtopic": "Kiểm tra dữ liệu đã lưu",
+      "tags": [
+        "Kiểm tra dữ liệu đã lưu"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Trong integration test, một entity đang được EF theo dõi. Sau khi gọi hàm đổi tên, test đọc ngay entity cũ và thấy tên mới dù hàm quên SaveChanges. Cách nào xác minh giá trị trong DB?",
+      "englishPrompt": "An EF integration test tracks an entity. After a rename, the same instance shows its new name even if the method forgot SaveChanges. How can the test verify the value in the database?",
+      "context": "Hàng cũ đã tồn tại. Test đang dùng một transaction riêng và thấy được các lệnh ghi trong transaction đó.",
+      "hint": "Khi bỏ instance đang được theo dõi, lần đọc mới sẽ lấy dữ liệu từ đâu?",
+      "nextHint": "Xóa tracking buộc truy vấn sau materialize dữ liệu từ DB. Nếu phần code cần test chưa lưu, tên cũ xuất hiện trở lại.",
+      "followUp": "Nếu mở context khác trước commit, nó cần chia sẻ gì để thấy các thay đổi chưa commit của test?",
+      "englishFollowUp": "What must another context share to see the test's uncommitted writes?",
+      "outline": [
+        "Clear change tracker sau thao tác rồi query lại theo Id trong cùng transaction",
+        "Xóa tracking buộc truy vấn sau materialize dữ liệu từ DB. Nếu phần code cần test chưa lưu, tên cũ xuất hiện trở lại."
+      ],
+      "shortAnswer": "Clear change tracker sau thao tác rồi query lại theo Id trong cùng transaction. Xóa tracking buộc truy vấn sau materialize dữ liệu từ DB. Nếu phần code cần test chưa lưu, tên cũ xuất hiện trở lại.",
+      "explanation": "Xóa tracking buộc truy vấn sau materialize dữ liệu từ DB. Nếu phần code cần test chưa lưu, tên cũ xuất hiện trở lại. Test tự gọi SaveChanges có thể sửa hộ lỗi của code và tạo kết quả xanh sai.",
+      "alternative": "Một context mới cũng kiểm tra được nếu nó chia sẻ đúng connection và transaction cần quan sát.",
+      "trap": "Test tự gọi SaveChanges có thể sửa hộ lỗi của code và tạo kết quả xanh sai.",
+      "rubric": [
+        "Clear change tracker sau thao tác rồi query lại theo Id trong cùng transaction",
+        "Xóa tracking buộc truy vấn sau materialize dữ liệu từ DB. Nếu phần code cần test chưa lưu, tên cũ xuất hiện trở lại.",
+        "Test tự gọi SaveChanges có thể sửa hộ lỗi của code và tạo kết quả xanh sai.",
+        "Một context mới cũng kiểm tra được nếu nó chia sẻ đúng connection và transaction cần quan sát."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/testing/testing-with-the-database",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi SaveChanges từ bước Assert rồi mới query lại",
+          "Clear change tracker sau thao tác rồi query lại theo Id trong cùng transaction",
+          "Giữ tham chiếu khác đến cùng entity và so thuộc tính Name"
+        ],
+        "en": [
+          "Call SaveChanges in the assertion step before querying again",
+          "Clear the change tracker after the operation and query by Id in the same transaction",
+          "Keep a second reference to the same entity and compare its Name property"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-db-explicit-transaction",
+    "content": {
+      "title": "Cô lập test có giao dịch riêng",
+      "topic": "testing",
+      "subtopic": "Cô lập integration test",
+      "tags": [
+        "Cô lập integration test"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Hàm cần test tự mở và commit transaction trên SQL Server. Provider không cho mở thêm transaction cùng connection. Cách nào cô lập các test ghi mà vẫn chạy đường commit thật?",
+      "englishPrompt": "The method under test opens and commits its own SQL Server transaction. The provider disallows a second active transaction on that connection. How can write tests be isolated while exercising the real commit?",
+      "context": "Bộ test có thể cấp database riêng cho từng worker. Team muốn chạy song song.",
+      "hint": "Sau commit, ai chịu trách nhiệm đưa dữ liệu test về trạng thái ban đầu?",
+      "nextHint": "DB riêng ngăn worker ghi đè dữ liệu nhau. Reset giữa các test loại bỏ tác động của transaction đã commit.",
+      "followUp": "Khi chỉ có một database test, cần điều chỉnh việc chạy song song của nhóm ghi như thế nào?",
+      "englishFollowUp": "If only one test database is available, how should the write tests be scheduled?",
+      "outline": [
+        "Mỗi worker dùng DB riêng, reset dữ liệu giữa các test thay đổi trạng thái",
+        "DB riêng ngăn worker ghi đè dữ liệu nhau. Reset giữa các test loại bỏ tác động của transaction đã commit."
+      ],
+      "shortAnswer": "Mỗi worker dùng DB riêng, reset dữ liệu giữa các test thay đổi trạng thái. DB riêng ngăn worker ghi đè dữ liệu nhau. Reset giữa các test loại bỏ tác động của transaction đã commit.",
+      "explanation": "DB riêng ngăn worker ghi đè dữ liệu nhau. Reset giữa các test loại bỏ tác động của transaction đã commit. Dọn dữ liệu toàn bảng dùng chung trong khi test khác chạy tạo race và có thể xóa cả fixture của test đó.",
+      "alternative": "Nếu chỉ có một DB riêng cho bộ test, chạy tuần tự nhóm test ghi và reset dữ liệu giữa các lượt.",
+      "trap": "Dọn dữ liệu toàn bảng dùng chung trong khi test khác chạy tạo race và có thể xóa cả fixture của test đó.",
+      "rubric": [
+        "Mỗi worker dùng DB riêng, reset dữ liệu giữa các test thay đổi trạng thái",
+        "DB riêng ngăn worker ghi đè dữ liệu nhau. Reset giữa các test loại bỏ tác động của transaction đã commit.",
+        "Dọn dữ liệu toàn bảng dùng chung trong khi test khác chạy tạo race và có thể xóa cả fixture của test đó.",
+        "Nếu chỉ có một DB riêng cho bộ test, chạy tuần tự nhóm test ghi và reset dữ liệu giữa các lượt."
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/testing/testing-with-the-database",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Bao ngoài bằng transaction thứ hai trên cùng connection rồi rollback cuối test",
+          "Mỗi worker dùng DB riêng, reset dữ liệu giữa các test thay đổi trạng thái",
+          "Cho mọi worker xóa toàn bộ dữ liệu của một DB dùng chung sau mỗi test"
+        ],
+        "en": [
+          "Wrap the method in a second transaction on the same connection and roll it back at the end",
+          "Give each worker its own database and reset state between its write tests",
+          "Have all workers truncate the same shared database after each test"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-order-independent",
+    "content": {
+      "title": "Test chỉ xanh sau test khác",
+      "topic": "testing",
+      "subtopic": "Độc lập dữ liệu test",
+      "tags": [
+        "Độc lập dữ liệu test"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "SearchByTag chỉ xanh khi CreateTag chạy trước. Chạy riêng SearchByTag không tìm thấy tag mẫu. Sửa fixture thế nào để lỗi ở tính năng tìm kiếm vẫn hiện rõ?",
+      "englishPrompt": "SearchByTag passes only after CreateTag runs. By itself it cannot find the sample tag. How should its fixture change so genuine search failures remain visible?",
+      "context": "Hai test từng dùng chung một danh sách trong bộ nhớ được giữ ở trường static.",
+      "hint": "Ai phải tạo các điều kiện đầu vào mà test tìm kiếm cần?",
+      "nextHint": "Test tìm kiếm tự thiết lập đầu vào sẽ giữ cùng ý nghĩa khi chạy đơn lẻ, đổi thứ tự hoặc chạy song song.",
+      "followUp": "Nếu cần cùng một tag mẫu ở ba test, chia sẻ được phần nào mà vẫn cô lập chúng?",
+      "englishFollowUp": "If three tests need the same sample tag, what can they share while staying isolated?",
+      "outline": [
+        "Cho SearchByTag chuẩn bị tag trong kho dữ liệu riêng của test trước khi tìm",
+        "Test tìm kiếm tự thiết lập đầu vào sẽ giữ cùng ý nghĩa khi chạy đơn lẻ, đổi thứ tự hoặc chạy song song."
+      ],
+      "shortAnswer": "Cho SearchByTag chuẩn bị tag trong kho dữ liệu riêng của test trước khi tìm. Test tìm kiếm tự thiết lập đầu vào sẽ giữ cùng ý nghĩa khi chạy đơn lẻ, đổi thứ tự hoặc chạy song song.",
+      "explanation": "Test tìm kiếm tự thiết lập đầu vào sẽ giữ cùng ý nghĩa khi chạy đơn lẻ, đổi thứ tự hoặc chạy song song. Bỏ assert khi thiếu dữ liệu biến trường hợp lỗi thành lượt chạy xanh mà chưa kiểm tra tìm kiếm.",
+      "alternative": "Có thể dùng helper dựng fixture mới mỗi lần để chia sẻ cách tạo dữ liệu mà không chia sẻ trạng thái.",
+      "trap": "Bỏ assert khi thiếu dữ liệu biến trường hợp lỗi thành lượt chạy xanh mà chưa kiểm tra tìm kiếm.",
+      "rubric": [
+        "Cho SearchByTag chuẩn bị tag trong kho dữ liệu riêng của test trước khi tìm",
+        "Test tìm kiếm tự thiết lập đầu vào sẽ giữ cùng ý nghĩa khi chạy đơn lẻ, đổi thứ tự hoặc chạy song song.",
+        "Bỏ assert khi thiếu dữ liệu biến trường hợp lỗi thành lượt chạy xanh mà chưa kiểm tra tìm kiếm.",
+        "Có thể dùng helper dựng fixture mới mỗi lần để chia sẻ cách tạo dữ liệu mà không chia sẻ trạng thái."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đặt tên CreateTag bắt đầu bằng A để runner chạy nó trước",
+          "Cho test tìm kiếm bỏ qua assert nếu không thấy tag mẫu",
+          "Cho SearchByTag chuẩn bị tag trong kho dữ liệu riêng của test trước khi tìm"
+        ],
+        "en": [
+          "Rename CreateTag to start with A so the runner runs it first",
+          "Skip the assertion when the sample tag is missing",
+          "Arrange the sample tag in SearchByTag's own data store before searching"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-assert-business-outcome",
+    "content": {
+      "title": "Đổi cấu trúc mà vẫn giữ hợp đồng",
+      "topic": "testing",
+      "subtopic": "Assertion trên kết quả",
+      "tags": [
+        "Assertion trên kết quả"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hàm công khai ParseCodes nhận “ A , B ” và phải trả hai mã đã trim, đúng thứ tự. Assertion nào phát hiện sai khoảng trắng, sai thứ tự và thiếu mã cùng lúc?",
+      "englishPrompt": "Public ParseCodes takes “ A , B ” and must return two trimmed codes in order. Which assertion detects wrong whitespace, order and missing items together?",
+      "context": "Quy tắc không cam kết parser phải dùng Split hoặc gọi Trim bao nhiêu lần.",
+      "hint": "Viết ra toàn bộ kết quả mà người gọi hàm nhìn thấy.",
+      "nextHint": "So sánh tuần tự với các chuỗi kỳ vọng kiểm tra đồng thời nội dung, số phần tử và thứ tự.",
+      "followUp": "Yêu cầu nào phải thay đổi trước khi phép so bỏ qua thứ tự là hợp lý?",
+      "englishFollowUp": "What requirement would have to change before an order-insensitive comparison made sense?",
+      "outline": [
+        "So toàn bộ dãy với hai chuỗi A, B theo thứ tự",
+        "So sánh tuần tự với các chuỗi kỳ vọng kiểm tra đồng thời nội dung, số phần tử và thứ tự."
+      ],
+      "shortAnswer": "So toàn bộ dãy với hai chuỗi A, B theo thứ tự. So sánh tuần tự với các chuỗi kỳ vọng kiểm tra đồng thời nội dung, số phần tử và thứ tự.",
+      "explanation": "So sánh tuần tự với các chuỗi kỳ vọng kiểm tra đồng thời nội dung, số phần tử và thứ tự. Tiền xử lý kết quả thực tế ngay trong assertion có thể tự sửa khoảng trắng hoặc thứ tự sai mà parser trả về.",
+      "alternative": "Nếu hợp đồng thực sự cho phép mọi thứ tự, đổi sang phép so không phụ thuộc thứ tự nhưng vẫn giữ kiểm tra nội dung và số lần xuất hiện.",
+      "trap": "Tiền xử lý kết quả thực tế ngay trong assertion có thể tự sửa khoảng trắng hoặc thứ tự sai mà parser trả về.",
+      "rubric": [
+        "So toàn bộ dãy với hai chuỗi A, B theo thứ tự",
+        "So sánh tuần tự với các chuỗi kỳ vọng kiểm tra đồng thời nội dung, số phần tử và thứ tự.",
+        "Tiền xử lý kết quả thực tế ngay trong assertion có thể tự sửa khoảng trắng hoặc thứ tự sai mà parser trả về.",
+        "Nếu hợp đồng thực sự cho phép mọi thứ tự, đổi sang phép so không phụ thuộc thứ tự nhưng vẫn giữ kiểm tra nội dung và số lần xuất hiện."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "So toàn bộ dãy với hai chuỗi A, B theo thứ tự",
+          "Chỉ assert độ dài kết quả bằng hai",
+          "Sắp xếp và trim cả kết quả thực tế trong test trước khi so"
+        ],
+        "en": [
+          "Compare the entire sequence with the two strings A, B in order",
+          "Only assert that the result length is two",
+          "Sort and trim the actual values inside the test before comparing"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

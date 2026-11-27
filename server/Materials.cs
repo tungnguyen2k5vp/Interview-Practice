@@ -26,12 +26,16 @@ internal sealed class EditorialEvent
 }
 internal sealed record DesignScenario(string Slug, int Version, string Title, string Brief, string[] Requirements, string[] Rubric);
 internal sealed record RoadmapTrack(string Id, string Name, string? Level, int Days, int? Minutes);
+internal sealed record StudyConcept(string Id, string Name, string[] Aliases, string[] Prerequisites, string[] Questions, string? Exercise, string? Review);
+internal sealed record ProjectScenario(string Slug,string Title,string Brief,string Prompt,string FollowUp,string Rubric,string[] Questions);
 internal sealed record MaterialEdit(int Revision, JsonElement Content);
 internal sealed record MaterialItem(string Kind, string Slug, int Version, string Title, object Content);
 
 internal sealed class Materials
 {
     private readonly MaterialItem[] seeds;
+    internal StudyConcept[] Concepts { get; }
+    internal ProjectScenario[] Projects { get; }
     private MaterialItem[] published;
     private long loaded;
     private readonly SemaphoreSlim refresh = new(1,1);
@@ -45,14 +49,20 @@ internal sealed class Materials
     {
         var dir=Path.Combine(env.ContentRootPath,"Content");
         T Read<T>(string name)=>DataJson.Read<T>(File.ReadAllText(Path.Combine(dir,name)));
+        Concepts = Read<StudyConcept[]>("concepts.json");
+        Projects = Read<ProjectScenario[]>("project-scenarios.json");
         var tables=Read<Dictionary<string,PreviewTable[]>>("sql-preview.json");
         var exercises=Directory.GetFiles(dir,"exercises-batch-*.json").Order(StringComparer.Ordinal).Prepend(Path.Combine(dir,"exercises.json"))
             .SelectMany(f=>DataJson.Read<ExerciseContent[]>(File.ReadAllText(f)));
         RoadmapTrack[] tracks=[new("intern30","Intern .NET · 30 ngày","intern",30,20),new("fresher60","Fresher .NET · 60 ngày","fresher",60,30),
             new("junior90","Junior Backend · 90 ngày","junior",90,45),new("sprint7","Ôn cấp tốc · 7 ngày",null,7,30),
-            new("sprint14","Ôn cấp tốc · 14 ngày",null,14,30),new("custom","Lộ trình tùy chỉnh",null,0,null)];
-        seeds=[..Read<DesignScenario[]>("system-design.json").Select(x=>new MaterialItem("design",x.Slug,x.Version,x.Title,x)),
-            ..Read<ReviewCase[]>("code-reviews.json").Select(x=>new MaterialItem("review",x.Slug,x.Version,x.Title,x)),
+            new("sprint14","Ôn cấp tốc · 14 ngày",null,14,30),new("custom","Lộ trình tùy chỉnh",null,0,null),
+            new("sprint3","Ôn cấp tốc · 3 ngày",null,3,30),new("fresher14","Fresher .NET · 14 ngày","fresher",14,30),
+            new("middle45","Middle .NET · 45 ngày","mid",45,45)];
+        IEnumerable<T> Cases<T>(string kind) => Directory.GetFiles(dir,kind+"-batch-*.json").Order(StringComparer.Ordinal)
+            .Prepend(Path.Combine(dir,kind+".json")).SelectMany(f=>DataJson.Read<T[]>(File.ReadAllText(f)));
+        seeds=[..Cases<DesignScenario>("system-design").Select(x=>new MaterialItem("design",x.Slug,x.Version,x.Title,x)),
+            ..Cases<ReviewCase>("code-reviews").Select(x=>new MaterialItem("review",x.Slug,x.Version,x.Title,x)),
             ..exercises.Select(x=>new MaterialItem("exercise",x.Slug,x.Version,x.Title,x with {Tables=tables.GetValueOrDefault($"{x.Slug}@{x.Version}")})),
             ..Catalog.Topics.Select(x=>new MaterialItem("topic",x.Id,1,x.Name,x)),
             ..Interviews.Presets.Select(x=>new MaterialItem("preset",x.Id,1,x.Name,x)),..tracks.Select(x=>new MaterialItem("track",x.Id,1,x.Name,x))];
@@ -92,6 +102,12 @@ internal sealed class Materials
 
     public static void Map(RouteGroupBuilder api)
     {
+        api.MapGet("/labs/project/scenarios",async (Materials m,Catalog catalog,CancellationToken ct)=>{
+            var slugs=m.Projects.SelectMany(s=>s.Questions).Distinct().ToArray();
+            var titles=await catalog.PublishedQuery().Where(q=>slugs.Contains(q.Slug)).ToDictionaryAsync(q=>q.Slug,q=>q.Title,ct);
+            return m.Projects.Select(s=>new {s.Slug,s.Title,s.Brief,s.Prompt,s.FollowUp,s.Rubric,
+                questions=s.Questions.Where(titles.ContainsKey).Select(slug=>new {slug,title=titles[slug]})});
+        }).RequireAuthorization();
         api.MapGet("/design-scenarios",(Materials m)=>m.Items.Where(i=>i.Kind=="design").Select(i=>i.Content));
         api.MapGet("/roadmap-tracks",(Materials m)=>m.Latest<RoadmapTrack>("track"));
         var admin=api.MapGroup("/admin/materials").RequireAuthorization(p=>p.RequireRole(Auth.Admin));
@@ -153,7 +169,7 @@ internal sealed class Materials
     private async Task<int> Last(PracticeDb db,string kind,string slug,CancellationToken ct)=>
         await db.Materials.Where(r=>r.Kind==kind&&r.Slug==slug).MaxAsync(r=>(int?)r.Version,ct)
         ??seeds.Where(r=>r.Kind==kind&&r.Slug==slug).Select(r=>r.Version).DefaultIfEmpty().Max();
-    private static async Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> EditLock(PracticeDb db,CancellationToken ct)
+    internal static async Task<Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction> EditLock(PracticeDb db,CancellationToken ct)
     {
         var tx=await db.Database.BeginTransactionAsync(ct);
         try {
@@ -189,7 +205,8 @@ internal sealed class Materials
                         &&t.Rows is {Length:<=200}&&t.Rows.All(r=>r!=null&&r.Length==t.Columns.Length))),
             TopicInfo t=>Catalog.Topics.Any(x=>x.Id==t.Id)&&t.Stage is "Nền tảng" or "Ứng dụng" or "Thực tế"&&Text(t.Check)
                 &&Latest<ExerciseContent>("exercise").Any(e=>e.Slug==t.Exercise),
-            InterviewPreset p=>Text(p.Description)&&List(p.Topics,1,11)&&p.Topics.Distinct().Count()==p.Topics.Length
+            InterviewPreset p=>Text(p.Description)&&(p.TargetLevel==null||Catalog.Levels.Contains(p.TargetLevel))&&p.Minutes is null or 15 or 30 or 45
+                &&List(p.Topics,1,11)&&p.Topics.Distinct().Count()==p.Topics.Length
                 &&p.Topics.All(k=>Catalog.Topics.Any(t=>t.Id==k))&&List(p.Suggested,1,24)&&p.Suggested.Distinct().Count()==p.Suggested.Length
                 &&await (from h in db.Questions join q in db.QuestionVersions on new{h.Slug,Version=h.Published} equals new{q.Slug,Version=(int?)q.Version}
                    where p.Suggested.Contains(q.Slug)&&p.Topics.Contains(q.Topic) select q.Slug).CountAsync(ct)==p.Suggested.Length,

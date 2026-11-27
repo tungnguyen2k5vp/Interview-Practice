@@ -1,0 +1,116 @@
+[
+  {
+    "slug": "intern-intro-evidence",
+    "version": 1,
+    "prompt": "Minh chỉ viết API tìm lớp. Bằng chứng nào sát nhất với phần Minh phụ trách?",
+    "englishPrompt": "Minh wrote only the class-search API. Which evidence best supports that contribution?",
+    "choices": [
+      "Một request mẫu, kết quả và test hành vi tìm kiếm",
+      "Logo công nghệ của toàn bộ nhóm",
+      "Số sao của thư viện dùng trong dự án"
+    ],
+    "englishChoices": [
+      "A sample request, result and search behavior test",
+      "The full team's technology logos",
+      "Star count of a dependency"
+    ],
+    "correctIndex": 0,
+    "explanation": "Request và test kết nối hành vi quan sát được với đúng phần công việc.",
+    "englishExplanation": "The request and test connect observable behavior to Minh's actual work."
+  },
+  {
+    "slug": "portfolio-first-run",
+    "version": 1,
+    "prompt": "Lệnh khởi động thành công trên máy tác giả. Kiểm tra nào làm tăng độ tin cậy của README?",
+    "englishPrompt": "Startup succeeds on the author's machine. Which check increases confidence in the README?",
+    "choices": [
+      "Thêm ảnh chụp IDE đang mở",
+      "Chạy theo đúng README từ một clone mới với DB trống",
+      "Xóa phần phiên bản SDK để ngắn hơn"
+    ],
+    "englishChoices": [
+      "Add a screenshot of the open IDE",
+      "Follow the README from a clean clone and empty DB",
+      "Omit the SDK version for brevity"
+    ],
+    "correctIndex": 1,
+    "explanation": "Môi trường mới làm lộ phụ thuộc chưa được mô tả.",
+    "englishExplanation": "A fresh environment exposes undocumented dependencies."
+  },
+  {
+    "slug": "qa-repro-handoff",
+    "version": 1,
+    "prompt": "Ticket nói giá sai mà chưa ghi kỳ vọng. Bước nào giúp hai bên thống nhất phép kiểm?",
+    "englishPrompt": "A pricing ticket omits the expected result. What would establish a common check?",
+    "choices": [
+      "Tăng số log không kèm dữ liệu mẫu",
+      "Đóng ticket khi chưa tái hiện lần đầu",
+      "Ghi quy tắc, số đầu vào và kết quả tính tay được xác nhận"
+    ],
+    "englishChoices": [
+      "Increase log volume without an example",
+      "Close the ticket after one failed reproduction",
+      "Record the agreed rule, inputs and hand-calculated result"
+    ],
+    "correctIndex": 2,
+    "explanation": "Một oracle được hai bên xác nhận giúp kiểm lại cùng hợp đồng.",
+    "englishExplanation": "An agreed oracle lets both parties test the same contract."
+  },
+  {
+    "slug": "outsourcing-acceptance",
+    "version": 1,
+    "prompt": "Hai bên đã thống nhất p95 dưới 300 ms. Còn thiếu điều kiện nào để đo được lặp lại?",
+    "englishPrompt": "Both parties agreed on p95 below 300 ms. Which missing detail makes acceptance repeatable?",
+    "choices": [
+      "Tải đồng thời, bộ dữ liệu, tập truy vấn và cửa sổ đo",
+      "Màu của dashboard báo cáo",
+      "Số nhân sự trong cả công ty"
+    ],
+    "englishChoices": [
+      "Concurrency, dataset, query mix and measurement window",
+      "Color of the reporting dashboard",
+      "Total company headcount"
+    ],
+    "correctIndex": 0,
+    "explanation": "Điều kiện tải và mẫu truy vấn ảnh hưởng trực tiếp tới phân phối độ trễ.",
+    "englishExplanation": "Load and query mix directly affect the latency distribution."
+  },
+  {
+    "slug": "pr-review-dialogue",
+    "version": 1,
+    "prompt": "Thảo luận PR kết thúc với phương án tương thích tạm thời. Nên lưu thêm gì?",
+    "englishPrompt": "A PR settles on a temporary compatibility approach. What else should be recorded?",
+    "choices": [
+      "Lời hứa miệng sẽ dọn sau",
+      "Điều kiện bỏ tương thích và issue theo dõi có owner",
+      "Chuyển toàn bộ thảo luận ra khỏi lịch sử PR"
+    ],
+    "englishChoices": [
+      "A verbal promise to clean up later",
+      "Removal criteria and an owned follow-up issue",
+      "Move all discussion outside the PR history"
+    ],
+    "correctIndex": 1,
+    "explanation": "Điều kiện và owner giúp nhóm nhận biết khi nào bước tiếp theo thực hiện được.",
+    "englishExplanation": "Criteria and ownership tell the team when the next step is actionable."
+  },
+  {
+    "slug": "incident-honest-outcome",
+    "version": 1,
+    "prompt": "Sau fix, bạn chỉ biết test hồi quy đã pass. Nhận định nào có đủ bằng chứng?",
+    "englishPrompt": "After a fix, all you know is that a regression test passed. Which claim is supported?",
+    "choices": [
+      "Mọi lỗi production đã biến mất",
+      "Doanh thu tăng nhờ bản sửa",
+      "Trường hợp của test đã qua trên bản được kiểm tra"
+    ],
+    "englishChoices": [
+      "Every production error disappeared",
+      "The fix raised revenue",
+      "The tested case passed on the tested build"
+    ],
+    "correctIndex": 2,
+    "explanation": "Một test có phạm vi xác định. Tác động production cần bằng chứng riêng.",
+    "englishExplanation": "One test has a bounded scope. Production impact needs separate evidence."
+  }
+]

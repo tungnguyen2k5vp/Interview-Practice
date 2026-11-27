@@ -71,7 +71,7 @@ function View({ path, params }: { path: string; params: URLSearchParams }) {
     case 'thiet-ke': return <DesignPlayground />
     case 'chuan-bi': return <PreparationForUser />
     case 'thuc-hanh': return <Labs mode={params.get('mode')==='debug'?'debug':params.get('mode')==='review'?'review':'project'}/>
-    case 'phien-hoc': return slug ? <StudyRoute key={slug} id={slug} params={params} /> : <StudyStart initial={params.get('mode') ?? 'new'} />
+    case 'phien-hoc': return slug ? <StudyRoute key={slug} id={slug} params={params} /> : <StudyStart initial={params.get('mode') ?? 'new'} concept={params.get('concept')} />
     case 'cau-hoi': return slug ? <PracticeRoute slug={slug} /> : <Bank params={params} />
     case 'luot-luyen': return slug ? <AttemptRoute id={slug} /> : <NotFound />
     case 'coding':

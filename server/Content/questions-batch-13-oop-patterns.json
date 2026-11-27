@@ -1,0 +1,771 @@
+[
+  {
+    "slug": "oop-virtual-base-reference",
+    "content": {
+      "title": "Gọi override qua kiểu cha",
+      "topic": "oop",
+      "subtopic": "Virtual dispatch",
+      "tags": [
+        "Virtual dispatch",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Một biến Document giữ instance Invoice. Document khai báo virtual Render(), Invoice override Render(). Khi gọi Render() qua biến Document, thân phương thức nào chạy?",
+      "englishPrompt": "A Document variable holds an Invoice. Document declares virtual Render(), and Invoice overrides it. Which method body runs when Render() is called through the Document variable?",
+      "context": "Biến chứa instance Invoice hợp lệ và lời gọi chọn đúng phương thức virtual đã nêu.",
+      "hint": "Tách kiểu khai báo của biến khỏi kiểu của instance.",
+      "nextHint": "virtual và override cho phép chọn phần triển khai lúc chạy.",
+      "followUp": "Nếu Invoice dùng new để ẩn Render thay vì override, kết quả qua biến Document thay đổi thế nào?",
+      "englishFollowUp": "If Invoice hides Render with new instead of overriding it, how does the call through Document change?",
+      "outline": [
+        "Nhận diện phương thức virtual.",
+        "Nhận diện instance Invoice."
+      ],
+      "shortAnswer": "Thân Invoice.Render chạy do dispatch ảo dùng kiểu thực tế của instance.",
+      "explanation": "Kiểu khai báo Document quyết định thành viên nào khả dụng ở lời gọi. Sau khi chọn phương thức virtual, runtime chọn bản override phù hợp của Invoice.",
+      "alternative": "Nếu mục đích chỉ cung cấp hai dạng hiển thị có thể hoán đổi theo yêu cầu, nhận một đối tượng renderer riêng.",
+      "trap": "Suy ra thân Render chỉ từ kiểu viết bên trái tên biến.",
+      "rubric": [
+        "Nhận diện phương thức virtual.",
+        "Nhận diện instance Invoice.",
+        "Chọn đúng thân override.",
+        "Phân biệt override và new."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/object-oriented/polymorphism",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lỗi biên dịch vì Document không biết Invoice",
+          "Invoice.Render",
+          "Document.Render",
+          "Cả hai thân tự động chạy theo thứ tự cha rồi con"
+        ],
+        "en": [
+          "A compile error because Document does not know Invoice",
+          "Invoice.Render",
+          "Document.Render",
+          "Both bodies automatically run, base first"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Document có sẵn khai báo hợp lệ để gọi.",
+          "Override được chọn theo runtime type.",
+          "Kiểu tham chiếu không ngăn dispatch ảo.",
+          "Chỉ thân override được chọn, trừ khi nó chủ động gọi base."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "oop-explicit-interface-collision",
+    "content": {
+      "title": "Hai hợp đồng cùng tên Open",
+      "topic": "oop",
+      "subtopic": "Explicit interface",
+      "tags": [
+        "Explicit interface",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Một kiểu cài đặt IPreview.Open() và IArchive.Open(). Hai thao tác trùng chữ ký nhưng cần hành vi khác nhau. Cách cài đặt nào giữ được cả hai?",
+      "englishPrompt": "A type implements IPreview.Open() and IArchive.Open(). The signatures match but the behaviors must differ. Which implementation preserves both contracts?",
+      "context": "Caller đã biết mình đang làm việc qua interface nào.",
+      "hint": "Tên interface có thể phân biệt các phần cài đặt.",
+      "nextHint": "C# cho phép triển khai một member chỉ lộ ra qua interface tương ứng.",
+      "followUp": "Nếu kiểu chỉ có hai cài đặt tường minh này, lời gọi Open() qua biến kiểu cụ thể có biên dịch không?",
+      "englishFollowUp": "If the class has only these two explicit implementations, does Open() compile on a concrete-typed variable?",
+      "outline": [
+        "Nhận ra trùng chữ ký nhưng khác hợp đồng.",
+        "Dùng tên interface cho từng phần cài đặt."
+      ],
+      "shortAnswer": "Cài đặt IPreview.Open và IArchive.Open tường minh, rồi gọi qua kiểu interface tương ứng.",
+      "explanation": "Explicit interface implementation xác định từng member bằng tên interface. Member triển khai như vậy không xuất hiện như một phương thức Open công khai trên kiểu cụ thể.",
+      "alternative": "Nếu hai hợp đồng thực sự có cùng ngữ nghĩa, một phương thức public có thể cài đặt cả hai.",
+      "trap": "Khai báo hai phương thức public Open giống hệt chữ ký trong một lớp.",
+      "rubric": [
+        "Nhận ra trùng chữ ký nhưng khác hợp đồng.",
+        "Dùng tên interface cho từng phần cài đặt.",
+        "Gọi qua interface phù hợp.",
+        "Giải thích giới hạn gọi qua kiểu cụ thể."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/interfaces/explicit-interface-implementation",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "interface-abstract"
+      ],
+      "quiz": {
+        "vi": [
+          "Khai báo hai phương thức public Open có chữ ký giống nhau",
+          "Dùng một Open public rồi suy ra interface từ tên biến",
+          "Đổi Open thứ hai thành OpenArchive mà không khai báo IArchive.Open",
+          "Triển khai tường minh cả IPreview.Open và IArchive.Open"
+        ],
+        "en": [
+          "Declare two public Open methods with identical signatures",
+          "Use one public Open and infer the interface from the variable name",
+          "Rename the second method to OpenArchive without implementing IArchive.Open",
+          "Explicitly implement both IPreview.Open and IArchive.Open"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Các phương thức đó trùng thành viên trong lớp.",
+          "Tên biến bên gọi không có vai trò trong dispatch.",
+          "Đổi tên không tạo ánh xạ cho IArchive.Open.",
+          "Mỗi interface thấy phần cài đặt riêng."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "oop-sealed-one-override",
+    "content": {
+      "title": "Khóa một override, giữ lớp mở",
+      "topic": "oop",
+      "subtopic": "Sealed override",
+      "tags": [
+        "Sealed override",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "BaseReport khai báo virtual FormatDate(). InvoiceReport đã override và cần khóa hành vi này cho lớp con, nhưng vẫn cho phép kế thừa InvoiceReport. Modifier nào phù hợp với phương thức?",
+      "englishPrompt": "BaseReport declares virtual FormatDate(). InvoiceReport overrides it and must prevent subclasses from overriding it again, while remaining inheritable. Which method modifier combination fits?",
+      "context": "Các lớp con vẫn cần bổ sung trường báo cáo khác.",
+      "hint": "Phạm vi muốn khóa là đúng một member.",
+      "nextHint": "Có thể áp dụng sealed lên phương thức đang override.",
+      "followUp": "Nếu lớp con khai báo new FormatDate, lời gọi qua kiểu BaseReport có đổi không?",
+      "englishFollowUp": "If a subclass declares new FormatDate, does a call through BaseReport change?",
+      "outline": [
+        "Xác định FormatDate đã là override.",
+        "Khóa đúng member bằng sealed override."
+      ],
+      "shortAnswer": "Dùng sealed override trên InvoiceReport.FormatDate.",
+      "explanation": "sealed trên một override dừng chuỗi override của member này. Lớp InvoiceReport vẫn có thể được kế thừa nếu bản thân lớp không sealed.",
+      "alternative": "Nếu không cần bất kỳ lớp con nào, sealed toàn lớp thể hiện ranh giới rộng hơn.",
+      "trap": "Gắn sealed cho cả lớp khi vẫn cần cho phép kế thừa các chức năng khác.",
+      "rubric": [
+        "Xác định FormatDate đã là override.",
+        "Khóa đúng member bằng sealed override.",
+        "Giữ khả năng kế thừa lớp.",
+        "Phân biệt ẩn member với thay override."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/sealed",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "oop-virtual-base-reference"
+      ],
+      "quiz": {
+        "vi": [
+          "sealed override trên FormatDate",
+          "sealed trên lớp InvoiceReport",
+          "override virtual trên FormatDate",
+          "new trên FormatDate"
+        ],
+        "en": [
+          "sealed override on FormatDate",
+          "sealed on InvoiceReport",
+          "override virtual on FormatDate",
+          "new on FormatDate"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Dừng việc override tiếp member này.",
+          "Chặn toàn bộ kế thừa lớp.",
+          "C# không cho dùng virtual và override cùng lúc trên phương thức này.",
+          "Ẩn member thay vì khóa chuỗi override đã có."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "oop-readonly-view-live",
+    "content": {
+      "title": "Danh sách chỉ đọc vẫn cập nhật",
+      "topic": "oop",
+      "subtopic": "Read-only collection",
+      "tags": [
+        "Read-only collection",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Đoạn mã dùng AsReadOnly để lấy danh sách chỉ đọc rồi thêm vào danh sách gốc. Console in ra số phần tử nào?",
+      "englishPrompt": "This code takes a read-only list using AsReadOnly and then appends to the source list. What count does it print?",
+      "context": "Caller giữ cả danh sách gốc và đối tượng chỉ đọc.",
+      "code": "var names = new List<string> { \"Lan\", \"Mai\" };\nvar view = names.AsReadOnly();\nnames.Add(\"An\");\nConsole.WriteLine(view.Count);",
+      "hint": "Xác định thao tác nào thực hiện trên danh sách gốc.",
+      "nextHint": "AsReadOnly bọc danh sách thay vì sao chép phần tử.",
+      "followUp": "Nếu cần snapshot ổn định theo thời điểm lấy, cách trả dữ liệu cần đổi ra sao?",
+      "englishFollowUp": "How should the returned data change if callers need a stable snapshot?",
+      "outline": [
+        "Nhận diện AsReadOnly là wrapper.",
+        "Theo dõi Add trên danh sách gốc."
+      ],
+      "shortAnswer": "In 3 vì đối tượng chỉ đọc phản ánh thay đổi của danh sách gốc.",
+      "explanation": "AsReadOnly tạo một wrapper quanh List. Không thể thêm phần tử qua wrapper, nhưng Count phản ánh trạng thái hiện tại của List bên dưới.",
+      "alternative": "Tạo bản sao phần tử trước khi bọc nếu membership cần bất biến theo thời điểm lấy. Phần tử tham chiếu có thể cần sao chép riêng nếu trạng thái của chúng cũng phải cố định.",
+      "trap": "Coi read-only wrapper là ảnh chụp độc lập.",
+      "rubric": [
+        "Nhận diện AsReadOnly là wrapper.",
+        "Theo dõi Add trên danh sách gốc.",
+        "Tính Count bằng 3.",
+        "Nêu cần bản sao khi yêu cầu snapshot."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1.asreadonly?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "Phát sinh ngoại lệ",
+          "3",
+          "2"
+        ],
+        "en": [
+          "0",
+          "An exception is thrown",
+          "3",
+          "2"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Wrapper không tạo danh sách rỗng.",
+          "Add gọi trên danh sách gốc có thể thay đổi.",
+          "Wrapper đọc Count hiện có của danh sách.",
+          "2 chỉ là số phần tử trước khi Add."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "oop-init-mutable-reference",
+    "content": {
+      "title": "init và object bên trong",
+      "topic": "oop",
+      "subtopic": "Init-only property",
+      "tags": [
+        "Init-only property",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một lớp công bố public List<string> Labels { get; init; }. Sau khi khởi tạo, caller giữ instance hợp lệ. Dòng nào tiếp tục hợp lệ trong mã thông thường?",
+      "englishPrompt": "A class exposes public List<string> Labels { get; init; }. After construction a caller holds a valid instance. Which statement is still allowed in ordinary code?",
+      "context": "Labels đã được gán một danh sách có thể thay đổi trong object initializer. Không có reflection.",
+      "hint": "Theo dõi đích của thao tác thay đổi.",
+      "nextHint": "init hạn chế lúc gán property, không kiểm soát các phương thức của danh sách.",
+      "followUp": "Nếu API muốn bảo vệ cả danh sách gốc trước việc sửa từ caller, chỉ khai báo init là đủ chưa?",
+      "englishFollowUp": "Is init alone sufficient to protect the underlying list from changes by callers?",
+      "outline": [
+        "Phân biệt gán property với sửa collection.",
+        "Xác định getter trả List có thể thay đổi."
+      ],
+      "shortAnswer": "Gọi item.Labels.Add(\"new\") vẫn hợp lệ. Gán một List mới cho item.Labels sau khởi tạo không hợp lệ.",
+      "explanation": "init giới hạn thời gian gọi accessor gán. Getter vẫn trả tham chiếu List và List.Add thay đổi nội dung mà không gọi accessor đó.",
+      "alternative": "Nếu cần dữ liệu cấu hình bất biến, sao chép dữ liệu đầu vào sang một collection bất biến khi khởi tạo.",
+      "trap": "Coi mọi đối tượng có property init là bất biến sâu.",
+      "rubric": [
+        "Phân biệt gán property với sửa collection.",
+        "Xác định getter trả List có thể thay đổi.",
+        "Chọn Add là lời gọi hợp lệ.",
+        "Đề xuất lưu collection độc lập khi cần bất biến sâu."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/init",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Truyền ref item.Labels vào hàm",
+          "item.Labels.Add(\"new\")",
+          "item.Labels = new List<string>()",
+          "item.Labels ??= new List<string>()"
+        ],
+        "en": [
+          "Pass ref item.Labels to a method",
+          "item.Labels.Add(\"new\")",
+          "item.Labels = new List<string>()",
+          "item.Labels ??= new List<string>()"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Property thông thường không trả tham chiếu ref.",
+          "Gọi method trên List đang có và không gán property.",
+          "Lời gán này diễn ra ngoài giai đoạn khởi tạo.",
+          "Biểu thức vẫn cần accessor gán và không hợp lệ tại vị trí này."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-observer-unsubscribe",
+    "content": {
+      "title": "Ngừng theo dõi khi đóng panel",
+      "topic": "oop",
+      "subtopic": "Observer",
+      "tags": [
+        "Observer",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một panel đăng ký với IObservable qua Subscribe và đối tượng nguồn sống lâu hơn panel. Khi đóng panel, hành động nào ngừng đăng ký theo hợp đồng .NET?",
+      "englishPrompt": "A panel subscribes to an IObservable whose lifetime exceeds the panel’s. When the panel closes, which action cancels the subscription under the .NET contract?",
+      "context": "Subscribe đã trả đối tượng IDisposable biểu diễn đăng ký.",
+      "hint": "Vòng đời của đăng ký khác vòng đời của publisher.",
+      "nextHint": "Đọc kiểu trả về của Subscribe.",
+      "followUp": "Nếu hai panel đăng ký độc lập, đóng một panel có nên đóng đăng ký của cả hai không?",
+      "englishFollowUp": "If two panels subscribed independently, should closing one cancel both subscriptions?",
+      "outline": [
+        "Nhận diện handle đăng ký.",
+        "Gọi Dispose ở điểm kết thúc vòng đời."
+      ],
+      "shortAnswer": "Giữ IDisposable trả về từ Subscribe và Dispose nó lúc đóng panel.",
+      "explanation": "Đăng ký là quan hệ giữa nguồn và observer. Hủy đúng đăng ký cho phép nguồn bỏ observer mà vẫn phục vụ các subscriber khác.",
+      "alternative": "Với C# event, lưu đúng delegate nếu cần hủy đăng ký bằng toán tử -=.",
+      "trap": "Chỉ xóa biến tham chiếu cục bộ rồi cho rằng nguồn cũng đã bỏ observer.",
+      "rubric": [
+        "Nhận diện handle đăng ký.",
+        "Gọi Dispose ở điểm kết thúc vòng đời.",
+        "Giữ các đăng ký khác hoạt động.",
+        "Nêu lý do nguồn còn sống có thể giữ observer."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/events/observer-design-pattern",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dispose đối tượng trả về từ Subscribe",
+          "Đặt tham chiếu observer trong panel thành null",
+          "Gọi OnCompleted trực tiếp trên observer",
+          "Dispose publisher dùng chung"
+        ],
+        "en": [
+          "Dispose the object returned by Subscribe",
+          "Set the panel’s observer reference to null",
+          "Call OnCompleted directly on the observer",
+          "Dispose the shared publisher"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "IDisposable cho phép observer hủy đăng ký cụ thể.",
+          "Không yêu cầu publisher bỏ đăng ký.",
+          "Đây là thông báo, không thay thế cơ chế hủy đăng ký của nguồn.",
+          "Có thể dừng công việc của các subscriber khác."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-adapter-partner-tracking",
+    "content": {
+      "title": "Giữ mô hình theo dõi nội bộ",
+      "topic": "oop",
+      "subtopic": "Adapter",
+      "tags": [
+        "Adapter",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Ứng dụng đọc trạng thái giao hàng bằng IShipmentTracker. SDK đối tác mới có hàm và mã trạng thái khác. Cách tích hợp nào giữ nguyên caller và tránh lan mã đối tác vào nghiệp vụ?",
+      "englishPrompt": "An app reads shipment status through IShipmentTracker. A new partner SDK uses different methods and status codes. Which integration preserves callers and keeps partner codes out of business logic?",
+      "context": "Đội sở hữu interface nội bộ và có thể định nghĩa cách xử lý trạng thái chưa biết.",
+      "hint": "Tìm điểm chuyển đổi giữa hai hợp đồng.",
+      "nextHint": "Kiểu mới có thể triển khai interface nội bộ và ủy quyền sang SDK.",
+      "followUp": "Nên làm gì khi đối tác trả mã mới chưa có trong bảng ánh xạ?",
+      "englishFollowUp": "How should the integration handle a new partner status absent from its mapping?",
+      "outline": [
+        "Giữ interface nội bộ.",
+        "Ủy quyền thao tác cho SDK."
+      ],
+      "shortAnswer": "Viết adapter thực thi IShipmentTracker, gọi SDK và ánh xạ kết quả sang trạng thái nội bộ.",
+      "explanation": "Adapter dịch hợp đồng bên ngoài tại một ranh giới. Caller giữ nguyên lời gọi và đi qua một nơi để kiểm thử ánh xạ, bao gồm kết quả chưa biết.",
+      "alternative": "Nếu tích hợp cần dịch nhiều thao tác và mô hình qua một ranh giới lớn hơn, áp dụng lớp anti-corruption cho toàn bộ ranh giới đó.",
+      "trap": "Để từng caller tự chuyển mã đối tác sang kiểu nội bộ.",
+      "rubric": [
+        "Giữ interface nội bộ.",
+        "Ủy quyền thao tác cho SDK.",
+        "Ánh xạ trạng thái ở ranh giới.",
+        "Xử lý mã mới theo hợp đồng đã định."
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "interface-abstract"
+      ],
+      "quiz": {
+        "vi": [
+          "Trả enum của SDK từ mọi IShipmentTracker",
+          "Thêm tham chiếu SDK và rẽ nhánh ở từng caller",
+          "Bọc SDK để ghi log rồi trả nguyên mã trạng thái",
+          "Cài đặt adapter cho IShipmentTracker và dịch kết quả SDK"
+        ],
+        "en": [
+          "Return the SDK enum from every IShipmentTracker",
+          "Reference the SDK and branch in each caller",
+          "Wrap the SDK for logging and return its raw status codes",
+          "Implement an IShipmentTracker adapter and translate SDK responses"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Caller sẽ phụ thuộc trực tiếp vào mô hình đối tác.",
+          "Việc dịch bị lặp và lan sang nghiệp vụ.",
+          "Ghi log không dịch được hợp đồng.",
+          "Một điểm chuyển hợp đồng giữ caller và nghiệp vụ độc lập với SDK."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-decorator-compressed-stream",
+    "content": {
+      "title": "Bổ sung nén tại biên ghi",
+      "topic": "oop",
+      "subtopic": "Decorator",
+      "tags": [
+        "Decorator",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Bộ xuất báo cáo nhận Stream. Một đích cần gzip, các đích khác giữ byte gốc. Lựa chọn nào thêm nén tại đích được chọn mà không sửa bộ xuất?",
+      "englishPrompt": "A report exporter accepts a Stream. One destination requires gzip and the others need raw bytes. Which option adds compression only at the selected destination without changing the exporter?",
+      "context": "Bộ xuất chỉ ghi byte vào Stream được truyền. Bên gọi quản lý việc đóng stream.",
+      "hint": "Tìm stream vẫn giữ hợp đồng Stream nhưng bọc thêm hành vi.",
+      "nextHint": "Bên gọi có thể đặt lớp nén giữa exporter và stream đích.",
+      "followUp": "Nếu bên gọi còn cần dùng stream đích sau khi đóng lớp nén thì cần xét tham số nào?",
+      "englishFollowUp": "Which option matters if the caller needs to use the destination stream after closing the compression layer?",
+      "outline": [
+        "Giữ hợp đồng Stream của exporter.",
+        "Dùng wrapper nén đúng chế độ."
+      ],
+      "shortAnswer": "Bọc stream đích bằng GZipStream ở chế độ Compress rồi truyền wrapper vào bộ xuất.",
+      "explanation": "GZipStream là một Stream bổ sung hành vi nén và ghi vào stream bên dưới. Đóng lớp nén hoàn tất dữ liệu gzip. leaveOpen cho phép kiểm soát việc đóng stream đích.",
+      "alternative": "Nếu cần biết Content-Length của dữ liệu đã nén trước khi gửi, có thể tạo đầu ra nén riêng rồi đo kích thước.",
+      "trap": "Chỉ đổi đuôi tệp thành .gz mà giữ nguyên byte.",
+      "rubric": [
+        "Giữ hợp đồng Stream của exporter.",
+        "Dùng wrapper nén đúng chế độ.",
+        "Hoàn tất nén qua vòng đời wrapper.",
+        "Nêu quyền sở hữu stream đích."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.io.compression.gzipstream?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "dispose-ownership"
+      ],
+      "quiz": {
+        "vi": [
+          "Bọc đích bằng GZipStream ở chế độ Decompress",
+          "Đặt stream thường vào bộ xuất và chỉ gắn nhãn gzip",
+          "Bọc đích bằng GZipStream ở chế độ Compress",
+          "Đổi tên tệp đích thành .gz"
+        ],
+        "en": [
+          "Wrap the destination with GZipStream in Decompress mode",
+          "Pass the raw stream and label its output as gzip",
+          "Wrap the destination with GZipStream in Compress mode",
+          "Rename the destination file to .gz"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Đây là chế độ giải nén chứ không tạo byte gzip đầu ra.",
+          "Nhãn không bổ sung nén.",
+          "Wrapper vẫn là Stream và tự bổ sung nén.",
+          "Tên không thay đổi dữ liệu ghi."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-factory-provider-selection",
+    "content": {
+      "title": "Tạo đối tượng theo provider",
+      "topic": "oop",
+      "subtopic": "Abstract Factory",
+      "tags": [
+        "Abstract Factory",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một công cụ chạy với nhiều ADO.NET provider đã đăng ký. Từ provider đã chọn, nó cần tạo DbConnection và DbCommand tương thích. Cách nào giữ việc chọn kiểu cụ thể ra khỏi phần thực thi truy vấn?",
+      "englishPrompt": "A tool supports multiple registered ADO.NET providers. It needs compatible DbConnection and DbCommand instances from one selected provider. What keeps concrete type selection out of query execution?",
+      "context": "Cấu hình đã xác định provider cho lần chạy và truy vấn nằm trong tập cú pháp công cụ hỗ trợ.",
+      "hint": "Tập trung việc chọn họ đối tượng thay vì chọn từng lớp.",
+      "nextHint": "ADO.NET có factory theo provider.",
+      "followUp": "Tại sao dùng chung các lớp cơ sở DbConnection và DbCommand không đảm bảo SQL có thể chạy trên mọi provider?",
+      "englishFollowUp": "Why do shared DbConnection and DbCommand base classes not guarantee that SQL runs on every provider?",
+      "outline": [
+        "Chọn đúng factory theo cấu hình.",
+        "Tạo connection và command cùng họ."
+      ],
+      "shortAnswer": "Lấy DbProviderFactory của provider đã chọn và tạo các đối tượng qua factory đó.",
+      "explanation": "Factory cung cấp các loại đối tượng cùng họ, còn mã gọi làm việc qua lớp cơ sở Db*. Việc tạo đối tượng thống nhất không làm SQL dialect của các máy chủ giống nhau.",
+      "alternative": "Nếu chỉ cần command cho một kết nối đang có, gọi CreateCommand trên kết nối sẽ giữ đúng provider mà không cần lấy factory thêm lần nữa.",
+      "trap": "Tạo connection của provider này và command của provider khác rồi kỳ vọng lớp cơ sở bảo đảm tương thích.",
+      "rubric": [
+        "Chọn đúng factory theo cấu hình.",
+        "Tạo connection và command cùng họ.",
+        "Giữ kiểu cơ sở ở lớp thực thi.",
+        "Tách tương thích đối tượng khỏi tương thích cú pháp SQL."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/architectural-principles",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tạo DbCommand bằng new DbCommand()",
+          "Giữ một DbCommand duy nhất rồi thay connection sang mọi provider",
+          "Tạo đối tượng qua cùng DbProviderFactory",
+          "Tạo connection từ provider đã chọn nhưng cố định command cho provider đầu tiên"
+        ],
+        "en": [
+          "Construct it using new DbCommand()",
+          "Keep one DbCommand and swap its connection across providers",
+          "Create the objects through the same DbProviderFactory",
+          "Create the connection from the selected provider but hard-code the first provider’s command"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "DbCommand là lớp cơ sở abstract.",
+          "Thay kết nối không thay loại command cụ thể.",
+          "Factory giữ các đối tượng thuộc cùng provider.",
+          "Command có thể không tương thích với connection."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-null-logger",
+    "content": {
+      "title": "Tắt logging với cùng hợp đồng",
+      "topic": "oop",
+      "subtopic": "Null Object",
+      "tags": [
+        "Null Object",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Một lớp nhận ILogger. Chạy thử cục bộ cần bỏ mọi log nhưng muốn các lời gọi logger hiện tại vẫn chạy bình thường. Có thể truyền gì vào constructor?",
+      "englishPrompt": "A class takes an ILogger. A local test must discard all logs while leaving existing logger calls intact. What can be passed to the constructor?",
+      "context": "Bỏ ghi log là chủ ý của phép thử. Phép thử không kiểm tra nội dung log.",
+      "hint": "Chọn đối tượng thực thi hợp đồng mà không gây tác động.",
+      "nextHint": "Thư viện logging có implementation không ghi gì.",
+      "followUp": "Nếu bài test phải xác nhận lỗi ghi đúng mức Warning thì NullLogger có phù hợp không?",
+      "englishFollowUp": "Is NullLogger suitable if the test must verify that an error is logged at Warning level?",
+      "outline": [
+        "Chọn đối tượng đáp ứng ILogger.",
+        "Giữ nguyên đường gọi logger."
+      ],
+      "shortAnswer": "Truyền NullLogger.Instance để các lời gọi ILogger hợp lệ và không ghi log.",
+      "explanation": "NullLogger cung cấp một đối tượng logger thực thi hợp đồng và bỏ qua việc ghi. Lớp sử dụng có thể gọi bình thường mà không cần null check cho chế độ thử này.",
+      "alternative": "Khi cần kiểm tra log, dùng logger hoặc provider có thể thu lại các bản ghi để assert.",
+      "trap": "Truyền null cho dependency không tùy chọn rồi trông chờ lời gọi Log chạy an toàn.",
+      "rubric": [
+        "Chọn đối tượng đáp ứng ILogger.",
+        "Giữ nguyên đường gọi logger.",
+        "Biết logger không ghi dữ liệu.",
+        "Đổi sang logger thu bản ghi nếu cần assert."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/microsoft.extensions.logging.abstractions.nulllogger?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "null",
+          "Một ILogger ghi ra console",
+          "Một logger luôn báo lỗi khi Log được gọi",
+          "NullLogger.Instance"
+        ],
+        "en": [
+          "null",
+          "An ILogger that logs to the console",
+          "A logger that throws on every Log call",
+          "NullLogger.Instance"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Không còn đối tượng hợp lệ cho lời gọi hiện tại.",
+          "Bài test cần bỏ log.",
+          "Lời gọi log sẽ đổi luồng xử lý.",
+          "Cung cấp ILogger hợp lệ không ghi log."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-composite-file-provider",
+    "content": {
+      "title": "Đọc qua nhiều nguồn tệp",
+      "topic": "oop",
+      "subtopic": "Composite",
+      "tags": [
+        "Composite",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một thành phần chỉ nhận một IFileProvider. Tệp mẫu mặc định nằm trong assembly, còn một tập tệp tùy chỉnh nằm trên đĩa. Hai tập path tách biệt. Cách nào giúp thành phần đọc cả hai nguồn?",
+      "englishPrompt": "A component accepts one IFileProvider. Default templates are embedded in an assembly and custom files are on disk. Their paths are disjoint. How can the component read both sources?",
+      "context": "Cả hai nguồn có implementation IFileProvider sẵn.",
+      "hint": "Tìm một provider có thể kết hợp các provider con.",
+      "nextHint": "Bên gọi cần thấy cùng giao diện dù dữ liệu từ hai nguồn.",
+      "followUp": "Nếu sau này hai nguồn có cùng đường dẫn, nên kiểm thử quy tắc nào trước khi dùng nó để ưu tiên bản tùy chỉnh?",
+      "englishFollowUp": "If both sources later contain the same path, what rule should you test before relying on it to prefer the override?",
+      "outline": [
+        "Giữ interface IFileProvider.",
+        "Đưa cả hai provider vào composite."
+      ],
+      "shortAnswer": "Tạo CompositeFileProvider gồm provider trong assembly và provider trên đĩa, rồi truyền đối tượng ghép đó.",
+      "explanation": "CompositeFileProvider gộp nhiều nguồn nhưng vẫn thực thi IFileProvider. Thành phần không phải suy đoán nguồn vật lý của từng đường dẫn.",
+      "alternative": "Nếu hai nguồn có vòng đời hoặc quyền đọc khác nhau, abstraction của thành phần có thể cần biểu diễn ranh giới đó.",
+      "trap": "Đăng ký hai provider rời và cho rằng một dependency đơn sẽ tự truy vấn cả hai.",
+      "rubric": [
+        "Giữ interface IFileProvider.",
+        "Đưa cả hai provider vào composite.",
+        "Không đưa chi tiết nguồn vào caller.",
+        "Kiểm thử thứ tự khi đường dẫn có thể trùng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/file-providers?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "di-keyed"
+      ],
+      "quiz": {
+        "vi": [
+          "Truyền CompositeFileProvider chứa cả hai nguồn",
+          "Chỉ truyền PhysicalFileProvider",
+          "Chỉ truyền provider cho assembly",
+          "Đăng ký hai provider và giữ dependency đơn như cũ"
+        ],
+        "en": [
+          "Pass a CompositeFileProvider containing both sources",
+          "Pass only the PhysicalFileProvider",
+          "Pass only the embedded provider",
+          "Register two providers and leave the singular dependency unchanged"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Đối tượng ghép giữ đúng interface và có thể truy vấn các provider con.",
+          "Không đọc được tài nguyên nằm trong assembly từ provider này.",
+          "Không truy cập được thư mục tùy chỉnh trên đĩa.",
+          "Một dependency đơn không tự hoạt động như composite."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "pattern-command-shared-action",
+    "content": {
+      "title": "Một thao tác cho menu và phím tắt",
+      "topic": "oop",
+      "subtopic": "Command",
+      "tags": [
+        "Command",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": ".NET 10",
+      "prompt": "Ứng dụng WPF kích hoạt cùng thao tác Save từ menu và phím tắt. Cả hai chỉ khả dụng khi tài liệu có thay đổi. Cách nào dùng chung thao tác và điều kiện này?",
+      "englishPrompt": "A WPF app triggers the same Save action from a menu and keyboard shortcut. Both should be available only when the document has changes. What shares the action and its availability rule?",
+      "context": "Tài liệu hiện tại do presentation layer quản lý và quy tắc chỉ dùng trạng thái này.",
+      "hint": "Tách đối tượng thao tác khỏi bộ điều khiển phát sinh sự kiện.",
+      "nextHint": "ICommand mô tả thực thi và khả năng thực thi.",
+      "followUp": "Khi trạng thái IsDirty thay đổi, command báo cho giao diện cập nhật bằng cơ chế nào?",
+      "englishFollowUp": "When IsDirty changes, what mechanism lets the command notify the UI to update availability?",
+      "outline": [
+        "Dùng cùng command cho hai nguồn.",
+        "Tách CanExecute và Execute."
+      ],
+      "shortAnswer": "Bind menu và phím tắt vào cùng ICommand, với lưu trong Execute và điều kiện IsDirty trong CanExecute.",
+      "explanation": "Command đóng gói thao tác từ nhiều nguồn tương tác. CanExecute cung cấp trạng thái khả dụng, còn CanExecuteChanged thông báo khi trạng thái cần được xét lại.",
+      "alternative": "Một handler dùng chung có thể đủ nếu không có yêu cầu binding trạng thái hoặc nguồn lệnh riêng.",
+      "trap": "Viết điều kiện IsDirty ở menu rồi để phím tắt gọi phương thức lưu riêng.",
+      "rubric": [
+        "Dùng cùng command cho hai nguồn.",
+        "Tách CanExecute và Execute.",
+        "Đọc trạng thái tài liệu khi xét khả dụng.",
+        "Thông báo thay đổi bằng CanExecuteChanged."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/desktop/wpf/advanced/commanding-overview",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tạo hai callback riêng cùng gọi dữ liệu lưu",
+          "Bind cả hai vào cùng ICommand có CanExecute",
+          "Chia sẻ hàm lưu nhưng chỉ vô hiệu hóa menu",
+          "Kiểm tra IsDirty một lần khi mở cửa sổ"
+        ],
+        "en": [
+          "Create two separate callbacks that each save the data",
+          "Bind both to one ICommand with CanExecute",
+          "Share the save function but only disable the menu",
+          "Check IsDirty once at window startup"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Phần điều kiện vẫn đứng riêng và có thể lệch.",
+          "Một đối tượng biểu diễn thao tác và điều kiện khả dụng.",
+          "Phím tắt không dùng chung điều kiện.",
+          "Tài liệu thay đổi sau đó khiến trạng thái khả dụng bị cũ."
+        ]
+      }
+    }
+  }
+]

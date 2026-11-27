@@ -136,7 +136,7 @@ var api = app.MapGroup("/api").AddEndpointFilter(async (context, next) =>
     return await next(context);
 });
 PathString[] materialRoutes = ["/api/admin/materials", "/api/design-scenarios", "/api/roadmap-tracks", "/api/topics",
-    "/api/skills/tree", "/api/placement", "/api/labs/reviews", "/api/exercises", "/api/runner",
+    "/api/skills/tree", "/api/concepts", "/api/placement", "/api/labs/reviews", "/api/exercises", "/api/runner",
     "/api/interview-presets", "/api/interviews", "/api/study-sessions", "/api/dashboard", "/api/history", "/api/profile"];
 api.AddEndpointFilter(async (ctx,next)=>{
     var path = ctx.HttpContext.Request.Path;

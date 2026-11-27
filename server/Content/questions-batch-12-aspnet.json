@@ -1,0 +1,776 @@
+[
+  {
+    "slug": "aspnet-source-route-query",
+    "content": {
+      "title": "Hai giá trị cùng tên",
+      "topic": "aspnet",
+      "subtopic": "Model binding sources",
+      "tags": [
+        "Model binding sources",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 3,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Action có tham số [FromRoute] int id và route /products/{id}. Request GET /products/12?id=40 gọi action. Giá trị id nhận được là gì?",
+      "englishPrompt": "An action has [FromRoute] int id and the route /products/{id}. A request to GET /products/12?id=40 reaches it. What value does id receive?",
+      "context": "Route khớp và cả hai giá trị đều chuyển được thành int.",
+      "hint": "Đọc attribute cạnh tham số.",
+      "nextHint": "Route value và query string là hai nguồn riêng.",
+      "followUp": "Nếu đổi thành [FromQuery] int id, điều gì xảy ra với giá trị trong đường dẫn?",
+      "englishFollowUp": "If you change it to [FromQuery] int id, what happens to the value in the path?",
+      "outline": [
+        "Nhận diện nguồn được chỉ định.",
+        "Đọc 12 từ route."
+      ],
+      "shortAnswer": "id nhận 12 từ route vì [FromRoute] chọn nguồn tường minh.",
+      "explanation": "Route vẫn dùng 12 để khớp URL. Model binding lấy giá trị tham số từ route theo attribute. Query id=40 không ghi đè giá trị đã chọn.",
+      "alternative": "Nếu hai giá trị có mục đích khác nhau, đặt tên rõ như productId trên đường dẫn và revision trong query.",
+      "trap": "Cho rằng query string luôn có độ ưu tiên cao hơn attribute.",
+      "rubric": [
+        "Nhận diện nguồn được chỉ định.",
+        "Đọc 12 từ route.",
+        "Giải thích vì sao 40 không ghi đè.",
+        "Phân biệt khớp route và gán tham số."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/mvc/models/model-binding?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "400 do trùng tên",
+          "12",
+          "40",
+          "0"
+        ],
+        "en": [
+          "400 for duplicate names",
+          "12",
+          "40",
+          "0"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Hai nguồn cùng tên không xung đột khi đã chỉ định nguồn.",
+          "[FromRoute] chọn 12 từ phần đường dẫn.",
+          "40 chỉ có trong query string.",
+          "Có giá trị route hợp lệ nên không dùng giá trị mặc định."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-apicontroller-modelstate",
+    "content": {
+      "title": "DTO bị từ chối trước action",
+      "topic": "aspnet",
+      "subtopic": "ModelState tự động",
+      "tags": [
+        "ModelState tự động",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Controller có [ApiController], giữ hành vi mặc định. DTO có [Range(1, 20)] cho Quantity, client gửi JSON với Quantity bằng 0. Chuyện gì xảy ra trước khi action lưu dữ liệu?",
+      "englishPrompt": "A controller uses [ApiController] with default behavior. Its DTO has [Range(1, 20)] on Quantity, and the client sends JSON with Quantity set to 0. What happens before the action saves?",
+      "context": "Giá trị được deserialize thành int thành công. Không có filter tùy chỉnh thay đổi hành vi mặc định.",
+      "hint": "Tách chuyển kiểu và kiểm tra ràng buộc.",
+      "nextHint": "[ApiController] cài sẵn filter xử lý ModelState không hợp lệ.",
+      "followUp": "Nếu cần so Quantity với tồn kho hiện tại thì lớp nào nên quyết định?",
+      "englishFollowUp": "Where should Quantity be checked against the current inventory?",
+      "outline": [
+        "Tách deserialize khỏi validation.",
+        "Xác định lỗi từ Range."
+      ],
+      "shortAnswer": "MVC trả 400 với lỗi validation trước khi thân action chạy.",
+      "explanation": "Binding nhận được 0, nhưng [Range] tạo lỗi ModelState. ModelStateInvalidFilter của [ApiController] ngắt xử lý và trả ValidationProblemDetails mặc định.",
+      "alternative": "Nếu cần tùy chỉnh phản hồi, cấu hình InvalidModelStateResponseFactory để giữ hợp đồng lỗi nhất quán.",
+      "trap": "Thêm cùng một câu lệnh kiểm tra ModelState ở mọi action [ApiController] và nghĩ rằng nó mới tạo hành vi này.",
+      "rubric": [
+        "Tách deserialize khỏi validation.",
+        "Xác định lỗi từ Range.",
+        "Nêu 400 trước action.",
+        "Giữ quy tắc cần tồn kho tại nơi có dữ liệu nghiệp vụ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/web-api/?view=aspnetcore-10.0#automatic-http-400-responses",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Action chạy vì 0 là int hợp lệ",
+          "Trả 415 vì giá trị ngoài khoảng",
+          "Âm thầm đổi Quantity thành 1",
+          "Trả 400 kèm lỗi validation trước khi action chạy"
+        ],
+        "en": [
+          "Run the action because 0 is a valid int",
+          "Return 415 because the value is out of range",
+          "Silently change Quantity to 1",
+          "Return 400 with validation errors before the action runs"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Đúng kiểu không bảo đảm đạt kiểm tra [Range].",
+          "Kiểu nội dung đã được đọc.",
+          "Data Annotations kiểm tra và không tự chỉnh giá trị.",
+          "Filter mặc định xử lý ModelState không hợp lệ."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-route-constraint-selection",
+    "content": {
+      "title": "Ràng buộc dùng để chọn route",
+      "topic": "aspnet",
+      "subtopic": "Route constraints",
+      "tags": [
+        "Route constraints",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "ASP.NET Core 10",
+      "prompt": "API chỉ khai báo GET /orders/{id:int}, không có route dự phòng. Request GET /orders/abc đến máy chủ. Kết quả nào đến từ routing?",
+      "englishPrompt": "The API maps only GET /orders/{id:int}, with no fallback route. A client sends GET /orders/abc. What result follows from routing?",
+      "context": "Không có middleware tùy chỉnh kết thúc request trước routing.",
+      "hint": "Kiểm tra route có được chọn trước khi model binding chạy không.",
+      "nextHint": "Constraint int tham gia so khớp ứng viên.",
+      "followUp": "Nếu hợp đồng muốn trả 400 kèm lỗi trường id, nơi nào nên kiểm tra giá trị?",
+      "englishFollowUp": "If the contract requires a 400 with an error for id, where should you validate it?",
+      "outline": [
+        "Xác định constraint chạy khi routing.",
+        "Xác định abc không qua constraint."
+      ],
+      "shortAnswer": "404 vì constraint loại ứng viên duy nhất trước khi gọi endpoint.",
+      "explanation": "Route constraint dùng để phân biệt route. Giá trị abc không thỏa int nên không có endpoint khớp. Vì action chưa được chọn, validation trong action không chạy.",
+      "alternative": "Nếu đây là lỗi đầu vào cần báo 400, dùng route không có constraint và kiểm tra đầu vào trong binding hoặc action phù hợp.",
+      "trap": "Dùng constraint để ép mọi giá trị sai thành phản hồi validation 400.",
+      "rubric": [
+        "Xác định constraint chạy khi routing.",
+        "Xác định abc không qua constraint.",
+        "Kết luận không có route khớp và trả 404.",
+        "Đề xuất đưa kiểm tra sang nơi trả lỗi có cấu trúc."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "404 vì không có route khớp",
+          "400 từ ModelState trong action",
+          "Endpoint nhận id mặc định là 0",
+          "405 vì abc không phải phương thức"
+        ],
+        "en": [
+          "404 because no route matches",
+          "400 from ModelState in the action",
+          "The endpoint receives the default id of 0",
+          "405 because abc is not a method"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Ứng viên bị loại trước khi chạy action.",
+          "Action chưa được chọn nên ModelState của nó chưa được xử lý.",
+          "Route constraint không chuyển abc thành số mặc định.",
+          "GET là phương thức đã khai báo."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-minimal-filter-shortcircuit",
+    "content": {
+      "title": "Dừng handler bằng endpoint filter",
+      "topic": "aspnet",
+      "subtopic": "Endpoint filters",
+      "tags": [
+        "Endpoint filters",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Endpoint filter của Minimal API thấy đối số không hợp lệ và muốn trả lỗi mà không chạy handler ghi dữ liệu. Nó nên gọi next như thế nào?",
+      "englishPrompt": "A Minimal API endpoint filter sees an invalid argument and must reject it without invoking the write handler. How should it use next?",
+      "context": "Việc kiểm tra cần các đối số đã bind của endpoint được gắn filter.",
+      "hint": "next tiếp tục chuỗi thực thi.",
+      "nextHint": "Một kết quả có thể được trả trực tiếp từ filter.",
+      "followUp": "Nếu logging cần chạy cho mọi endpoint kể cả khi không tìm thấy route thì cơ chế nào phù hợp hơn?",
+      "englishFollowUp": "Where would you put logging that must run for every request, including route misses?",
+      "outline": [
+        "Nhận diện next chạy phần còn lại.",
+        "Trả lỗi trước next khi đầu vào sai."
+      ],
+      "shortAnswer": "Trả IResult lỗi ngay và không gọi next trong nhánh dữ liệu không hợp lệ.",
+      "explanation": "Gọi next chuyển quyền sang filter kế tiếp hoặc handler. Trả kết quả trước cho phép filter ngắt chuỗi. Nhánh hợp lệ vẫn gọi next để endpoint xử lý.",
+      "alternative": "Middleware hợp cho công việc bao phủ toàn request. Endpoint filter hợp khi cần đối số của handler đã bind.",
+      "trap": "Gọi next trước khi kiểm tra rồi đổi kết quả thành lỗi sau khi handler đã ghi dữ liệu.",
+      "rubric": [
+        "Nhận diện next chạy phần còn lại.",
+        "Trả lỗi trước next khi đầu vào sai.",
+        "Tiếp tục chuỗi khi đầu vào đúng.",
+        "Chọn middleware cho hoạt động áp dụng cả ngoài endpoint."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/min-api-filters?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "middleware-order"
+      ],
+      "quiz": {
+        "vi": [
+          "Gọi next và bỏ qua kết quả của nó",
+          "Cần trả null để framework tự hủy handler",
+          "Trả lỗi trực tiếp và bỏ qua next",
+          "Gọi next rồi luôn thay kết quả bằng lỗi"
+        ],
+        "en": [
+          "Call next and discard its result",
+          "Return null to let the framework cancel the handler",
+          "Return the error directly without calling next",
+          "Call next and then always replace its result with an error"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Bỏ kết quả không ngăn thực thi handler.",
+          "Filter có thể trả kết quả lỗi tường minh.",
+          "Chuỗi dừng trước handler ghi dữ liệu.",
+          "Handler đã có thể ghi dữ liệu trước khi thay phản hồi."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-httpclient-named",
+    "content": {
+      "title": "Cấu hình HTTP client theo dịch vụ",
+      "topic": "aspnet",
+      "subtopic": "IHttpClientFactory",
+      "tags": [
+        "IHttpClientFactory",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Ứng dụng gọi API kho và API giao hàng với BaseAddress và timeout khác nhau. Cấu hình được chia sẻ theo tên ở nhiều chỗ gọi. Cách dùng IHttpClientFactory nào phù hợp?",
+      "englishPrompt": "An app calls inventory and shipping APIs with different BaseAddress and timeout values. Multiple callers need to select shared configurations by name. How should they use IHttpClientFactory?",
+      "context": "Tên hai dịch vụ đã cố định và không cần lựa chọn dựa trên dữ liệu người dùng.",
+      "hint": "Tập trung cấu hình ở nơi đăng ký dịch vụ.",
+      "nextHint": "Mỗi cấu hình nên có định danh riêng lúc lấy client.",
+      "followUp": "Factory có thể tái sử dụng MessageHandler dù trả HttpClient mới cho mỗi lần CreateClient không?",
+      "englishFollowUp": "Can the factory reuse an HttpMessageHandler even though each CreateClient call returns a new HttpClient?",
+      "outline": [
+        "Tách cấu hình kho và giao hàng.",
+        "Chọn named client theo tên đăng ký."
+      ],
+      "shortAnswer": "Đăng ký hai named client bằng AddHttpClient, rồi gọi CreateClient với đúng tên.",
+      "explanation": "Mỗi tên có cấu hình riêng và được áp dụng khi tạo HttpClient. Factory quản lý vòng đời của handler, vốn có thể được tái sử dụng giữa các client cùng tên.",
+      "alternative": "Dùng typed client nếu muốn gói cấu hình và các phương thức gọi một API vào một kiểu riêng.",
+      "trap": "Thay BaseAddress trên một HttpClient đã bắt đầu gửi request để phục vụ API thứ hai.",
+      "rubric": [
+        "Tách cấu hình kho và giao hàng.",
+        "Chọn named client theo tên đăng ký.",
+        "Giữ timeout theo client.",
+        "Phân biệt vòng đời client và handler."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tạo HttpClient và handler mới cho mỗi lời gọi",
+          "Đăng ký hai named client và lấy theo tên",
+          "Dùng một client rồi luân phiên sửa BaseAddress",
+          "Lấy default client hai lần để tự nhận cấu hình theo path"
+        ],
+        "en": [
+          "Create a new HttpClient and handler for every call",
+          "Register two named clients and resolve them by name",
+          "Use one client and alternate its BaseAddress",
+          "Resolve the default client twice to select configuration by path"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Mất cấu hình tập trung và quản lý vòng đời handler của factory.",
+          "Mỗi tên ứng với một bộ cấu hình.",
+          "Cấu hình dùng chung gây xung đột và BaseAddress không được đổi sau khi bắt đầu request.",
+          "Factory không tự suy ra cấu hình từ URI request sau này."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-jwt-audience-binding",
+    "content": {
+      "title": "Token dành cho API khác",
+      "topic": "aspnet",
+      "subtopic": "JWT bearer audience",
+      "tags": [
+        "JWT bearer audience",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "API hóa đơn nhận access token có chữ ký hợp lệ từ issuer tin cậy. Token còn hạn nhưng aud chỉ chứa API báo cáo. API hóa đơn nên xử lý thế nào theo cấu hình chuẩn?",
+      "englishPrompt": "An invoice API receives a signed, unexpired access token from a trusted issuer. Its aud names only the reporting API. What should the invoice API do under standard validation?",
+      "context": "Hai API thuộc cùng hệ thống nhưng mỗi API cấu hình audience riêng.",
+      "hint": "Kiểm tra bên phát hành và bên nhận dự kiến.",
+      "nextHint": "Token không chứng minh được nó được cấp cho API hiện tại.",
+      "followUp": "Nếu token có đúng audience, thuộc tính nào tiếp tục quyết định quyền đọc hóa đơn?",
+      "englishFollowUp": "If the audience is correct, what still determines whether the caller may read an invoice?",
+      "outline": [
+        "Phân biệt issuer và audience.",
+        "Xác định token sai audience."
+      ],
+      "shortAnswer": "Từ chối xác thực token do audience không khớp API hóa đơn.",
+      "explanation": "Audience ràng buộc access token với API đích. Chữ ký, issuer, thời hạn và audience đều cần kiểm tra. Quyền đọc hóa đơn vẫn là quyết định authorization riêng sau xác thực.",
+      "alternative": "Client yêu cầu access token đúng đối tượng nhận qua luồng cấp token đã được cấu hình.",
+      "trap": "Đánh đồng chữ ký hợp lệ với việc token được phép dùng ở mọi dịch vụ của issuer.",
+      "rubric": [
+        "Phân biệt issuer và audience.",
+        "Xác định token sai audience.",
+        "Từ chối tại bước xác thực.",
+        "Giữ kiểm tra quyền nghiệp vụ độc lập."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "http-auth-challenge"
+      ],
+      "quiz": {
+        "vi": [
+          "Từ chối xác thực vì audience không khớp",
+          "Chấp nhận vì chữ ký do issuer tin cậy ký",
+          "Chấp nhận vì token còn hạn",
+          "Giải mã token rồi dùng username trong payload làm danh tính"
+        ],
+        "en": [
+          "Reject authentication because the audience does not match",
+          "Accept because a trusted issuer signed it",
+          "Accept because the token has not expired",
+          "Decode the token and use its payload username as identity"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Token dành riêng cho API báo cáo.",
+          "Chữ ký xác nhận tính toàn vẹn và bên ký, không thay cho kiểm tra audience.",
+          "Thời hạn và audience là hai điều kiện độc lập.",
+          "Đọc payload không thiết lập danh tính đã xác thực."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-policy-all-requirements",
+    "content": {
+      "title": "Hai yêu cầu trong một policy",
+      "topic": "aspnet",
+      "subtopic": "Policy requirements",
+      "tags": [
+        "Policy requirements",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Policy ApproveRefund có hai requirement riêng: thuộc nhóm Finance và có quyền refund.approve. Danh tính đã xác thực chỉ thỏa Finance. Policy cho phép hay từ chối?",
+      "englishPrompt": "ApproveRefund has two separate requirements: Finance group membership and refund.approve permission. An authenticated identity satisfies only Finance. Does the policy allow or deny approval?",
+      "context": "Mỗi điều kiện có một handler riêng và handler chỉ đánh dấu thành công khi đúng điều kiện.",
+      "hint": "Phân biệt hai requirement với hai handler của cùng requirement.",
+      "nextHint": "Hãy kiểm tra còn requirement nào chưa được đánh dấu thành công.",
+      "followUp": "Nếu quy tắc cho phép Finance hoặc Compliance, cách tổ chức requirement cần thay đổi ra sao?",
+      "englishFollowUp": "If the rule should accept Finance or Compliance, how should you organize the requirement?",
+      "outline": [
+        "Đếm hai requirement riêng.",
+        "Nêu cách kết hợp AND."
+      ],
+      "shortAnswer": "Từ chối vì một policy cần toàn bộ requirement của nó thành công.",
+      "explanation": "Các requirement riêng được kết hợp theo AND. Handler của Finance hoàn tất phần của nó nhưng không làm requirement refund.approve thành công.",
+      "alternative": "Khi cần điều kiện OR, biểu diễn trong một requirement, chẳng hạn với RequireRole cho bất kỳ vai trò hợp lệ nào.",
+      "trap": "Thêm một requirement riêng cho Compliance khi mục tiêu là cho phép Finance hoặc Compliance.",
+      "rubric": [
+        "Đếm hai requirement riêng.",
+        "Nêu cách kết hợp AND.",
+        "Xác định quyền refund.approve chưa thỏa.",
+        "Mô tả cách biểu diễn OR trong cùng một requirement."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authorization/policies?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "resource-authorization"
+      ],
+      "quiz": {
+        "vi": [
+          "Cho phép khi bất kỳ handler nào thành công",
+          "Cho phép vì người dùng đã đăng nhập",
+          "Tùy thứ tự đăng ký hai handler",
+          "Từ chối vì refund.approve chưa thành công"
+        ],
+        "en": [
+          "Allow when any handler succeeds",
+          "Allow because the user is authenticated",
+          "It depends on registration order",
+          "Deny because refund.approve has not succeeded"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Một handler thành công không hoàn tất requirement khác.",
+          "Xác thực không đáp ứng thay cho quyền nghiệp vụ.",
+          "Thiếu quyền vẫn không qua policy bất kể thứ tự.",
+          "Mọi requirement độc lập trong policy đều cần thành công."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-fallback-require-authenticated",
+    "content": {
+      "title": "Mặc định yêu cầu đăng nhập",
+      "topic": "aspnet",
+      "subtopic": "Fallback authorization",
+      "tags": [
+        "Fallback authorization",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Nhóm muốn endpoint mới mặc định cần đăng nhập dù lập trình viên chưa gắn metadata authorization. Một số endpoint công khai đã khai báo AllowAnonymous. Cấu hình nào áp dụng đúng?",
+      "englishPrompt": "A team wants new endpoints to require sign-in by default even when developers omit authorization metadata. Deliberately public endpoints already declare AllowAnonymous. Which configuration applies?",
+      "context": "Ứng dụng đã cấu hình scheme xác thực và middleware authorization.",
+      "hint": "Kiểm tra policy nào dùng khi không có metadata.",
+      "nextHint": "Policy mặc định của [Authorize] và policy dự phòng được kích hoạt ở các thời điểm khác nhau.",
+      "followUp": "Nếu một endpoint gắn policy có tên, fallback policy có tự cộng thêm vào policy đó không?",
+      "englishFollowUp": "If an endpoint declares a named policy, does the fallback policy automatically get added to it?",
+      "outline": [
+        "Nêu điều kiện áp dụng FallbackPolicy.",
+        "Yêu cầu người dùng đã xác thực."
+      ],
+      "shortAnswer": "Đặt FallbackPolicy yêu cầu người dùng đã xác thực. Giữ AllowAnonymous cho điểm công khai.",
+      "explanation": "Fallback policy được dùng nếu không có metadata authorization như [Authorize] hoặc RequireAuthorization. AllowAnonymous bỏ qua enforcement authorization cho endpoint đó. Policy có tên cần tự biểu diễn yêu cầu của nó.",
+      "alternative": "Có thể dùng RequireAuthorization cho một route group nếu ranh giới bảo vệ trùng với group và luôn được kiểm thử.",
+      "trap": "Chỉ đổi DefaultPolicy và cho rằng endpoint chưa từng gắn [Authorize] cũng dùng nó.",
+      "rubric": [
+        "Nêu điều kiện áp dụng FallbackPolicy.",
+        "Yêu cầu người dùng đã xác thực.",
+        "Giữ ngoại lệ AllowAnonymous chủ động.",
+        "Phân biệt fallback, default và policy có tên."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.authorization.authorizationoptions.fallbackpolicy?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ đăng ký authentication scheme",
+          "Bỏ AllowAnonymous ở mọi endpoint công khai",
+          "Đặt FallbackPolicy yêu cầu danh tính đã xác thực",
+          "Chỉ đặt DefaultPolicy yêu cầu đăng nhập"
+        ],
+        "en": [
+          "Only register the authentication scheme",
+          "Remove AllowAnonymous from all public endpoints",
+          "Set FallbackPolicy to require an authenticated identity",
+          "Set only DefaultPolicy to require sign-in"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Khả năng xác thực không tự tạo yêu cầu authorization.",
+          "Xóa ngoại lệ rõ ràng không thiết lập policy mặc định.",
+          "Fallback áp dụng khi thiếu metadata authorization.",
+          "DefaultPolicy áp dụng khi đã yêu cầu authorization mà không chỉ policy cụ thể."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-cors-not-authorize",
+    "content": {
+      "title": "CORS và quyền đọc dữ liệu",
+      "topic": "aspnet",
+      "subtopic": "CORS",
+      "tags": [
+        "CORS",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "ASP.NET Core 10",
+      "prompt": "CORS chỉ cho phép trang dashboard của công ty. API cũng có client dòng lệnh. Điều kiện nào vẫn cần kiểm tra trước khi gửi báo cáo nội bộ?",
+      "englishPrompt": "CORS allows only the company dashboard. The API also has a command-line client. What must still be checked before returning an internal report?",
+      "context": "Báo cáo chỉ dành cho danh tính có quyền đọc báo cáo.",
+      "hint": "Xác định cơ chế nào được trình duyệt thực thi.",
+      "nextHint": "Một lệnh gọi ngoài trình duyệt không dựa vào quyết định đọc response của JavaScript.",
+      "followUp": "Nếu CORS cho phép một origin hợp lệ, người chưa đăng nhập ở đó có tự được đọc báo cáo không?",
+      "englishFollowUp": "Does allowing a legitimate origin in CORS give an unsigned-in person at that origin access to the report?",
+      "outline": [
+        "Mô tả vai trò của CORS trong trình duyệt.",
+        "Nêu khả năng có client ngoài trình duyệt."
+      ],
+      "shortAnswer": "API xác thực danh tính và kiểm tra quyền đọc báo cáo trên máy chủ.",
+      "explanation": "CORS quyết định việc chia sẻ phản hồi giữa các origin trong trình duyệt. Nó không phải cơ chế phân quyền tài nguyên và không thay thế policy kiểm tra quyền đọc báo cáo.",
+      "alternative": "Giữ CORS hẹp cho ứng dụng trình duyệt. Dùng cùng policy authorization cho dashboard và client dòng lệnh.",
+      "trap": "Dùng Origin thay cho danh tính hoặc quyền nghiệp vụ.",
+      "rubric": [
+        "Mô tả vai trò của CORS trong trình duyệt.",
+        "Nêu khả năng có client ngoài trình duyệt.",
+        "Yêu cầu xác thực và policy đọc ở API.",
+        "Áp dụng policy độc lập với origin."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/cors?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "resource-authorization"
+      ],
+      "quiz": {
+        "vi": [
+          "Coi Origin thuộc dashboard là đủ quyền",
+          "Kiểm tra quyền ở giao diện rồi bỏ ở API",
+          "Xác thực danh tính và quyền đọc báo cáo trên máy chủ",
+          "Chỉ kiểm tra cấu hình CORS có bật"
+        ],
+        "en": [
+          "Treat the dashboard Origin as sufficient permission",
+          "Check permissions in the UI and omit the API check",
+          "Authenticate the caller and authorize report access on the server",
+          "Only confirm CORS is enabled"
+        ],
+        "correctIndex": 2,
+        "reasons": [
+          "Origin là ngữ cảnh web, không phải danh tính đã xác thực.",
+          "Client dòng lệnh không dùng giao diện này.",
+          "Quyền truy cập phải áp dụng xuyên suốt mọi loại client.",
+          "CORS không thiết lập quyền đọc báo cáo."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-health-ready-live",
+    "content": {
+      "title": "Sẵn sàng nhận lưu lượng",
+      "topic": "aspnet",
+      "subtopic": "Readiness và liveness",
+      "tags": [
+        "Readiness và liveness",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Ứng dụng đang khởi động, tiến trình vẫn khỏe nhưng chưa tải xong cấu hình cần để phục vụ request. Kết quả probe nào giữ nó khỏi nhận lưu lượng mà không gây khởi động lại?",
+      "englishPrompt": "An app process is healthy while starting but has not loaded the configuration it needs to serve requests. Which probe result keeps it out of traffic without triggering a restart?",
+      "context": "Hạ tầng coi readiness là điều kiện nhận lưu lượng và liveness là điều kiện tiếp tục chạy.",
+      "hint": "Tách sống được và phục vụ được.",
+      "nextHint": "Bộ định tuyến và bộ quản lý vòng đời đọc hai tín hiệu khác nhau.",
+      "followUp": "Nếu tiến trình thật sự bị treo và không tự hồi phục, probe nào nên báo lỗi?",
+      "englishFollowUp": "Which probe should fail if the process is truly stuck and cannot recover?",
+      "outline": [
+        "Tách vai trò readiness và liveness.",
+        "Giữ liveness đạt khi tiến trình khỏe."
+      ],
+      "shortAnswer": "Liveness đạt, readiness chưa đạt cho tới khi cấu hình tải xong.",
+      "explanation": "Tiến trình có thể còn khỏe trong thời gian khởi động. Readiness loại nó khỏi danh sách đích nhận request. Liveness chỉ báo lỗi khi tiến trình cần được khởi động lại.",
+      "alternative": "Gắn tag cho các health check cần thiết để MapHealthChecks lọc tập kiểm tra của từng endpoint probe.",
+      "trap": "Dùng thất bại tạm thời của dependency làm lý do restart liên tục dù tiến trình tự hồi phục được.",
+      "rubric": [
+        "Tách vai trò readiness và liveness.",
+        "Giữ liveness đạt khi tiến trình khỏe.",
+        "Chỉ cho readiness đạt sau khởi tạo.",
+        "Liên hệ từng tín hiệu với tác động của hạ tầng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "docker-health-state"
+      ],
+      "quiz": {
+        "vi": [
+          "Cả hai chưa đạt",
+          "Readiness đạt, liveness chưa đạt",
+          "Cả hai đạt",
+          "Liveness đạt, readiness chưa đạt"
+        ],
+        "en": [
+          "Both fail",
+          "Readiness passes, liveness fails",
+          "Both pass",
+          "Liveness passes, readiness does not"
+        ],
+        "correctIndex": 3,
+        "reasons": [
+          "Liveness trượt có thể làm tiến trình bị khởi động lại.",
+          "Sẵn sàng nhận lưu lượng và restart đều đi ngược điều kiện.",
+          "Ứng dụng có thể nhận request quá sớm.",
+          "Giữ tiến trình chạy và chặn lưu lượng."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-proxy-https-scheme",
+    "content": {
+      "title": "Scheme sau reverse proxy",
+      "topic": "aspnet",
+      "subtopic": "Forwarded headers",
+      "tags": [
+        "Forwarded headers",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Reverse proxy tin cậy chấm dứt TLS rồi chuyển request nội bộ bằng HTTP. Ứng dụng dùng URL callback HTTPS nhưng đang đọc Scheme thành http. Thay đổi nào giúp ứng dụng nhận scheme gốc một cách an toàn?",
+      "englishPrompt": "A trusted reverse proxy terminates TLS and forwards over HTTP. The app needs an HTTPS callback URL but sees Scheme as http. What safely restores the original scheme?",
+      "context": "Proxy được cấu hình để chuyển scheme ban đầu. Ứng dụng có thể giới hạn proxy được tin cậy.",
+      "hint": "Ứng dụng chỉ nhìn thấy kết nối ở chặng cuối.",
+      "nextHint": "Middleware có thể áp dụng metadata proxy trước các thành phần dùng Scheme.",
+      "followUp": "Nếu bên ngoài có cả client kết nối trực tiếp, vì sao không nên tin mọi forwarded header?",
+      "englishFollowUp": "If public clients can connect directly as well, why should the app avoid trusting every forwarded header?",
+      "outline": [
+        "Phân biệt TLS bên ngoài với HTTP nội bộ.",
+        "Đọc scheme gốc qua forwarded metadata."
+      ],
+      "shortAnswer": "Cấu hình Forwarded Headers Middleware dùng X-Forwarded-Proto từ proxy hoặc mạng tin cậy, trước khi sinh URL.",
+      "explanation": "Kết nối nội bộ là HTTP nên tự nó không nói được scheme của client. Middleware có thể cập nhật Request.Scheme từ X-Forwarded-Proto khi nguồn chuyển tiếp nằm trong cấu hình tin cậy.",
+      "alternative": "Nếu proxy chuyển scheme theo header khác, thống nhất tên header trong cấu hình của hai bên và kiểm thử qua proxy thực tế.",
+      "trap": "Chấp nhận header scheme do bất kỳ client nào gửi.",
+      "rubric": [
+        "Phân biệt TLS bên ngoài với HTTP nội bộ.",
+        "Đọc scheme gốc qua forwarded metadata.",
+        "Giới hạn nguồn proxy được tin cậy.",
+        "Áp dụng middleware trước chỗ dùng Scheme."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/proxy-load-balancer?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "middleware-order"
+      ],
+      "quiz": {
+        "vi": [
+          "Áp dụng X-Forwarded-Proto từ proxy đã cấu hình tin cậy",
+          "Lấy scheme từ Origin của mọi request",
+          "Tin X-Forwarded-Proto từ mọi nguồn",
+          "Suy scheme từ Content-Type của request"
+        ],
+        "en": [
+          "Apply X-Forwarded-Proto from configured trusted proxies",
+          "Use every request’s Origin to determine scheme",
+          "Trust X-Forwarded-Proto from all sources",
+          "Infer the scheme from the request Content-Type"
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Giữ scheme gốc và giới hạn nơi có quyền khai báo nó.",
+          "Origin không mô tả đáng tin cậy kết nối đến tài nguyên này.",
+          "Không giữ được ranh giới tin cậy.",
+          "Định dạng body không liên quan tới scheme."
+        ]
+      }
+    }
+  },
+  {
+    "slug": "aspnet-minimal-route-groups",
+    "content": {
+      "title": "Chính sách chung cho nhóm route",
+      "topic": "aspnet",
+      "subtopic": "Route groups",
+      "tags": [
+        "Route groups",
+        "ASP.NET Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 3,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Mọi endpoint dưới /internal/reports cần cùng policy StaffReports. Trong Minimal API, lựa chọn nào giúp endpoint thêm vào nhóm thừa hưởng cấu hình?",
+      "englishPrompt": "All endpoints under /internal/reports require the same StaffReports policy. In a Minimal API, which option makes endpoints added to the group inherit the configuration?",
+      "context": "Các endpoint mới luôn được map trên route group quản lý báo cáo.",
+      "hint": "Xét nơi khai báo prefix chung.",
+      "nextHint": "Authorization được gắn dưới dạng metadata cho endpoint.",
+      "followUp": "Nếu thêm GET /internal/reports/daily bằng app.MapGet bên ngoài group, route có tự thừa hưởng policy theo tiền tố không?",
+      "englishFollowUp": "If GET /internal/reports/daily is mapped through app.MapGet outside the group, does it inherit the policy merely because of the prefix?",
+      "outline": [
+        "Dùng MapGroup để xác định tập endpoint.",
+        "Gắn policy lên group."
+      ],
+      "shortAnswer": "Tạo MapGroup cho prefix và gọi RequireAuthorization với StaffReports trên group.",
+      "explanation": "Route group áp dụng conventions và metadata chung cho các endpoint map qua group. Một endpoint được đăng ký ngoài group cần cấu hình thích hợp của riêng nó.",
+      "alternative": "Vẫn có thể gắn RequireAuthorization cho từng endpoint nếu các policy khác nhau và cần thể hiện ở từng chỗ khai báo.",
+      "trap": "Chỉ đặt cùng tiền tố đường dẫn rồi kỳ vọng nó tự áp dụng policy.",
+      "rubric": [
+        "Dùng MapGroup để xác định tập endpoint.",
+        "Gắn policy lên group.",
+        "Map endpoint qua đối tượng group.",
+        "Giải thích tại sao prefix giống nhau không đủ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/routing?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "aspnet-fallback-require-authenticated"
+      ],
+      "quiz": {
+        "vi": [
+          "Gọi WithTags cho tất cả route báo cáo",
+          "MapGroup rồi gọi RequireAuthorization trên nhóm",
+          "Map từng route với cùng prefix mà không gắn policy",
+          "Đưa StaffReports vào tên route"
+        ],
+        "en": [
+          "Call WithTags on the report routes",
+          "Use MapGroup and call RequireAuthorization on the group",
+          "Map each route under the same prefix without attaching a policy",
+          "Add StaffReports to the route name"
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Tag không thêm điều kiện authorization.",
+          "Metadata áp dụng cho endpoint được đăng ký qua group.",
+          "Chuỗi URL không tự tạo metadata.",
+          "Tên route giúp định danh, không kiểm tra policy."
+        ]
+      }
+    }
+  }
+]

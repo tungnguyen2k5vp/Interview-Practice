@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { sqlTypesV3 } from './sql-types-v3.mjs'
 
 const root = resolve(import.meta.dirname, '../..')
 const data = name => JSON.parse(readFileSync(join(root, 'server', 'Content', name + '.json'), 'utf8'))
@@ -30,8 +31,8 @@ for (const field of ['prompt','englishPrompt']) {
   }
 }
 const slugs = new Set(questions.map(x => x.slug))
-const knowledgeChecks = data('knowledge-checks')
-assert.equal(knowledgeChecks.length, 52)
+const knowledgeChecks = [...data('knowledge-checks'), ...readdirSync(join(root,'server','Content'))
+  .filter(f=>/^knowledge-checks-batch-.*\.json$/.test(f)).flatMap(f=>data(f.slice(0,-5)))]
 assert.equal(new Set(knowledgeChecks.map(x => x.slug + '@' + x.version)).size, knowledgeChecks.length)
 for (const q of questions.filter(x => !x.content.quiz)) assert(knowledgeChecks.some(c => c.slug === q.slug && c.version === 1), q.slug)
 for (const c of knowledgeChecks) {
@@ -56,6 +57,32 @@ for(const {slug,content} of questions) {
   assert(['intern','fresher','junior','mid','senior'].includes(content.level),slug)
   assert(['easy','medium','hard'].includes(content.difficulty),slug)
 }
+const topics = new Set(['csharp','oop','linq','aspnet','efcore','sql','algorithms','systems','delivery','behavioral','testing'])
+const formats = new Set(['concept','compare','read','debug','predict','design','experience','quiz'])
+for (const {slug,content:c} of questions) {
+  assert(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && topics.has(c.topic) && formats.has(c.format),slug)
+  assert(c.tags?.length && c.tags.every(s=>s.trim()) && c.shortAnswer?.trim() && c.explanation?.trim(),slug)
+}
+const concepts = data('concepts'), byConcept = new Map(concepts.map(c=>[c.id,c]))
+assert.equal(byConcept.size,concepts.length)
+const aliases = new Set()
+function checkConcept(id,path) {
+  const c = byConcept.get(id)
+  assert(c && !path.includes(id),'Unknown concept or cycle: '+[...path,id].join(' → '))
+  for(const key of c.prerequisites) checkConcept(key,[...path,id])
+}
+for(const c of concepts) {
+  checkConcept(c.id,[])
+  assert(c.questions.length >= 2 && new Set(c.questions).size===c.questions.length && c.questions.every(s=>slugs.has(s)),c.id)
+  for(const word of new Set(c.aliases.map(a=>a.toLowerCase()))) {
+    assert(word.trim() && !aliases.has(word),'Ambiguous alias '+word); aliases.add(word)
+  }
+  if(c.exercise) assert(exercises.some(e=>e.kind+'/'+e.slug===c.exercise),c.id)
+  if(c.review) assert(data('code-reviews').some(r=>r.slug===c.review),c.id)
+}
+const scenarios=data('project-scenarios')
+assert.equal(new Set(scenarios.map(s=>s.slug)).size,scenarios.length)
+for(const s of scenarios) assert(s.brief && s.prompt && s.rubric && s.followUp && s.questions.every(q=>slugs.has(q)),s.slug)
 for (const {slug, content: c} of [...batch, ...newBatches]) {
   assert(c.nextHint && c.nextHint !== c.hint && c.context && c.trap && c.explanation && c.alternative, slug)
   assert(c.prerequisites.concat(c.related).every(k => k !== slug && slugs.has(k)), slug)
@@ -80,14 +107,20 @@ for (const { content } of questions) {
 if (process.argv.includes('--sources')) {
   const urls = [...new Set(questions.map(q => q.content.source))]
   const failures = []
-  for (let i = 0; i < urls.length; i += 5) {
-    await Promise.all(urls.slice(i,i+5).map(async url => {
-      try {
-        const response = await fetch(url, {signal: AbortSignal.timeout(20000)})
+  for (const url of urls) {
+    try {
+      let response
+      for(let attempt=0;attempt<3;attempt++){
+        response=await fetch(url,{signal:AbortSignal.timeout(20000)})
         await response.body?.cancel()
-        if (!response.ok || new URL(response.url).protocol !== 'https:') failures.push(url+' '+response.status)
-      } catch (error) { failures.push(url+' '+error.message) }
-    }))
+        if(response.status!==429 || attempt===2) break
+        const raw=response.headers.get('retry-after')
+        const delay=raw && /^\d+$/.test(raw)?Number(raw)*1000:raw?Date.parse(raw)-Date.now():15000
+        if(delay>120000) break
+        await new Promise(done=>setTimeout(done,Math.max(1000,delay||15000)))
+      }
+      if (!response.ok || new URL(response.url).protocol !== 'https:') failures.push(url+' '+response.status)
+    } catch (error) { failures.push(url+' '+error.message) }
   }
   assert.deepEqual(failures, [], 'Broken or unreachable source URLs')
   console.log('PASS '+urls.length+' distinct HTTPS source links')
@@ -95,8 +128,7 @@ if (process.argv.includes('--sources')) {
 
 const coding = exercises.filter(x => x.kind === 'coding')
 const sql = exercises.filter(x => x.kind === 'sql')
-assert.equal(coding.length, 14)
-assert.equal(sql.length, 11)
+assert(coding.length >= 16 && sql.length >= 13)
 for (const item of exercises) assert(item.version > 0 && item.testVersion > 0 && item.tests.length > 0)
 
 const directory = join(root, '.artifacts', 'content')
@@ -126,11 +158,12 @@ for (const { solution, examples, tests, slug } of coding) {
   }
 }
 
-const sqlTypes = { 'customer-orders': ['Int32', 'String', 'Int32'], 'department-salary': ['Int32', 'Int32', 'Decimal'],
+const sqlTypes = { ...sqlTypesV3, 'customer-orders': ['Int32', 'String', 'Int32'], 'department-salary': ['Int32', 'Int32', 'Decimal'],
   'daily-totals': ['Int32', 'DateTime', 'Int32'], 'latest-payment': ['Int32', 'Int32', 'Int32'],
   'unassigned-tickets': ['Int32', 'String'], 'product-sales': ['Int32', 'DateTime', 'Int32'],
   'above-team-average': ['Int32','Int32'], 'missing-sequence': ['Int32','Int32'], 'transfer-atomic': ['Int32','Int32'],
-  'stock-threshold-crossings': ['Int32','Int32'], 'unbilled-work': ['Int32'] }
+  'stock-threshold-crossings': ['Int32','Int32'], 'unbilled-work': ['Int32'],
+  'course-vacancies': ['Int32','Int32'], 'learners-across-courses': ['Int32','Int32'] }
 const sqlCalls = sql.map(item => {
   const [header, ...rows] = item.expected.split('\n').map(line => line.split('|').map(value => value.trim()))
   const query = ['SET NOCOUNT ON;', item.schema, item.dataset, item.solution].join('\n')

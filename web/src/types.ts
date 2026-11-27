@@ -19,7 +19,7 @@ export const labels = {
   rating: { again:'Luyện lại', hard:'Khó', good:'Nhớ được', easy:'Dễ', unsure: 'Chưa hiểu', partial: 'Hiểu một phần', clear: 'Giải thích được' },
   status: { viewed: 'Đã xem tài liệu', answered: 'Đã trả lời', skipped: 'Đã bỏ qua', unasked: 'Chưa hỏi', unanswered: 'Chưa trả lời', active: 'Đang thực hiện', paused: 'Đã tạm dừng', completed: 'Hoàn thành', ended: 'Kết thúc sớm', expired: 'Hết giờ' },
   preset: { foundation: 'Nền tảng .NET', backend: 'Backend & API', 'problem-solving': 'SQL & Problem Solving', design: 'System Design', coding: 'Coding Interview', 'sql-round': 'SQL Interview', people: 'HR & Dự án' },
-  publication: { draft: 'Nháp', published: 'Đã xuất bản', retired: 'Ngừng xuất bản' },
+  publication: { draft: 'Nháp', 'needs-review':'Chờ thẩm định', verified:'Đã kiểm định', published: 'Đã xuất bản', retired: 'Ngừng xuất bản' },
 }
 export function label(group: keyof typeof labels, key?: string | null) {
   return key ? (labels[group] as Record<string, string>)[key] ?? key : ''
@@ -74,7 +74,7 @@ export type History = {
   version: number; hintSeen: boolean; answerSeen: boolean; revisions: number; hasAiFeedback: boolean
 }
 export type Note = { id: string; title: string; text: string; slug?: string; topic?: string; important: boolean; revision: number; updatedAt?: string }
-export type Preset = { id: string; name: string; description: string; topics: string[] }
+export type Preset = { id: string; name: string; description: string; topics: string[]; targetLevel?:string; minutes?:number }
 export type InterviewObservation = { model: string; assessment: { findings: {kind: string; quote: string; note: string}[]; improvedAnswer: string } }
 type InterviewEntry = { seconds: number; aiState?: string; observation?: InterviewObservation }
 export type Interview = {

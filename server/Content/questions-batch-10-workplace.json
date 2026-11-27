@@ -1,0 +1,272 @@
+[
+  {
+    "slug": "intern-intro-evidence",
+    "content": {
+      "title": "Giới thiệu bản thân",
+      "topic": "behavioral",
+      "subtopic": "Giới thiệu bản thân",
+      "tags": [
+        "giao tiếp",
+        "dự án"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Trong 60 giây đầu vòng Intern .NET, bạn chọn một trải nghiệm nào để người phỏng vấn có thể hỏi sâu và kiểm chứng?",
+      "englishPrompt": "In the opening minute of a .NET internship interview, which experience would you choose so the interviewer can verify and explore it?",
+      "context": "Bạn chưa đi làm chính thức, từng phụ trách lọc danh sách lớp trong đồ án nhóm.",
+      "hint": "Nêu vai trò và thời gian thực hiện.",
+      "nextHint": "Chỉ cách kiểm chứng kết quả.",
+      "followUp": "Nếu chỉ có demo cục bộ, bạn sẽ trình diễn luồng nào?",
+      "englishFollowUp": "Which flow would you demonstrate if all you have is a local prototype?",
+      "outline": [
+        "Nêu vai trò và thời gian thực hiện",
+        "Kể một quyết định bản thân đã đưa ra",
+        "Chỉ cách kiểm chứng kết quả"
+      ],
+      "shortAnswer": "Tôi sẽ nêu phần mình làm, vì sao người dùng cần nó và một test hoặc demo chứng minh kết quả.",
+      "explanation": "Không cần kể toàn bộ stack. Một quyết định có lý do giúp interviewer chuyển sang hỏi SQL, API hoặc phối hợp nhóm tùy bằng chứng bạn đã nêu.",
+      "alternative": "Phân biệt việc của mình và của nhóm. Nếu chỉ có demo cục bộ, bạn sẽ trình diễn luồng nào?",
+      "trap": "Tự nhận mình thiết kế toàn hệ thống dù chỉ phụ trách một màn hình.",
+      "rubric": [
+        "Nêu vai trò và thời gian thực hiện",
+        "Kể một quyết định bản thân đã đưa ra",
+        "Chỉ cách kiểm chứng kết quả",
+        "Phân biệt việc của mình và của nhóm"
+      ],
+      "source": "https://nationalcareers.service.gov.uk/careers-advice/interview-advice/the-star-method",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ]
+    }
+  },
+  {
+    "slug": "portfolio-first-run",
+    "content": {
+      "title": "GitHub portfolio",
+      "topic": "behavioral",
+      "subtopic": "GitHub portfolio",
+      "tags": [
+        "giao tiếp",
+        "dự án"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Reviewer chỉ có năm phút thử portfolio. README của API quản lý kho cần gì để họ chạy được một luồng hoàn chỉnh?",
+      "englishPrompt": "A reviewer has five minutes to try your inventory API portfolio. What should its README provide for one complete flow?",
+      "context": "Repo có SQL Server và một client mẫu. Reviewer mới clone lần đầu.",
+      "hint": "Liệt kê dependency cần thiết.",
+      "nextHint": "Đưa lệnh và một kết quả quan sát được.",
+      "followUp": "Nếu DB chưa khởi động xong, hướng dẫn giúp reviewer nhận biết ra sao?",
+      "englishFollowUp": "How would a reviewer recognize that the database is still starting?",
+      "outline": [
+        "Liệt kê dependency cần thiết",
+        "Dùng dữ liệu minh họa tái tạo được",
+        "Đưa lệnh và một kết quả quan sát được"
+      ],
+      "shortAnswer": "Tôi sẽ ghi phiên bản cần dùng, cách khởi tạo dữ liệu mẫu, lệnh chạy và một request với kết quả mong đợi.",
+      "explanation": "Kiểm tra hướng dẫn bằng một clone mới sẽ phát hiện giả định ngầm như DB đã có sẵn hoặc file config cá nhân. Mô tả tính năng có thể để sau bước chạy đầu.",
+      "alternative": "Chỉ ra cấu hình local an toàn. Nếu DB chưa khởi động xong, hướng dẫn giúp reviewer nhận biết ra sao?",
+      "trap": "Đưa connection string sản xuất vào hướng dẫn để demo nhanh.",
+      "rubric": [
+        "Liệt kê dependency cần thiết",
+        "Dùng dữ liệu minh họa tái tạo được",
+        "Đưa lệnh và một kết quả quan sát được",
+        "Chỉ ra cấu hình local an toàn"
+      ],
+      "source": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ]
+    }
+  },
+  {
+    "slug": "qa-repro-handoff",
+    "content": {
+      "title": "Phối hợp với QA",
+      "topic": "behavioral",
+      "subtopic": "Phối hợp với QA",
+      "tags": [
+        "giao tiếp",
+        "dự án"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "QA báo tổng tiền sai nhưng dev chưa tái hiện được. Bạn sẽ viết lại ticket và phối hợp thế nào?",
+      "englishPrompt": "QA reports an incorrect total that you cannot reproduce. How would you refine the ticket and work with QA?",
+      "context": "Lỗi chỉ thấy ở đơn có chiết khấu và làm tròn tiền lẻ.",
+      "hint": "Tách quan sát khỏi giả thuyết.",
+      "nextHint": "Đối chiếu tiêu chí chấp nhận.",
+      "followUp": "Khi khách không thể gửi dữ liệu gốc, bạn tạo fixture tương đương ra sao?",
+      "englishFollowUp": "How would you create an equivalent fixture when the customer cannot share real records?",
+      "outline": [
+        "Tách quan sát khỏi giả thuyết",
+        "Chốt bước và môi trường tái hiện",
+        "Đối chiếu tiêu chí chấp nhận"
+      ],
+      "shortAnswer": "Tôi xin bộ dữ liệu mẫu tối thiểu, phiên bản, các bước, kết quả kỳ vọng và thực tế rồi chạy lại cùng QA.",
+      "explanation": "Việc chốt quy tắc làm tròn giúp phân biệt sai do đặc tả với sai triển khai. Khi sửa xong, lưu regression test và ghi rõ dữ liệu minh họa đã khử định danh.",
+      "alternative": "Phản hồi cho QA bằng kết quả kiểm thử. Khi khách không thể gửi dữ liệu gốc, bạn tạo fixture tương đương ra sao?",
+      "trap": "Kết luận QA thao tác sai chỉ vì máy cá nhân chạy đúng.",
+      "rubric": [
+        "Tách quan sát khỏi giả thuyết",
+        "Chốt bước và môi trường tái hiện",
+        "Đối chiếu tiêu chí chấp nhận",
+        "Phản hồi cho QA bằng kết quả kiểm thử"
+      ],
+      "source": "https://docs.github.com/en/issues/tracking-your-work-with-issues/about-issues",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ]
+    }
+  },
+  {
+    "slug": "outsourcing-acceptance",
+    "content": {
+      "title": "Làm rõ yêu cầu",
+      "topic": "behavioral",
+      "subtopic": "Làm rõ yêu cầu",
+      "tags": [
+        "giao tiếp",
+        "dự án"
+      ],
+      "format": "experience",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Khách hàng yêu cầu API tìm kiếm ‘nhanh hơn’. Trước khi cam kết deadline, bạn làm rõ điều gì?",
+      "englishPrompt": "A client asks for a faster search API. What do you clarify before committing to delivery?",
+      "context": "Đội outsourcing chịu trách nhiệm backend nhưng dữ liệu staging ít hơn production.",
+      "hint": "Xác nhận người dùng và tác vụ.",
+      "nextHint": "Thu baseline tái lập.",
+      "followUp": "Nếu tìm kiếm nhanh hơn nhưng kết quả không còn cập nhật tức thì, ai quyết định trade-off?",
+      "englishFollowUp": "Who should decide whether faster search can trade off freshness?",
+      "outline": [
+        "Xác nhận người dùng và tác vụ",
+        "Chốt điều kiện đo với khách",
+        "Thu baseline tái lập"
+      ],
+      "shortAnswer": "Tôi hỏi luồng người dùng, phân vị độ trễ, kích thước dữ liệu và tải cần đáp ứng rồi đề xuất tiêu chí nghiệm thu đo được.",
+      "explanation": "Một giới hạn như p95 chỉ có ý nghĩa với tải, mốc đo và tập truy vấn xác định. Tôi đo baseline trên điều kiện tương đương rồi thảo luận phạm vi và chi phí.",
+      "alternative": "Trình bày phương án cùng đánh đổi. Nếu tìm kiếm nhanh hơn nhưng kết quả không còn cập nhật tức thì, ai quyết định trade-off?",
+      "trap": "Cam kết phần trăm cải thiện khi chưa biết workload hoặc cách đo.",
+      "rubric": [
+        "Xác nhận người dùng và tác vụ",
+        "Chốt điều kiện đo với khách",
+        "Thu baseline tái lập",
+        "Trình bày phương án cùng đánh đổi"
+      ],
+      "source": "https://www.atlassian.com/agile/project-management/user-stories",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ]
+    }
+  },
+  {
+    "slug": "pr-review-dialogue",
+    "content": {
+      "title": "Giao tiếp khi review",
+      "topic": "behavioral",
+      "subtopic": "Giao tiếp khi review",
+      "tags": [
+        "giao tiếp",
+        "dự án"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Reviewer yêu cầu đổi API public ngay trước release. Bạn phản hồi thế nào khi đồng ý với vấn đề nhưng thay đổi sẽ ảnh hưởng client cũ?",
+      "englishPrompt": "A reviewer requests a public API change just before release. How do you respond when you agree with the issue but old clients would break?",
+      "context": "Client mobile chưa thể cập nhật đồng loạt.",
+      "hint": "Nhắc lại vấn đề kỹ thuật cụ thể.",
+      "nextHint": "So sánh ít nhất hai cách xử lý.",
+      "followUp": "Khi nào nên tách một issue theo dõi riêng sau khi merge?",
+      "englishFollowUp": "When should the team record a follow-up issue after merging?",
+      "outline": [
+        "Nhắc lại vấn đề kỹ thuật cụ thể",
+        "Chứng minh ảnh hưởng lên client",
+        "So sánh ít nhất hai cách xử lý"
+      ],
+      "shortAnswer": "Tôi mô tả client bị ảnh hưởng bằng ví dụ, đưa phương án tương thích và nhờ reviewer chốt tiêu chí cho bản phát hành.",
+      "explanation": "Thảo luận trong PR cho phép truy vết lý do và mời chủ hợp đồng vào quyết định. Có thể tách thay đổi theo phiên bản nếu phần sửa hiện tại vẫn an toàn.",
+      "alternative": "Ghi người chịu trách nhiệm và quyết định. Khi nào nên tách một issue theo dõi riêng sau khi merge?",
+      "trap": "Đánh dấu đã resolve mà không phản hồi về hợp đồng cũ.",
+      "rubric": [
+        "Nhắc lại vấn đề kỹ thuật cụ thể",
+        "Chứng minh ảnh hưởng lên client",
+        "So sánh ít nhất hai cách xử lý",
+        "Ghi người chịu trách nhiệm và quyết định"
+      ],
+      "source": "https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/about-pull-request-reviews",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ]
+    }
+  },
+  {
+    "slug": "incident-honest-outcome",
+    "content": {
+      "title": "Bằng chứng kết quả",
+      "topic": "behavioral",
+      "subtopic": "Bằng chứng kết quả",
+      "tags": [
+        "giao tiếp",
+        "dự án"
+      ],
+      "format": "experience",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": null,
+      "prompt": "Kể về lần xử lý lỗi production mà bạn chỉ đóng góp một phần và chưa có số liệu tác động cuối cùng.",
+      "englishPrompt": "Describe an incident where you contributed only part of the fix and the eventual impact was not measured.",
+      "context": "Bạn đã bổ sung log tương quan và tìm được request lỗi. Người khác sửa code và triển khai.",
+      "hint": "Phân biệt hành động từng người.",
+      "nextHint": "Nêu giới hạn suy luận.",
+      "followUp": "Nếu được làm lại, bạn thêm phép đo nào trước khi release?",
+      "englishFollowUp": "Which measurement would you add before shipping if you could do it again?",
+      "outline": [
+        "Phân biệt hành động từng người",
+        "Dẫn một dấu vết kỹ thuật",
+        "Nêu giới hạn suy luận"
+      ],
+      "shortAnswer": "Tôi tách phần mình điều tra khỏi phần triển khai của đồng đội, báo kết quả quan sát được và nói rõ số liệu tác động nào còn thiếu.",
+      "explanation": "Có thể dẫn test tái lập hoặc log sau triển khai với thời gian quan sát, rồi nêu cách đo bổ sung. Nhận định chưa đo nên được trình bày như giả thuyết.",
+      "alternative": "Đưa phép đo giúp xác nhận tác động. Nếu được làm lại, bạn thêm phép đo nào trước khi release?",
+      "trap": "Gán toàn bộ kết quả cho mình hoặc tự thêm tỷ lệ cải thiện.",
+      "rubric": [
+        "Phân biệt hành động từng người",
+        "Dẫn một dấu vết kỹ thuật",
+        "Nêu giới hạn suy luận",
+        "Đưa phép đo giúp xác nhận tác động"
+      ],
+      "source": "https://nationalcareers.service.gov.uk/careers-advice/interview-advice/the-star-method",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [
+        "project-star"
+      ]
+    }
+  }
+]

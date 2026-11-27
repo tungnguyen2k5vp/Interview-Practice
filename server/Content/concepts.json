@@ -1,0 +1,200 @@
+[
+  {
+    "id": "di",
+    "name": "Vòng đời Dependency Injection",
+    "aliases": [
+      "di",
+      "dependency injection",
+      "vong doi service",
+      "vòng đời dịch vụ",
+      "service lifetime",
+      "scoped",
+      "vòng đời service"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "di-lifetimes",
+      "di-keyed",
+      "di-scope-worker"
+    ],
+    "exercise": null,
+    "review": "scope-worker"
+  },
+  {
+    "id": "async",
+    "name": "Luồng bất đồng bộ",
+    "aliases": [
+      "async",
+      "await",
+      "bất đồng bộ",
+      "bat dong bo"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "async-io",
+      "when-all",
+      "cancellation",
+      "task-waitasync",
+      "semaphore-release"
+    ],
+    "exercise": null,
+    "review": "request-cancel"
+  },
+  {
+    "id": "ef-tracking",
+    "name": "Theo dõi thay đổi trong EF Core",
+    "aliases": [
+      "change tracker",
+      "tracking",
+      "ef tracking"
+    ],
+    "prerequisites": [
+      "di"
+    ],
+    "questions": [
+      "dbcontext-unit-of-work",
+      "ef-identity-resolution",
+      "ef-find-local",
+      "ef-filtered-include",
+      "ef-bulk-stale",
+      "ef-context-parallel"
+    ],
+    "exercise": null,
+    "review": "split-commit"
+  },
+  {
+    "id": "pagination",
+    "name": "Phân trang ổn định",
+    "aliases": [
+      "cursor",
+      "keyset",
+      "pagination",
+      "phan trang",
+      "phân trang"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "api-pagination-idempotency",
+      "sql-keyset-tie",
+      "ef-keyset-back",
+      "ef-index-prefix"
+    ],
+    "exercise": null,
+    "review": null
+  },
+  {
+    "id": "transactions",
+    "name": "Biên giao dịch",
+    "aliases": [
+      "transaction",
+      "atomicity",
+      "giao dich",
+      "giao dịch"
+    ],
+    "prerequisites": [
+      "ef-tracking"
+    ],
+    "questions": [
+      "ef-single-roundtrip",
+      "outbox-commit",
+      "isolation-deadlock",
+      "optimistic-concurrency"
+    ],
+    "exercise": "sql/transfer-atomic",
+    "review": "lock-order"
+  },
+  {
+    "id": "sql-null",
+    "name": "Giá trị NULL trong báo cáo",
+    "aliases": [
+      "sql null",
+      "3vl",
+      "three-valued logic"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "sql-null",
+      "sql-count-null",
+      "count-distinct-null",
+      "sql-anti-join-null",
+      "concat-null-label",
+      "sql-filter-null-side"
+    ],
+    "exercise": "sql/unassigned-tickets",
+    "review": null
+  },
+  {
+    "id": "date-reporting",
+    "name": "Ranh giới thời gian",
+    "aliases": [
+      "datediff",
+      "dateadd",
+      "ngày lịch",
+      "calendar date"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "sql-between-boundary",
+      "date-boundaries-minute",
+      "month-end-renewal",
+      "eomonth-offset"
+    ],
+    "exercise": "sql/daily-totals",
+    "review": null
+  },
+  {
+    "id": "collections",
+    "name": "Duyệt collection",
+    "aliases": [
+      "enumeration",
+      "ienumerable",
+      "duyet collection"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "deferred-execution",
+      "enumerator-copy",
+      "linq-any-empty",
+      "linq-selectmany-lines",
+      "linq-order-tiebreak"
+    ],
+    "exercise": "coding/stable-intersection",
+    "review": "repeated-enumeration"
+  },
+  {
+    "id": "http-validation",
+    "name": "Xác nhận phiên bản tài nguyên",
+    "aliases": [
+      "etag",
+      "if-match",
+      "if-none-match"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "http-etag-edit",
+      "http-304-validation",
+      "optimistic-concurrency"
+    ],
+    "exercise": null,
+    "review": "reservation-race"
+  },
+  {
+    "id": "tests",
+    "name": "Chọn phạm vi kiểm thử",
+    "aliases": [
+      "unit test",
+      "integration test",
+      "kiem thu",
+      "kiểm thử"
+    ],
+    "prerequisites": [],
+    "questions": [
+      "test-boundary",
+      "testable-clock",
+      "ef-provider-test",
+      "slow-api"
+    ],
+    "exercise": null,
+    "review": "retry-tests"
+  }
+]

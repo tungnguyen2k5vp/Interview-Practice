@@ -1,0 +1,701 @@
+[
+  {
+    "slug": "whenany-faulted-winner",
+    "content": {
+      "title": "Tác vụ về đích bị lỗi",
+      "topic": "linq",
+      "subtopic": "Task.WhenAny",
+      "tags": [
+        "Task.WhenAny"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Tác vụ tìm giá đầu tiên đã lỗi, tác vụ thứ hai còn chờ. Đoạn mã ghi gì khi lấy và đọc tác vụ về đích?",
+      "englishPrompt": "The first price lookup has failed and the second is pending. What does the code print when it retrieves and awaits the winning task?",
+      "context": "Dịch vụ tìm giá trả về theo nguồn hoàn tất sớm nhất. Nhóm cần phân biệt nguồn về đích với giá hợp lệ.",
+      "code": "var first = Task.FromException<int>(new InvalidOperationException());\nvar second = new TaskCompletionSource<int>();\nvar winner = await Task.WhenAny(first, second.Task);\nConsole.Write(winner.Status);\ntry\n{\n    _ = await winner;\n}\ncatch (InvalidOperationException)\n{\n    Console.Write(\", caught\");\n}",
+      "hint": "Theo dõi hai lần await riêng biệt.",
+      "nextHint": "WhenAny trả về tác vụ đã hoàn tất, dù trạng thái của tác vụ đó là Faulted.",
+      "followUp": "Nếu cần giá thành công đầu tiên, khi một nguồn lỗi thì vòng lặp tiếp theo cần làm gì?",
+      "englishFollowUp": "If you need the first successful price, what should the loop do when a source fails?",
+      "outline": [
+        "Nhận ra first hoàn tất trước.",
+        "Phân biệt trạng thái của WhenAny với trạng thái của kết quả."
+      ],
+      "shortAnswer": "Faulted, caught. Lần await thứ hai phát lại InvalidOperationException của tác vụ về đích.",
+      "explanation": "WhenAny hoàn tất thành công với first làm kết quả. first giữ trạng thái Faulted. Khi await first, catch bắt InvalidOperationException và ghi phần còn lại.",
+      "alternative": "Để lấy giá thành công đầu tiên, loại tác vụ đã hoàn tất khỏi tập đang chờ, ghi nhận lỗi của nó rồi tiếp tục chờ các nguồn còn lại.",
+      "trap": "Giả định lần await WhenAny đầu tiên đã quan sát lỗi của tác vụ kết quả.",
+      "rubric": [
+        "Nhận ra first hoàn tất trước.",
+        "Phân biệt trạng thái của WhenAny với trạng thái của kết quả.",
+        "Xác định lần await thứ hai ném lỗi.",
+        "Nêu cách tiếp tục khi chỉ nhận kết quả thành công."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.whenany?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "when-all"
+      ],
+      "related": [
+        "task-waitasync"
+      ],
+      "quiz": {
+        "vi": [
+          "Faulted, caught",
+          "RanToCompletion, caught",
+          "Faulted"
+        ],
+        "en": [
+          "Faulted, caught",
+          "RanToCompletion, caught",
+          "Faulted"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "whenall-fault-precedence",
+    "content": {
+      "title": "Một lượt bị hủy, một lượt lỗi",
+      "topic": "linq",
+      "subtopic": "Task.WhenAll",
+      "tags": [
+        "Task.WhenAll"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một lượt tải đã bị hủy và lượt kia đã lỗi. Khi kiểm tra Status của Task.WhenAll, chương trình ghi gì?",
+      "englishPrompt": "One download was canceled and another faulted. What does the program print for the status of Task.WhenAll?",
+      "context": "Trang theo dõi xuất dữ liệu cần phân loại trạng thái chung của một đợt tải.",
+      "code": "var canceled = Task.FromCanceled(new CancellationToken(true));\nvar failed = Task.FromException(new InvalidOperationException());\nvar batch = Task.WhenAll(canceled, failed);\nConsole.Write(batch.Status);",
+      "hint": "Xét các trạng thái của cả hai tác vụ thay vì chỉ phần tử đầu.",
+      "nextHint": "Chỉ cần một tác vụ faulted, trạng thái cuối của WhenAll là Faulted khi tất cả hoàn tất.",
+      "followUp": "Nếu có hai lỗi, sau khi await thất bại bạn lấy tập lỗi của cả đợt ở đâu?",
+      "englishFollowUp": "If two downloads fault, where can you find both errors after the await fails?",
+      "outline": [
+        "Xác định cả hai tác vụ đã hoàn tất.",
+        "Áp dụng thứ tự ưu tiên lỗi rồi hủy."
+      ],
+      "shortAnswer": "Faulted. Tác vụ gộp ưu tiên trạng thái lỗi khi bất kỳ tác vụ con nào lỗi.",
+      "explanation": "Hai tác vụ nguồn đã hoàn tất khi gọi WhenAll. Khi ít nhất một tác vụ nguồn bị lỗi, tác vụ gộp Faulted dù một tác vụ khác bị hủy. Nếu không có lỗi và có tác vụ bị hủy, tác vụ gộp Canceled.",
+      "alternative": "Giữ biến batch và đọc batch.Exception.InnerExceptions sau khi xử lý lỗi từ await nếu cần kiểm tra nhiều lỗi.",
+      "trap": "Lấy trạng thái của tác vụ đầu tiên làm trạng thái tổng.",
+      "rubric": [
+        "Xác định cả hai tác vụ đã hoàn tất.",
+        "Áp dụng thứ tự ưu tiên lỗi rồi hủy.",
+        "Nêu kết quả Faulted.",
+        "Chỉ ra nơi tìm tất cả lỗi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.whenall?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "when-all"
+      ],
+      "related": [
+        "cancellation",
+        "whenany-faulted-winner"
+      ],
+      "quiz": {
+        "vi": [
+          "Canceled",
+          "Faulted",
+          "RanToCompletion"
+        ],
+        "en": [
+          "Canceled",
+          "Faulted",
+          "RanToCompletion"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linked-cancel-direction",
+    "content": {
+      "title": "Hướng lan truyền tín hiệu hủy",
+      "topic": "linq",
+      "subtopic": "Linked CancellationTokenSource",
+      "tags": [
+        "Linked CancellationTokenSource"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Worker tạo nguồn hủy liên kết với request và tín hiệu tắt máy. Khi worker tự hủy nguồn liên kết, cờ nào đổi?",
+      "englishPrompt": "A worker links the request and shutdown signals. Which flags change when the worker cancels the linked source itself?",
+      "context": "Worker dừng một phép tính riêng trong khi request vẫn còn các bước khác.",
+      "code": "using var request = new CancellationTokenSource();\nusing var shutdown = new CancellationTokenSource();\nusing var operation = CancellationTokenSource.CreateLinkedTokenSource(request.Token, shutdown.Token);\noperation.Cancel();\nConsole.Write((request.IsCancellationRequested, shutdown.IsCancellationRequested, operation.IsCancellationRequested));",
+      "hint": "Xem nguồn nào đang được gọi Cancel.",
+      "nextHint": "Liên kết có chiều từ các token truyền vào đến nguồn mới tạo.",
+      "followUp": "Nếu thay bằng shutdown.Cancel(), tuple sẽ đổi ra sao?",
+      "englishFollowUp": "How would the tuple change if shutdown.Cancel() were called instead?",
+      "outline": [
+        "Nhận ra Cancel được gọi trên operation.",
+        "Nêu đúng chiều truyền tín hiệu."
+      ],
+      "shortAnswer": "(False, False, True). Cancel chỉ tác động lên nguồn liên kết trong ví dụ.",
+      "explanation": "operation nhận tín hiệu hủy từ request hoặc shutdown. Hủy trực tiếp operation không hủy ngược các nguồn đầu vào. Cả hai cờ đầu vẫn False.",
+      "alternative": "Dùng nguồn riêng khi thao tác chỉ cần hủy độc lập. Dùng nguồn liên kết khi thao tác cũng phải dừng theo request hoặc ứng dụng.",
+      "trap": "Giả định Cancel trên nguồn liên kết truyền ngược lên mọi nguồn gốc.",
+      "rubric": [
+        "Nhận ra Cancel được gọi trên operation.",
+        "Nêu đúng chiều truyền tín hiệu.",
+        "Đọc ba cờ đúng thứ tự.",
+        "Giải thích khi cần nguồn liên kết."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtokensource.createlinkedtokensource?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "cancellation"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "(True, True, True)",
+          "(False, True, True)",
+          "(False, False, True)"
+        ],
+        "en": [
+          "(True, True, True)",
+          "(False, True, True)",
+          "(False, False, True)"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "semaphore-timeout-no-permit",
+    "content": {
+      "title": "Hết thời gian chờ lượt xử lý",
+      "topic": "linq",
+      "subtopic": "SemaphoreSlim.WaitAsync",
+      "tags": [
+        "SemaphoreSlim.WaitAsync"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một thao tác thử lấy permit ngay khi không còn permit. Hàm thử và số permit hiện tại được in ra thế nào?",
+      "englishPrompt": "An operation tries to acquire a permit immediately when none is available. What are the returned result and current permit count?",
+      "context": "Worker bỏ qua tác vụ ưu tiên thấp khi hết chỗ thay vì xếp hàng.",
+      "code": "using var slots = new SemaphoreSlim(0, 1);\nvar acquired = await slots.WaitAsync(TimeSpan.Zero);\nConsole.Write((acquired, slots.CurrentCount));",
+      "hint": "TimeSpan.Zero yêu cầu kiểm tra tức thời.",
+      "nextHint": "Overload có thời hạn trả về bool cho biết đã lấy được permit hay chưa.",
+      "followUp": "Với timeout hữu hạn, bạn dựa vào điều kiện nào để gọi Release trong finally?",
+      "englishFollowUp": "With a finite timeout, how do you decide whether finally should call Release?",
+      "outline": [
+        "Nhận ra đây là lượt thử tức thời.",
+        "Giải thích false nghĩa là không nhận permit."
+      ],
+      "shortAnswer": "(False, 0). Lượt thử không lấy được permit nên bộ đếm không đổi.",
+      "explanation": "WaitAsync(TimeSpan.Zero) trả false vì số permit là 0. Hết thời gian được thể hiện bằng kết quả false của overload này. Chỉ phần đã lấy permit mới phải trả permit.",
+      "alternative": "Nhánh acquired bằng false có thể báo bận hoặc hoãn tác vụ theo quy tắc hàng đợi.",
+      "trap": "Nhầm `WaitAsync(TimeSpan)` trả bool với `Task.WaitAsync(TimeSpan)` có thể ném TimeoutException.",
+      "rubric": [
+        "Nhận ra đây là lượt thử tức thời.",
+        "Giải thích false nghĩa là không nhận permit.",
+        "Giữ CurrentCount ở 0.",
+        "Gắn Release với việc lấy permit thành công."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.semaphoreslim.waitasync?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "semaphore-release"
+      ],
+      "related": [
+        "task-waitasync"
+      ],
+      "quiz": {
+        "vi": [
+          "(False, 0)",
+          "(True, 0)",
+          "(False, 1)"
+        ],
+        "en": [
+          "(False, 0)",
+          "(True, 0)",
+          "(False, 1)"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "concurrent-cache-factory",
+    "content": {
+      "title": "Hai tải cấu hình cùng mã",
+      "topic": "linq",
+      "subtopic": "ConcurrentDictionary.GetOrAdd",
+      "tags": [
+        "ConcurrentDictionary.GetOrAdd"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Hai request cùng gọi GetOrAdd trên một mã trống với factory tải cấu hình. Từ API này có thể kết luận gì về số lần chạy factory?",
+      "englishPrompt": "Two requests call GetOrAdd for the same missing key with a configuration-loading factory. What does the API guarantee about factory calls?",
+      "context": "Tải cấu hình đọc một hồ sơ từ dịch vụ ngoài. Nhóm cần dự trù số lượt đọc khi bộ nhớ đệm lạnh.",
+      "hint": "Tách phần chạy delegate với phần công bố giá trị vào dictionary.",
+      "nextHint": "GetOrAdd gọi valueFactory ngoài khóa nội bộ. Hai caller có thể chạy factory trước khi một giá trị được chèn.",
+      "followUp": "Bạn sẽ chia sẻ cùng một tác vụ nạp dữ liệu ra sao và xử lý lần nạp lỗi thế nào?",
+      "englishFollowUp": "How would you share one loading task and handle a failed load?",
+      "outline": [
+        "Phân biệt an toàn của dictionary và đảm bảo của factory.",
+        "Nêu delegate chạy ngoài khóa."
+      ],
+      "shortAnswer": "Factory có thể chạy nhiều lần dù cuối cùng chỉ một giá trị được lưu cho mã đó.",
+      "explanation": "Dictionary đồng bộ việc thêm mục nhưng không giữ khóa khi thực thi delegate do caller cung cấp. Hai factory có thể cùng chạy rồi bị phân thắng ở bước thêm. Giá trị của lượt không thêm được sẽ không trở thành mục trong dictionary.",
+      "alternative": "Có thể lưu Lazy<Task<T>> rồi chỉ đọc Value của mục GetOrAdd trả về. Nếu cho phép thử lại sau lỗi, loại đúng mục Lazy đã lỗi để tránh xóa một lượt nạp mới.",
+      "trap": "Đặt thao tác ghi ra ngoài có hiệu ứng phụ trong factory với kỳ vọng nó luôn được gọi đúng một lần.",
+      "rubric": [
+        "Phân biệt an toàn của dictionary và đảm bảo của factory.",
+        "Nêu delegate chạy ngoài khóa.",
+        "Nhận ra có thể nhiều lượt tải cho cùng khóa.",
+        "Mô tả cách chia sẻ lượt tải và phục hồi khi lỗi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.concurrent.concurrentdictionary-2.getoradd?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "dict-tryadd-original"
+      ],
+      "related": [
+        "coalesce-assign-once"
+      ],
+      "quiz": {
+        "vi": [
+          "Factory chạy đúng một lần cho mỗi mã",
+          "GetOrAdd khóa các request trong suốt thời gian factory chạy",
+          "Factory có thể chạy nhiều lần, còn dictionary chọn một giá trị"
+        ],
+        "en": [
+          "The factory runs exactly once per key",
+          "GetOrAdd holds its lock throughout factory execution",
+          "The factory can run more than once while the dictionary publishes one value"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "channel-backpressure-wait",
+    "content": {
+      "title": "Hàng đợi chờ còn chỗ",
+      "topic": "linq",
+      "subtopic": "Bounded channels",
+      "tags": [
+        "Bounded channels"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Một hàng đợi trong tiến trình giữ tối đa 32 dòng báo cáo. Khi đầy, producer phải chờ, không dòng nào bị bỏ và consumer vẫn phải đọc tiếp. Chọn thiết lập nào?",
+      "englishPrompt": "An in-process queue can hold 32 report rows. When full, the producer must wait, no rows may be dropped, and the consumer must keep draining. Which setup fits?",
+      "context": "Parser đọc file nhanh hơn bước tính tổng ở một số đoạn. Hai bước phối hợp qua channel, với dung lượng đã cố định.",
+      "hint": "Tìm chế độ đầy dùng áp lực ngược với cơ chế ghi bất đồng bộ.",
+      "nextHint": "BoundedChannelFullMode.Wait kết hợp WriteAsync cho producer chờ đến khi consumer giải phóng chỗ.",
+      "followUp": "Bạn báo cho consumer biết đã hết dữ liệu và cần đọc nốt bằng cách nào?",
+      "englishFollowUp": "How can you signal the end of production so the consumer drains the remaining items?",
+      "outline": [
+        "Chọn bounded channel dung lượng 32.",
+        "Chọn Wait làm chính sách khi đầy."
+      ],
+      "shortAnswer": "Tạo bounded channel ở chế độ Wait và await WriteAsync.",
+      "explanation": "Dung lượng giới hạn số dòng đang đợi. Với Wait, WriteAsync chờ chỗ trống khi channel đầy. Consumer có thể đọc để giải phóng chỗ. Các chế độ Drop có thể bỏ dòng khi đầy.",
+      "alternative": "Khi hết dữ liệu, hoàn tất writer bằng Complete hoặc TryComplete rồi để consumer tiếp tục đọc đến hết, chẳng hạn bằng ReadAllAsync.",
+      "trap": "Dùng TryWrite một lần rồi bỏ qua false khiến lượt ghi bị mất khi hàng đợi đầy.",
+      "rubric": [
+        "Chọn bounded channel dung lượng 32.",
+        "Chọn Wait làm chính sách khi đầy.",
+        "Await thao tác WriteAsync.",
+        "Mô tả cách worker đọc hết sau khi writer hoàn tất."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/extensions/channels",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "async-io",
+        "queue-peek-dequeue"
+      ],
+      "related": [
+        "semaphore-release"
+      ],
+      "quiz": {
+        "vi": [
+          "Bounded channel chế độ DropOldest và await WriteAsync",
+          "Bounded channel chế độ Wait và await WriteAsync",
+          "Unbounded channel và await WriteAsync"
+        ],
+        "en": [
+          "Bounded channel with DropOldest and await WriteAsync",
+          "Bounded channel with Wait and await WriteAsync",
+          "Unbounded channel and await WriteAsync"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "worker-async-task-contract",
+    "content": {
+      "title": "Kiểm thử callback cập nhật",
+      "topic": "linq",
+      "subtopic": "Async return types",
+      "tags": [
+        "Async return types"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Nhóm sở hữu API đăng ký callback. Worker phải đợi cập nhật xong và bộ test phải thấy lỗi từ callback bất đồng bộ. Kiểu callback nào phù hợp?",
+      "englishPrompt": "The team owns the callback registration API. The worker must await the update and tests must observe failures from the asynchronous callback. Which callback type fits?",
+      "context": "Callback cập nhật bảng tổng hợp sau khi một lô dữ liệu hoàn thành.",
+      "hint": "Tìm kiểu delegate mà caller có thể await.",
+      "nextHint": "Hàm trả Task biểu diễn lần chạy và giữ trạng thái lỗi. Hàm async void thiếu giá trị để await.",
+      "followUp": "Khi phải dùng một event UI có chữ ký void, bạn đặt phần có thể kiểm thử ở đâu?",
+      "englishFollowUp": "If a UI event requires a void signature, where would you put the testable logic?",
+      "outline": [
+        "Chọn đúng chữ ký Func<Task>.",
+        "Nêu cách caller đợi hoàn thành."
+      ],
+      "shortAnswer": "Func<Task>. Worker gọi delegate rồi await Task trả về.",
+      "explanation": "Kiểu Func<Task> cho worker theo dõi lần chạy hoàn tất hoặc thất bại. Lỗi trong thân async Task được lưu trên Task và truyền ra khi await. Gán lambda async cho Action tạo async void.",
+      "alternative": "Giữ adapter async void nhỏ cho event bắt buộc, xử lý lỗi ở adapter và chuyển công việc sang hàm Task có thể await trực tiếp trong test.",
+      "trap": "Dùng Action vì callback không trả dữ liệu nghiệp vụ dù vẫn cần báo hoàn thành.",
+      "rubric": [
+        "Chọn đúng chữ ký Func<Task>.",
+        "Nêu cách caller đợi hoàn thành.",
+        "Giải thích đường truyền lỗi khi await.",
+        "Nhận ra ngoại lệ cho chữ ký event bắt buộc."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/async-return-types",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "async-io"
+      ],
+      "related": [
+        "exceptions-boundary"
+      ],
+      "quiz": {
+        "vi": [
+          "Action với lambda async",
+          "Func<bool> với giá trị đã bắt đầu",
+          "Func<Task> với lambda async"
+        ],
+        "en": [
+          "Action with an async lambda",
+          "Func<bool> with a started flag",
+          "Func<Task> with an async lambda"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "parallel-loop-io-limit",
+    "content": {
+      "title": "Giới hạn đồng thời cho lượt nhập",
+      "topic": "linq",
+      "subtopic": "Parallel.ForEachAsync",
+      "tags": [
+        "Parallel.ForEachAsync"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Worker có 800 mục, mỗi mục là một request đọc bất đồng bộ. Worker chỉ cần một vòng lặp, tối đa 6 request đang chạy và nhận token dừng. Cách triển khai nào đáp ứng trực tiếp?",
+      "englishPrompt": "A worker has 800 items, each an asynchronous read. It needs one loop, at most six outstanding reads, and shutdown cancellation. Which implementation fits directly?",
+      "context": "Dịch vụ đọc chấp nhận tối đa sáu request đồng thời cho mỗi worker.",
+      "hint": "Tìm API giới hạn số thân vòng lặp đang chạy và truyền token vào thân.",
+      "nextHint": "Parallel.ForEachAsync nhận ParallelOptions và await delegate của từng mục.",
+      "followUp": "Nếu thân mỗi lượt lại khởi động hai request song song, còn giữ được giới hạn sáu request không?",
+      "englishFollowUp": "If each loop body starts two reads in parallel, does the limit still cap reads at six?",
+      "outline": [
+        "Chọn vòng lặp hỗ trợ thân async.",
+        "Đặt MaxDegreeOfParallelism đúng."
+      ],
+      "shortAnswer": "Dùng Parallel.ForEachAsync, đặt MaxDegreeOfParallelism = 6, cấu hình CancellationToken và await từng lượt đọc với token được truyền vào thân.",
+      "explanation": "Giới hạn áp dụng cho số thân vòng lặp chạy cùng lúc. Với đúng một lượt đọc được await trong mỗi thân, số request đang chạy không vượt sáu. Truyền token của thân xuống API I/O để thao tác cũng có thể nhận tín hiệu dừng.",
+      "alternative": "Nếu cần chính sách hàng đợi riêng hoặc ưu tiên theo nhóm, dùng bounded channel với số consumer cố định.",
+      "trap": "Chạy Task.WhenAll trực tiếp trên phép chiếu 800 request rồi cho rằng WhenAll tự giới hạn số lượng đồng thời.",
+      "rubric": [
+        "Chọn vòng lặp hỗ trợ thân async.",
+        "Đặt MaxDegreeOfParallelism đúng.",
+        "Truyền token xuống lượt đọc.",
+        "Phân biệt giới hạn thân vòng lặp và giới hạn bên trong thân."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.parallel.foreachasync?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "when-all",
+        "cancellation"
+      ],
+      "related": [
+        "channel-backpressure-wait"
+      ],
+      "quiz": {
+        "vi": [
+          "Parallel.ForEach với thân async void",
+          "Task.WhenAll trên toàn bộ 800 lượt đọc",
+          "Parallel.ForEachAsync với MaxDegreeOfParallelism bằng 6"
+        ],
+        "en": [
+          "Parallel.ForEach with an async void body",
+          "Task.WhenAll over all 800 reads",
+          "Parallel.ForEachAsync with MaxDegreeOfParallelism set to 6"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "counter-gate-private-lock",
+    "content": {
+      "title": "Điều phối hai bộ đếm cùng lúc",
+      "topic": "linq",
+      "subtopic": "Dedicated lock",
+      "tags": [
+        "Dedicated lock"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Các thread cùng đọc và cập nhật hai bộ đếm để giữ tổng cố định. Đoạn cập nhật đồng bộ rất ngắn. Chọn đối tượng lock nào cho cả đọc và cập nhật?",
+      "englishPrompt": "Threads read and update two counters whose total must stay fixed. The synchronous update is brief. Which lock object should guard reads and updates?",
+      "context": "Một thành phần theo dõi số ghế khả dụng và số ghế đã giữ trong cùng tiến trình.",
+      "hint": "Đối tượng khóa phải dùng chung cho các truy cập cùng trạng thái và thuộc quyền sở hữu của thành phần.",
+      "nextHint": "Một trường private readonly giữ đối tượng khóa ổn định và giới hạn những caller có thể lấy khóa.",
+      "followUp": "Vì sao hai lần Interlocked riêng biệt có thể vẫn để lộ tổng trung gian cho một lượt đọc?",
+      "englishFollowUp": "Why can two separate Interlocked calls still expose an intermediate total to a reader?",
+      "outline": [
+        "Chọn trường chứa khóa ổn định và private.",
+        "Bảo vệ cả hai cập nhật trong một vùng."
+      ],
+      "shortAnswer": "Một trường private readonly System.Threading.Lock dùng chung cho tất cả lượt đọc và cập nhật trạng thái.",
+      "explanation": "Cùng một khóa bảo vệ chuyển đổi gồm hai phép cập nhật cũng như snapshot từ người đọc. Mọi đường truy cập phải cùng giữ khóa đó. Dùng chuỗi hoặc this có thể cho mã ngoài tham gia khóa ngoài dự kiến.",
+      "alternative": "Một private readonly object cũng làm monitor phù hợp nếu cần hỗ trợ phiên bản cũ. Giữ đoạn giữ khóa ngắn.",
+      "trap": "Tạo khóa mới trong mỗi lần gọi khiến caller cạnh tranh trên các đối tượng khác nhau.",
+      "rubric": [
+        "Chọn trường chứa khóa ổn định và private.",
+        "Bảo vệ cả hai cập nhật trong một vùng.",
+        "Đọc snapshot dưới cùng khóa.",
+        "Giải thích giới hạn của atomic trên từng trường."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/lock",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "interlocked-compareexchange"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Một private readonly System.Threading.Lock cho cả thành phần",
+          "Một new object() tạo ở đầu mỗi lần gọi",
+          "Một chuỗi hằng chung với các thành phần khác"
+        ],
+        "en": [
+          "One private readonly System.Threading.Lock for the component",
+          "A new object() created at the start of each call",
+          "A string constant shared with other components"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "async-dispose-flush",
+    "content": {
+      "title": "Hoàn tất ghi khi thoát scope",
+      "topic": "linq",
+      "subtopic": "IAsyncDisposable",
+      "tags": [
+        "IAsyncDisposable"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Một writer chỉ triển khai IAsyncDisposable, thao tác DisposeAsync đẩy phần đệm ra đích. Dùng cú pháp nào để hàm bất đồng bộ đợi bước dọn dẹp khi rời scope?",
+      "englishPrompt": "A writer implements only IAsyncDisposable and DisposeAsync flushes its buffer. Which syntax lets an async method await cleanup when leaving the scope?",
+      "context": "Báo cáo chỉ được xem đã xuất xong khi dữ liệu đệm đã sang đích.",
+      "hint": "Xác định giao diện cung cấp DisposeAsync và cú pháp scope tương ứng.",
+      "nextHint": "await using gọi và await DisposeAsync khi rời scope, gồm cả đường thoát do lỗi.",
+      "followUp": "Nếu writer chỉ mượn từ caller và caller giữ quyền sở hữu, ai chịu trách nhiệm dispose?",
+      "englishFollowUp": "If the writer is borrowed and ownership stays with the caller, who disposes it?",
+      "outline": [
+        "Nhận ra đây là giao thức dọn dẹp async.",
+        "Chọn await using."
+      ],
+      "shortAnswer": "Dùng await using để compiler đợi DisposeAsync.",
+      "explanation": "IAsyncDisposable cung cấp DisposeAsync cho công việc dọn dẹp bất đồng bộ. await using đợi tác vụ dọn dẹp rồi mới rời scope. Với writer đã cho, using thông thường cần giao thức dispose đồng bộ mà writer không triển khai.",
+      "alternative": "Khi kiểm soát vòng đời thủ công, dùng try/finally với await writer.DisposeAsync() trong finally sau khi tạo writer thành công.",
+      "trap": "Gọi DisposeAsync rồi tiếp tục mà không await có thể công bố trạng thái hoàn thành trước khi đẩy xong dữ liệu.",
+      "rubric": [
+        "Nhận ra đây là giao thức dọn dẹp async.",
+        "Chọn await using.",
+        "Giải thích việc await khi thoát scope.",
+        "Phân biệt scope với quyền sở hữu tài nguyên."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/implementing-disposeasync",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "dispose-ownership",
+        "async-io"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "using thông thường",
+          "await using",
+          "Gọi DisposeAsync và bỏ qua giá trị trả về"
+        ],
+        "en": [
+          "A regular using statement",
+          "await using",
+          "Call DisposeAsync and ignore its result"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "task-bridge-duplicate-completion",
+    "content": {
+      "title": "Callback đến sau khi thao tác đã kết thúc",
+      "topic": "linq",
+      "subtopic": "TaskCompletionSource",
+      "tags": [
+        "TaskCompletionSource"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Adapter dùng TaskCompletionSource cho API callback. Nhánh timeout và callback thành công có thể cạnh tranh. API nào để cả hai thử kết thúc cùng Task mà nhánh đến sau chỉ nhận false?",
+      "englishPrompt": "An adapter uses TaskCompletionSource for a callback API. The timeout and success callback can race. Which API lets each try to complete the same task and gives the loser false?",
+      "context": "Nhà cung cấp callback có thể báo kết quả đúng lúc hết thời gian chờ. Hợp đồng của adapter chấp nhận nhánh hoàn tất trước.",
+      "hint": "Tìm cặp API hoàn tất tác vụ trả về bool.",
+      "nextHint": "TrySetResult và TrySetException chỉ đổi trạng thái nếu tác vụ chưa kết thúc.",
+      "followUp": "Sau khi một nhánh thắng, cần giải phóng đăng ký callback hay timer theo điều kiện nào?",
+      "englishFollowUp": "After one path wins, when should you release the callback registration or timer?",
+      "outline": [
+        "Nhận ra hai đường vào có thể cạnh tranh.",
+        "Chọn cặp phương thức TrySet."
+      ],
+      "shortAnswer": "Dùng TrySetResult ở callback và TrySetException ở timeout, rồi dùng bool để nhận biết nhánh thắng.",
+      "explanation": "TaskCompletionSource chỉ chuyển sang trạng thái kết thúc một lần. TrySet trả false khi đã kết thúc. Cặp SetResult và SetException sẽ ném InvalidOperationException ở nhánh đến sau nếu nhánh trước đã hoàn tất tác vụ.",
+      "alternative": "Nếu timeout được mô hình như tín hiệu hủy trong hợp đồng của adapter, dùng TrySetCanceled với token phù hợp.",
+      "trap": "Kiểm tra IsCompleted rồi gọi SetResult là hai bước tách rời. Nhánh còn lại có thể hoàn tất giữa hai bước.",
+      "rubric": [
+        "Nhận ra hai đường vào có thể cạnh tranh.",
+        "Chọn cặp phương thức TrySet.",
+        "Sử dụng giá trị bool để xác định nhánh thắng.",
+        "Nêu vì sao IsCompleted trước Set vẫn tạo race."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.taskcompletionsource-1?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "when-all",
+        "exceptions-boundary"
+      ],
+      "related": [
+        "task-waitasync"
+      ],
+      "quiz": {
+        "vi": [
+          "TrySetResult và TrySetException",
+          "Kiểm tra IsCompleted rồi gọi SetResult hoặc SetException",
+          "SetResult và SetException trực tiếp"
+        ],
+        "en": [
+          "TrySetResult and TrySetException",
+          "Check IsCompleted and then call SetResult or SetException",
+          "Call SetResult and SetException directly"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "threadpool-blocking-await",
+    "content": {
+      "title": "Worker bận chờ I/O",
+      "topic": "linq",
+      "subtopic": "Thread pool starvation",
+      "tags": [
+        "Thread pool starvation"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Sau khi tăng tải, số thread pool và hàng chờ tăng dù CPU còn rảnh. Trace cho thấy nhiều request đang đợi `.Result` trên HTTP I/O. Thay đổi đầu tiên nào giải phóng thread trong lúc chờ?",
+      "englishPrompt": "Under load, thread pool threads and queue length rise while CPU remains low. A trace shows requests blocking on `.Result` for HTTP I/O. What first change frees threads while waiting?",
+      "context": "Endpoint gọi nhà cung cấp HTTP đã có API bất đồng bộ.",
+      "hint": "Kiểm tra thread request có nhả về pool trong thời gian I/O chưa.",
+      "nextHint": "Biến đường gọi thành async và dùng await tại điểm đang chặn có thể trả thread về pool khi I/O chưa xong.",
+      "followUp": "Sau thay đổi, bạn theo dõi số đo nào ở cùng mức tải để kiểm tra cải thiện?",
+      "englishFollowUp": "Which measurements would you compare under the same workload after the change?",
+      "outline": [
+        "Đọc kết hợp CPU và hàng chờ.",
+        "Nêu vai trò của `.Result` trong trace."
+      ],
+      "shortAnswer": "Thay chờ đồng bộ bằng await trên lời gọi I/O và để đường gọi trả Task.",
+      "explanation": "`.Result` giữ thread xử lý đến khi tác vụ xong. Khi nhiều lượt cùng chờ, công việc đã xếp hàng thiếu thread kịp xử lý. Await trên tác vụ I/O chưa hoàn tất cho phép đường xử lý tạm ngừng và thread làm việc khác.",
+      "alternative": "So sánh độ trễ, độ dài hàng chờ và số thread dưới cùng tải. Kiểm tra tiếp các điểm chờ đồng bộ nếu các chỉ số vẫn cao.",
+      "trap": "Bọc `.Result` trong Task.Run rồi vẫn đồng bộ chờ giữ nguyên vấn đề chặn thread.",
+      "rubric": [
+        "Đọc kết hợp CPU và hàng chờ.",
+        "Nêu vai trò của `.Result` trong trace.",
+        "Chuyển đường I/O sang await đầu cuối.",
+        "Chọn chỉ số kiểm tra lại ở cùng tải."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/diagnostics/debug-threadpool-starvation",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "async-io"
+      ],
+      "related": [
+        "slow-api"
+      ],
+      "quiz": {
+        "vi": [
+          "Tăng ngưỡng số thread tối thiểu và giữ `.Result`",
+          "Dùng async/await trong toàn bộ đường I/O",
+          "Dùng Task.Run để bọc đoạn chờ đồng bộ"
+        ],
+        "en": [
+          "Raise the minimum thread count and keep `.Result`",
+          "Use async/await throughout the I/O call path",
+          "Wrap the synchronous wait in Task.Run"
+        ],
+        "correctIndex": 1
+      }
+    }
+  }
+]

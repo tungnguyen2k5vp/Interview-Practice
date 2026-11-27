@@ -1,0 +1,695 @@
+[
+  {
+    "slug": "linq-groupjoin-unmatched",
+    "content": {
+      "title": "Khách hàng chưa có đơn vẫn hiện",
+      "topic": "linq",
+      "subtopic": "GroupJoin",
+      "tags": [
+        "GroupJoin"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Báo cáo nhóm số đơn theo từng khách hàng. Một khách chưa có đơn. Kết quả GroupJoin in ra sao?",
+      "englishPrompt": "The report groups orders by customer. One customer has no orders. What does GroupJoin print?",
+      "context": "Màn hình chăm sóc khách hàng cần một dòng cho mỗi khách, kể cả người chưa mua.",
+      "code": "var customerIds = new[] { 7, 9 };\nvar orderCustomerIds = new[] { 7, 7 };\nvar counts = customerIds.GroupJoin(\n    orderCustomerIds, customerId => customerId, orderId => orderId,\n    (customerId, orders) => $\"{customerId}:{orders.Count()}\");\nConsole.Write(string.Join(\", \", counts));",
+      "hint": "Theo dõi số lần resultSelector chạy cho mỗi phần tử bên ngoài.",
+      "nextHint": "GroupJoin gọi resultSelector cho mỗi mã khách và đưa một nhóm rỗng cho mã 9.",
+      "followUp": "Nếu cần một dòng cho từng đơn và vẫn muốn giữ khách chưa có đơn, bạn dùng thêm bước nào?",
+      "englishFollowUp": "If you need one row per order while keeping customers with no orders, what extra step would you use?",
+      "outline": [
+        "Xác định customerIds là dãy ngoài.",
+        "Đếm hai phần tử khớp mã 7."
+      ],
+      "shortAnswer": "7:2, 9:0. Mã 9 vẫn có một dòng kết quả với nhóm đơn rỗng.",
+      "explanation": "GroupJoin duyệt dãy bên ngoài và ghép từng khách với một dãy các đơn khớp. Hai mã 7 tạo hai phần tử trong cùng nhóm. Mã 9 có một nhóm rỗng và Count trả 0.",
+      "alternative": "Dùng SelectMany trên từng nhóm với DefaultIfEmpty để tạo hàng đại diện cho khách chưa có đơn khi cần dạng phẳng.",
+      "trap": "Áp dụng cách nghĩ của Join và loại luôn khách chưa có đơn.",
+      "rubric": [
+        "Xác định customerIds là dãy ngoài.",
+        "Đếm hai phần tử khớp mã 7.",
+        "Giữ mã 9 với nhóm rỗng.",
+        "Nêu cách làm phẳng mà giữ hàng rỗng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.groupjoin?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "linq-selectmany-lines",
+        "join-duplicates"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "7:2, 9:0",
+          "7:2",
+          "7:1, 7:1, 9:0"
+        ],
+        "en": [
+          "7:2, 9:0",
+          "7:2",
+          "7:1, 7:1, 9:0"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-groupby-comparer-first-key",
+    "content": {
+      "title": "Gom mã kho khác chữ hoa",
+      "topic": "linq",
+      "subtopic": "GroupBy comparer",
+      "tags": [
+        "GroupBy comparer"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Ba mã kho đến theo thứ tự đã cho. Khi nhóm bằng OrdinalIgnoreCase rồi in khóa và số dòng, chương trình in gì?",
+      "englishPrompt": "Three warehouse codes arrive in the given order. What does the program print after grouping with OrdinalIgnoreCase?",
+      "context": "Kho nhận mã từ thiết bị cũ có cách viết hoa khác nhau nhưng báo cáo giữ cách viết của lần đầu.",
+      "code": "var codes = new[] { \"north\", \"NORTH\", \"south\" };\nvar labels = codes.GroupBy(code => code, StringComparer.OrdinalIgnoreCase)\n    .Select(group => $\"{group.Key}:{group.Count()}\");\nConsole.Write(string.Join(\", \", labels));",
+      "hint": "Comparer xác định các khóa bằng nhau nhưng không tự đổi cách viết.",
+      "nextHint": "Khi hai khóa được comparer xem là bằng nhau, GroupBy dùng khóa đầu tiên của nhóm.",
+      "followUp": "Bạn sửa gì để khóa hiển thị luôn là mã chữ hoa quy định, bất kể thứ tự dữ liệu?",
+      "englishFollowUp": "What would you change to display canonical uppercase codes regardless of input order?",
+      "outline": [
+        "Nhận ra hai mã thuộc cùng nhóm.",
+        "Giữ north làm khóa đại diện."
+      ],
+      "shortAnswer": "north:2, south:1. Hai cách viết north vào cùng nhóm và khóa giữ giá trị của lượt đầu.",
+      "explanation": "OrdinalIgnoreCase hợp nhất north và NORTH theo comparer. GroupBy giữ khóa đầu tiên gặp của nhóm và trả các nhóm theo thứ tự khóa xuất hiện lần đầu.",
+      "alternative": "Chuẩn hóa dạng hiển thị ở phép chiếu hoặc chuẩn hóa key selector theo quy tắc mã kho trước khi nhóm.",
+      "trap": "Cho rằng comparer thay đổi dữ liệu và buộc GroupBy trả NORTH.",
+      "rubric": [
+        "Nhận ra hai mã thuộc cùng nhóm.",
+        "Giữ north làm khóa đại diện.",
+        "Xác định đúng thứ tự và số lượng nhóm.",
+        "Phân biệt so sánh với chuẩn hóa dữ liệu."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.groupby?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "ordinal-key-lookup"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "NORTH:2, SOUTH:1",
+          "north:2, south:1",
+          "north:1, NORTH:1, south:1"
+        ],
+        "en": [
+          "NORTH:2, SOUTH:1",
+          "north:2, south:1",
+          "north:1, NORTH:1, south:1"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-chunk-tail-size",
+    "content": {
+      "title": "Lô cuối chưa đầy",
+      "topic": "linq",
+      "subtopic": "Chunk",
+      "tags": [
+        "Chunk"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Job chia 5 mã thành từng lô tối đa 2 mã. Danh sách kích thước lô in ra là gì?",
+      "englishPrompt": "A job splits five IDs into batches of at most two. Which batch sizes are printed?",
+      "context": "API đồng bộ chấp nhận tối đa hai mã mỗi lượt và cần nhận cả mã còn lại.",
+      "code": "var ids = new[] { 11, 12, 13, 14, 15 };\nvar sizes = ids.Chunk(2).Select(batch => batch.Length);\nConsole.Write(string.Join(\",\", sizes));",
+      "hint": "Thử chia dãy thành từng đoạn liên tiếp từ đầu.",
+      "nextHint": "Chunk giữ lại đoạn cuối ngắn hơn kích thước đã chỉ định.",
+      "followUp": "Nếu API yêu cầu mỗi request có đúng hai mã, bạn xử lý lô cuối theo hợp đồng nào?",
+      "englishFollowUp": "If the API requires exactly two IDs per request, how would you handle the last batch according to its contract?",
+      "outline": [
+        "Xác định các đoạn liên tiếp.",
+        "Giữ mã cuối trong lô thứ ba."
+      ],
+      "shortAnswer": "2,2,1. Hai lô đầu đầy và lô cuối chứa mã 15.",
+      "explanation": "Chunk chia dãy thành các mảng tối đa hai phần tử. Lô cuối chứa mọi phần tử còn lại và có Length bằng 1 trong ví dụ.",
+      "alternative": "Nếu đích yêu cầu đúng kích thước, chờ thêm dữ liệu hoặc dùng đường xử lý riêng cho lô dư theo hợp đồng API.",
+      "trap": "Cho rằng Chunk bỏ phần dư hoặc tự điền giá trị mặc định để đủ cỡ.",
+      "rubric": [
+        "Xác định các đoạn liên tiếp.",
+        "Giữ mã cuối trong lô thứ ba.",
+        "Đọc Length ở từng lô.",
+        "Nêu chính sách khi đích không nhận lô ngắn."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.chunk?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "range-end-exclusive"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2,2",
+          "2,2,2",
+          "2,2,1"
+        ],
+        "en": [
+          "2,2",
+          "2,2,2",
+          "2,2,1"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-oftype-mixed-cells",
+    "content": {
+      "title": "Chọn ô số nguyên từ dữ liệu trộn",
+      "topic": "linq",
+      "subtopic": "OfType",
+      "tags": [
+        "OfType"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một dòng nhập chứa int, chuỗi số, null và long. Khi lấy OfType<int> rồi ghép kết quả, chương trình in gì?",
+      "englishPrompt": "An imported row contains an int, a numeric string, null, and a long. What does the program print after OfType<int>?",
+      "context": "Bộ nhập chỉ muốn lấy các ô thực sự mang kiểu int để chuyển cho bước kiểm tra.",
+      "code": "object?[] row = [3, \"4\", null, 5L, 6];\nConsole.Write(string.Join(\",\", row.OfType<int>()));",
+      "hint": "Xét kiểu runtime của từng ô, kể cả các số đã boxing.",
+      "nextHint": "OfType<int> giữ int, bỏ null và bỏ các ô có kiểu không tương thích. Nó không ép long hay parse string.",
+      "followUp": "Khi mọi ô bắt buộc là int và cần báo lỗi cho ô sai, bạn dùng kiểm tra nào?",
+      "englishFollowUp": "If every cell must be an int and invalid cells must be reported, how would you validate them?",
+      "outline": [
+        "Phân loại int và long theo kiểu runtime.",
+        "Loại chuỗi số và null."
+      ],
+      "shortAnswer": "3,6. Hai ô đó có kiểu int sau khi boxing.",
+      "explanation": "OfType<int> lọc theo kiểu runtime. Chuỗi \"4\" không được parse thành số, 5L là một Int64 và null bị loại.",
+      "alternative": "Duyệt có chỉ số và kiểm tra `cell is int value` để báo đúng vị trí sai thay vì lọc bỏ.",
+      "trap": "Đọc OfType<int> như một phép chuyển đổi tự động mọi dữ liệu số.",
+      "rubric": [
+        "Phân loại int và long theo kiểu runtime.",
+        "Loại chuỗi số và null.",
+        "Nêu kết quả đúng thứ tự.",
+        "Chọn phép kiểm tra có thể báo vị trí lỗi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.oftype?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "box-snapshot"
+      ],
+      "related": [
+        "tryparse-zero"
+      ],
+      "quiz": {
+        "vi": [
+          "3,6",
+          "3,4,5,6",
+          "3,5,6"
+        ],
+        "en": [
+          "3,6",
+          "3,4,5,6",
+          "3,5,6"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-single-duplicate-invariant",
+    "content": {
+      "title": "Phát hiện cấu hình bị trùng",
+      "topic": "linq",
+      "subtopic": "SingleOrDefault",
+      "tags": [
+        "SingleOrDefault"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 5,
+      "technology": ".NET 10",
+      "prompt": "Mỗi mã tính năng có thể chưa được cấu hình. Khi có cấu hình, chỉ một dòng được phép khớp. Phép LINQ nào thể hiện cả hai điều kiện và báo lỗi nếu có trùng?",
+      "englishPrompt": "A feature code may have no configuration, but at most one row may match. Which LINQ operator permits zero matches and raises an error for duplicates?",
+      "context": "Nguồn là danh sách các cấu hình tham chiếu. Mã bị lặp cần được phát hiện ngay thay vì tùy thuộc thứ tự.",
+      "hint": "So sánh yêu cầu về số lượng với hành vi khi gặp dòng khớp thứ hai.",
+      "nextHint": "SingleOrDefault nhận không hoặc một phần tử khớp. Nhiều hơn một làm nó ném InvalidOperationException.",
+      "followUp": "Nếu bảng có nhiều tiến trình ghi, lớp lưu trữ nên bảo vệ tính duy nhất bằng gì?",
+      "englishFollowUp": "If several processes write to the table, how should the storage layer enforce uniqueness?",
+      "outline": [
+        "Chọn SingleOrDefault với predicate.",
+        "Mô tả trường hợp không khớp."
+      ],
+      "shortAnswer": "Dùng SingleOrDefault(config => config.Code == code).",
+      "explanation": "Không có phần tử khớp trả giá trị mặc định, tức null cho kiểu tham chiếu trong tình huống này. Có một dòng trả dòng đó. Dòng khớp thứ hai vi phạm hợp đồng và gây InvalidOperationException.",
+      "alternative": "Đặt unique constraint hoặc unique index phù hợp trên các cột nhận diện để chặn ghi trùng ngay từ cơ sở dữ liệu.",
+      "trap": "FirstOrDefault che mất dòng trùng bằng cách trả dòng khớp đầu tiên.",
+      "rubric": [
+        "Chọn SingleOrDefault với predicate.",
+        "Mô tả trường hợp không khớp.",
+        "Mô tả lỗi khi có từ hai kết quả.",
+        "Tách kiểm tra đọc khỏi ràng buộc lúc ghi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.singleordefault?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "linq-first-default"
+      ],
+      "related": [
+        "sql-constraints"
+      ],
+      "quiz": {
+        "vi": [
+          "FirstOrDefault theo mã",
+          "SingleOrDefault theo mã",
+          "First theo mã"
+        ],
+        "en": [
+          "FirstOrDefault by code",
+          "SingleOrDefault by code",
+          "First by code"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-zip-shortest-input",
+    "content": {
+      "title": "Ghép nhãn với số đo cảm biến",
+      "topic": "linq",
+      "subtopic": "Zip",
+      "tags": [
+        "Zip"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Tệp có ba nhãn nhưng chỉ hai số đo. Khi ghép theo vị trí bằng Zip, log ghi gì?",
+      "englishPrompt": "A file contains three labels but only two measurements. What does positional Zip print?",
+      "context": "Nhóm đang xác minh trường hợp xuất dữ liệu bị thiếu một ô số đo.",
+      "code": "var labels = new[] { \"A\", \"B\", \"C\" };\nvar readings = new[] { 10, 20 };\nvar pairs = labels.Zip(readings, (label, reading) => $\"{label}:{reading}\");\nConsole.Write(string.Join(\", \", pairs));",
+      "hint": "Một cặp cần phần tử ở cả hai dãy.",
+      "nextHint": "Zip kết thúc khi dãy ngắn hơn hết phần tử. Nó không tạo hàng thiếu số đo.",
+      "followUp": "Nếu thiếu số đo là lỗi, bạn xác nhận độ dài ở đâu với hai mảng trong ví dụ?",
+      "englishFollowUp": "If a missing measurement is an error, where would you verify lengths for these two arrays?",
+      "outline": [
+        "Ghép theo vị trí.",
+        "Dừng ở dãy ngắn hơn."
+      ],
+      "shortAnswer": "A:10, B:20. Nhãn C không có phần tử cùng vị trí để ghép.",
+      "explanation": "Zip gọi selector cho mỗi cặp ở vị trí giống nhau. Dãy readings có hai phần tử nên chỉ có hai lần gọi, với A và B.",
+      "alternative": "Với hai mảng, so sánh Length trước khi Zip và báo lỗi khi chênh lệch.",
+      "trap": "Cho rằng Zip tự điền 0 ở vị trí thiếu như một phép ghép có mặc định.",
+      "rubric": [
+        "Ghép theo vị trí.",
+        "Dừng ở dãy ngắn hơn.",
+        "Đọc hai cặp theo đúng thứ tự.",
+        "Nêu cách phát hiện dữ liệu lệch độ dài."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.zip?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "range-end-exclusive"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "A:10, B:20, C:0",
+          "A:10, B:20",
+          "A:10, B:20, C:"
+        ],
+        "en": [
+          "A:10, B:20, C:0",
+          "A:10, B:20",
+          "A:10, B:20, C:"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-sequenceequal-order",
+    "content": {
+      "title": "So khớp thứ tự các bước duyệt",
+      "topic": "linq",
+      "subtopic": "SequenceEqual",
+      "tags": [
+        "SequenceEqual"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai cấu hình chứa cùng mã bước theo thứ tự khác nhau. Phép kiểm tra SequenceEqual in gì?",
+      "englishPrompt": "Two configurations contain the same stage IDs in a different order. What does SequenceEqual print?",
+      "context": "Luồng duyệt cần xác nhận cả thứ tự các bước khi so sánh bản nháp với bản đang chạy.",
+      "code": "var draft = new[] { 4, 8, 6 };\nvar active = new[] { 4, 6, 8 };\nConsole.Write(draft.SequenceEqual(active));",
+      "hint": "So cặp phần tử tại mỗi vị trí.",
+      "nextHint": "Hai dãy phải có cùng độ dài và các cặp tương ứng phải bằng nhau.",
+      "followUp": "Nếu thay yêu cầu bằng cùng tập mã, bỏ qua thứ tự lẫn số lần lặp, bạn chọn phép kiểm tra nào?",
+      "englishFollowUp": "If you need the same set of IDs regardless of order or repeated occurrences, which check fits?",
+      "outline": [
+        "Nhận ra comparer mặc định.",
+        "Đối chiếu theo vị trí."
+      ],
+      "shortAnswer": "False. Vị trí thứ hai chứa 8 ở bản nháp và 6 ở bản đang chạy.",
+      "explanation": "SequenceEqual so sánh các vị trí tương ứng bằng comparer mặc định ở đây. Cùng tập phần tử và cùng độ dài vẫn có thể khác dãy.",
+      "alternative": "Khi hợp đồng là cùng tập mã, dùng HashSet<int>.SetEquals để bỏ qua thứ tự và số lần lặp.",
+      "trap": "Dùng SequenceEqual cho kiểm tra tập hợp rồi cho rằng thứ tự không ảnh hưởng.",
+      "rubric": [
+        "Nhận ra comparer mặc định.",
+        "Đối chiếu theo vị trí.",
+        "Xác định vị trí khác đầu tiên.",
+        "Chọn API cho yêu cầu tập hợp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.sequenceequal?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "hashset-add-result"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "False",
+          "ArgumentException"
+        ],
+        "en": [
+          "True",
+          "False",
+          "ArgumentException"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-lookup-missing-key",
+    "content": {
+      "title": "Tra nhiều vé theo một nhóm",
+      "topic": "linq",
+      "subtopic": "ToLookup",
+      "tags": [
+        "ToLookup"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai vé thuộc Ops và không có vé Sales. Chỉ mục lookup in số vé của Ops và Sales như thế nào?",
+      "englishPrompt": "Two tickets belong to Ops and none belong to Sales. What counts does the lookup print for Ops and Sales?",
+      "context": "Một trang tổng quan đọc danh sách vé theo nhiều nhóm. Nhóm chưa có vé vẫn hiển thị số 0.",
+      "code": "var tickets = new[] { (Team: \"Ops\", Id: 21), (Team: \"Ops\", Id: 23) };\nvar byTeam = tickets.ToLookup(ticket => ticket.Team, ticket => ticket.Id);\nConsole.Write((byTeam[\"Ops\"].Count(), byTeam[\"Sales\"].Count()));",
+      "hint": "Xem indexer của ILookup ánh xạ một khóa sang dạng dữ liệu nào.",
+      "nextHint": "ILookup trả dãy rỗng cho khóa thiếu, nên Count của Sales là 0.",
+      "followUp": "Nếu dữ liệu nguồn đổi sau khi dựng ToLookup, bạn cập nhật chỉ mục bằng cách nào?",
+      "englishFollowUp": "If the source data changes after ToLookup builds the index, how would you refresh the lookup?",
+      "outline": [
+        "Nhận ra ánh xạ một tới nhiều.",
+        "Đếm đúng nhóm Ops."
+      ],
+      "shortAnswer": "(2, 0). Ops có hai giá trị và Sales trả về dãy rỗng.",
+      "explanation": "ToLookup tạo ánh xạ từ một khóa tới nhiều giá trị. Indexer trả dãy của nhóm hoặc dãy rỗng khi thiếu khóa. Lookup được dựng từ dữ liệu tại thời điểm gọi.",
+      "alternative": "Dựng lại lookup từ nguồn đã cập nhật nếu mỗi mẻ đọc cần một ảnh chụp mới.",
+      "trap": "Áp dụng hành vi indexer của Dictionary và dự đoán lỗi cho Sales.",
+      "rubric": [
+        "Nhận ra ánh xạ một tới nhiều.",
+        "Đếm đúng nhóm Ops.",
+        "Giải thích dãy rỗng ở khóa thiếu.",
+        "Nêu khi nào cần dựng lại lookup."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.tolookup?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "dictionary-tryget-default"
+      ],
+      "related": [
+        "linq-groupjoin-unmatched"
+      ],
+      "quiz": {
+        "vi": [
+          "(2, 0)",
+          "KeyNotFoundException",
+          "(1, 0)"
+        ],
+        "en": [
+          "(2, 0)",
+          "KeyNotFoundException",
+          "(1, 0)"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-todictionary-equivalent-keys",
+    "content": {
+      "title": "Khóa trùng sau khi so mã",
+      "topic": "linq",
+      "subtopic": "ToDictionary comparer",
+      "tags": [
+        "ToDictionary comparer"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Kho nhận hai mã chỉ khác chữ hoa và yêu cầu tạo đúng một mục cho mỗi mã. Điều gì xảy ra với phép ToDictionary dùng OrdinalIgnoreCase?",
+      "englishPrompt": "The warehouse receives two IDs that differ only by case. What happens when ToDictionary uses OrdinalIgnoreCase?",
+      "context": "Nhóm muốn nhận diện lỗi nhập mã rồi mới quyết định giữ dòng nào hoặc từ chối cả file.",
+      "code": "var rows = new[] { (Code: \"R1\", Quantity: 3), (Code: \"r1\", Quantity: 7) };\ntry\n{\n    var counts = rows.ToDictionary(row => row.Code, row => row.Quantity, StringComparer.OrdinalIgnoreCase);\n    Console.Write(counts[\"R1\"]);\n}\ncatch (ArgumentException)\n{\n    Console.Write(\"duplicate\");\n}",
+      "hint": "Xác định hai mã có bằng nhau theo comparer đã truyền không.",
+      "nextHint": "ToDictionary ném ArgumentException nếu hai phần tử sinh cùng khóa theo comparer.",
+      "followUp": "Nếu hợp đồng cho phép nhập trùng và cần cộng số lượng, bạn xử lý trước ToDictionary ra sao?",
+      "englishFollowUp": "If the contract allows duplicates and requires summing quantities, what would you do before ToDictionary?",
+      "outline": [
+        "Áp dụng comparer đúng cho khóa.",
+        "Nêu quy tắc khóa duy nhất của ToDictionary."
+      ],
+      "shortAnswer": "duplicate. Hai mã được xem như cùng khóa và ToDictionary báo lỗi khi thêm mã thứ hai.",
+      "explanation": "OrdinalIgnoreCase coi R1 và r1 bằng nhau. ToDictionary yêu cầu các khóa khác nhau theo comparer đó và ném ArgumentException khi gặp dòng thứ hai.",
+      "alternative": "Khi nghiệp vụ cho phép cộng, GroupBy theo cùng comparer, cộng Quantity mỗi nhóm rồi dựng Dictionary tiếp tục với cùng comparer.",
+      "trap": "Cho rằng ToDictionary gán qua indexer nên dòng cuối sẽ tự ghi đè.",
+      "rubric": [
+        "Áp dụng comparer đúng cho khóa.",
+        "Nêu quy tắc khóa duy nhất của ToDictionary.",
+        "Đọc nhánh catch phù hợp.",
+        "Giữ cùng chính sách so khóa khi xử lý trùng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.todictionary?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "ordinal-key-lookup"
+      ],
+      "related": [
+        "linq-groupby-comparer-first-key"
+      ],
+      "quiz": {
+        "vi": [
+          "7",
+          "3",
+          "duplicate"
+        ],
+        "en": [
+          "7",
+          "3",
+          "duplicate"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-aggregate-seed-empty",
+    "content": {
+      "title": "Tổng tồn khi chưa có giao dịch",
+      "topic": "linq",
+      "subtopic": "Aggregate seed",
+      "tags": [
+        "Aggregate seed"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Số dư đầu là 50. Mẻ này không có thay đổi. Đoạn mã Aggregate với seed ghi gì?",
+      "englishPrompt": "The opening balance is 50 and this batch has no changes. What does Aggregate with a seed print?",
+      "context": "Báo cáo tồn kho cần giữ số dư đầu kỳ cho ngày không phát sinh giao dịch.",
+      "code": "int[] changes = [];\nvar balance = changes.Aggregate(50, (running, delta) => running + delta);\nConsole.Write(balance);",
+      "hint": "Xác định giá trị accumulator trước lúc đọc phần tử đầu tiên.",
+      "nextHint": "Overload có seed khởi tạo running bằng 50. Dãy rỗng nên lambda không chạy.",
+      "followUp": "Khi mỗi thay đổi là một số nguyên cộng thẳng, cách viết đơn giản nào vẫn cho đúng số dư?",
+      "englishFollowUp": "When each adjustment is an integer added directly, what simpler expression preserves the balance?",
+      "outline": [
+        "Nhận đúng overload có seed.",
+        "Xác định không có lần gọi lambda."
+      ],
+      "shortAnswer": "50. Dãy rỗng trả chính giá trị seed.",
+      "explanation": "Aggregate với seed dùng giá trị khởi tạo 50 và chỉ cập nhật khi đọc một phần tử. Vì changes rỗng, không có lần gọi lambda nào. Overload không có seed có quy tắc khác và báo lỗi với dãy rỗng.",
+      "alternative": "Trong ví dụ cộng đơn giản, `openingBalance + changes.Sum()` cho cùng số dư với dữ liệu đã nêu. Chọn kiểu và cách kiểm tra tràn theo hợp đồng số liệu.",
+      "trap": "Cho rằng dãy rỗng luôn trả 0 hoặc luôn làm Aggregate ném lỗi.",
+      "rubric": [
+        "Nhận đúng overload có seed.",
+        "Xác định không có lần gọi lambda.",
+        "Nêu giá trị 50.",
+        "Phân biệt hành vi của overload không có seed."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.aggregate?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "linq-any-empty"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "50",
+          "InvalidOperationException"
+        ],
+        "en": [
+          "0",
+          "50",
+          "InvalidOperationException"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-skipwhile-prefix",
+    "content": {
+      "title": "Bỏ ký hiệu đệm ở đầu gói",
+      "topic": "linq",
+      "subtopic": "SkipWhile",
+      "tags": [
+        "SkipWhile"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Gói dùng 0 ở đầu làm ký hiệu đệm, còn 0 xuất hiện bên trong là dữ liệu thật. Sau SkipWhile, log ghi gì?",
+      "englishPrompt": "Leading zeroes are padding, while zeroes after the payload begins are data. What does SkipWhile print?",
+      "context": "Bộ đọc cần loại phần đệm để giữ nguyên các số đo sau phần đầu gói.",
+      "code": "var packet = new[] { 0, 0, 7, 0, 4 };\nvar payload = packet.SkipWhile(value => value == 0);\nConsole.Write(string.Join(\",\", payload));",
+      "hint": "Tìm phần tử đầu tiên làm điều kiện false.",
+      "nextHint": "Sau giá trị 7, SkipWhile trả phần còn lại của dãy. Điều kiện không dùng để xóa 0 bên trong.",
+      "followUp": "Nếu mọi số 0 đều là ký hiệu trống, toán tử nào loại cả số 0 bên trong?",
+      "englishFollowUp": "If every zero is a missing-value marker, which operator would also remove internal zeroes?",
+      "outline": [
+        "Xác định tiền tố bị bỏ.",
+        "Bao gồm phần tử đầu tiên không thỏa."
+      ],
+      "shortAnswer": "7,0,4. SkipWhile bỏ tiền tố gồm hai số 0.",
+      "explanation": "Predicate đúng ở hai giá trị đầu và sai ở 7. Kể từ 7 toán tử trả toàn bộ hậu tố, gồm cả 0 phía sau.",
+      "alternative": "Nếu cần loại mọi số 0, dùng Where(value => value != 0) để áp dụng điều kiện cho từng phần tử.",
+      "trap": "Đọc SkipWhile như phép lọc `Where(value => value != 0)` ở mọi vị trí.",
+      "rubric": [
+        "Xác định tiền tố bị bỏ.",
+        "Bao gồm phần tử đầu tiên không thỏa.",
+        "Giữ số 0 bên trong.",
+        "Phân biệt với Where."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.skipwhile?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "deferred-execution"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "7,4",
+          "0,7,0,4",
+          "7,0,4"
+        ],
+        "en": [
+          "7,4",
+          "0,7,0,4",
+          "7,0,4"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-exceptby-key-first",
+    "content": {
+      "title": "Giữ một người nhận cho mỗi tài khoản",
+      "topic": "linq",
+      "subtopic": "ExceptBy",
+      "tags": [
+        "ExceptBy"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Danh sách có hai địa chỉ của tài khoản 12 và một tài khoản bị chặn. Sau ExceptBy theo mã tài khoản, kết quả in địa chỉ nào?",
+      "englishPrompt": "The list has two addresses for account 12 and one blocked account. Which addresses does ExceptBy by account ID print?",
+      "context": "Job cần loại tài khoản bị chặn và không gửi quá một thông báo cho mỗi tài khoản trong mẻ.",
+      "code": "var contacts = new[] { (Id: 12, Address: \"first\"), (Id: 31, Address: \"blocked\"), (Id: 12, Address: \"second\"), (Id: 42, Address: \"last\") };\nvar blocked = new[] { 31 };\nvar recipients = contacts.ExceptBy(blocked, contact => contact.Id);\nConsole.Write(string.Join(\",\", recipients.Select(contact => contact.Address)));",
+      "hint": "Theo dõi cả khóa bị chặn và khóa đã có phần tử trong kết quả.",
+      "nextHint": "ExceptBy là hiệu hai tập theo key, nên 31 bị loại và phần tử thứ hai của key 12 cũng bị loại.",
+      "followUp": "Nếu vẫn muốn giữ cả hai địa chỉ của tài khoản không bị chặn, bạn viết điều kiện lọc nào?",
+      "englishFollowUp": "If both addresses of an unblocked account should survive, which filtering condition would you use?",
+      "outline": [
+        "Áp dụng selector theo Id.",
+        "Loại khóa 31."
+      ],
+      "shortAnswer": "first,last. Khóa 31 bị loại và khóa 12 chỉ góp một phần tử.",
+      "explanation": "ExceptBy áp dụng tập khóa bị chặn lên dữ liệu nguồn rồi trả tối đa một mục theo mỗi khóa. Phần tử đầu của khóa 12 được giữ trong lần duyệt này, khóa 42 cũng được giữ.",
+      "alternative": "Dựng một HashSet khóa bị chặn rồi Where trên điều kiện khóa không nằm trong tập để giữ mọi địa chỉ hợp lệ.",
+      "trap": "Xem ExceptBy như Where thuần và giữ lại cả hai địa chỉ ở khóa 12.",
+      "rubric": [
+        "Áp dụng selector theo Id.",
+        "Loại khóa 31.",
+        "Nhận ra hiệu tập hợp bỏ lặp theo khóa.",
+        "Chọn Where nếu cần giữ mục trùng khóa."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.exceptby?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [
+        "linq-union-concat",
+        "hashset-add-result"
+      ],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "first,last",
+          "first,second,last",
+          "second,last"
+        ],
+        "en": [
+          "first,last",
+          "first,second,last",
+          "second,last"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]
