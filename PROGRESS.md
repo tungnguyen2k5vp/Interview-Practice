@@ -1,5 +1,13 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V2 · Phase 8 · Xác minh bản phát hành
+
+Build React/TypeScript, ESLint, .NET Release và publish đạt. Các check .NET, import repository và đồng bộ verdict sau restart trên SQL Server đạt. EF xác nhận model khớp migration mới nhất. npm audit cho dependency runtime và NuGet audit cho dependency trực tiếp/bắc cầu không báo gói có lỗ hổng theo nguồn đã truy vấn.
+
+Bản publish chạy trong môi trường Staging trên HTTPS loopback với database QA mới. Đã áp đủ sáu migration, xác minh readiness, cookie Secure/HttpOnly, CSP, PDF worker và giao diện 390 px. Hai mươi lượt GET ngân hàng trên máy QA có trung vị 24,3 ms, p95 59,1 ms. Số liệu này chỉ mô tả loopback của máy kiểm thử.
+
+Workflow GitHub Actions chạy build, lint, bộ .NET, kiểm định nội dung và Playwright với SQL Server cô lập. Staging từ xa, HSTS qua hostname thật, OpenAI thật, screen reader và micro vật lý chưa được kiểm chứng. [Hướng dẫn phát hành](docs/DEPLOYMENT.md)
+
 ## V2 · Phase 7 · Thiết kế hệ thống và quản trị học liệu
 
 Thêm tám tình huống thiết kế hệ thống. Sơ đồ có 11 loại thành phần, liên kết có hướng, ghi chú đánh đổi, điều khiển kéo thả hoặc bàn phím, tự lưu theo thiết bị/phiên bản đề và xuất SVG. Phần tự đối chiếu kiểm tra kết nối và hỏi về luồng dữ liệu, nhất quán, mở rộng, phục hồi và bảo mật.

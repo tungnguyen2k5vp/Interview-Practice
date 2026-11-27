@@ -1,0 +1,87 @@
+name: CI
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      sql:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_PID: Developer
+          MSSQL_SA_PASSWORD: 'CiOnly-Local-SQL!2026'
+        ports:
+          - 1433/tcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npm run lint --prefix web
+      - run: npm run build --prefix web
+      - run: dotnet restore server --locked-mode
+      - run: dotnet build server -c Release --no-restore
+      - run: dotnet run --project checks -c Release
+      - run: dotnet run --project checks -c Release --no-build -- --project-import
+      - name: Install Playwright Chromium
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+      - name: Verify catalog and browser journeys against SQL Server
+        env:
+          ASPNETCORE_ENVIRONMENT: Development
+          IP_BASE: http://127.0.0.1:5096
+          IP_QA_SQL_CONTAINER: ${{ job.services.sql.id }}
+          SQLCMDPASSWORD: 'CiOnly-Local-SQL!2026'
+          IP_ADMIN_EMAIL: ci-admin@example.test
+          IP_ADMIN_PASSWORD: 'CiOnly-Local-Admin!2026'
+          Ai__Provider: OpenAI
+          Ai__Model: fixture-structured-v1
+          Ai__ApiKey: local-fixture
+          Ai__Endpoint: http://127.0.0.1:5095/v1/responses
+          IP_AI_FIXTURE: '1'
+        run: |
+          export ConnectionStrings__Practice="Server=127.0.0.1,${{ job.services.sql.ports[1433] }};Database=InterviewPractice_QA;User ID=sa;Password=$SQLCMDPASSWORD;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5;"
+          export IP_CONTENT_SQL_CONNECTION="$ConnectionStrings__Practice"
+          export Admin__Email="$IP_ADMIN_EMAIL" Admin__Password="$IP_ADMIN_PASSWORD"
+          export Runner__IsolationVerified=false
+          for attempt in {1..60}; do
+            if docker exec -e SQLCMDPASSWORD "$IP_QA_SQL_CONTAINER" /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -Q 'SELECT 1' > /dev/null 2>&1; then break; fi
+            if [ "$attempt" = 60 ]; then docker logs "$IP_QA_SQL_CONTAINER"; exit 1; fi
+            sleep 2
+          done
+          npm run test:content --prefix web
+          node web/checks/provider.mjs > provider.log 2>&1 &
+          provider=$!
+          dotnet run --project server -c Release --no-build --no-launch-profile --urls "$IP_BASE" > api.log 2>&1 &
+          api=$!
+          trap 'kill "$api" "$provider" 2>/dev/null || true' EXIT
+          for attempt in {1..60}; do
+            if curl --silent --fail "$IP_BASE/api/health/ready" > /dev/null; then break; fi
+            if ! kill -0 "$api" "$provider" || [ "$attempt" = 60 ]; then cat api.log provider.log; exit 1; fi
+            sleep 2
+          done
+          npm run test:e2e --prefix web
+          IP_QA_DB=InterviewPractice_QA node web/checks/upgrade.mjs
+      - name: Upload browser screenshots and server logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: interview-practice-qa
+          path: |
+            api.log
+            provider.log
+            .impeccable/review/*.png
+          include-hidden-files: true
+          if-no-files-found: ignore

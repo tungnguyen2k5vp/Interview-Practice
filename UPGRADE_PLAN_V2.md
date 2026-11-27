@@ -48,3 +48,5 @@ Phase 5 đã triển khai ba lab. Import từ repository công khai thật và Z
 Phase 6 có ba bài kiểm tra phân theo mục tiêu, cây kỹ năng dựa trên dữ liệu học, đọc CV/JD cục bộ có bước duyệt và vòng đời ghi âm. Đã kiểm tra kết quả đầu vào, gợi ý lộ trình, lưu/xóa tài liệu, quyền riêng tư và microphone mô phỏng trong Chrome. Không thêm migration. Phase 7 tiếp tục với sơ đồ thiết kế hệ thống và quy trình biên tập theo phiên bản.
 
 Phase 7 có tám đề thiết kế, sơ đồ tương tác và trình biên tập học liệu theo phiên bản. Migration bổ sung giữ nguyên lịch sử Phase 6. Flashcard, quiz nhiều lựa chọn, đồng hồ 60 giây và danh sách luyện lại đã qua Chrome/SQL Server. Batch HTTP nâng số câu đã kiểm định lên 102/250. Để đạt mục tiêu tối thiểu, còn 148 câu, gồm ít nhất 63 Intern/Fresher và 55 Junior. Còn mở việc tạo biến thể cho từng câu quiz và liên kết từng câu dự đoán/đọc lỗi với một lượt chạy tương ứng. [Kết quả và ảnh](PROGRESS.md)
+
+Phase 8 có CI và bản publish đã kiểm tra trên staging HTTPS loopback. Cần nghiệm thu hostname HTTPS, máy chủ SQL và worker của môi trường đích trước khi đưa người dùng vào. [Hướng dẫn triển khai](docs/DEPLOYMENT.md)

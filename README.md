@@ -133,4 +133,4 @@ npm.cmd run test:e2e --prefix web
 
 IP_BROWSER có thể bỏ trống khi đã cài Chromium của Playwright. Bỏ IP_QA_DB sẽ bỏ qua ca chỉnh deadline trên DB QA. Có thể chạy thêm checks/provider.mjs ở loopback cổng 5095 để kiểm tra hợp đồng AI. Cấu hình API QA với Ai__Provider=OpenAI, Ai__Model=fixture-structured-v1, Ai__ApiKey=fixture, Ai__Endpoint=http://127.0.0.1:5095/v1/responses, rồi đặt IP_AI_FIXTURE=1 khi chạy test:e2e. Kết quả đó kiểm chứng tích hợp theo hợp đồng, còn truy cập dịch vụ OpenAI thật phụ thuộc khóa và model được cấp.
 
-Kết quả kiểm tra, ảnh và phạm vi còn lại được ghi trong [PROGRESS.md](PROGRESS.md).
+Xem kết quả kiểm tra và ảnh trong [PROGRESS.md](PROGRESS.md). Các bước chạy SQL Server bằng Docker, publish và xác minh staging nằm trong [hướng dẫn triển khai](docs/DEPLOYMENT.md).

@@ -169,7 +169,7 @@ const harness = [
   '}',
   'static async Task CheckScalar(string name, string sql, string expected)',
   '{',
-  '    await using var db = new SqlConnection("Server=localhost;Database=tempdb;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5;");',
+  '    await using var db = new SqlConnection(ContentConnection());',
   '    await db.OpenAsync();',
   '    await using var query = new SqlCommand(sql, db) { CommandTimeout = 5 };',
   '    await using var reader = await query.ExecuteReaderAsync();',
