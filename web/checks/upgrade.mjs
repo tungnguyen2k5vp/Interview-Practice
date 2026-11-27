@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { randomUUID } from 'node:crypto'
-import { execFileSync } from 'node:child_process'
+import { updateQaDb } from './qa-sql.mjs'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { chromium } from 'playwright'
@@ -10,7 +10,8 @@ import { advanced } from './advanced.mjs'
 
 const baseURL = process.env.IP_BASE ?? 'http://127.0.0.1:5096'
 assert(['localhost','127.0.0.1'].includes(new URL(baseURL).hostname))
-const browser = await chromium.launch({channel: process.env.IP_BROWSER || undefined,args:['--use-fake-device-for-media-stream']})
+const browser = await chromium.launch({channel: process.env.IP_BROWSER || 'chromium',
+  args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']})
 const users = []
 const screenshots = resolve(import.meta.dirname, '../../.impeccable/review')
 await mkdir(screenshots, {recursive:true})
@@ -357,12 +358,7 @@ try {
     const defaults={preset:'backend',mode:'guided',topics:['aspnet'],language:'vi',level:'junior',minutes:15,count:1}
     let state=await send(client,'/interviews','POST',{...defaults,id:randomUUID()},[201])
     const firstId=state.session.id, firstSlug=state.current.slug
-    assert.equal(process.env.IP_QA_DB,'InterviewPractice_QA')
-    const container=process.env.IP_QA_SQL_CONTAINER
-    const query="UPDATE Interviews SET [Plan]=JSON_MODIFY(JSON_MODIFY(JSON_MODIFY([Plan],'$.activeStart',NULL),'$.aiLimit',NULL),'$.aiUsed',NULL) WHERE Id='"+firstId+"'"
-    const sqlArgs=['-S','localhost','-C','-b','-d','InterviewPractice_QA','-Q',query]
-    if(container)execFileSync('docker',['exec','-e','SQLCMDPASSWORD',container,'/opt/mssql-tools18/bin/sqlcmd','-U','sa',...sqlArgs],{stdio:'pipe'})
-    else execFileSync('sqlcmd',['-E',...sqlArgs],{stdio:'pipe'})
+    updateQaDb("UPDATE Interviews SET [Plan]=JSON_MODIFY(JSON_MODIFY(JSON_MODIFY([Plan],'$.activeStart',NULL),'$.aiLimit',NULL),'$.aiUsed',NULL) WHERE Id='"+firstId+"'")
     const skip=()=>send(client,'/interviews/'+state.session.id+'/actions','POST',{id:randomUUID(),revision:state.revision,action:'skip'})
     state=await skip();assert.equal(state.session.status,'completed');assert(!state.report[0].mainEntry && !state.previous)
     state=await send(client,'/interviews','POST',{...defaults,id:randomUUID(),reviewOf:firstId},[201])

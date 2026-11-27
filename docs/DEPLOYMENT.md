@@ -43,10 +43,10 @@ dotnet publish server -c Release --no-restore -p:UseAppHost=false -o .artifacts/
 
    ```powershell
    dotnet InterviewPractice.dll --migrate-and-seed
-   dotnet InterviewPractice.dll --urls http://127.0.0.1:5080
+   dotnet InterviewPractice.dll --urls https://127.0.0.1:5080
    ```
 
-4. Cho dịch vụ chạy dưới trình quản lý tiến trình với thư mục làm việc là bản publish. Dùng reverse proxy HTTPS giữ nguyên host công khai, chỉ bind Kestrel vào loopback và giữ key ASP.NET Core Data Protection ở thư mục bền vững của tài khoản dịch vụ để cookie tồn tại qua các lần phát hành.
+4. Cho dịch vụ chạy dưới trình quản lý tiến trình với thư mục làm việc là bản publish. Cấu hình chứng chỉ Kestrel qua `ASPNETCORE_Kestrel__Certificates__Default__Path` và lấy mật khẩu chứng chỉ từ kho bí mật. Reverse proxy giữ nguyên host công khai khi gọi upstream HTTPS và tin chứng chỉ upstream. Giữ key ASP.NET Core Data Protection ở thư mục bền vững của tài khoản dịch vụ để cookie tồn tại qua các lần phát hành.
 5. Kiểm tra `GET /api/health` và `GET /api/health/ready` đều trả 200 qua hostname HTTPS. Mở dashboard, đăng ký tài khoản thử, lưu câu trả lời, tải lại URL trực tiếp và xác nhận dữ liệu vẫn xuất hiện. Nếu có lỗi API, đối chiếu `X-Correlation-Id` với log của tiến trình.
 
 AI dùng `Ai__Provider=OpenAI`, `Ai__Model` hỗ trợ Structured Outputs và `Ai__ApiKey` từ kho bí mật. CI dùng fixture cục bộ để kiểm tra hợp đồng. Kiểm tra API OpenAI thật bằng một yêu cầu từ tài khoản staging với dữ liệu thử và sự đồng ý gửi nội dung.

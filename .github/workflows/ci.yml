@@ -42,6 +42,8 @@ jobs:
         env:
           ASPNETCORE_ENVIRONMENT: Development
           IP_BASE: http://127.0.0.1:5096
+          IP_BROWSER: chromium
+          IP_QA_DB: InterviewPractice_QA
           IP_QA_SQL_CONTAINER: ${{ job.services.sql.id }}
           SQLCMDPASSWORD: 'CiOnly-Local-SQL!2026'
           IP_ADMIN_EMAIL: ci-admin@example.test
@@ -73,7 +75,7 @@ jobs:
             sleep 2
           done
           npm run test:e2e --prefix web
-          IP_QA_DB=InterviewPractice_QA node web/checks/upgrade.mjs
+          node web/checks/upgrade.mjs
       - name: Upload browser screenshots and server logs
         if: always()
         uses: actions/upload-artifact@v4

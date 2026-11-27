@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
+import { updateQaDb } from './qa-sql.mjs'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { randomUUID } from 'node:crypto'
@@ -347,8 +347,7 @@ try {
       const data = await send(context.request, '/interviews', { method: 'POST', status: 201, body: {
         id: randomUUID(), preset: 'foundation', level: 'junior', topics: [], language: 'vi', minutes: 15, mode: 'mock',
       } })
-      execFileSync('sqlcmd', ['-S', 'localhost', '-E', '-C', '-b', '-d', process.env.IP_QA_DB,
-        '-Q', "UPDATE Interviews SET Deadline = DATEADD(second, -1, SYSDATETIMEOFFSET()) WHERE Id = '" + data.session.id + "';"], { stdio: 'pipe' })
+      updateQaDb("UPDATE Interviews SET Deadline = DATEADD(second, -1, SYSDATETIMEOFFSET()) WHERE Id = '" + data.session.id + "';")
       const ended = await send(context.request, '/interviews/' + data.session.id)
       assert.equal(ended.session.status, 'expired')
       assert.equal(ended.report[0].status, 'unanswered')
