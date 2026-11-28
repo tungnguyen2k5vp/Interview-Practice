@@ -1,0 +1,193 @@
+[
+  {
+    "slug": "audit-evidence-redaction",
+    "version": 1,
+    "title": "Dấu vết quản trị không chứa bí mật",
+    "brief": "Một SaaS quản lý phòng khám cần tra ai đã đổi cấu hình tích hợp. Đội hỗ trợ có quyền đọc audit nhưng không được biết token dịch vụ; mỗi tenant có thời hạn lưu khác nhau.",
+    "requirements": [
+      "Mỗi thay đổi cấu hình có actor, tenant, operation ID, thời điểm server và kết quả; giá trị token không được xuất hiện trong audit hoặc log lỗi.",
+      "Audit đã ghi không được sửa tùy ý. Khi lưu audit thất bại, phải công bố thao tác cấu hình nào bị chặn và thao tác nào được tiếp tục.",
+      "Quyền xem/export audit theo tenant; xóa dữ liệu hết hạn cần có dấu vết vận hành không phục hồi lại token đã che.",
+      "Tải giả định 100 thay đổi/giây, truy vấn hỗ trợ theo operation ID cần dưới 2 giây ở p95 trong bài thử đã chọn."
+    ],
+    "rubric": [
+      "Vẽ write path cấu hình và audit, chỉ rõ biên transaction cùng chính sách fail-open/fail-closed theo mức quan trọng.",
+      "Thiết kế schema audit allowlist; ví dụ token thay đổi chỉ ghi loại sự kiện, không ghi before/after của bí mật.",
+      "Chọn cách chống sửa và quyền vận hành; phân biệt append-only ở ứng dụng với bảo đảm của hạ tầng lưu trữ.",
+      "Thiết kế truy vấn/export có kiểm tra tenant, phân trang và retention; giải thích xóa hết hạn không phá tra cứu đang hợp lệ.",
+      "Đề xuất test đổi token thất bại, audit store down và cross-tenant access; đo p95 cùng kiểm tra log bằng secret sentinel giả."
+    ]
+  },
+  {
+    "slug": "partner-webhook-dispatch",
+    "version": 1,
+    "title": "Webhook cho đối tác ngừng nhận",
+    "brief": "Nền tảng phát event giao dịch đến 300 đối tác. Một đối tác mất mạng hai giờ còn một đối tác khác trả 200 rồi timeout ở lần gọi kế. Không được để đối tác chậm giữ toàn bộ worker.",
+    "requirements": [
+      "Delivery có ID ổn định theo event và subscription; retry cùng delivery phải nhận diện được, không hứa exactly-once tại đối tác.",
+      "Payload có version và chữ ký theo secret của subscription; endpoint HTTPS được xác minh và chống gọi địa chỉ nội bộ.",
+      "Mỗi đối tác có giới hạn concurrency và backlog; retry hữu hạn trong 24 giờ rồi cho phép replay có kiểm soát.",
+      "Thay URL hoặc secret giữa backlog phải có quy tắc version rõ; dashboard thể hiện pending, delivered và exhausted."
+    ],
+    "rubric": [
+      "Phân biệt business event với delivery attempt; thiết kế kho trạng thái và cơ chế enqueue bền để không mất backlog.",
+      "Nêu hợp đồng signature, ID và timestamp để bên nhận xác minh; giải thích retry có thể tạo xử lý lặp dù đã thấy HTTP 200 ở một attempt khác.",
+      "Cô lập ngân sách và lịch retry theo subscription; thử một đối tác treo mà các đối tác còn lại vẫn tiến triển.",
+      "Kiểm soát URL, redirect và secret version; nêu cách xử lý deliveries cũ khi subscription bị đổi hoặc vô hiệu hóa.",
+      "Chọn metrics tuổi backlog/p95 theo đối tác, cảnh báo exhausted và quy trình replay không tạo delivery ID mới tùy tiện."
+    ]
+  },
+  {
+    "slug": "catalog-import-preview-commit",
+    "version": 1,
+    "title": "Nhập CSV có preview và sửa lỗi từng hàng",
+    "brief": "Bộ phận hàng hóa gửi CSV tối đa một triệu dòng. Người dùng muốn xem lỗi trước khi áp dụng và chỉ sửa các hàng sai; quy tắc ánh xạ cột có thể đổi trong thời gian họ kiểm tra.",
+    "requirements": [
+      "Upload tạo một import ID; giữ checksum file, mapping version và validation version dùng cho preview.",
+      "Mỗi dòng có trạng thái và business key; số dòng lỗi và hợp lệ được đối chiếu trước commit, không âm thầm bỏ lỗi.",
+      "Người dùng chọn all-or-nothing theo lô 1.000 dòng hoặc partial import rõ ràng; phải giải thích atomicity thực tế thay vì hứa transaction một triệu dòng.",
+      "Worker có thể chết sau một lô; resume phải nhận diện lô đã commit và không ghi lặp các hàng hợp lệ.",
+      "File lớn không được nhét trực tiếp vào message; preview hết hạn sau bảy ngày theo hợp đồng."
+    ],
+    "rubric": [
+      "Vẽ upload, object store, queue chứa reference và trạng thái import; giới hạn bộ nhớ khi đọc file.",
+      "Định danh file/dòng/lô và cố định mapping/validation version để preview cũ không áp theo quy tắc mới ngầm.",
+      "Chọn biên commit theo chế độ người dùng; nêu rõ cách báo lỗi hàng và dữ liệu nào đã có hiệu lực.",
+      "Theo một crash sau commit trước checkpoint để chứng minh resume không lặp side effect; giữ record đối soát lô.",
+      "Thử file một triệu dòng có dòng lỗi, thay mapping và replay; đối chiếu tổng accepted/rejected/applied cùng retention cleanup."
+    ]
+  },
+  {
+    "slug": "tenant-report-fair-scheduling",
+    "version": 1,
+    "title": "Xuất báo cáo công bằng giữa tenant",
+    "brief": "Một tenant gửi 10.000 job báo cáo trong khi 200 tenant nhỏ mỗi nơi gửi một job. Worker chỉ chạy được 40 job đồng thời; báo cáo lớn có thể mất 20 phút.",
+    "requirements": [
+      "Tenant nhỏ không phải chờ sau toàn bộ backlog của tenant lớn; định nghĩa một mức chờ mục tiêu cần kiểm chứng bằng load test.",
+      "Mỗi tenant có quota và concurrency tối đa; ưu tiên không làm tenant loại thấp đói vô hạn.",
+      "Job lưu trạng thái bền và output private; hủy job cần phân biệt queued với đang ghi artifact.",
+      "Retries do lỗi tạm không được nhân số slot đang chạy hoặc vượt quota; một tenant không được đọc output tenant khác."
+    ],
+    "rubric": [
+      "Chọn mô hình queue/dispatcher có fairness theo tenant và giải thích vì sao FIFO toàn cục không đáp ứng tải đã nêu.",
+      "Phân bổ slot, quota, aging hoặc weighted scheduling bằng ví dụ tenant lớn và nhỏ; chỉ ra nguy cơ starvation.",
+      "Thiết kế lease và state machine job; trình bày thu hồi slot khi worker crash mà không cho hai worker cùng publish output.",
+      "Tách quyền tải artifact với quyền tạo job; nêu cleanup output dở dang khi hủy hoặc lease mất hiệu lực.",
+      "Load-test pha trộn job 1 giây/20 phút và tenant burst; đo thời gian chờ theo tenant, slot utilization và số job chạy lặp."
+    ]
+  },
+  {
+    "slug": "feature-rollout-control-plane",
+    "version": 1,
+    "title": "Bật tính năng theo phần trăm có kill switch",
+    "brief": "SaaS muốn bật một thuật toán tính phí mới cho 5% tenant, tăng dần nếu an toàn. Các replica cache config 30 giây và control store có thể mất kết nối.",
+    "requirements": [
+      "Một tenant phải nhận cùng cohort khi chuyển replica; version rollout và thuật toán gán cohort phải tái tạo được.",
+      "Kill switch cần đạt phần lớn replica trong 10 giây theo mục tiêu, trong khi config thông thường có thể trễ 30 giây; phải giải thích xung đột yêu cầu này.",
+      "Config lỗi schema hoặc chữ ký/quyền cập nhật không hợp lệ không được làm worker crash hàng loạt.",
+      "Khi control store down phải công bố last-known-good, expiry và trường hợp fail-closed; không hứa cập nhật tức thời khi mất mạng."
+    ],
+    "rubric": [
+      "Tách control plane và data plane, version cấu hình và xác thực người được đổi rollout.",
+      "Định nghĩa stable cohort theo tenant bằng hàm/hash có version; không random lại mỗi request.",
+      "Giải quyết mục tiêu kill switch khác cache thường bằng kênh invalidation/polling phù hợp và nêu giới hạn mạng.",
+      "Validate cấu hình trước phát hành và duy trì last-known-good theo từng loại rủi ro; có rollback version.",
+      "Thử config hỏng, replica mất mạng và thay rollout 5 lên 20%; đo propagation và chứng minh cohort không nhảy ngẫu nhiên."
+    ]
+  },
+  {
+    "slug": "search-index-rebuild-cutover",
+    "version": 1,
+    "title": "Xây lại chỉ mục khi vẫn nhận sửa và xóa",
+    "brief": "Cổng tài liệu có 20 triệu bản ghi và đang đổi analyzer tìm kiếm. Xây chỉ mục mới mất sáu giờ, trong thời gian đó tài liệu tiếp tục sửa và xóa.",
+    "requirements": [
+      "Search vẫn phục vụ từ index cũ trong quá trình rebuild; không gửi query vào index chỉ mới có một phần dữ liệu.",
+      "Index mới phải áp cả update và delete trong thời gian rebuild, dùng document identity và version để không hồi sinh tài liệu đã xóa.",
+      "Có checkpoint và lag quan sát được; chỉ cutover khi đạt tiêu chí đối chiếu và dữ liệu gần nhất đã đồng bộ theo ngưỡng.",
+      "Có khả năng quay lại index trước trong một cửa sổ xác định, với quy tắc xử lý các write xảy ra sau cutover."
+    ],
+    "rubric": [
+      "Vẽ source snapshot, change feed/log và hai index; chọn watermark không bỏ sót thay đổi quanh mốc snapshot.",
+      "Theo tài liệu được sửa rồi xóa trong sáu giờ rebuild, nêu version/tombstone chống ghi ngược từ snapshot cũ.",
+      "Thiết kế alias/routing switch và kiểm tra tính tương thích query của hai schema trước cutover.",
+      "Chọn đối chiếu count, sample/hash và quyền lọc; count bằng nhau một mình không chứng minh nội dung đúng.",
+      "Mô phỏng crash/restart worker, replay và rollback sau cutover; đo lag, sai lệch mẫu và độ liên tục của query."
+    ]
+  },
+  {
+    "slug": "dashboard-slow-client-backpressure",
+    "version": 1,
+    "title": "Dashboard trực tuyến với trình duyệt chậm",
+    "brief": "Một dashboard vận hành có 8.000 kết nối xem số liệu. Mỗi nguồn phát 100 cập nhật mỗi giây nhưng UI chỉ cần giá trị mới nhất mỗi giây; có browser trên mạng rất chậm.",
+    "requirements": [
+      "Đối với gauge như số người online, được gộp các giá trị trung gian; đối với alarm chuyển trạng thái, không được bỏ mất transition nghiệp vụ.",
+      "Mỗi kết nối có ngân sách buffer; một browser chậm không được làm bộ nhớ server tăng không giới hạn.",
+      "Reconnect phải nhận snapshot và vị trí cập nhật phù hợp để biết có khoảng trống; không tuyên bố Pub/Sub tự replay.",
+      "Quyền đăng ký theo tenant và loại dashboard được kiểm tra tại connect cùng khi quyền thay đổi."
+    ],
+    "rubric": [
+      "Tách stream gauge có thể coalesce khỏi alarm cần lịch sử, nêu dữ liệu nguồn có thẩm quyền cho từng loại.",
+      "Thiết kế fan-out, buffer hữu hạn và chính sách disconnect/resync cho slow consumer; tính ngân sách bộ nhớ theo kết nối.",
+      "Định nghĩa snapshot/cursor và khoảng trống khi reconnect; trình bày khi nào cần durable log thay Pub/Sub.",
+      "Nêu xác thực và phân quyền subscription, không tin tenant/channel name do browser tự chọn.",
+      "Thử 1% browser chỉ đọc rất chậm, reconnect hàng loạt và quyền bị thu hồi; đo memory, dropped gauge updates và alarm completeness."
+    ]
+  },
+  {
+    "slug": "private-export-revalidation",
+    "version": 1,
+    "title": "File xuất dữ liệu khi quyền bị thay",
+    "brief": "Người dùng tạo bản xuất dữ liệu khách hàng mất 15 phút. Trong lúc chạy, quản trị thu hồi quyền của họ; họ vẫn giữ job URL và một link tải đã cấp.",
+    "requirements": [
+      "Job và artifact luôn gắn tenant cùng owner; tra job ID không đủ để đọc dữ liệu.",
+      "Phải chọn rõ kiểm quyền lúc tạo, lúc chạy và lúc tải; quyền mất trước hoàn tất không được âm thầm tạo link public.",
+      "Nếu dùng signed URL có thời hạn, giải thích cửa sổ thu hồi và chọn phương án khi nghiệp vụ đòi thu hồi tức thời.",
+      "Export có snapshot/version và thời hạn xóa; file dở dang không xuất hiện như kết quả hoàn tất."
+    ],
+    "rubric": [
+      "Vẽ create, worker, private store và download path; phân biệt job accepted với artifact ready.",
+      "Chọn snapshot và phân quyền tenant tại query để output không trộn dữ liệu sau khi job chuyển worker.",
+      "Theo timeline thu hồi quyền tại phút 7/15 và lúc tải; thiết kế trạng thái denied/cancelled có audit.",
+      "So signed URL trực tiếp với proxy kiểm quyền mỗi lần; nêu giới hạn revoke theo hợp đồng thay vì hứa tuyệt đối.",
+      "Test chép job URL cho user khác, quyền mất giữa stream và cleanup TTL; kiểm tra không lộ bytes ngoài quyết định đã chốt."
+    ]
+  },
+  {
+    "slug": "media-quarantine-publication",
+    "version": 1,
+    "title": "Cách ly nội dung trước khi công bố",
+    "brief": "Một cộng đồng cho tải ảnh và PDF rồi gắn vào bài viết. Scanner đôi lúc timeout; app không được phục vụ file chưa có quyết định kiểm tra dù file đã upload xong.",
+    "requirements": [
+      "File upload vào vùng private, có trạng thái quarantined/scanning/approved/rejected và object identity riêng.",
+      "Scanner kết quả trễ không được duyệt nhầm file khác sau khi người dùng thay attachment; kết quả gắn checksum/version.",
+      "Retry scan hữu hạn, có hàng chờ điều tra và không tự coi timeout là safe.",
+      "Chỉ attachment approved được đọc qua quyền bài viết; xóa bài hoặc thay quyền phải áp dụng cả file và preview sinh ra."
+    ],
+    "rubric": [
+      "Vẽ vùng quarantine, worker scan, metadata trạng thái và delivery path; không đặt file chưa duyệt trong web root.",
+      "Thiết kế chuyển trạng thái có điều kiện theo object version/checksum; bỏ kết quả scan stale của file đã thay.",
+      "Nêu giới hạn kích thước, thời gian scan và failure route; không hứa scanner bắt được mọi nội dung độc hại.",
+      "Theo quyền truy cập của original, thumbnail và cached copy khi bài bị xóa hoặc chuyển private.",
+      "Thử timeout scanner, duplicate result, replace attachment và truy cập trực tiếp URL quarantine; đo backlog và thời gian chờ duyệt."
+    ]
+  },
+  {
+    "slug": "integration-secret-rotation",
+    "version": 1,
+    "title": "Xoay credential trong lúc worker đang chạy",
+    "brief": "Worker gọi đối tác bằng API key. Đối tác cho phép đồng thời hai key trong 30 phút; 50 replica cache key và có job chạy 40 phút.",
+    "requirements": [
+      "Không log key; mỗi lần gọi theo dõi credential version bằng ID không nhạy cảm.",
+      "Phải kích hoạt key mới, cập nhật replicas, kiểm chứng rồi thu hồi key cũ theo lịch có thể quan sát.",
+      "Job dài cần quy tắc lấy key lại cho cuộc gọi mới; không cố giữ key đã thu hồi suốt 40 phút.",
+      "Nếu key mới không hoạt động hoặc một replica mất mạng phải có quy trình rollback/containment trước khi hết overlap."
+    ],
+    "rubric": [
+      "Vẽ nơi cấp/lưu key, quyền truy cập và vòng đời prepare/activate/verify/revoke; không copy key vào image.",
+      "Chọn refresh/version policy cho replica và cho từng outbound call của job dài, giải thích stale cache window.",
+      "Theo timeline overlap 30 phút và job 40 phút để chỉ ra khi nào key cũ không còn dùng được.",
+      "Thiết kế metrics tỷ lệ lỗi theo credential version không chứa secret, điều kiện rollback và xử lý replica không xác nhận refresh.",
+      "Diễn tập key mới sai, revoke sớm và replica offline; xác minh không lộ token và các call sau refresh dùng version đúng."
+    ]
+  }
+]

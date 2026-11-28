@@ -1,0 +1,4619 @@
+[
+  {
+    "slug": "shop-order-balance-ledger",
+    "kind": "sql",
+    "title": "Đối soát tiền hàng và tiền thực nhận",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Mỗi đơn paid cần một dòng gross từ line, net_paid từ payment captured và balance=gross-net_paid. Giữ đơn không line hoặc không payment với tổng 0. Balance âm là trả dư, không ép về 0. Refund âm phải được tính.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "order_id (int), gross (decimal(18,2)), net_paid (decimal(18,2)), balance (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "order_id | gross | net_paid | balance\n101 | 40 | 45 | -5\n102 | 20 | 20 | 0\n103 | 60 | 10 | 50",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "order_id | gross | net_paid | balance\n101 | 40 | 45 | -5\n102 | 20 | 20 | 0\n103 | 60 | 10 | 50\n104 | 40 | 30 | 10\n105 | 16 | 16 | 0\n108 | 0 | 0 | 0\n109 | 25 | 0 | 25",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS order_id, CAST(NULL AS decimal(18,2)) AS gross, CAST(NULL AS decimal(18,2)) AS net_paid, CAST(NULL AS decimal(18,2)) AS balance;",
+    "hint": "Gộp từng quan hệ một-nhiều riêng về một dòng mỗi order trước khi join.",
+    "solution": "WITH g AS (SELECT order_id,SUM(qty*unit_price) gross FROM #ShopLines GROUP BY order_id),\np AS (SELECT order_id,SUM(amount) net FROM #ShopPayments WHERE state=N'captured' GROUP BY order_id)\nSELECT o.order_id,CAST(COALESCE(g.gross,0) AS decimal(18,2)) gross,\n CAST(COALESCE(p.net,0) AS decimal(18,2)) net_paid,\n CAST(COALESCE(g.gross,0)-COALESCE(p.net,0) AS decimal(18,2)) balance\nFROM #ShopOrders o LEFT JOIN g ON g.order_id=o.order_id LEFT JOIN p ON p.order_id=o.order_id\nWHERE o.status=N'paid';",
+    "explanation": "Hai tập con có cardinality độc lập. Pre-aggregate giữ tiền line và payment không bị nhân chéo; COALESCE xử lý tập rỗng nhưng không loại số âm hợp lệ.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "order_id | gross | net_paid | balance\n101 | 40 | 45 | -5\n102 | 20 | 20 | 0\n103 | 60 | 10 | 50\n104 | 40 | 30 | 10\n105 | 16 | 16 | 0\n108 | 0 | 0 | 0\n109 | 25 | 0 | 25",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-first-purchase-cohorts",
+    "kind": "sql",
+    "title": "Cohort theo tháng mua đầu tiên",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Xác định tháng của đơn paid đầu tiên cho mỗi customer có mua hoàn tất, rồi đếm customer theo cohort_month là ngày đầu tháng. Không tính customer chỉ có draft/cancelled. Không đếm số đơn.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "cohort_month (date), customer_count (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "cohort_month | customer_count\n2026-01-01 | 2\n2026-03-01 | 1",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "cohort_month | customer_count\n2026-01-01 | 2\n2026-03-01 | 1",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS date) AS cohort_month, CAST(NULL AS int) AS customer_count;",
+    "hint": "Tìm một ngày đầu tiên cho mỗi customer trước, rồi nhóm theo tháng của ngày đó.",
+    "solution": "WITH f AS (SELECT customer_id,MIN(ordered_on) first_on FROM #ShopOrders WHERE status=N'paid' GROUP BY customer_id)\nSELECT DATEFROMPARTS(YEAR(first_on),MONTH(first_on),1) cohort_month,COUNT(*) customer_count\nFROM f GROUP BY DATEFROMPARTS(YEAR(first_on),MONTH(first_on),1);",
+    "explanation": "Cohort là thuộc tính của customer, không phải của từng order. MIN chỉ áp dụng lên đơn paid để một đơn nháp sớm không đẩy customer sang cohort sai.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "cohort_month | customer_count\n2026-01-01 | 2\n2026-03-01 | 1",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-unit-weighted-price",
+    "kind": "sql",
+    "title": "Giá bán bình quân theo số đơn vị",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Với mỗi product đã bán trong đơn paid, tính weighted_price = tổng tiền line / tổng qty. Mỗi đơn vị hàng có cùng trọng số; hai line của cùng SKU vẫn là hai line hợp lệ. Làm tròn qua CAST decimal(18,2).",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "product_id (int), weighted_price (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "product_id | weighted_price\n10 | 10.33\n20 | 19.17\n30 | 8",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "product_id | weighted_price\n10 | 10.33\n20 | 19.17\n30 | 8",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS product_id, CAST(NULL AS decimal(18,2)) AS weighted_price;",
+    "hint": "AVG(unit_price) chỉ đúng khi mọi line có cùng số lượng.",
+    "solution": "SELECT l.product_id,CAST(SUM(l.qty*l.unit_price)/SUM(CAST(l.qty AS decimal(18,2))) AS decimal(18,2)) weighted_price\nFROM #ShopLines l JOIN #ShopOrders o ON o.order_id=l.order_id\nWHERE o.status=N'paid' GROUP BY l.product_id;",
+    "explanation": "Tử số là doanh thu của SKU và mẫu số là số đơn vị thực bán. Qty dương tránh mẫu số 0; decimal division bảo toàn phần lẻ trước khi làm tròn kết quả.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "product_id | weighted_price\n10 | 10.33\n20 | 19.17\n30 | 8",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-product-pair-support",
+    "kind": "sql",
+    "title": "Số giỏ chứa một cặp sản phẩm",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Với mỗi cặp product khác nhau cùng xuất hiện trong ít nhất một đơn paid, trả product_a < product_b và số đơn chứa cặp đó. Một SKU lặp nhiều line trong một đơn chỉ đóng góp một lần cho cặp.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "product_a (int), product_b (int), basket_count (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "product_a | product_b | basket_count\n10 | 20 | 2\n10 | 30 | 1",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "product_a | product_b | basket_count\n10 | 20 | 2\n10 | 30 | 1",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS product_a, CAST(NULL AS int) AS product_b, CAST(NULL AS int) AS basket_count;",
+    "hint": "Chuẩn hóa basket về tập (order_id, product_id) trước self join.",
+    "solution": "WITH b AS (SELECT DISTINCT l.order_id,l.product_id FROM #ShopLines l JOIN #ShopOrders o ON o.order_id=l.order_id WHERE o.status=N'paid')\nSELECT a.product_id product_a,b.product_id product_b,COUNT(*) basket_count\nFROM b a JOIN b ON b.order_id=a.order_id AND a.product_id<b.product_id\nGROUP BY a.product_id,b.product_id;",
+    "explanation": "DISTINCT loại trùng SKU trong từng giỏ, còn điều kiện a<b loại cặp đảo và tự ghép. COUNT sau bước này là số giỏ chứ không phải số tổ hợp line.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "product_a | product_b | basket_count\n10 | 20 | 2\n10 | 30 | 1",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-monthly-retention-islands",
+    "kind": "sql",
+    "title": "Chuỗi tháng mua liên tiếp",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trả mọi chuỗi tháng liên tiếp có ít nhất một đơn paid của mỗi customer. starts_on và ends_on là ngày đầu tháng đầu/cuối, month_count là số tháng khác nhau. Giữ cả chuỗi một tháng.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "customer_id (int), starts_on (date), ends_on (date), month_count (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "customer_id | starts_on | ends_on | month_count\n1 | 2026-01-01 | 2026-03-01 | 3\n2 | 2026-01-01 | 2026-01-01 | 1\n2 | 2026-03-01 | 2026-03-01 | 1",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "customer_id | starts_on | ends_on | month_count\n1 | 2026-01-01 | 2026-03-01 | 3\n2 | 2026-01-01 | 2026-01-01 | 1\n2 | 2026-03-01 | 2026-03-01 | 1\n4 | 2026-03-01 | 2026-03-01 | 1",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS customer_id, CAST(NULL AS date) AS starts_on, CAST(NULL AS date) AS ends_on, CAST(NULL AS int) AS month_count;",
+    "hint": "Một tháng có nhiều order vẫn phải là một hàng trước khi đánh số ROW_NUMBER.",
+    "solution": "WITH m AS (SELECT DISTINCT customer_id,DATEFROMPARTS(YEAR(ordered_on),MONTH(ordered_on),1) month_start FROM #ShopOrders WHERE status=N'paid'),\nr AS (SELECT *,DATEADD(month,-CONVERT(int,ROW_NUMBER() OVER(PARTITION BY customer_id ORDER BY month_start)),month_start) island FROM m)\nSELECT customer_id,MIN(month_start) starts_on,MAX(month_start) ends_on,COUNT(*) month_count\nFROM r GROUP BY customer_id,island;",
+    "explanation": "Sau khi distinct tháng, month_start trừ số thứ tự tháng là khóa ổn định cho từng island. Các tháng có khoảng trống tạo khóa khác, nên không lấp tháng khách không mua.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "customer_id | starts_on | ends_on | month_count\n1 | 2026-01-01 | 2026-03-01 | 3\n2 | 2026-01-01 | 2026-01-01 | 1\n2 | 2026-03-01 | 2026-03-01 | 1\n4 | 2026-03-01 | 2026-03-01 | 1",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-first-order-revenue-share",
+    "kind": "sql",
+    "title": "Tỷ trọng tiền hàng của đơn đầu",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Cho mỗi customer có đơn paid, tính phần trăm gross của đơn paid đầu tiên trên tổng gross mọi đơn paid. Chọn đơn đầu theo ordered_on, rồi order_id tăng dần. Nếu tổng gross bằng 0 trả NULL. Giữ đơn không line với gross=0.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "customer_id (int), first_order_percent (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "customer_id | first_order_percent\n1 | 27.59\n2 | 71.43\n4 | NULL",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "customer_id | first_order_percent\n1 | 27.59\n2 | 71.43\n4 | NULL",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS customer_id, CAST(NULL AS decimal(18,2)) AS first_order_percent;",
+    "hint": "Đánh số đơn đã tổng hợp line, không đánh số các line thô.",
+    "solution": "WITH g AS (SELECT o.customer_id,o.order_id,o.ordered_on,COALESCE(SUM(l.qty*l.unit_price),0) gross\n FROM #ShopOrders o LEFT JOIN #ShopLines l ON l.order_id=o.order_id WHERE o.status=N'paid'\n GROUP BY o.customer_id,o.order_id,o.ordered_on),\nr AS (SELECT *,ROW_NUMBER() OVER(PARTITION BY customer_id ORDER BY ordered_on,order_id) rn FROM g)\nSELECT customer_id,CAST(100.0*SUM(CASE WHEN rn=1 THEN gross ELSE 0 END)/NULLIF(SUM(gross),0) AS decimal(18,2)) first_order_percent\nFROM r GROUP BY customer_id;",
+    "explanation": "ROW_NUMBER chọn đúng một đơn theo contract thời gian và khóa phụ. NULLIF diễn tả tỷ lệ không xác định khi toàn bộ gross bằng 0; customer vẫn phải có dòng.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "customer_id | first_order_percent\n1 | 27.59\n2 | 71.43\n4 | NULL",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-catalog-never-completed-sale",
+    "kind": "sql",
+    "title": "SKU chưa từng bán hoàn tất",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Liệt kê mọi product trong catalog chưa có line thuộc bất kỳ đơn paid nào. Product chỉ xuất hiện trong draft/cancelled vẫn được trả về; product chưa có line cũng vậy.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "product_id (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "product_id\n40\n50\n60",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "product_id\n40\n50\n60",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS product_id;",
+    "hint": "Sự tồn tại cần phủ cả line lẫn trạng thái order.",
+    "solution": "SELECT p.product_id FROM #ShopProducts p WHERE NOT EXISTS\n (SELECT 1 FROM #ShopLines l JOIN #ShopOrders o ON o.order_id=l.order_id\n WHERE l.product_id=p.product_id AND o.status=N'paid');",
+    "explanation": "NOT EXISTS diễn tả không có một lần bán hoàn tất. Loại sản phẩm chỉ vì có line sẽ nhầm nhu cầu nháp hoặc đơn hủy với doanh số thực tế.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "product_id\n40\n50\n60",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "shop-charge-allocation-cap",
+    "kind": "sql",
+    "title": "Phân bổ charge có trần tiền hàng",
+    "difficulty": "hard",
+    "topic": "sql",
+    "tags": [
+      "commerce",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 25,
+    "description": "Chỉ xét payment captured có amount>0 của đơn paid. Theo (paid_at,payment_id), phân bổ từng charge tối đa phần gross còn chưa được charge trước đó phủ. Refund và payment 0 không tham gia thuật toán này. Vẫn xuất charge được phân bổ 0; đơn không line có gross 0.",
+    "input": "Chỉ status=paid là đơn bán hoàn tất. Một SKU có thể lặp nhiều line trong một đơn. Amount âm là hoàn tiền, 0 là giao dịch giá trị 0; chỉ state=captured có hiệu lực. Mã tham chiếu trong seed luôn hợp lệ; không giả định các mã tăng theo thời gian.",
+    "output": "order_id (int), payment_id (int), allocated (decimal(18,2)). Thứ tự đầu ra: order_id, rồi paid_at, rồi payment_id tăng dần.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu.",
+      "Thứ tự đầu ra: order_id, rồi paid_at, rồi payment_id tăng dần."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "order_id | payment_id | allocated\n101 | 1001 | 25\n101 | 1002 | 15\n102 | 1004 | 20",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "order_id | payment_id | allocated\n101 | 1001 | 25\n101 | 1002 | 15\n102 | 1004 | 20\n103 | 1005 | 10\n104 | 1006 | 40\n105 | 1008 | 16",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS order_id, CAST(NULL AS int) AS payment_id, CAST(NULL AS decimal(18,2)) AS allocated;",
+    "hint": "Tính tổng các charge dương đứng trước dòng hiện tại, không gồm chính dòng đó.",
+    "solution": "WITH g AS (SELECT order_id,SUM(qty*unit_price) gross FROM #ShopLines GROUP BY order_id),\np AS (SELECT p.*,COALESCE(g.gross,0) gross,\n COALESCE(SUM(p.amount) OVER(PARTITION BY p.order_id ORDER BY p.paid_at,p.payment_id ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING),0) previous_paid\n FROM #ShopPayments p JOIN #ShopOrders o ON o.order_id=p.order_id LEFT JOIN g ON g.order_id=p.order_id\n WHERE o.status=N'paid' AND p.state=N'captured' AND p.amount>0)\nSELECT order_id,payment_id,CAST(CASE WHEN gross<=previous_paid THEN 0 WHEN amount>gross-previous_paid THEN gross-previous_paid ELSE amount END AS decimal(18,2)) allocated\nFROM p ORDER BY order_id,paid_at,payment_id;",
+    "explanation": "Frame kết thúc tại 1 PRECEDING cho prior consumption. CASE kẹp phần phân bổ trong [0,amount] và tổng phân bổ không vượt gross; refund là nghiệp vụ khác được loại theo đề.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ShopCustomers (customer_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (customer_id),\n  CHECK (customer_id > 0));\nCREATE TABLE #ShopProducts (product_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (product_id),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopOrders (order_id int NOT NULL,\n  customer_id int NOT NULL,\n  ordered_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (order_id),\n  CHECK (order_id > 0),\n  CHECK (customer_id > 0),\n  CHECK (status IN (N'paid',N'cancelled',N'draft')));\nCREATE TABLE #ShopLines (line_id int NOT NULL,\n  order_id int NOT NULL,\n  product_id int NOT NULL,\n  qty int NOT NULL,\n  unit_price decimal(12,2) NOT NULL,\n  PRIMARY KEY (line_id),\n  CHECK (line_id > 0),\n  CHECK (qty > 0),\n  CHECK (unit_price >= 0),\n  CHECK (order_id > 0),\n  CHECK (product_id > 0));\nCREATE TABLE #ShopPayments (payment_id int NOT NULL,\n  order_id int NOT NULL,\n  paid_at datetime2(0) NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  state nvarchar(12) NOT NULL,\n  PRIMARY KEY (payment_id),\n  CHECK (payment_id > 0),\n  CHECK (order_id > 0),\n  CHECK (state IN (N'captured',N'failed')));",
+    "dataset": "INSERT #ShopCustomers (customer_id, name) VALUES\n(1,N'An'),\n(2,N'Bình'),\n(3,N'Chi'),\n(4,N'Dung');\nINSERT #ShopProducts (product_id, name) VALUES\n(10,N'Bút'),\n(20,N'Vở'),\n(30,N'Thước'),\n(40,N'Túi'),\n(50,N'Kẹp'),\n(60,N'Hộp');\nINSERT #ShopOrders (order_id, customer_id, ordered_on, status) VALUES\n(101,1,N'20260101',N'paid'),\n(102,1,N'20260201',N'paid'),\n(103,1,N'20260301',N'paid'),\n(104,2,N'20260105',N'paid'),\n(105,2,N'20260305',N'paid'),\n(106,3,N'20260210',N'cancelled'),\n(107,3,N'20260211',N'draft'),\n(108,4,N'20260310',N'paid'),\n(109,1,N'20260220',N'paid');\nINSERT #ShopLines (line_id, order_id, product_id, qty, unit_price) VALUES\n(1,101,10,2,N'10.00'),\n(2,101,20,1,N'20.00'),\n(3,102,10,1,N'12.00'),\n(4,102,30,1,N'8.00'),\n(5,103,20,3,N'20.00'),\n(6,104,10,1,N'20.00'),\n(7,104,10,2,N'5.00'),\n(8,105,30,2,N'8.00'),\n(9,106,40,9,N'100.00'),\n(10,107,50,1,N'9.00'),\n(11,109,20,1,N'25.00'),\n(12,104,20,1,N'10.00');\nINSERT #ShopPayments (payment_id, order_id, paid_at, amount, state) VALUES\n(1001,101,N'2026-01-01T10:00:00',N'25.00',N'captured'),\n(1002,101,N'2026-01-02T10:00:00',N'25.00',N'captured'),\n(1003,101,N'2026-01-03T10:00:00',N'-5.00',N'captured'),\n(1004,102,N'2026-02-01T10:00:00',N'20.00',N'captured'),\n(1005,103,N'2026-03-01T10:00:00',N'10.00',N'captured'),\n(1006,104,N'2026-01-05T10:00:00',N'40.00',N'captured'),\n(1007,104,N'2026-01-06T10:00:00',N'-10.00',N'captured'),\n(1008,105,N'2026-03-05T10:00:00',N'16.00',N'captured'),\n(1009,106,N'2026-02-10T10:00:00',N'900.00',N'captured'),\n(1010,103,N'2026-03-02T10:00:00',N'999.00',N'failed'),\n(1011,101,N'2026-01-02T10:00:00',N'0.00',N'captured');",
+    "expected": "order_id | payment_id | allocated\n101 | 1001 | 25\n101 | 1002 | 15\n102 | 1004 | 20\n103 | 1005 | 10\n104 | 1006 | 40\n105 | 1008 | 16",
+    "ordered": true,
+    "tables": [
+      {
+        "name": "#ShopCustomers",
+        "columns": [
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "An"
+          ],
+          [
+            "2",
+            "Bình"
+          ],
+          [
+            "3",
+            "Chi"
+          ],
+          [
+            "4",
+            "Dung"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopProducts",
+        "columns": [
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "10",
+            "Bút"
+          ],
+          [
+            "20",
+            "Vở"
+          ],
+          [
+            "30",
+            "Thước"
+          ],
+          [
+            "40",
+            "Túi"
+          ],
+          [
+            "50",
+            "Kẹp"
+          ],
+          [
+            "60",
+            "Hộp"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopOrders",
+        "columns": [
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "customer_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "ordered_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "101",
+            "1",
+            "20260101",
+            "paid"
+          ],
+          [
+            "102",
+            "1",
+            "20260201",
+            "paid"
+          ],
+          [
+            "103",
+            "1",
+            "20260301",
+            "paid"
+          ],
+          [
+            "104",
+            "2",
+            "20260105",
+            "paid"
+          ],
+          [
+            "105",
+            "2",
+            "20260305",
+            "paid"
+          ],
+          [
+            "106",
+            "3",
+            "20260210",
+            "cancelled"
+          ],
+          [
+            "107",
+            "3",
+            "20260211",
+            "draft"
+          ],
+          [
+            "108",
+            "4",
+            "20260310",
+            "paid"
+          ],
+          [
+            "109",
+            "1",
+            "20260220",
+            "paid"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopLines",
+        "columns": [
+          {
+            "name": "line_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "product_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "qty",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "unit_price",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "101",
+            "10",
+            "2",
+            "10.00"
+          ],
+          [
+            "2",
+            "101",
+            "20",
+            "1",
+            "20.00"
+          ],
+          [
+            "3",
+            "102",
+            "10",
+            "1",
+            "12.00"
+          ],
+          [
+            "4",
+            "102",
+            "30",
+            "1",
+            "8.00"
+          ],
+          [
+            "5",
+            "103",
+            "20",
+            "3",
+            "20.00"
+          ],
+          [
+            "6",
+            "104",
+            "10",
+            "1",
+            "20.00"
+          ],
+          [
+            "7",
+            "104",
+            "10",
+            "2",
+            "5.00"
+          ],
+          [
+            "8",
+            "105",
+            "30",
+            "2",
+            "8.00"
+          ],
+          [
+            "9",
+            "106",
+            "40",
+            "9",
+            "100.00"
+          ],
+          [
+            "10",
+            "107",
+            "50",
+            "1",
+            "9.00"
+          ],
+          [
+            "11",
+            "109",
+            "20",
+            "1",
+            "25.00"
+          ],
+          [
+            "12",
+            "104",
+            "20",
+            "1",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#ShopPayments",
+        "columns": [
+          {
+            "name": "payment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "order_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "paid_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "state",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1001",
+            "101",
+            "2026-01-01T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1002",
+            "101",
+            "2026-01-02T10:00:00",
+            "25.00",
+            "captured"
+          ],
+          [
+            "1003",
+            "101",
+            "2026-01-03T10:00:00",
+            "-5.00",
+            "captured"
+          ],
+          [
+            "1004",
+            "102",
+            "2026-02-01T10:00:00",
+            "20.00",
+            "captured"
+          ],
+          [
+            "1005",
+            "103",
+            "2026-03-01T10:00:00",
+            "10.00",
+            "captured"
+          ],
+          [
+            "1006",
+            "104",
+            "2026-01-05T10:00:00",
+            "40.00",
+            "captured"
+          ],
+          [
+            "1007",
+            "104",
+            "2026-01-06T10:00:00",
+            "-10.00",
+            "captured"
+          ],
+          [
+            "1008",
+            "105",
+            "2026-03-05T10:00:00",
+            "16.00",
+            "captured"
+          ],
+          [
+            "1009",
+            "106",
+            "2026-02-10T10:00:00",
+            "900.00",
+            "captured"
+          ],
+          [
+            "1010",
+            "103",
+            "2026-03-02T10:00:00",
+            "999.00",
+            "failed"
+          ],
+          [
+            "1011",
+            "101",
+            "2026-01-02T10:00:00",
+            "0.00",
+            "captured"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-stop-window-intersection",
+    "kind": "sql",
+    "title": "Cắt khoảng dừng theo cửa sổ báo cáo",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trả từng stop có giao với cửa sổ UTC [01/01/2026 00:00,02/01/2026 00:00), cùng số phút của phần giao. Hai stop chồng nhau vẫn là hai dòng độc lập trong bài này. Không trả stop chỉ chạm biên mà không có thời lượng trong cửa sổ.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "stop_id (int), clipped_minutes (int). Thứ tự đầu ra: stop_id tăng dần.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu.",
+      "Thứ tự đầu ra: stop_id tăng dần."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "stop_id | clipped_minutes\n1 | 60\n2 | 90\n3 | 60",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "stop_id | clipped_minutes\n1 | 60\n2 | 90\n3 | 60\n4 | 60\n5 | 60\n7 | 15",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS stop_id, CAST(NULL AS int) AS clipped_minutes;",
+    "hint": "Điểm bắt đầu giao là max hai điểm đầu; điểm kết thúc giao là min hai điểm cuối.",
+    "solution": "WITH c AS (SELECT stop_id,machine_id,\n CASE WHEN started_at<'20260101' THEN CAST('20260101' AS datetime2(0)) ELSE started_at END s,\n CASE WHEN ended_at>'20260102' THEN CAST('20260102' AS datetime2(0)) ELSE ended_at END e\n FROM #OpsStops WHERE started_at<'20260102' AND ended_at>'20260101') SELECT stop_id,DATEDIFF(minute,s,e) clipped_minutes FROM c ORDER BY stop_id;",
+    "explanation": "Predicate strict cho khoảng nửa mở loại giao rỗng ở biên. DATEDIFF chỉ được áp trên đoạn đã cắt, không tính thời gian nằm ngoài ngày báo cáo.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "stop_id | clipped_minutes\n1 | 60\n2 | 90\n3 | 60\n4 | 60\n5 | 60\n7 | 15",
+    "ordered": true,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-union-downtime-minutes",
+    "kind": "sql",
+    "title": "Thời lượng dừng không đếm trùng",
+    "difficulty": "hard",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 25,
+    "description": "Tính số phút downtime thực cho từng machine trong ngày UTC 01/01/2026. Hợp nhất các stop có phần giao hoặc nối liền nhau trước khi cộng. Giữ machine không dừng với 0; stop có thể lồng trong stop khác.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "machine_id (int), downtime_minutes (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "machine_id | downtime_minutes\n1 | 240\n2 | 60\n3 | 0",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "machine_id | downtime_minutes\n1 | 240\n2 | 60\n3 | 0",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS machine_id, CAST(NULL AS int) AS downtime_minutes;",
+    "hint": "So sánh start với MAX end của toàn phần trước, không chỉ end của dòng liền trước.",
+    "solution": "WITH c AS (SELECT stop_id,machine_id,\n CASE WHEN started_at<'20260101' THEN CAST('20260101' AS datetime2(0)) ELSE started_at END s,\n CASE WHEN ended_at>'20260102' THEN CAST('20260102' AS datetime2(0)) ELSE ended_at END e\n FROM #OpsStops WHERE started_at<'20260102' AND ended_at>'20260101'), r AS (SELECT *,MAX(e) OVER(PARTITION BY machine_id ORDER BY s,e,stop_id ROWS BETWEEN UNBOUNDED PRECEDING AND 1 PRECEDING) previous_end FROM c),\nf AS (SELECT *,CASE WHEN previous_end IS NULL OR s>previous_end THEN 1 ELSE 0 END fresh FROM r),\ng AS (SELECT *,SUM(fresh) OVER(PARTITION BY machine_id ORDER BY s,e,stop_id ROWS UNBOUNDED PRECEDING) grp FROM f),\nu AS (SELECT machine_id,grp,MIN(s) s,MAX(e) e FROM g GROUP BY machine_id,grp),\nt AS (SELECT machine_id,SUM(DATEDIFF(minute,s,e)) minutes FROM u GROUP BY machine_id)\nSELECT m.machine_id,COALESCE(t.minutes,0) downtime_minutes FROM #OpsMachines m LEFT JOIN t ON t.machine_id=m.machine_id;",
+    "explanation": "Running maximum xử lý interval lồng nhau. Sau khi cắt cửa sổ, đánh island khi start lớn hơn toàn bộ end trước; cộng độ dài hợp interval mỗi island chỉ một lần.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "machine_id | downtime_minutes\n1 | 240\n2 | 60\n3 | 0",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-reading-sessions",
+    "kind": "sql",
+    "title": "Chia phiên đo theo khoảng im lặng",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Mọi reading, kể cả NULL, là một event. Trong từng machine theo (observed_at,reading_id), bắt đầu session mới ở event đầu hoặc khi cách event trước hơn 30 phút. Đúng 30 phút vẫn cùng session. Trả số session bắt đầu từ 1, thời điểm đầu và số event; machine không event không có dòng.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "machine_id (int), session_no (int), session_start (datetime2(0)), event_count (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "machine_id | session_no | session_start | event_count\n1 | 1 | 2026-01-01T00:00:00.0000000 | 6\n2 | 1 | 2025-12-31T23:50:00.0000000 | 4\n1 | 2 | 2026-01-02T00:00:00.0000000 | 1",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "machine_id | session_no | session_start | event_count\n1 | 1 | 2026-01-01T00:00:00.0000000 | 6\n2 | 1 | 2025-12-31T23:50:00.0000000 | 4\n1 | 2 | 2026-01-02T00:00:00.0000000 | 1\n2 | 2 | 2026-01-03T00:00:00.0000000 | 1\n1 | 3 | 2026-01-04T00:00:00.0000000 | 1",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS machine_id, CAST(NULL AS int) AS session_no, CAST(NULL AS datetime2(0)) AS session_start, CAST(NULL AS int) AS event_count;",
+    "hint": "LAG nhận biết ranh giới; cumulative SUM cờ ranh giới tạo session number.",
+    "solution": "WITH p AS (SELECT *,LAG(observed_at) OVER(PARTITION BY machine_id ORDER BY observed_at,reading_id) prev_at FROM #OpsReadings),\ng AS (SELECT *,SUM(CASE WHEN prev_at IS NULL OR DATEDIFF(minute,prev_at,observed_at)>30 THEN 1 ELSE 0 END)\n OVER(PARTITION BY machine_id ORDER BY observed_at,reading_id ROWS UNBOUNDED PRECEDING) session_no FROM p)\nSELECT machine_id,session_no,MIN(observed_at) session_start,COUNT(*) event_count FROM g GROUP BY machine_id,session_no;",
+    "explanation": "So sánh strict >30 giữ event đúng ngưỡng trong phiên cũ. ROWS và khóa phụ reading_id làm việc cộng cờ không phụ thuộc thứ tự vật lý.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "machine_id | session_no | session_start | event_count\n1 | 1 | 2026-01-01T00:00:00.0000000 | 6\n2 | 1 | 2025-12-31T23:50:00.0000000 | 4\n1 | 2 | 2026-01-02T00:00:00.0000000 | 1\n2 | 2 | 2026-01-03T00:00:00.0000000 | 1\n1 | 3 | 2026-01-04T00:00:00.0000000 | 1",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-forward-fill-valid-reading",
+    "kind": "sql",
+    "title": "Giữ phép đo hợp lệ gần nhất",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Cho mỗi reading, trả effective_reading là giá trị không NULL gần nhất trong cùng machine tại hoặc trước dòng đó theo (observed_at,reading_id). Nếu chưa từng có giá trị hợp lệ thì NULL. Không dùng reading_id làm đồng hồ vì mã không tăng theo thời gian.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "reading_id (int), effective_reading (decimal(10,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "reading_id | effective_reading\n1 | 10\n2 | 10\n13 | 10",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "reading_id | effective_reading\n1 | 10\n2 | 10\n13 | 10\n3 | 20\n11 | 20\n4 | 30\n5 | 40\n6 | 200\n12 | NULL\n7 | 5\n8 | 15\n9 | 15\n10 | -5",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS reading_id, CAST(NULL AS decimal(10,2)) AS effective_reading;",
+    "hint": "Tạo ordinal thời gian trước; nhớ ordinal gần nhất có giá trị rồi nối lại giá trị.",
+    "solution": "WITH r AS (SELECT *,ROW_NUMBER() OVER(PARTITION BY machine_id ORDER BY observed_at,reading_id) rn FROM #OpsReadings),\np AS (SELECT *,MAX(CASE WHEN reading IS NOT NULL THEN rn END) OVER(PARTITION BY machine_id ORDER BY rn ROWS UNBOUNDED PRECEDING) last_rn FROM r)\nSELECT p.reading_id,CAST(v.reading AS decimal(10,2)) effective_reading FROM p LEFT JOIN r v ON v.machine_id=p.machine_id AND v.rn=p.last_rn;",
+    "explanation": "MAX của ordinal có giá trị là vị trí cuối đã biết, không phải MAX của bản thân số đo hay Id. Cách này vượt qua nhiều NULL liên tiếp và giữ NULL ở đầu chuỗi.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "reading_id | effective_reading\n1 | 10\n2 | 10\n13 | 10\n3 | 20\n11 | 20\n4 | 30\n5 | 40\n6 | 200\n12 | NULL\n7 | 5\n8 | 15\n9 | 15\n10 | -5",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-calendar-three-day-average",
+    "kind": "sql",
+    "title": "Trung bình ba ngày có cả ngày trống",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Với mọi machine và mọi ngày trong #OpsDays (liên tiếp), đếm toàn bộ event theo ngày rồi lấy trung bình của ngày hiện tại và tối đa hai ngày trước có trong calendar. Ngày không event có count 0, không bị bỏ; ở đầu calendar mẫu số là số ngày thực có trong frame.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "machine_id (int), report_on (date), rolling_average (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "machine_id | report_on | rolling_average\n1 | 2026-01-01 | 6\n1 | 2026-01-02 | 3.5\n1 | 2026-01-03 | 2.33",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "machine_id | report_on | rolling_average\n1 | 2026-01-01 | 6\n1 | 2026-01-02 | 3.5\n1 | 2026-01-03 | 2.33\n1 | 2026-01-04 | 0.67\n1 | 2026-01-05 | 0.33\n2 | 2026-01-01 | 3\n2 | 2026-01-02 | 1.5\n2 | 2026-01-03 | 1.33\n2 | 2026-01-04 | 0.33\n2 | 2026-01-05 | 0.33\n3 | 2026-01-01 | 0\n3 | 2026-01-02 | 0\n3 | 2026-01-03 | 0\n3 | 2026-01-04 | 0\n3 | 2026-01-05 | 0",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS machine_id, CAST(NULL AS date) AS report_on, CAST(NULL AS decimal(18,2)) AS rolling_average;",
+    "hint": "Densify machine × calendar trước khi áp frame ROWS 2 PRECEDING.",
+    "solution": "WITH d AS (SELECT machine_id,CAST(observed_at AS date) report_on,COUNT(*) events FROM #OpsReadings GROUP BY machine_id,CAST(observed_at AS date)),\nc AS (SELECT m.machine_id,x.report_on,COALESCE(d.events,0) events FROM #OpsMachines m CROSS JOIN #OpsDays x\n LEFT JOIN d ON d.machine_id=m.machine_id AND d.report_on=x.report_on)\nSELECT machine_id,report_on,CAST(AVG(CAST(events AS decimal(18,2))) OVER(PARTITION BY machine_id ORDER BY report_on ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS decimal(18,2)) rolling_average FROM c;",
+    "explanation": "Frame chỉ tương ứng ba ngày khi mỗi ngày có đúng một dòng. CROSS JOIN tạo lưới đủ, LEFT JOIN và COALESCE giữ ngày không đo; cast trước AVG tránh trung bình integer.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "machine_id | report_on | rolling_average\n1 | 2026-01-01 | 6\n1 | 2026-01-02 | 3.5\n1 | 2026-01-03 | 2.33\n1 | 2026-01-04 | 0.67\n1 | 2026-01-05 | 0.33\n2 | 2026-01-01 | 3\n2 | 2026-01-02 | 1.5\n2 | 2026-01-03 | 1.33\n2 | 2026-01-04 | 0.33\n2 | 2026-01-05 | 0.33\n3 | 2026-01-01 | 0\n3 | 2026-01-02 | 0\n3 | 2026-01-03 | 0\n3 | 2026-01-04 | 0\n3 | 2026-01-05 | 0",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  }
+]

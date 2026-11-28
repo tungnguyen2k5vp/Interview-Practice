@@ -1,0 +1,743 @@
+[
+  {
+    "slug": "debug-money-parse-preserve-cents",
+    "kind": "coding",
+    "title": "Parse tiền mất phần lẻ",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "parsing",
+      "money",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Đọc số tiền ASCII dạng digits hoặc digits.frac với frac có 1–2 chữ số. Không nhận dấu, khoảng trắng, separator nhóm hoặc culture máy. Trả số cent; dữ liệu sai hoặc số tiền > 1 tỷ trả -1.",
+    "input": "amount: chuỗi tiền tối đa 40 ký tự.",
+    "output": "Số cent kiểu long, hoặc -1 nếu không hợp lệ.",
+    "constraints": [
+      "0 ≤ Length ≤ 40; cú pháp chỉ dùng ASCII digits và dấu chấm.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"12.50\"",
+        "output": "1250",
+        "explanation": "Cent cần được giữ."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"0\"",
+        "output": "0",
+        "explanation": "Giá 0."
+      },
+      {
+        "input": "\"1,25\"",
+        "output": "-1",
+        "explanation": "Sai separator."
+      },
+      {
+        "input": "\"1.234\"",
+        "output": "-1",
+        "explanation": "Quá hai chữ số thập phân."
+      },
+      {
+        "input": "\"1000000000.01\"",
+        "output": "-1",
+        "explanation": "Vượt giới hạn tiền."
+      }
+    ],
+    "starter": "public static long ParseCents(string amount)\n{\n    if (!System.Text.RegularExpressions.Regex.IsMatch(amount, @\"\\A[0-9]+(\\.[0-9]{1,2})?\\z\")) return -1; if (!decimal.TryParse(amount, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out decimal x) || x > 1000000000m) return -1; return (long)x * 100;\n}",
+    "solution": "public static long ParseCents(string amount)\n{\n    if (!System.Text.RegularExpressions.Regex.IsMatch(amount, @\"\\A[0-9]+(\\.[0-9]{1,2})?\\z\")) return -1; if (!decimal.TryParse(amount, System.Globalization.NumberStyles.AllowDecimalPoint, System.Globalization.CultureInfo.InvariantCulture, out decimal x) || x > 1000000000m) return -1; return (long)(x * 100);\n}",
+    "hint": "Validate cú pháp toàn chuỗi, parse với InvariantCulture và NumberStyles rõ ràng, kiểm tra miền rồi nhân 100 trước cast.",
+    "explanation": "Validate cú pháp toàn chuỗi, parse với InvariantCulture và NumberStyles rõ ràng, kiểm tra miền rồi nhân 100 trước cast.",
+    "complexity": "O(k) thời gian, O(k) bộ nhớ parser/regex với k≤40.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với \"12.50\". Kết quả đúng phải là 1250. Lỗi cần sửa: Cast trước nhân bỏ phần cent."
+  },
+  {
+    "slug": "debug-distance-promote-before-subtract",
+    "kind": "coding",
+    "title": "Khoảng cách số nguyên bị tràn",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "numeric-bounds",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tính khoảng cách tuyệt đối toán học giữa hai số int, trả long. Phải đúng cả hai cực của int.",
+    "input": "a,b: hai int bất kỳ.",
+    "output": "Khoảng cách không âm kiểu long.",
+    "constraints": [
+      "a,b trong [-2.147.483.648,2.147.483.647].",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "2147483647, -2147483648",
+        "output": "4294967295",
+        "explanation": "Khoảng cách cần hơn 32 bit."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, 0",
+        "output": "0",
+        "explanation": "Khoảng cách 0."
+      },
+      {
+        "input": "-7, -2",
+        "output": "5",
+        "explanation": "Hai số âm."
+      },
+      {
+        "input": "-2147483648, 0",
+        "output": "2147483648",
+        "explanation": "Abs của int.MinValue không biểu diễn được trong int."
+      }
+    ],
+    "starter": "public static long Distance(int a, int b)\n{\n    return Math.Abs(a - b);\n}",
+    "solution": "public static long Distance(int a, int b)\n{\n    return Math.Abs((long)a - b);\n}",
+    "hint": "Nâng một toán hạng sang long trước phép trừ để toàn biểu thức dùng long; kết quả tối đa 4.294.967.295.",
+    "explanation": "Nâng một toán hạng sang long trước phép trừ để toàn biểu thức dùng long; kết quả tối đa 4.294.967.295.",
+    "complexity": "O(1) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với 2147483647, -2147483648. Kết quả đúng phải là 4294967295. Lỗi cần sửa: Trừ int tràn trước khi Abs hay gán long."
+  },
+  {
+    "slug": "debug-last-occurrence-order",
+    "kind": "coding",
+    "title": "Loại trùng phải giữ lần cuối",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "deduplication",
+      "ordering",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Giữ đúng lần xuất hiện cuối của từng mã, rồi trả các lần được giữ theo thứ tự vị trí nguồn tăng. So mã bằng Ordinal, phân biệt hoa thường.",
+    "input": "codes: mảng chuỗi ASCII.",
+    "output": "Mảng mã theo thứ tự vị trí cuối.",
+    "constraints": [
+      "0 ≤ n ≤ 10.000; mỗi mã tối đa 30 ký tự.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[\"A\",\"B\",\"A\"]",
+        "output": "[\"B\",\"A\"]",
+        "explanation": "Giữ B ở index 1 rồi A ở index 2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Nguồn rỗng."
+      },
+      {
+        "input": "[\"x\",\"x\"]",
+        "output": "[\"x\"]",
+        "explanation": "Chỉ lần x cuối."
+      },
+      {
+        "input": "[\"A\",\"a\",\"A\"]",
+        "output": "[\"a\",\"A\"]",
+        "explanation": "Phân biệt hoa thường."
+      }
+    ],
+    "starter": "public static string[] KeepLast(string[] codes)\n{\n    return codes.Distinct(StringComparer.Ordinal).ToArray();\n}",
+    "solution": "public static string[] KeepLast(string[] codes)\n{\n    var seen = new HashSet<string>(StringComparer.Ordinal); var result = new List<string>(); for (int i = codes.Length - 1; i >= 0; i--) if (seen.Add(codes[i])) result.Add(codes[i]); result.Reverse(); return result.ToArray();\n}",
+    "hint": "Duyệt từ phải để chọn lần cuối bằng set, rồi đảo kết quả. Không enumerate set để quyết định thứ tự đầu ra.",
+    "explanation": "Duyệt từ phải để chọn lần cuối bằng set, rồi đảo kết quả. Không enumerate set để quyết định thứ tự đầu ra.",
+    "complexity": "O(t) thời gian kỳ vọng, O(t) bộ nhớ với t là tổng độ dài mã.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [\"A\",\"B\",\"A\"]. Kết quả đúng phải là [\"B\",\"A\"]. Lỗi cần sửa: Distinct giữ lần đầu nên sai thứ tự các lần cuối."
+  },
+  {
+    "slug": "debug-clamp-missing-lower-bound",
+    "kind": "coding",
+    "title": "Giới hạn chỉ chặn đầu trên",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "validation",
+      "bounds",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Giới hạn value vào đoạn đóng [minimum,maximum]. Giá trị thấp hơn minimum trả minimum, cao hơn maximum trả maximum.",
+    "input": "value,minimum,maximum: các int.",
+    "output": "int trong đoạn đóng.",
+    "constraints": [
+      "minimum ≤ maximum; mọi số trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "-3, 0, 9",
+        "output": "0",
+        "explanation": "Giá trị dưới miền."
+      }
+    ],
+    "tests": [
+      {
+        "input": "5, 5, 5",
+        "output": "5",
+        "explanation": "Đoạn một điểm."
+      },
+      {
+        "input": "100, -2, 8",
+        "output": "8",
+        "explanation": "Giá trị vượt trần."
+      },
+      {
+        "input": "3, 0, 9",
+        "output": "3",
+        "explanation": "Giá trị đã trong miền."
+      }
+    ],
+    "starter": "public static int ClampValue(int value, int minimum, int maximum)\n{\n    return Math.Min(value, maximum);\n}",
+    "solution": "public static int ClampValue(int value, int minimum, int maximum)\n{\n    return Math.Clamp(value, minimum, maximum);\n}",
+    "hint": "Math.Clamp biểu diễn trực tiếp hợp đồng đoạn đóng, không cần cộng trừ có thể tràn.",
+    "explanation": "Math.Clamp biểu diễn trực tiếp hợp đồng đoạn đóng, không cần cộng trừ có thể tràn.",
+    "complexity": "O(1) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với -3, 0, 9. Kết quả đúng phải là 0. Lỗi cần sửa: Chỉ chặn đầu trên nên bỏ lọt giá trị dưới minimum."
+  },
+  {
+    "slug": "debug-rectangular-transpose",
+    "kind": "coding",
+    "title": "Transpose chỉ chạy với ma trận vuông",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "matrix",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Đổi hàng thành cột của ma trận chữ nhật. Các hàng cùng số cột. Ma trận không có hàng hoặc có 0 cột trả [].",
+    "input": "matrix: int[][] chữ nhật.",
+    "output": "Ma trận chuyển vị, int[][].",
+    "constraints": [
+      "0 ≤ số hàng,cột ≤ 200; mọi phần tử trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,2,3],[4,5,6]]",
+        "output": "[[1,4],[2,5],[3,6]]",
+        "explanation": "Ma trận 2×3 cho kết quả 3×2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có hàng."
+      },
+      {
+        "input": "[[],[]]",
+        "output": "[]",
+        "explanation": "Không có cột."
+      },
+      {
+        "input": "[[7]]",
+        "output": "[[7]]",
+        "explanation": "Một phần tử."
+      }
+    ],
+    "starter": "public static int[][] Transpose(int[][] matrix)\n{\n    int r = matrix.Length; if (r == 0) return []; int c = matrix.Length; var result = new int[c][]; for (int j = 0; j < c; j++) { result[j] = new int[r]; for (int i = 0; i < r; i++) result[j][i] = matrix[i][j]; } return result;\n}",
+    "solution": "public static int[][] Transpose(int[][] matrix)\n{\n    int r = matrix.Length; if (r == 0) return []; int c = matrix[0].Length; var result = new int[c][]; for (int j = 0; j < c; j++) { result[j] = new int[r]; for (int i = 0; i < r; i++) result[j][i] = matrix[i][j]; } return result;\n}",
+    "hint": "Kết quả có c hàng, mỗi hàng r phần tử; result[j][i] nhận matrix[i][j]. Hai kích thước phải độc lập.",
+    "explanation": "Kết quả có c hàng, mỗi hàng r phần tử; result[j][i] nhận matrix[i][j]. Hai kích thước phải độc lập.",
+    "complexity": "O(r×c) thời gian và bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [[1,2,3],[4,5,6]]. Kết quả đúng phải là [[1,4],[2,5],[3,6]]. Lỗi cần sửa: Dùng số hàng làm số cột gây thiếu hoặc vượt chỉ số."
+  },
+  {
+    "slug": "debug-subsequence-empty-pattern",
+    "kind": "coding",
+    "title": "Pattern rỗng bị từ chối",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "two-pointers",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Kiểm tra pattern có là subsequence của text: có thể bỏ ký tự nhưng không đổi thứ tự. Pattern rỗng luôn là subsequence.",
+    "input": "text,pattern: chuỗi ASCII.",
+    "output": "bool cho biết quan hệ subsequence.",
+    "constraints": [
+      "0 ≤ mỗi độ dài ≤ 100.000.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"abc\", \"\"",
+        "output": "true",
+        "explanation": "Không cần chọn ký tự nào."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"\", \"a\"",
+        "output": "false",
+        "explanation": "Text rỗng không chứa pattern khác rỗng."
+      },
+      {
+        "input": "\"axbyc\", \"abc\"",
+        "output": "true",
+        "explanation": "Có thể bỏ x,y."
+      },
+      {
+        "input": "\"abc\", \"acb\"",
+        "output": "false",
+        "explanation": "Không được đảo thứ tự."
+      }
+    ],
+    "starter": "public static bool IsSubsequence(string text, string pattern)\n{\n    if (pattern.Length == 0) return false; int p = 0; foreach (char c in text) if (p < pattern.Length && c == pattern[p]) p++; return p == pattern.Length;\n}",
+    "solution": "public static bool IsSubsequence(string text, string pattern)\n{\n    int p = 0; foreach (char c in text) if (p < pattern.Length && c == pattern[p]) p++; return p == pattern.Length;\n}",
+    "hint": "Chỉ tăng con trỏ pattern khi ký tự text khớp mục đang chờ. Thành công khi đã tiêu thụ hết pattern, kể cả từ đầu với pattern rỗng.",
+    "explanation": "Chỉ tăng con trỏ pattern khi ký tự text khớp mục đang chờ. Thành công khi đã tiêu thụ hết pattern, kể cả từ đầu với pattern rỗng.",
+    "complexity": "O(t) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với \"abc\", \"\". Kết quả đúng phải là true. Lỗi cần sửa: Pattern rỗng cần true, không phải false."
+  },
+  {
+    "slug": "debug-mean-ceiling-not-floor",
+    "kind": "coding",
+    "title": "Trung bình phải làm tròn lên",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "aggregation",
+      "rounding",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tính ceil của trung bình các số nguyên không âm. Mảng rỗng trả 0. Không dùng số thực.",
+    "input": "values: mảng số nguyên không âm.",
+    "output": "Trung bình làm tròn lên, long.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; 0 ≤ values[i] ≤ int.MaxValue.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2]",
+        "output": "2",
+        "explanation": "ceil(1,5)=2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Nguồn rỗng."
+      },
+      {
+        "input": "[0,0]",
+        "output": "0",
+        "explanation": "Trung bình 0."
+      },
+      {
+        "input": "[2147483647,2147483647]",
+        "output": "2147483647",
+        "explanation": "Tổng cần long."
+      }
+    ],
+    "starter": "public static long CeilingMean(int[] values)\n{\n    if (values.Length == 0) return 0; long sum = values.Sum(x => (long)x); return sum / values.Length;\n}",
+    "solution": "public static long CeilingMean(int[] values)\n{\n    if (values.Length == 0) return 0; long sum = values.Sum(x => (long)x); return (sum + values.Length - 1) / values.Length;\n}",
+    "hint": "Gom tổng bằng long, thêm n−1 trước chia cho n. Nhánh rỗng tránh chia cho 0.",
+    "explanation": "Gom tổng bằng long, thêm n−1 trước chia cho n. Nhánh rỗng tránh chia cho 0.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ phụ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,2]. Kết quả đúng phải là 2. Lỗi cần sửa: Chia nguyên mặc định làm tròn xuống, sai khi có dư."
+  },
+  {
+    "slug": "debug-runlength-flush-last",
+    "kind": "coding",
+    "title": "Mất run cuối khi nén",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "encoding",
+      "run-length",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Nén mảng thành các cặp [value,count] cho từng run kề nhau. Giữ nguyên thứ tự run; mảng rỗng trả [].",
+    "input": "values: mảng int.",
+    "output": "Mảng [value,count] theo từng run.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; mọi giá trị trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,1,2,2,2]",
+        "output": "[[1,2],[2,3]]",
+        "explanation": "Run cuối 2×3 không được mất."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Nguồn rỗng."
+      },
+      {
+        "input": "[7]",
+        "output": "[[7,1]]",
+        "explanation": "Một run một phần tử."
+      },
+      {
+        "input": "[1,2,1]",
+        "output": "[[1,1],[2,1],[1,1]]",
+        "explanation": "Ba run dù giá trị 1 lặp lại."
+      }
+    ],
+    "starter": "public static int[][] EncodeRuns(int[] values)\n{\n    var result = new List<int[]>(); if (values.Length == 0) return []; int value = values[0], count = 1; for (int i = 1; i < values.Length; i++) { if (values[i] == value) count++; else { result.Add(new[] { value, count }); value = values[i]; count = 1; } } return result.ToArray();\n}",
+    "solution": "public static int[][] EncodeRuns(int[] values)\n{\n    var result = new List<int[]>(); if (values.Length == 0) return []; int value = values[0], count = 1; for (int i = 1; i < values.Length; i++) { if (values[i] == value) count++; else { result.Add(new[] { value, count }); value = values[i]; count = 1; } } result.Add(new[] { value, count }); return result.ToArray();\n}",
+    "hint": "Giữ value,count của run mở; flush khi đổi giá trị và một lần sau vòng lặp. Handle rỗng trước khi đọc values[0].",
+    "explanation": "Giữ value,count của run mở; flush khi đổi giá trị và một lần sau vòng lặp. Handle rỗng trước khi đọc values[0].",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,1,2,2,2]. Kết quả đúng phải là [[1,2],[2,3]]. Lỗi cần sửa: Chỉ flush khi gặp giá trị khác, không flush sau vòng lặp."
+  },
+  {
+    "slug": "debug-window-include-last",
+    "kind": "coding",
+    "title": "Bỏ cửa sổ cuối trong tổng trượt",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "sliding-window",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Trả tổng của mọi cửa sổ liên tiếp có đúng width phần tử. Nếu width > n trả []; width luôn dương.",
+    "input": "values: mảng int; width: kích thước cửa sổ.",
+    "output": "long[] chứa tổng các cửa sổ theo start tăng.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; 1 ≤ width ≤ 100.000; mọi giá trị trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2,3], 2",
+        "output": "[3,5]",
+        "explanation": "Có hai cửa sổ: [1,2] và [2,3]."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 1",
+        "output": "[]",
+        "explanation": "Không có cửa sổ."
+      },
+      {
+        "input": "[1,2], 2",
+        "output": "[3]",
+        "explanation": "Toàn mảng là một cửa sổ."
+      },
+      {
+        "input": "[2147483647,2147483647], 1",
+        "output": "[2147483647,2147483647]",
+        "explanation": "width 1 giữ mọi giá trị dưới dạng long."
+      }
+    ],
+    "starter": "public static long[] WindowSums(int[] values, int width)\n{\n    if (width > values.Length) return []; var result = new List<long>(); for (int start = 0; start < values.Length - width; start++) { long sum = 0; for (int j = 0; j < width; j++) sum += values[start+j]; result.Add(sum); } return result.ToArray();\n}",
+    "solution": "public static long[] WindowSums(int[] values, int width)\n{\n    if (width > values.Length) return []; var result = new List<long>(); long sum = 0; for (int i = 0; i < values.Length; i++) { sum += values[i]; if (i >= width) sum -= values[i-width]; if (i >= width-1) result.Add(sum); } return result.ToArray();\n}",
+    "hint": "Giữ tổng trượt bằng long, thêm phần tử mới và bỏ phần tử đã ra khỏi cửa sổ; ghi từ index width−1 đến cuối mảng.",
+    "explanation": "Giữ tổng trượt bằng long, thêm phần tử mới và bỏ phần tử đã ra khỏi cửa sổ; ghi từ index width−1 đến cuối mảng.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,2,3], 2. Kết quả đúng phải là [3,5]. Lỗi cần sửa: Dùng < n-width thay vì bao gồm vị trí n-width."
+  },
+  {
+    "slug": "ledger-first-negative-prefix",
+    "kind": "coding",
+    "title": "Tìm giao dịch làm số dư âm đầu tiên",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "ledger",
+      "prefix-sum"
+    ],
+    "minutes": 25,
+    "description": "Bắt đầu với số dư initial không âm, áp dụng changes theo thứ tự. Trả chỉ số giao dịch đầu tiên làm số dư âm; không có trả -1.",
+    "input": "initial: số dư ban đầu; changes: thay đổi có dấu.",
+    "output": "int chỉ số 0-based hoặc -1.",
+    "constraints": [
+      "0 ≤ initial ≤ 10^12; 0 ≤ n ≤ 100.000; changes[i] trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "5, [2,-8,9]",
+        "output": "1",
+        "explanation": "Âm lần đầu ở index 1 dù sau đó hồi phục."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, []",
+        "output": "-1",
+        "explanation": "Không có giao dịch."
+      },
+      {
+        "input": "5, [-5]",
+        "output": "-1",
+        "explanation": "Chạm 0 không âm."
+      },
+      {
+        "input": "0, [-1,1]",
+        "output": "0",
+        "explanation": "Âm ngay lần đầu."
+      }
+    ],
+    "starter": "public static int FirstOverdraft(long initial, int[] changes)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int FirstOverdraft(long initial, int[] changes)\n{\n    long balance = initial; for (int i = 0; i < changes.Length; i++) { balance += changes[i]; if (balance < 0) return i; } return -1;\n}",
+    "hint": "Duyệt prefix một lượt và dừng ở âm đầu tiên, không kiểm tra riêng số dư cuối. Dùng long cho tổng.",
+    "explanation": "Duyệt prefix một lượt và dừng ở âm đầu tiên, không kiểm tra riêng số dư cuối. Dùng long cho tổng.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "luhn-append-check-digit",
+    "kind": "coding",
+    "title": "Sinh chữ số kiểm tra Luhn",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "validation",
+      "checksum"
+    ],
+    "minutes": 25,
+    "description": "Chuỗi digits là phần chưa có check digit. Thêm một chữ số cuối để tổng Luhn chia hết cho 10. Bắt đầu nhân đôi từ chữ số cuối của phần dữ liệu, xen kẽ sang trái.",
+    "input": "digits: chuỗi 1..1000 chữ số ASCII.",
+    "output": "int từ 0 đến 9.",
+    "constraints": [
+      "Không có ký tự ngoài 0..9; chuỗi chưa chứa check digit.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"7992739871\"",
+        "output": "3",
+        "explanation": "Ví dụ có check digit 3."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"0\"",
+        "output": "0",
+        "explanation": "Toàn 0 cho check digit 0."
+      },
+      {
+        "input": "\"9\"",
+        "output": "1",
+        "explanation": "Nhân đôi 9 thành 18 rồi cộng hai chữ số."
+      },
+      {
+        "input": "\"123456\"",
+        "output": "6",
+        "explanation": "Độ dài chẵn thay parity phía trái."
+      }
+    ],
+    "starter": "public static int LuhnDigit(string digits)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int LuhnDigit(string digits)\n{\n    int sum = 0; bool twice = true; for (int i = digits.Length - 1; i >= 0; i--) { int v = digits[i] - '0'; if (twice) { v *= 2; if (v > 9) v -= 9; } sum += v; twice = !twice; } return (10 - sum % 10) % 10;\n}",
+    "hint": "Duyệt phải sang trái với parity khởi đầu nhân đôi vì check digit sẽ nằm bên phải. Giá trị gấp đôi >9 giảm 9, tương đương cộng các chữ số.",
+    "explanation": "Duyệt phải sang trái với parity khởi đầu nhân đôi vì check digit sẽ nằm bên phải. Giá trị gấp đôi >9 giảm 9, tương đương cộng các chữ số.",
+    "complexity": "O(k) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "csv-quoted-single-row",
+    "kind": "coding",
+    "title": "Đọc một dòng CSV có dấu nháy",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "parsing",
+      "csv"
+    ],
+    "minutes": 25,
+    "description": "Parse một dòng CSV hợp lệ: dấu phẩy tách field, field quote bằng dấu nháy kép có thể chứa phẩy; hai nháy kép liên tiếp bên trong quoted field biểu thị một nháy. Không có newline. Giữ field rỗng và khoảng trắng.",
+    "input": "row: một dòng CSV đúng cú pháp.",
+    "output": "string[] nội dung các field đã unquote.",
+    "constraints": [
+      "0 ≤ Length ≤ 10.000; quote chỉ mở đầu field và đóng trước phẩy/cuối; không có CR/LF.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"a,\\\"b,c\\\",\\\"d\\\"\\\"e\\\"\"",
+        "output": "[\"a\",\"b,c\",\"d\\\"e\"]",
+        "explanation": "Phẩy trong quote và quote escaped."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"\"",
+        "output": "[\"\"]",
+        "explanation": "Một field rỗng."
+      },
+      {
+        "input": "\"a,,\"",
+        "output": "[\"a\",\"\",\"\"]",
+        "explanation": "Giữ cả hai field rỗng cuối."
+      },
+      {
+        "input": "\"\\\"\\\", x\"",
+        "output": "[\"\",\" x\"]",
+        "explanation": "Quote rỗng và khoảng trắng không bị trim."
+      }
+    ],
+    "starter": "public static string[] ParseCsvRow(string row)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static string[] ParseCsvRow(string row)\n{\n    var fields = new List<string>(); var field = new System.Text.StringBuilder(); bool quoted = false; for (int i = 0; i < row.Length; i++) { char c = row[i]; if (c == '\"') { if (quoted && i + 1 < row.Length && row[i+1] == '\"') { field.Append('\"'); i++; } else quoted = !quoted; } else if (c == ',' && !quoted) { fields.Add(field.ToString()); field.Clear(); } else field.Append(c); } fields.Add(field.ToString()); return fields.ToArray();\n}",
+    "hint": "Máy trạng thái quoted quyết định phẩy là dữ liệu hay separator. Trong quoted field, cặp nháy kép được unescape thành một nháy. Luôn flush field cuối kể cả rỗng.",
+    "explanation": "Máy trạng thái quoted quyết định phẩy là dữ liệu hay separator. Trong quoted field, cặp nháy kép được unescape thành một nháy. Luôn flush field cuối kể cả rỗng.",
+    "complexity": "O(k) thời gian, O(k) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "hex-bytes-validate-completely",
+    "kind": "coding",
+    "title": "Giải mã hex không nhận một phần",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "parsing",
+      "hex"
+    ],
+    "minutes": 25,
+    "description": "Đọc chuỗi hex không separator, mỗi hai ký tự tạo một byte dưới dạng int 0..255. Nếu độ dài lẻ hoặc có ký tự không phải hex, trả []. Chuỗi rỗng trả [].",
+    "input": "hex: chuỗi ASCII.",
+    "output": "Mảng int byte, hoặc [].",
+    "constraints": [
+      "0 ≤ Length ≤ 20.000; chỉ cú pháp hex liền nhau được chấp nhận.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"00aF10\"",
+        "output": "[0,175,16]",
+        "explanation": "Giữ byte 0 và không phân biệt case hex."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"\"",
+        "output": "[]",
+        "explanation": "Không có byte."
+      },
+      {
+        "input": "\"ABC\"",
+        "output": "[]",
+        "explanation": "Độ dài lẻ từ chối toàn bộ."
+      },
+      {
+        "input": "\"0Z\"",
+        "output": "[]",
+        "explanation": "Ký tự sai từ chối toàn bộ."
+      }
+    ],
+    "starter": "public static int[] DecodeHex(string hex)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] DecodeHex(string hex)\n{\n    if (hex.Length % 2 != 0 || hex.Any(c => !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F'))) return []; return Convert.FromHexString(hex).Select(b => (int)b).ToArray();\n}",
+    "hint": "Validate độ dài và bảng ký tự trước khi gọi Convert.FromHexString để dữ liệu sai nhận kết quả theo hợp đồng thay vì exception.",
+    "explanation": "Validate độ dài và bảng ký tự trước khi gọi Convert.FromHexString để dữ liệu sai nhận kết quả theo hợp đồng thay vì exception.",
+    "complexity": "O(k) thời gian, O(k) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "products-excluding-self-zero-safe",
+    "kind": "coding",
+    "title": "Tích mọi mục trừ chính nó",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "prefix-suffix"
+    ],
+    "minutes": 25,
+    "description": "Với mỗi index trả tích tất cả phần tử còn lại. Không dùng phép chia. Mảng một phần tử trả [1] vì tích rỗng bằng 1.",
+    "input": "values: mảng int.",
+    "output": "long[] tích trừ từng vị trí.",
+    "constraints": [
+      "0 ≤ n ≤ 18; -10 ≤ values[i] ≤ 10; các tích nằm trong long.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2,3,4]",
+        "output": "[24,12,8,6]",
+        "explanation": "Kết quả [24,12,8,6]."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Mảng rỗng."
+      },
+      {
+        "input": "[7]",
+        "output": "[1]",
+        "explanation": "Tích của tập rỗng bằng 1."
+      },
+      {
+        "input": "[0,2,3]",
+        "output": "[6,0,0]",
+        "explanation": "Chỉ vị trí 0 có tích 6."
+      },
+      {
+        "input": "[0,0,-2]",
+        "output": "[0,0,0]",
+        "explanation": "Hai số 0 làm mọi tích bằng 0."
+      }
+    ],
+    "starter": "public static long[] ProductsExceptSelf(int[] values)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long[] ProductsExceptSelf(int[] values)\n{\n    var result = new long[values.Length]; long product = 1; for (int i = 0; i < values.Length; i++) { result[i] = product; product *= values[i]; } product = 1; for (int i = values.Length-1; i >= 0; i--) { result[i] *= product; product *= values[i]; } return result;\n}",
+    "hint": "Ghi prefix product vào kết quả rồi nhân suffix product trong lượt ngược. Không cần chia nên số 0 được xử lý tự nhiên.",
+    "explanation": "Ghi prefix product vào kết quả rồi nhân suffix product trong lượt ngược. Không cần chia nên số 0 được xử lý tự nhiên.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ phụ ngoài kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  }
+]

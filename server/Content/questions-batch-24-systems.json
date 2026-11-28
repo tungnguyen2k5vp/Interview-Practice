@@ -1,0 +1,2162 @@
+[
+  {
+    "slug": "aspnet-cookie-csrf-intent",
+    "content": {
+      "title": "Cookie hợp lệ chưa chứng minh ý định",
+      "topic": "aspnet",
+      "subtopic": "Cookie hợp lệ chưa chứng minh ý định",
+      "tags": [
+        "CSRF",
+        "cookie",
+        "antiforgery"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Trang chuyển tiền dùng cookie đăng nhập và chỉ kiểm tra HTTPS. Một website khác gửi form POST đến trang này. Cần bổ sung lớp bảo vệ nào?",
+      "englishPrompt": "A transfer page uses sign-in cookies and checks only HTTPS. Another website submits a POST form to it. What protection is missing?",
+      "context": "Endpoint thay đổi dữ liệu sử dụng cookie xác thực của trình duyệt; chưa cấu hình antiforgery validation.",
+      "code": null,
+      "hint": "Nhận diện cookie tự gửi",
+      "nextHint": "Nêu xác minh antiforgery",
+      "followUp": "Cùng thao tác chuyển tiền được gọi bởi form dùng cookie và một machine client chỉ dùng Bearer. Bạn xác định rủi ro CSRF và kiểm thử bảo vệ riêng cho hai cách xác thực thế nào?",
+      "englishFollowUp": "The same transfer operation is called by a cookie-based form and a machine client using only Bearer tokens. How would you assess CSRF risk and test protection for each authentication path?",
+      "outline": [
+        "Nhận diện cookie tự gửi",
+        "Nêu xác minh antiforgery",
+        "Tách HTTPS khỏi ý định"
+      ],
+      "shortAnswer": "Kiểm tra antiforgery token cho thao tác đổi trạng thái; HTTPS không chứng minh request xuất phát từ trang đáng tin.",
+      "explanation": "Kiểm tra antiforgery token cho thao tác đổi trạng thái; HTTPS không chứng minh request xuất phát từ trang đáng tin. Trình duyệt có thể tự gửi cookie nên việc đăng nhập vẫn thành công với request do trang khác tạo. Token phải được phát và xác minh theo cơ chế antiforgery của framework, không chỉ thêm hidden field tùy ý.",
+      "alternative": "SameSite là lớp hỗ trợ; vẫn kiểm tra quyền chuyển tiền và ràng buộc nghiệp vụ.",
+      "trap": "Cho rằng chứng chỉ HTTPS chặn CSRF.",
+      "rubric": [
+        "Nhận diện cookie tự gửi",
+        "Nêu xác minh antiforgery",
+        "Tách HTTPS khỏi ý định",
+        "Giữ kiểm tra quyền"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-cookie-revocation-version",
+    "content": {
+      "title": "Thu hồi tài khoản đã có cookie",
+      "topic": "aspnet",
+      "subtopic": "Thu hồi tài khoản đã có cookie",
+      "tags": [
+        "cookie",
+        "revocation",
+        "ValidatePrincipal"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Vai trò quản trị bị gỡ nhưng cookie còn chứa vai trò. Cách nào giảm quyền theo trạng thái mới?",
+      "englishPrompt": "An admin role is removed but the cookie still contains it. Which approach enforces the new state?",
+      "context": "Trạng thái tài khoản đã đổi trong DB; cookie đã phát vẫn còn thời hạn và chưa có cơ chế kiểm tra thu hồi riêng.",
+      "code": null,
+      "hint": "Nhận diện principal cũ",
+      "nextHint": "Nêu kiểm tra thu hồi",
+      "followUp": "Một tài khoản bị vô hiệu hóa trong DB nhưng cookie đăng nhập chưa hết hạn. Vì sao người đó có thể còn truy cập và bạn xử lý thế nào?",
+      "englishFollowUp": "An account is disabled in the database while its sign-in cookie remains unexpired. Why may access continue, and how would you address it?",
+      "outline": [
+        "Nhận diện principal cũ",
+        "Nêu kiểm tra thu hồi",
+        "Từ chối cookie cũ"
+      ],
+      "shortAnswer": "Kiểm tra phiên bản quyền và làm mới hoặc từ chối principal.",
+      "explanation": "Cookie chứa ảnh chụp principal; cần kiểm tra trạng thái hoặc phiên bản bảo mật và từ chối principal đã bị thu hồi. Thay DB không tự sửa cookie đã phát. ValidatePrincipal có thể đối chiếu dấu phiên bản rồi RejectPrincipal. Chọn tần suất kiểm tra theo yêu cầu thu hồi và tải DB, thay vì hứa thu hồi tức thời khi chỉ kiểm tra định kỳ.",
+      "alternative": "Dùng security stamp của Identity nếu ứng dụng đã dùng Identity.",
+      "trap": "Cho rằng xóa tài khoản tự động xóa mọi cookie trên các máy.",
+      "rubric": [
+        "Nhận diện principal cũ",
+        "Nêu kiểm tra thu hồi",
+        "Từ chối cookie cũ",
+        "Nêu cửa sổ kiểm tra"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/cookie?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ đổi chữ trên giao diện.",
+          "Kiểm tra phiên bản quyền và làm mới hoặc từ chối principal."
+        ],
+        "en": [
+          "Only change the UI label.",
+          "Validate the permission version and renew or reject the principal."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Đổi chữ trên giao diện không thay claims trong cookie và không ngăn request gọi API trực tiếp; server vẫn phải kiểm tra quyền.",
+          "Cookie giữ principal đã phát; kiểm tra phiên bản quyền hiện tại rồi làm mới hoặc RejectPrincipal khi quyền đã thu hồi. Tần suất kiểm tra quyết định độ trễ thu hồi."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-samesite-none-secure",
+    "content": {
+      "title": "Cookie trong iframe khác site",
+      "topic": "aspnet",
+      "subtopic": "Cookie trong iframe khác site",
+      "tags": [
+        "SameSite",
+        "Secure",
+        "iframe"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Ứng dụng cần cookie trong iframe ở site đối tác, trình duyệt chặn cookie SameSite=Lax. Nếu chủ ý cho phép cross-site, thuộc tính nào đi cùng SameSite=None?",
+      "englishPrompt": "An application needs cookies inside a partner-site iframe, but the browser blocks SameSite=Lax cookies. When cross-site delivery is intended, what accompanies SameSite=None?",
+      "context": "Luồng iframe khác site là yêu cầu có chủ ý; giả định trình duyệt áp dụng quy tắc SameSite hiện đại.",
+      "code": null,
+      "hint": "Nêu None cho cross-site",
+      "nextHint": "Nêu Secure",
+      "followUp": "Cookie đã có SameSite=None và Secure nhưng một trình duyệt vẫn chặn third-party cookie trong iframe. Bạn kiểm chứng nguyên nhân và đánh giá luồng đăng nhập thay thế thế nào?",
+      "englishFollowUp": "The cookie has SameSite=None and Secure, but one browser still blocks third-party cookies in the iframe. How would you verify the cause and evaluate an alternative sign-in flow?",
+      "outline": [
+        "Nêu None cho cross-site",
+        "Nêu Secure",
+        "Giữ HTTPS"
+      ],
+      "shortAnswer": "Đặt Secure và phục vụ qua HTTPS; None không có nghĩa là bỏ các bảo vệ còn lại.",
+      "explanation": "Đặt Secure và phục vụ qua HTTPS; None không có nghĩa là bỏ các bảo vệ còn lại. Trình duyệt hiện đại yêu cầu cookie None được đánh dấu Secure. Việc này chỉ điều chỉnh điều kiện gửi cookie; chính sách chặn third-party cookie của trình duyệt vẫn có thể ảnh hưởng luồng.",
+      "alternative": "Nếu có thể, dùng luồng top-level cùng site để giảm phụ thuộc third-party cookie.",
+      "trap": "Đổi None rồi tắt Secure để dễ chạy production.",
+      "rubric": [
+        "Nêu None cho cross-site",
+        "Nêu Secure",
+        "Giữ HTTPS",
+        "Nêu giới hạn trình duyệt"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/samesite?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-shared-protection-keyring",
+    "content": {
+      "title": "Cookie qua nhiều replica",
+      "topic": "aspnet",
+      "subtopic": "Cookie qua nhiều replica",
+      "tags": [
+        "Data Protection",
+        "key ring",
+        "replicas"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Container bị tạo lại và mọi cookie cũ hỏng dù chỉ một replica. Cần thay đổi gì?",
+      "englishPrompt": "A recreated container invalidates all old cookies even with one replica. What should change?",
+      "context": "Các replica thuộc cùng một ứng dụng và cùng ranh giới tin cậy; cookie được bảo vệ bằng ASP.NET Core Data Protection.",
+      "code": null,
+      "hint": "Nêu key ring chung",
+      "nextHint": "Nêu tên ứng dụng",
+      "followUp": "Hai replica cùng ứng dụng dùng cookie đăng nhập, nhưng mỗi replica có key ring tạm riêng. Người dùng bị đăng xuất khi chuyển replica. Bạn kiểm tra cấu hình nào?",
+      "englishFollowUp": "Two replicas of one application use sign-in cookies but have separate ephemeral key rings. Users lose sign-in when routed to another replica. What configuration would you inspect?",
+      "outline": [
+        "Nêu key ring chung",
+        "Nêu tên ứng dụng",
+        "Bảo vệ khóa"
+      ],
+      "shortAnswer": "Lưu key ring bền vững ngoài filesystem tạm.",
+      "explanation": "Dùng key ring bền vững dùng chung và application discriminator nhất quán cho các replica của cùng ứng dụng. Replica nhận cookie phải có khóa phù hợp để giải mã. Kiểm tra tên ứng dụng, quyền truy cập nơi lưu khóa và bảo vệ khóa khi lưu. Không chia sẻ key ring giữa các ứng dụng không cùng ranh giới tin cậy chỉ để hết lỗi.",
+      "alternative": "Sticky session có thể che triệu chứng nhưng không giải quyết mất khóa khi thay container.",
+      "trap": "Tắt mã hóa cookie để replica nào cũng đọc được.",
+      "rubric": [
+        "Nêu key ring chung",
+        "Nêu tên ứng dụng",
+        "Bảo vệ khóa",
+        "Tách ranh giới tin cậy"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/data-protection/configuration/overview?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đổi mật khẩu của mọi người dùng.",
+          "Lưu key ring bền vững ngoài filesystem tạm."
+        ],
+        "en": [
+          "Change every user password.",
+          "Persist the key ring outside the ephemeral filesystem."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Đổi mật khẩu người dùng không phục hồi khóa Data Protection đã mất; triệu chứng do vòng đời khóa, không do mật khẩu.",
+          "Key ring phải tồn tại qua lần tạo lại container thì ứng dụng mới giải mã được cookie cũ; lưu ngoài filesystem tạm và bảo vệ quyền đọc khóa."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-local-return-url",
+    "content": {
+      "title": "Return URL sau đăng nhập",
+      "topic": "aspnet",
+      "subtopic": "Return URL sau đăng nhập",
+      "tags": [
+        "open redirect",
+        "return URL",
+        "IsLocalUrl"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Endpoint đăng nhập chuyển hướng trực tiếp đến returnUrl do client gửi. Làm sao ngăn người dùng bị đưa sang website giả mạo?",
+      "englishPrompt": "A sign-in endpoint redirects directly to a client-supplied returnUrl. How would you prevent redirection to a phishing site?",
+      "context": "Ứng dụng chỉ cho phép điều hướng sau đăng nhập đến trang nội bộ; returnUrl là đầu vào của client.",
+      "code": null,
+      "hint": "Xác định đầu vào tin cậy thấp",
+      "nextHint": "Dùng helper local",
+      "followUp": "Sản phẩm cần redirect sang đúng hai website đối tác. Bạn định nghĩa và kiểm thử hợp đồng allowlist thế nào trước các URL khác scheme, port hoặc chứa thông tin user trong authority?",
+      "englishFollowUp": "The product must redirect to exactly two partner websites. How would you define and test the allowlist contract for URLs with different schemes, ports, or user information in the authority?",
+      "outline": [
+        "Xác định đầu vào tin cậy thấp",
+        "Dùng helper local",
+        "Có fallback"
+      ],
+      "shortAnswer": "Chỉ chấp nhận URL local bằng helper framework và có đích dự phòng an toàn.",
+      "explanation": "Chỉ chấp nhận URL local bằng helper framework và có đích dự phòng an toàn. Return URL là đầu vào không tin cậy dù đi qua màn hình đăng nhập thật. Dùng IsLocalUrl hoặc LocalRedirect theo hợp đồng; tránh kiểm tra kiểu chuỗi chứa tên miền vì không xác nhận đúng authority.",
+      "alternative": "Nếu bắt buộc redirect ngoài ứng dụng, dùng allowlist đích đã cấu hình và so URI đã phân tích.",
+      "trap": "Chấp nhận mọi URL miễn bắt đầu bằng https.",
+      "rubric": [
+        "Xác định đầu vào tin cậy thấp",
+        "Dùng helper local",
+        "Có fallback",
+        "Không tin HTTPS đơn thuần"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/preventing-open-redirects?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-untrusted-upload-name",
+    "content": {
+      "title": "Tên file không phải đường dẫn lưu",
+      "topic": "aspnet",
+      "subtopic": "Tên file không phải đường dẫn lưu",
+      "tags": [
+        "file upload",
+        "path traversal",
+        "IFormFile"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Hai người cùng tải lên report.pdf. Thiết kế nào tránh ghi đè lẫn nhau?",
+      "englishPrompt": "Two users both upload report.pdf. Which design avoids overwriting each other?",
+      "context": "API lưu file do người dùng tải lên; tên và metadata multipart chưa được xem là đáng tin cậy.",
+      "code": null,
+      "hint": "Không tin tên client",
+      "nextHint": "Tạo storage key",
+      "followUp": "Client upload file với FileName chứa đường dẫn. API ghép trực tiếp FileName vào thư mục lưu. Bạn sửa ranh giới lưu trữ thế nào?",
+      "englishFollowUp": "A client uploads a file whose FileName contains a path. The API appends FileName directly to its storage directory. How would you fix the storage boundary?",
+      "outline": [
+        "Không tin tên client",
+        "Tạo storage key",
+        "Kiểm tra nội dung và size"
+      ],
+      "shortAnswer": "Key riêng do server tạo, tên gốc là metadata.",
+      "explanation": "Tạo tên lưu do server kiểm soát; tên client chỉ là metadata đã làm sạch và encode khi hiển thị. Không tin FileName, phần mở rộng hay Content-Type do client khai báo. Giới hạn kích thước và loại nội dung phù hợp; lưu ngoài nơi được thực thi/phục vụ công khai. Tên ngẫu nhiên còn tránh ghi đè file của người khác.",
+      "alternative": "Lưu object storage bằng key server tạo và kiểm soát quyền tải xuống.",
+      "trap": "Chỉ thay dấu cách trong FileName là đủ an toàn.",
+      "rubric": [
+        "Không tin tên client",
+        "Tạo storage key",
+        "Kiểm tra nội dung và size",
+        "Tách lưu và hiển thị"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/mvc/models/file-uploads?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Key riêng do server tạo, tên gốc là metadata.",
+          "Dùng nguyên tên report.pdf làm key chung."
+        ],
+        "en": [
+          "Use distinct server-generated keys and retain the original name as metadata.",
+          "Use report.pdf unchanged as the shared key."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Key lưu trữ riêng do server tạo tách identity của file khỏi tên client; hai file cùng report.pdf không dùng chung đích ghi. Dùng tạo mới độc quyền khi cần bảo đảm không ghi đè.",
+          "Dùng report.pdf làm key chung khiến hai lần tải trỏ vào cùng đích; tên gốc nên là metadata, không phải định danh lưu trữ."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-user-secrets-not-encrypted",
+    "content": {
+      "title": "User Secrets có mã hóa không",
+      "topic": "aspnet",
+      "subtopic": "User Secrets có mã hóa không",
+      "tags": [
+        "User Secrets",
+        "secrets",
+        "configuration"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Đồng nghiệp muốn đưa secrets.json của Secret Manager lên máy production vì nghĩ công cụ đã mã hóa. Bạn phản hồi thế nào?",
+      "englishPrompt": "A teammate wants to copy Secret Manager secrets.json to production because they believe it is encrypted. How would you respond?",
+      "context": "Đang đánh giá công cụ Secret Manager mặc định của ASP.NET Core, không có sản phẩm mã hóa bổ sung.",
+      "code": null,
+      "hint": "Nêu phạm vi development",
+      "nextHint": "Nêu không mã hóa",
+      "followUp": "Một key thật từng được in trong log development dù repository không chứa key. Bạn xác định phạm vi lộ, kế hoạch thu hồi và bằng chứng hoàn tất khắc phục thế nào?",
+      "englishFollowUp": "A real key was printed in development logs even though it never entered the repository. How would you assess exposure, plan revocation, and establish evidence that remediation is complete?",
+      "outline": [
+        "Nêu phạm vi development",
+        "Nêu không mã hóa",
+        "Chọn nguồn production"
+      ],
+      "shortAnswer": "Secret Manager dành cho phát triển và không mã hóa giá trị; production cần nơi quản lý bí mật được kiểm soát truy cập.",
+      "explanation": "Secret Manager dành cho phát triển và không mã hóa giá trị; production cần nơi quản lý bí mật được kiểm soát truy cập. Công cụ giúp tránh đưa bí mật vào repository, không tạo kho bí mật an toàn trước người có quyền đọc profile. Cấp bí mật theo môi trường, quyền tối thiểu và không in chúng vào log khi chẩn đoán cấu hình.",
+      "alternative": "Biến môi trường có thể cấp cấu hình nhưng vẫn cần kiểm soát nơi chúng bị lộ.",
+      "trap": "Cho rằng nằm ngoài repository đồng nghĩa đã mã hóa.",
+      "rubric": [
+        "Nêu phạm vi development",
+        "Nêu không mã hóa",
+        "Chọn nguồn production",
+        "Không log bí mật"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-https-first-request",
+    "content": {
+      "title": "Redirect không thu hồi dữ liệu đã gửi",
+      "topic": "aspnet",
+      "subtopic": "Redirect không thu hồi dữ liệu đã gửi",
+      "tags": [
+        "HTTPS",
+        "TLS",
+        "HSTS"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "SDK có BaseAddress HTTP và bật follow redirect. Cách sửa tốt nhất cho lần gửi đầu?",
+      "englishPrompt": "An SDK has an HTTP BaseAddress and follows redirects. What best protects its first submission?",
+      "context": "Request đầu chứa thông tin nhạy cảm; client chưa biết chính sách HSTS và đang dùng URL HTTP.",
+      "code": null,
+      "hint": "Nêu thời điểm lộ dữ liệu",
+      "nextHint": "Yêu cầu HTTPS từ client",
+      "followUp": "Client gửi mật khẩu qua HTTP, server trả redirect sang HTTPS. Vì sao redirect chưa đủ bảo vệ request đầu tiên?",
+      "englishFollowUp": "A client sends a password over HTTP and the server redirects to HTTPS. Why does redirection fail to protect the first request?",
+      "outline": [
+        "Nêu thời điểm lộ dữ liệu",
+        "Yêu cầu HTTPS từ client",
+        "Tách redirect và TLS"
+      ],
+      "shortAnswer": "Đổi BaseAddress sang HTTPS trước khi gửi bí mật.",
+      "explanation": "Dữ liệu nhạy cảm đã đi qua HTTP trước phản hồi redirect; client phải dùng HTTPS ngay từ đầu. Redirect thay đổi request tiếp theo, không mã hóa lại bytes đã truyền. Kiểm tra URL cấu hình của client và yêu cầu TLS tại điểm vào. Với trình duyệt, HSTS hỗ trợ các lần truy cập sau khi chính sách được biết.",
+      "alternative": "Với API, công bố chỉ endpoint HTTPS và từ chối lưu lượng không bảo mật theo môi trường.",
+      "trap": "Đoán rằng server có thể mã hóa hồi tố request HTTP.",
+      "rubric": [
+        "Nêu thời điểm lộ dữ liệu",
+        "Yêu cầu HTTPS từ client",
+        "Tách redirect và TLS",
+        "Giới hạn HSTS"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/enforcing-ssl?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Giữ HTTP vì redirect sẽ mã hóa request cũ.",
+          "Đổi BaseAddress sang HTTPS trước khi gửi bí mật."
+        ],
+        "en": [
+          "Keep HTTP because redirect encrypts the old request.",
+          "Change BaseAddress to HTTPS before sending secrets."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Redirect chỉ ảnh hưởng request tiếp theo; nó không thể mã hóa hồi tố dữ liệu đã truyền qua HTTP.",
+          "BaseAddress HTTPS bảo vệ ngay lần truyền đầu; bytes bí mật chưa phải đi qua HTTP để nhận redirect."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-safe-production-errors",
+    "content": {
+      "title": "Lỗi production không kèm connection string",
+      "topic": "aspnet",
+      "subtopic": "Lỗi production không kèm connection string",
+      "tags": [
+        "exception handling",
+        "Problem Details",
+        "redaction"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "API production trả exception.ToString(), trong đó có tên máy SQL và connection string. Bạn thiết kế phản hồi và chẩn đoán lại thế nào?",
+      "englishPrompt": "A production API returns exception.ToString(), including the SQL host and connection string. How would you redesign the response and diagnostics?",
+      "context": "Đây là lỗi nội bộ ngoài dự kiến trong production; client cần thông tin để liên hệ hỗ trợ.",
+      "code": null,
+      "hint": "Giảm chi tiết công khai",
+      "nextHint": "Giữ status phù hợp",
+      "followUp": "Nhân viên hỗ trợ cần tra mã tương quan của khách hàng nhưng không được đọc dữ liệu tenant khác. Bạn thiết kế quyền tra cứu và test log đã che bí mật thế nào?",
+      "englishFollowUp": "Support staff must look up a customer correlation ID without reading another tenant’s data. How would you design lookup permissions and test that secrets have been removed from logs?",
+      "outline": [
+        "Giảm chi tiết công khai",
+        "Giữ status phù hợp",
+        "Dùng correlation"
+      ],
+      "shortAnswer": "Trả lỗi tổng quát có mã tương quan; giữ chi tiết đã lọc trong log có kiểm soát truy cập.",
+      "explanation": "Trả lỗi tổng quát có mã tương quan; giữ chi tiết đã lọc trong log có kiểm soát truy cập. Thông báo cho client cần đủ để xử lý hợp đồng, không cần stack trace hay bí mật hạ tầng. Dùng exception handler tập trung và tắt Developer Exception Page ở production. Kiểm tra log cũng không chứa connection string hoặc token.",
+      "alternative": "Lỗi validation dự kiến có thể trả chi tiết trường an toàn, khác với lỗi nội bộ ngoài dự kiến.",
+      "trap": "Giấu lỗi bằng cách trả 200 và chuỗi stack trace trong data.",
+      "rubric": [
+        "Giảm chi tiết công khai",
+        "Giữ status phù hợp",
+        "Dùng correlation",
+        "Lọc log nhạy cảm"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-pooled-cookie-container",
+    "content": {
+      "title": "Cookie của upstream bị dùng chung",
+      "topic": "aspnet",
+      "subtopic": "Cookie của upstream bị dùng chung",
+      "tags": [
+        "IHttpClientFactory",
+        "CookieContainer",
+        "handler pooling"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Đổi sang typed client transient có tự bảo đảm cookie riêng cho người dùng không?",
+      "englishPrompt": "Does a transient typed client alone guarantee per-user cookie isolation?",
+      "context": "Upstream xác thực bằng cookie phiên theo khách hàng; app dùng các handler do IHttpClientFactory quản lý.",
+      "code": null,
+      "hint": "Nhận diện handler pool",
+      "nextHint": "Nêu CookieContainer",
+      "followUp": "IHttpClientFactory tạo client cho từng request nhưng upstream dùng cookie phiên riêng cho từng khách hàng. Vì sao vẫn có nguy cơ trộn phiên?",
+      "englishFollowUp": "IHttpClientFactory creates a client per request, but an upstream uses separate session cookies per customer. Why can sessions still mix?",
+      "outline": [
+        "Nhận diện handler pool",
+        "Nêu CookieContainer",
+        "Cô lập từng phiên"
+      ],
+      "shortAnswer": "Không, cần xử lý lifetime và cookie container của handler.",
+      "explanation": "Handler được pool có thể dùng chung CookieContainer; client mới không bảo đảm kho cookie mới. Kiểm tra quyền sở hữu trạng thái ở handler thay vì chỉ lifetime của HttpClient. Tắt tự quản lý cookie và gắn cookie đã cô lập theo thiết kế, hoặc dùng client/handler có lifetime riêng phù hợp. Không dùng tên khách hàng không giới hạn để tạo pool vô hạn.",
+      "alternative": "Ưu tiên token theo request nếu upstream hỗ trợ một hợp đồng không có cookie trạng thái.",
+      "trap": "Nghĩ CreateClient luôn tạo cả handler và cookie jar độc lập.",
+      "rubric": [
+        "Nhận diện handler pool",
+        "Nêu CookieContainer",
+        "Cô lập từng phiên",
+        "Tránh pool vô hạn"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/http-requests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, cần xử lý lifetime và cookie container của handler.",
+          "Có, transient luôn xóa mọi cookie handler."
+        ],
+        "en": [
+          "No; handler lifetime and cookie-container ownership must be addressed.",
+          "Yes; transient always clears all handler cookies."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Transient typed client không buộc handler mới; handler được pool có thể giữ CookieContainer dùng chung. Phải thiết kế lifetime và cô lập cookie phù hợp.",
+          "Vòng đời client và handler khác nhau; tạo client transient không tự xóa cookie trong handler đang được pool."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-background-httpcontext-copy",
+    "content": {
+      "title": "Không giữ HttpContext cho tác vụ trễ",
+      "topic": "aspnet",
+      "subtopic": "Không giữ HttpContext cho tác vụ trễ",
+      "tags": [
+        "HttpContext",
+        "background job",
+        "request lifetime"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Controller đưa HttpContext vào hàng đợi để worker đọc user ID sau khi trả response. Rủi ro là gì và nên truyền dữ liệu nào?",
+      "englishPrompt": "A controller queues HttpContext so a worker can read the user ID after the response. What is the risk, and what data should cross the boundary?",
+      "context": "Worker có thể chạy sau khi response đã kết thúc; job cần dữ liệu nhận diện và tương quan của request gốc.",
+      "code": null,
+      "hint": "Nêu lifetime request",
+      "nextHint": "Nêu không thread-safe",
+      "followUp": "Worker bắt đầu sau khi quyền của người gửi đã bị thu hồi. Bạn tách dữ liệu audit tại lúc enqueue khỏi dữ kiện cần đánh giá lại trước side effect thế nào?",
+      "englishFollowUp": "The worker starts after the sender’s permission has been revoked. How would you distinguish enqueue-time audit data from facts that must be reevaluated before the side effect?",
+      "outline": [
+        "Nêu lifetime request",
+        "Nêu không thread-safe",
+        "Chụp dữ liệu tối thiểu"
+      ],
+      "shortAnswer": "Không giữ HttpContext sau request; chụp dữ liệu tối thiểu cần thiết vào thông điệp độc lập.",
+      "explanation": "Không giữ HttpContext sau request; chụp dữ liệu tối thiểu cần thiết vào thông điệp độc lập. HttpContext thuộc request và không thread-safe. Worker cần job ID, owner ID đã xác minh và payload có hợp đồng rõ; vẫn kiểm tra quyền phù hợp tại lúc thực thi nếu trạng thái quyền có thể thay đổi.",
+      "alternative": "Một tác vụ ngắn trong request có thể nhận giá trị đã sao chép thay vì accessor ambient.",
+      "trap": "Giữ IHttpContextAccessor trong singleton để request sống lâu hơn.",
+      "rubric": [
+        "Nêu lifetime request",
+        "Nêu không thread-safe",
+        "Chụp dữ liệu tối thiểu",
+        "Xem lại quyền lúc chạy"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/use-http-context?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-inflight-render-limit",
+    "content": {
+      "title": "Giới hạn số request đang chạy",
+      "topic": "aspnet",
+      "subtopic": "Giới hạn số request đang chạy",
+      "tags": [
+        "concurrency limiter",
+        "backpressure",
+        "rate limiting"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Request đang giữ concurrency permit đã hoàn tất và lease của request được giải phóng. Permit đó có được cấp lại mà không phải chờ mốc phút không?",
+      "englishPrompt": "A request holding a concurrency permit has completed and its lease has been released. Can that permit become available again without waiting for a minute boundary?",
+      "context": "Bộ nhớ bị chi phối bởi số render đang sống; giả định mỗi request chỉ có một render.",
+      "code": null,
+      "hint": "Nhận diện in-flight",
+      "nextHint": "Chọn concurrency limiter",
+      "followUp": "Endpoint render PDF tốn bộ nhớ. Yêu cầu là tối đa ba request đang render đồng thời, không phải ba request mỗi phút. Chọn loại limiter nào?",
+      "englishFollowUp": "A PDF-rendering endpoint consumes much memory. The requirement is at most three renders in flight, rather than three requests per minute. Which limiter fits?",
+      "outline": [
+        "Nhận diện in-flight",
+        "Chọn concurrency limiter",
+        "Giới hạn queue"
+      ],
+      "shortAnswer": "Có, hoàn thành giải phóng permit.",
+      "explanation": "Concurrency limiter với ba permit và hàng chờ hữu hạn theo ngân sách chờ. Permit được trả khi request hoàn thành. Time-window limiter đếm lượt trong khoảng thời gian nên không trực tiếp giới hạn số render đang sống. Đo bộ nhớ và thời gian chờ để chọn có queue hay từ chối sớm.",
+      "alternative": "Có thể đưa render dài vào worker với giới hạn concurrency riêng.",
+      "trap": "Dùng fixed window ba lượt/phút và coi đó là giới hạn bộ nhớ.",
+      "rubric": [
+        "Nhận diện in-flight",
+        "Chọn concurrency limiter",
+        "Giới hạn queue",
+        "Đo tài nguyên"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, luôn phải chờ hết phút.",
+          "Có, hoàn thành giải phóng permit."
+        ],
+        "en": [
+          "No; it always waits for the minute to end.",
+          "Yes; completion releases the permit."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Chờ hết phút là đặc tính của limiter theo cửa sổ thời gian, không phải quy tắc bổ sung permit của concurrency limiter.",
+          "Concurrency limiter trả permit khi request giữ permit hoàn tất và lease được giải phóng; vì vậy một request khác có thể được nhận mà không đợi mốc phút."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-outputcache-authenticated-default",
+    "content": {
+      "title": "Mặc định output cache với đăng nhập",
+      "topic": "aspnet",
+      "subtopic": "Mặc định output cache với đăng nhập",
+      "tags": [
+        "output cache",
+        "authenticated request",
+        "Set-Cookie"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "GET /profile trả 200 cho người đã đăng nhập. Endpoint dùng output cache mặc định, không có policy tùy chỉnh. Có nên kết luận response này được cache không?",
+      "englishPrompt": "GET /profile returns 200 to an authenticated user. The endpoint uses default output caching without custom policies. Should you conclude it is cached?",
+      "context": "Không có custom output-cache policy hay middleware làm thay đổi các quy tắc mặc định.",
+      "code": null,
+      "hint": "Nêu ngoại lệ authenticated",
+      "nextHint": "Kiểm tra default policy",
+      "followUp": "Team muốn policy cache tùy chỉnh cho báo cáo riêng của từng tenant. Bạn xác định điều kiện được cache, biến thể key và ca kiểm thử chống trả nhầm dữ liệu thế nào?",
+      "englishFollowUp": "The team wants a custom cache policy for tenant-private reports. How would you define cache eligibility, key variants, and tests against serving another tenant’s data?",
+      "outline": [
+        "Nêu ngoại lệ authenticated",
+        "Kiểm tra default policy",
+        "Nhận diện rủi ro key"
+      ],
+      "shortAnswer": "Không; mặc định không cache phản hồi cho request đã xác thực.",
+      "explanation": "Không; mặc định không cache phản hồi cho request đã xác thực. Status 200 và GET chưa đủ: policy mặc định cũng loại request đã xác thực và phản hồi đặt cookie. Nếu tùy chỉnh cache dữ liệu riêng, phải thiết kế key và quyền cẩn thận; không vô hiệu hóa bảo vệ chỉ để tăng hit rate.",
+      "alternative": "Cache dữ liệu công khai dùng chung ở endpoint riêng có hợp đồng rõ.",
+      "trap": "Cho rằng mọi GET 200 đều tự động vào output cache.",
+      "rubric": [
+        "Nêu ngoại lệ authenticated",
+        "Kiểm tra default policy",
+        "Nhận diện rủi ro key",
+        "Giữ dữ liệu cá nhân riêng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/performance/caching/output?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-private-static-file",
+    "content": {
+      "title": "PDF riêng tư nằm trong wwwroot",
+      "topic": "aspnet",
+      "subtopic": "PDF riêng tư nằm trong wwwroot",
+      "tags": [
+        "static files",
+        "wwwroot",
+        "authorization"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "File báo cáo riêng cần truy cập theo chủ sở hữu. Cách lưu nào hợp lý?",
+      "englishPrompt": "A private report must be accessible only to its owner. Which storage approach fits?",
+      "context": "Ứng dụng dùng Static File Middleware và web root theo cấu hình đã nêu, không có gateway kiểm tra quyền thay app.",
+      "code": null,
+      "hint": "Nêu short-circuit static",
+      "nextHint": "Tách private khỏi webroot",
+      "followUp": "Ứng dụng gọi UseStaticFiles trước UseAuthorization. Một PDF nhạy cảm nằm trong wwwroot. Thêm Authorize cho controller có bảo vệ URL file đó không?",
+      "englishFollowUp": "An application calls UseStaticFiles before UseAuthorization. A sensitive PDF is in wwwroot. Does adding Authorize to a controller protect the file URL?",
+      "outline": [
+        "Nêu short-circuit static",
+        "Tách private khỏi webroot",
+        "Kiểm tra quyền tải"
+      ],
+      "shortAnswer": "Ngoài web root, tải qua endpoint có kiểm tra quyền.",
+      "explanation": "Không; middleware file có thể trả file trước bước authorization của controller. Chuyển tài liệu riêng ra khỏi web root và phục vụ qua endpoint kiểm tra quyền. Tách tài sản công khai khỏi file khách hàng, kiểm tra đường dẫn và quyền trên từng tải xuống. Không coi URL khó đoán là cơ chế phân quyền.",
+      "alternative": "Dùng object storage private và URL có thời hạn sau bước kiểm tra quyền.",
+      "trap": "Cho rằng mọi file tự thừa hưởng Authorize từ controller gần nhất.",
+      "rubric": [
+        "Nêu short-circuit static",
+        "Tách private khỏi webroot",
+        "Kiểm tra quyền tải",
+        "Không dùng URL bí mật"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/static-files?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Ngoài web root, tải qua endpoint có kiểm tra quyền.",
+          "Trong wwwroot với tên UUID là đủ."
+        ],
+        "en": [
+          "Outside the web root, downloaded through an authorized endpoint.",
+          "In wwwroot with a UUID filename alone."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Đặt file ngoài web root và phục vụ qua endpoint kiểm quyền bảo đảm mỗi lượt tải đi qua quyết định owner authorization.",
+          "Tên UUID chỉ làm URL khó đoán; nó không phải kiểm quyền và không bảo vệ file riêng nếu static middleware có thể phục vụ trực tiếp."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-remote-validation-write-boundary",
+    "content": {
+      "title": "Remote validation không giữ bất biến",
+      "topic": "aspnet",
+      "subtopic": "Remote validation không giữ bất biến",
+      "tags": [
+        "Remote validation",
+        "server validation",
+        "unique constraint"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Form kiểm tra email trùng qua Remote trước submit. API lưu cuối cùng bỏ qua kiểm tra vì UI đã báo hợp lệ. Điểm thiếu là gì?",
+      "englishPrompt": "A form checks duplicate emails through Remote before submission. The final save skips checks because the UI already reported success. What is missing?",
+      "context": "Các trình duyệt có thể gửi đồng thời; endpoint ghi là nơi cuối cùng quyết định dữ liệu có được lưu.",
+      "code": null,
+      "hint": "Tách UI và server",
+      "nextHint": "Nêu khoảng đua",
+      "followUp": "Email được coi là trùng sau bước chuẩn hóa không phân biệt hoa thường. Bạn bảo đảm Remote, write path và ràng buộc DB cùng thực hiện một hợp đồng bằng những test nào?",
+      "englishFollowUp": "Emails are considered duplicates after case-insensitive normalization. Which tests would show that Remote validation, the write path, and the database constraint enforce the same contract?",
+      "outline": [
+        "Tách UI và server",
+        "Nêu khoảng đua",
+        "Giữ constraint DB"
+      ],
+      "shortAnswer": "Kiểm tra phía server khi lưu và ràng buộc duy nhất ở DB; kiểm tra UI chỉ hỗ trợ trải nghiệm.",
+      "explanation": "Kiểm tra phía server khi lưu và ràng buộc duy nhất ở DB; kiểm tra UI chỉ hỗ trợ trải nghiệm. Client có thể bỏ JavaScript và dữ liệu có thể thay đổi giữa kiểm tra với submit. Remote không tự thực hiện server-side validation khi form được gửi. Xử lý vi phạm uniqueness thành lỗi an toàn thay vì để hai request cùng lọt.",
+      "alternative": "Dùng Remote để phản hồi sớm nhưng giữ write path có thẩm quyền.",
+      "trap": "Cho rằng gọi một endpoint kiểm tra trước đó bảo đảm lần lưu sau.",
+      "rubric": [
+        "Tách UI và server",
+        "Nêu khoảng đua",
+        "Giữ constraint DB",
+        "Xử lý conflict"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/mvc/models/validation?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-role-list-or",
+    "content": {
+      "title": "Hai vai trò thay thế nhau",
+      "topic": "aspnet",
+      "subtopic": "Hai vai trò thay thế nhau",
+      "tags": [
+        "roles",
+        "Authorize",
+        "AND versus OR"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Nếu thay bằng hai attribute, một yêu cầu Editor và một yêu cầu Publisher, chỉ Editor có đủ không?",
+      "englishPrompt": "If there are two attributes, one requiring Editor and one requiring Publisher, is Editor alone sufficient?",
+      "context": "Principal đã xác thực; câu hỏi chỉ đánh giá logic vai trò, không có policy bổ sung khác.",
+      "code": null,
+      "hint": "Nêu OR trong danh sách",
+      "nextHint": "Áp dụng cho Editor",
+      "followUp": "Action dùng [Authorize(Roles=\"Editor,Publisher\")]. Người dùng chỉ có vai trò Editor. Điều kiện vai trò này có đạt không?",
+      "englishFollowUp": "An action uses [Authorize(Roles=\"Editor,Publisher\")]. The user has only Editor. Is this role condition satisfied?",
+      "outline": [
+        "Nêu OR trong danh sách",
+        "Áp dụng cho Editor",
+        "Tách nhiều attribute"
+      ],
+      "shortAnswer": "Không, phải thỏa cả hai yêu cầu.",
+      "explanation": "Có; danh sách vai trò trong cùng thuộc tính chấp nhận Editor hoặc Publisher. Dấu phẩy trong một Roles biểu diễn các lựa chọn thay thế. Hai thuộc tính Authorize riêng với các yêu cầu khác nhau lại được kết hợp. Đọc đúng vị trí khai báo trước khi giải thích quyền.",
+      "alternative": "Dùng policy đặt tên nếu biểu thức quyền phức tạp hoặc cần test độc lập.",
+      "trap": "Hiểu dấu phẩy là bắt buộc có tất cả vai trò.",
+      "rubric": [
+        "Nêu OR trong danh sách",
+        "Áp dụng cho Editor",
+        "Tách nhiều attribute",
+        "Không suy diễn quyền khác"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authorization/roles?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, phải thỏa cả hai yêu cầu.",
+          "Có, mọi attribute đều OR."
+        ],
+        "en": [
+          "No; both requirements must be met.",
+          "Yes; all attributes are OR conditions."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Hai Authorize attribute là hai yêu cầu kết hợp AND: identity phải có Editor và Publisher. Chỉ Editor không đủ, khác danh sách vai trò OR trong một attribute.",
+          "OR áp dụng cho các vai trò trong cùng danh sách Roles của một attribute; nhiều Authorize attribute không mặc định được OR với nhau."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-claim-value-allowlist",
+    "content": {
+      "title": "Có claim chưa đủ đúng giá trị",
+      "topic": "aspnet",
+      "subtopic": "Có claim chưa đủ đúng giá trị",
+      "tags": [
+        "claims",
+        "RequireClaim",
+        "allowed values"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Policy dùng RequireClaim(\"Department\", \"Finance\"). Principal tin cậy có Department=Sales. Yêu cầu có đạt vì claim tồn tại không?",
+      "englishPrompt": "A policy uses RequireClaim(\"Department\", \"Finance\"). A trusted principal has Department=Sales. Does existence of the claim satisfy this requirement?",
+      "context": "Claims đến từ principal đã được handler tin cậy xác thực; tên và giá trị trong đề được giữ nguyên.",
+      "code": null,
+      "hint": "Nhận diện giá trị yêu cầu",
+      "nextHint": "Từ chối Sales",
+      "followUp": "Hai issuer tin cậy có cách biểu diễn Department khác nhau. Bạn đặt quy tắc ánh xạ và kiểm thử policy thế nào để không vô tình cấp Finance cho claim không tương đương?",
+      "englishFollowUp": "Two trusted issuers represent Department differently. How would you define mappings and test the policy without accidentally granting Finance access to a nonequivalent claim?",
+      "outline": [
+        "Nhận diện giá trị yêu cầu",
+        "Từ chối Sales",
+        "Dùng principal tin cậy"
+      ],
+      "shortAnswer": "Không; policy yêu cầu cả loại claim và một giá trị được cho phép.",
+      "explanation": "Không; policy yêu cầu cả loại claim và một giá trị được cho phép. Phân biệt RequireClaim chỉ với tên và RequireClaim với tập giá trị. Claims chỉ có ý nghĩa sau khi được xác thực từ nguồn tin cậy; không lấy header Department của client thay cho principal.",
+      "alternative": "Dùng handler riêng khi cần đối chiếu quyền động ngoài tập giá trị cố định.",
+      "trap": "Chỉ kiểm tra tên claim rồi cho phép mọi department.",
+      "rubric": [
+        "Nhận diện giá trị yêu cầu",
+        "Từ chối Sales",
+        "Dùng principal tin cậy",
+        "Phân biệt overload"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authorization/claims?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-bearer-only-scheme",
+    "content": {
+      "title": "API chỉ chấp nhận Bearer",
+      "topic": "aspnet",
+      "subtopic": "API chỉ chấp nhận Bearer",
+      "tags": [
+        "authentication scheme",
+        "Bearer",
+        "cookie isolation"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Endpoint API yêu cầu duy nhất authentication scheme Bearer. Một test chỉ gửi cookie hợp lệ và mong bị challenge. Test này kiểm tra ranh giới nào?",
+      "englishPrompt": "An API endpoint requires only the Bearer authentication scheme. A test sends only a valid cookie and expects a challenge. Which boundary does it test?",
+      "context": "Web và API cùng đăng ký nhiều scheme; endpoint trong đề chọn rõ scheme được chấp nhận.",
+      "code": null,
+      "hint": "Nêu scheme riêng",
+      "nextHint": "Loại cookie-only",
+      "followUp": "Ứng dụng có cookie cho trang web và Bearer cho API. API yêu cầu duy nhất scheme Bearer; request chỉ có cookie hợp lệ. Cookie có đủ không?",
+      "englishFollowUp": "An application has cookies for web pages and Bearer for its API. The API requires only the Bearer scheme; a request has only a valid cookie. Is the cookie sufficient?",
+      "outline": [
+        "Nêu scheme riêng",
+        "Loại cookie-only",
+        "Giữ policy nhất quán"
+      ],
+      "shortAnswer": "API không nhận cookie thay cho Bearer đã yêu cầu.",
+      "explanation": "Không; endpoint chỉ định Bearer không sử dụng identity cookie để xác thực cho yêu cầu đó. Việc app biết nhiều scheme không có nghĩa mỗi endpoint đều nhận tất cả. Chọn scheme rõ trong policy và kiểm thử cookie-only, token-only, không credentials. Tránh thêm metadata vô tình mở rộng tập scheme được chấp nhận.",
+      "alternative": "Có thể tách host web và API nếu ranh giới vận hành cần độc lập.",
+      "trap": "Cho rằng đã đăng nhập ở bất kỳ scheme nào đều đủ cho mọi endpoint.",
+      "rubric": [
+        "Nêu scheme riêng",
+        "Loại cookie-only",
+        "Giữ policy nhất quán",
+        "Kiểm tra các loại credentials"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authorization/authorize-with-a-specific-scheme?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Cookie mã hóa mạnh hơn nên phải luôn được nhận.",
+          "API không nhận cookie thay cho Bearer đã yêu cầu."
+        ],
+        "en": [
+          "Cookies are more strongly encrypted and must always be accepted.",
+          "The API does not accept cookies instead of the required Bearer scheme."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Độ mạnh mã hóa cookie không quyết định scheme endpoint chấp nhận; cookie hợp lệ cũng không đáp ứng endpoint chỉ dùng Bearer.",
+          "Với endpoint chỉ yêu cầu Bearer như hợp đồng trong đề, identity từ cookie không thay thế kết quả xác thực của Bearer scheme."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-configuration-provider-precedence",
+    "content": {
+      "title": "Nguồn cấu hình ghi đè nhau",
+      "topic": "aspnet",
+      "subtopic": "Nguồn cấu hình ghi đè nhau",
+      "tags": [
+        "configuration providers",
+        "precedence",
+        "configuration keys"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "App thêm provider A rồi provider B; cả hai có Search:PageSize. Không có provider sau B. Giá trị đọc cuối cùng đến từ đâu?",
+      "englishPrompt": "An app adds provider A and then provider B; both contain Search:PageSize. No provider follows B. Which value is read?",
+      "context": "Provider được thêm theo đúng thứ tự đã nêu, không có provider ẩn bổ sung sau cùng.",
+      "code": null,
+      "hint": "Nêu B thắng",
+      "nextHint": "Nêu key trùng",
+      "followUp": "Provider ưu tiên cao được reload với PageSize âm khi app đang chạy. Bạn muốn từ chối cấu hình mới, giữ giá trị cũ hay dừng phục vụ, và kiểm chứng lựa chọn đó ra sao?",
+      "englishFollowUp": "The highest-priority provider reloads a negative PageSize while the app is running. Would you reject the new configuration, retain the old value, or stop serving, and how would you verify that choice?",
+      "outline": [
+        "Nêu B thắng",
+        "Nêu key trùng",
+        "Giới hạn theo giả định"
+      ],
+      "shortAnswer": "Provider B, vì provider thêm sau ghi đè key trùng của provider trước.",
+      "explanation": "Provider B, vì provider thêm sau ghi đè key trùng của provider trước. Cấu hình được hợp nhất theo key, không phải chọn nguyên một file. Khi giá trị production sai, kiểm tra thứ tự provider và tên key thực tế trước khi sửa file; không log bí mật để chẩn đoán.",
+      "alternative": "Với cấu hình mặc định cần xét thêm environment variables và command-line thay vì chỉ hai file JSON.",
+      "trap": "Cho rằng provider được thêm đầu tiên luôn có ưu tiên cao nhất.",
+      "rubric": [
+        "Nêu B thắng",
+        "Nêu key trùng",
+        "Giới hạn theo giả định",
+        "Kiểm tra thứ tự provider"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/configuration/?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-body-limit-before-read",
+    "content": {
+      "title": "Giới hạn body phải đặt trước đọc",
+      "topic": "aspnet",
+      "subtopic": "Giới hạn body phải đặt trước đọc",
+      "tags": [
+        "Kestrel",
+        "request body limit",
+        "IsReadOnly"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Gateway chặn 10 MiB nhưng Kestrel cho 30 MiB. Upload 20 MiB có chắc đến app không?",
+      "englishPrompt": "The gateway allows 10 MiB while Kestrel allows 30 MiB. Will a 20 MiB upload necessarily reach the app?",
+      "context": "Đang xét giới hạn request body trong pipeline Kestrel; proxy phía trước có thể đặt giới hạn độc lập.",
+      "code": null,
+      "hint": "Nêu thời điểm khóa",
+      "nextHint": "Dùng IsReadOnly",
+      "followUp": "Middleware đã đọc Request.Body rồi mới sửa IHttpMaxRequestBodySizeFeature.MaxRequestBodySize. Vì sao có thể ném exception?",
+      "englishFollowUp": "Middleware reads Request.Body before changing IHttpMaxRequestBodySizeFeature.MaxRequestBodySize. Why can that throw?",
+      "outline": [
+        "Nêu thời điểm khóa",
+        "Dùng IsReadOnly",
+        "Đặt trước đọc"
+      ],
+      "shortAnswer": "Không, giới hạn gateway có thể từ chối trước.",
+      "explanation": "Khi bắt đầu đọc body, feature có thể thành read-only; giới hạn phải được cấu hình trước đó. Kiểm tra IsReadOnly và đưa cấu hình đến đúng giai đoạn pipeline. Đồng thời xem giới hạn ở reverse proxy hoặc IIS vì tăng giới hạn trong app không buộc gateway nhận payload lớn.",
+      "alternative": "Dùng policy theo endpoint khi framework hỗ trợ và giới hạn upload phù hợp nhu cầu.",
+      "trap": "Bắt exception rồi tiếp tục nhận body không giới hạn.",
+      "rubric": [
+        "Nêu thời điểm khóa",
+        "Dùng IsReadOnly",
+        "Đặt trước đọc",
+        "Xét giới hạn gateway"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/fundamentals/servers/kestrel/options?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, giới hạn gateway có thể từ chối trước.",
+          "Có, Kestrel luôn ghi đè gateway."
+        ],
+        "en": [
+          "No; the gateway limit can reject it first.",
+          "Yes; Kestrel always overrides the gateway."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Gateway xử lý request trước Kestrel; giới hạn 10 MiB của gateway có thể từ chối upload 20 MiB trước khi app nhận được body.",
+          "Giới hạn Kestrel chỉ điều khiển phía app; nâng nó lên 30 MiB không thay cấu hình hay thứ tự kiểm tra của gateway."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-timeout-cooperative-signal",
+    "content": {
+      "title": "Timeout là tín hiệu hủy",
+      "topic": "aspnet",
+      "subtopic": "Timeout là tín hiệu hủy",
+      "tags": [
+        "request timeout",
+        "cancellation",
+        "RequestAborted"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Request timeout middleware hết hạn trong khi handler đang gọi I/O. Nó có tự gọi Abort và bảo đảm dừng mọi công việc ngay không?",
+      "englishPrompt": "Request-timeout middleware expires while a handler is performing I/O. Does it automatically call Abort and guarantee that all work stops immediately?",
+      "context": "Dùng request-timeout middleware; downstream có hoặc không quan sát CancellationToken tùy tình huống.",
+      "code": null,
+      "hint": "Nêu RequestAborted",
+      "nextHint": "Nêu không tự Abort",
+      "followUp": "Handler đã bắt đầu ghi response thì timeout xảy ra. Bạn xử lý phần công việc còn lại và quan sát phía client thế nào khi status hoặc header có thể không đổi được nữa?",
+      "englishFollowUp": "A timeout occurs after the handler has started writing its response. How would you handle remaining work and observe the client outcome when the status or headers may no longer be changeable?",
+      "outline": [
+        "Nêu RequestAborted",
+        "Nêu không tự Abort",
+        "Truyền token I/O"
+      ],
+      "shortAnswer": "Không; RequestAborted được báo hủy, handler phải truyền và quan sát token phù hợp.",
+      "explanation": "Không; RequestAborted được báo hủy, handler phải truyền và quan sát token phù hợp. Middleware không tự gọi Abort. Thao tác không hợp tác có thể tiếp tục và thậm chí tạo response. Timeout cũng không đảo ngược giao dịch đã commit; vì vậy cần hợp đồng retry và kiểm tra trạng thái cho thao tác ghi.",
+      "alternative": "Đặt timeout riêng cho dependency trong ngân sách request tổng.",
+      "trap": "Xem timeout như nút kill thread và rollback tự động.",
+      "rubric": [
+        "Nêu RequestAborted",
+        "Nêu không tự Abort",
+        "Truyền token I/O",
+        "Không hứa rollback"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/performance/timeouts?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-jwt-decode-vs-verify",
+    "content": {
+      "title": "Đọc JWT không phải xác minh chữ ký",
+      "topic": "aspnet",
+      "subtopic": "Đọc JWT không phải xác minh chữ ký",
+      "tags": [
+        "JWT",
+        "token validation",
+        "Bearer"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Payload vẫn đọc được sau khi đổi role nhưng chữ ký không khớp. API phải làm gì?",
+      "englishPrompt": "The payload remains readable after a role change but its signature no longer matches. What must the API do?",
+      "context": "Đang xét API Bearer; không có custom handler bỏ qua các quy tắc validation hoặc thay đổi ý nghĩa challenge/forbid.",
+      "code": null,
+      "hint": "Tách decode và verify",
+      "nextHint": "Xác minh chữ ký",
+      "followUp": "API chỉ base64-decode JWT rồi tin role=Admin trong payload. Token không qua xác minh chữ ký. Bạn nêu lỗi cốt lõi và cách sửa thế nào?",
+      "englishFollowUp": "An API only base64-decodes a JWT and trusts role=Admin from the payload without signature validation. What is the central flaw and correction?",
+      "outline": [
+        "Tách decode và verify",
+        "Xác minh chữ ký",
+        "Kiểm tra claims ràng buộc"
+      ],
+      "shortAnswer": "Từ chối token chưa xác minh được.",
+      "explanation": "Decode chỉ đọc dữ liệu; phải xác minh chữ ký cùng issuer, audience và lifetime trước khi tin claims. Payload có cấu trúc hợp lệ không chứng minh nguồn phát hay toàn vẹn. Dùng handler Bearer và cấu hình trust từ nhà phát hành hợp lệ; fail closed khi xác minh không đạt. Sau xác thực vẫn phải kiểm tra quyền của endpoint.",
+      "alternative": "Dùng identity provider chuẩn thay vì tự triển khai bộ phân tích token production.",
+      "trap": "Cho rằng JWT đọc được và có trường exp nghĩa là đáng tin.",
+      "rubric": [
+        "Tách decode và verify",
+        "Xác minh chữ ký",
+        "Kiểm tra claims ràng buộc",
+        "Giữ authorization"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Từ chối token chưa xác minh được.",
+          "Tin role vì JSON vẫn hợp lệ."
+        ],
+        "en": [
+          "Reject the token whose validation fails.",
+          "Trust the role because the JSON is valid."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Payload đọc được không chứng minh toàn vẹn. Chữ ký không khớp làm token validation thất bại nên API không được tin claim role đã sửa.",
+          "JSON hoặc base64 hợp lệ chỉ cho biết cú pháp đọc được; không thay thế xác minh chữ ký và các điều kiện issuer, audience, lifetime."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-jwt-expired-token",
+    "content": {
+      "title": "Token hết hạn với chữ ký đúng",
+      "topic": "aspnet",
+      "subtopic": "Token hết hạn với chữ ký đúng",
+      "tags": [
+        "JWT",
+        "token validation",
+        "Bearer"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Token có chữ ký đúng, đúng issuer và audience nhưng đã hết hạn ngoài clock skew đã cấu hình. API có nên tiếp nhận vì user còn tồn tại?",
+      "englishPrompt": "A token has a valid signature, issuer and audience but has expired beyond configured clock skew. Should the API accept it because the user still exists?",
+      "context": "Đang xét API Bearer; không có custom handler bỏ qua các quy tắc validation hoặc thay đổi ý nghĩa challenge/forbid.",
+      "code": null,
+      "hint": "Nêu expired không hợp lệ",
+      "nextHint": "Phân biệt chữ ký và hạn",
+      "followUp": "Token còn hạn nhưng tài khoản vừa bị vô hiệu hóa; API xác minh JWT cục bộ và không hỏi issuer mỗi request. Bạn giải thích độ trễ thu hồi và đánh giá các phương án kiểm tra trạng thái thế nào?",
+      "englishFollowUp": "A token is still valid, but its account has just been disabled; the API validates JWTs locally without contacting the issuer on every request. How would you explain revocation delay and evaluate status-checking options?",
+      "outline": [
+        "Nêu expired không hợp lệ",
+        "Phân biệt chữ ký và hạn",
+        "Nêu lấy token mới"
+      ],
+      "shortAnswer": "Không; lifetime validation thất bại nên trả authentication challenge, thường là 401 cho Bearer.",
+      "explanation": "Không; lifetime validation thất bại nên trả authentication challenge, thường là 401 cho Bearer. Chữ ký xác nhận toàn vẹn chứ không làm token có giá trị vô thời hạn. Client cần luồng lấy access token mới theo identity provider; API không tự gia hạn chỉ bằng cách bỏ qua exp.",
+      "alternative": "Clock skew hữu hạn xử lý sai lệch đồng hồ, không thay cho chính sách hết hạn.",
+      "trap": "Tắt ValidateLifetime để chữa lỗi đồng hồ lâu dài.",
+      "rubric": [
+        "Nêu expired không hợp lệ",
+        "Phân biệt chữ ký và hạn",
+        "Nêu lấy token mới",
+        "Giới hạn clock skew"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-authenticated-forbid",
+    "content": {
+      "title": "Đã xác thực nhưng thiếu quyền",
+      "topic": "aspnet",
+      "subtopic": "Đã xác thực nhưng thiếu quyền",
+      "tags": [
+        "JWT",
+        "token validation",
+        "Bearer"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Refresh token cấp lại cùng các quyền, export vẫn bị forbid. Có nên retry vô hạn không?",
+      "englishPrompt": "Refreshing produces the same permissions and export is still forbidden. Should the client retry indefinitely?",
+      "context": "Đang xét API Bearer; không có custom handler bỏ qua các quy tắc validation hoặc thay đổi ý nghĩa challenge/forbid.",
+      "code": null,
+      "hint": "Tách authentication",
+      "nextHint": "Tách authorization",
+      "followUp": "Bearer token hợp lệ, principal đã xác thực nhưng policy export đòi quyền mà user không có. API nên phân biệt tình huống này với thiếu token ra sao?",
+      "englishFollowUp": "A valid Bearer token authenticates a principal, but the export policy requires a permission the user lacks. How should this differ from a missing token?",
+      "outline": [
+        "Tách authentication",
+        "Tách authorization",
+        "Nêu 403 forbid"
+      ],
+      "shortAnswer": "Không, cần xử lý thiếu quyền.",
+      "explanation": "Thiếu quyền sau xác thực là forbid, thường 403; thiếu hoặc sai credentials là challenge, thường 401. Đăng nhập lại cùng quyền không tự giải quyết forbid. Client có thể hướng dẫn xin quyền; server không được cấp quyền dựa vào việc client giấu hay hiện nút export.",
+      "alternative": "Có trường hợp che sự tồn tại tài nguyên bằng 404 theo chính sách nhất quán; nêu rõ đó là lựa chọn thiết kế.",
+      "trap": "Trả 401 cho mọi lỗi để client lặp refresh token mãi.",
+      "rubric": [
+        "Tách authentication",
+        "Tách authorization",
+        "Nêu 403 forbid",
+        "Nêu cách client xử lý"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authentication/configure-jwt-bearer-authentication?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, token mới cuối cùng sẽ tự có quyền.",
+          "Không, cần xử lý thiếu quyền."
+        ],
+        "en": [
+          "Yes; a newer token will eventually gain the permission.",
+          "No; the missing permission must be addressed."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Token mới không tự sinh quyền chưa được cấp. Retry vô hạn cùng permission set không sửa được quyết định forbid.",
+          "Refresh vẫn cấp cùng quyền không giải quyết authorization bị thiếu; client phải xử lý forbid hoặc xin quyền theo quy trình thay vì retry vô hạn."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-accepted-job-status",
+    "content": {
+      "title": "202 chưa phải công việc hoàn tất",
+      "topic": "aspnet",
+      "subtopic": "202 chưa phải công việc hoàn tất",
+      "tags": [
+        "HTTP semantics",
+        "status codes",
+        "API contract"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "POST /reports đưa job vào hệ thống xử lý bất đồng bộ và trả 202. Client có thể thông báo file đã tạo thành công ngay không?",
+      "englishPrompt": "POST /reports submits a job for asynchronous processing and returns 202. Can the client immediately announce that the file was generated?",
+      "context": "API và client đã thống nhất media type và authentication; cần diễn giải đúng kết quả xử lý nghiệp vụ.",
+      "code": null,
+      "hint": "Nêu chưa hoàn tất",
+      "nextHint": "Nêu status resource",
+      "followUp": "Job báo cáo đã hoàn tất nhưng file bị xóa theo retention trước lần poll tiếp theo. Bạn thiết kế trạng thái job, quyền tải và phản hồi cho client ra sao để không hứa tài nguyên còn tồn tại?",
+      "englishFollowUp": "A report job completed, but retention deleted its file before the next poll. How would you design job state, download authorization, and client responses without promising that the resource still exists?",
+      "outline": [
+        "Nêu chưa hoàn tất",
+        "Nêu status resource",
+        "Nêu lỗi sau response"
+      ],
+      "shortAnswer": "Không; 202 chỉ cho biết đã nhận để xử lý, chưa bảo đảm xử lý thành công.",
+      "explanation": "Không; 202 chỉ cho biết đã nhận để xử lý, chưa bảo đảm xử lý thành công. Trả job ID và đường dẫn đọc trạng thái theo hợp đồng. Phân biệt queued, running, succeeded và failed; chỉ cho tải file khi hoàn tất. Job có thể thất bại sau response nên client cần trạng thái cuối.",
+      "alternative": "Nếu công việc thật sự ngắn và hoàn tất trong request, trả kết quả đồng bộ phù hợp.",
+      "trap": "Diễn giải accepted là completed.",
+      "rubric": [
+        "Nêu chưa hoàn tất",
+        "Nêu status resource",
+        "Nêu lỗi sau response",
+        "Chỉ tải khi thành công"
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-state-conflict-response",
+    "content": {
+      "title": "409 cho trạng thái không cho phép",
+      "topic": "aspnet",
+      "subtopic": "409 cho trạng thái không cho phép",
+      "tags": [
+        "HTTP semantics",
+        "status codes",
+        "API contract"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Client gửi lại cùng yêu cầu với Content-Type đúng nhưng trạng thái vẫn shipped. Điều gì thay đổi?",
+      "englishPrompt": "The client retries with the correct Content-Type but the state is still shipped. What changes?",
+      "context": "API và client đã thống nhất media type và authentication; cần diễn giải đúng kết quả xử lý nghiệp vụ.",
+      "code": null,
+      "hint": "Nêu conflict trạng thái",
+      "nextHint": "Tách media type",
+      "followUp": "Đơn hàng đã shipped. Client gửi yêu cầu hủy đúng JSON và được xác thực, nhưng quy tắc chỉ cho hủy trước shipped. Vì sao 409 phù hợp hơn 415?",
+      "englishFollowUp": "An order is already shipped. A cancellation request has valid JSON and authentication, but cancellation is allowed only before shipping. Why does 409 fit better than 415?",
+      "outline": [
+        "Nêu conflict trạng thái",
+        "Tách media type",
+        "Giải thích recovery"
+      ],
+      "shortAnswer": "Không giải quyết conflict nghiệp vụ.",
+      "explanation": "Request xung đột với trạng thái hiện tại; 415 nói về media type không được hỗ trợ. API nên mô tả conflict và hướng xử lý an toàn, chẳng hạn quy trình hoàn trả. JSON parse thành công không có nghĩa nghiệp vụ được phép. Giữ chuyển trạng thái nguyên tử để request đồng thời không vượt kiểm tra.",
+      "alternative": "Một API có thể dùng mã lỗi nghiệp vụ ổn định trong Problem Details để client quyết định luồng.",
+      "trap": "Đổi Content-Type của client để sửa lỗi trạng thái đơn hàng.",
+      "rubric": [
+        "Nêu conflict trạng thái",
+        "Tách media type",
+        "Giải thích recovery",
+        "Giữ chuyển trạng thái nguyên tử"
+      ],
+      "source": "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không giải quyết conflict nghiệp vụ.",
+          "Đơn tự trở lại trạng thái cho phép hủy."
+        ],
+        "en": [
+          "The business-state conflict remains unresolved.",
+          "The order automatically becomes cancellable."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Content-Type đúng chỉ giải quyết media type. Quy tắc không cho hủy đơn shipped vẫn làm yêu cầu xung đột trạng thái nghiệp vụ.",
+          "Header không thay đổi trạng thái đơn hay điều kiện hủy; cần một chuyển trạng thái hợp lệ theo nghiệp vụ, không phải chỉ gửi lại JSON."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-anonymous-metadata-bypass",
+    "content": {
+      "title": "AllowAnonymous trên endpoint đặc biệt",
+      "topic": "aspnet",
+      "subtopic": "AllowAnonymous trên endpoint đặc biệt",
+      "tags": [
+        "AllowAnonymous",
+        "authorization metadata",
+        "fallback policy"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Controller có Authorize nhưng action health công khai có AllowAnonymous. Có nên dựa vào Authorize ở controller để chặn action này không?",
+      "englishPrompt": "A controller has Authorize, but its public health action has AllowAnonymous. Can you rely on controller-level Authorize to block this action?",
+      "context": "Endpoint routing đã chọn action; không có một gateway khác áp thêm authorization ngoài ASP.NET Core.",
+      "code": null,
+      "hint": "Nhận diện AllowAnonymous",
+      "nextHint": "Không dựa vào controller",
+      "followUp": "Một route group có nhiều endpoint được thêm qua các module. Bạn xây phép kiểm tự động nào để phát hiện endpoint nhạy cảm vô tình có metadata anonymous mà không chỉ đọc từng controller?",
+      "englishFollowUp": "A route group gains endpoints through several modules. What automated check would detect sensitive endpoints accidentally marked anonymous without relying only on manually reading controllers?",
+      "outline": [
+        "Nhận diện AllowAnonymous",
+        "Không dựa vào controller",
+        "Giảm dữ liệu public"
+      ],
+      "shortAnswer": "Không; AllowAnonymous khiến authorization middleware không thực thi lỗi phân quyền cho endpoint đó.",
+      "explanation": "Không; AllowAnonymous khiến authorization middleware không thực thi lỗi phân quyền cho endpoint đó. Metadata được kết hợp khi chọn endpoint, không phải quyền luôn tăng theo cấp lớp. Dùng public health response tối thiểu; kiểm tra không lộ thông tin hạ tầng hoặc dữ liệu riêng qua action này.",
+      "alternative": "Tách endpoint health công khai và health nội bộ có xác thực.",
+      "trap": "Nghĩ Authorize ở controller luôn thắng mọi metadata action.",
+      "rubric": [
+        "Nhận diện AllowAnonymous",
+        "Không dựa vào controller",
+        "Giảm dữ liệu public",
+        "Kiểm thử anonymous"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/security/authorization/policies?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-profile-dto-allowlist",
+    "content": {
+      "title": "DTO cập nhật không chứa IsAdmin",
+      "topic": "aspnet",
+      "subtopic": "DTO cập nhật không chứa IsAdmin",
+      "tags": [
+        "overposting",
+        "input DTO",
+        "allowlist"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "DTO chỉ có DisplayName, payload thêm Balance. Kết quả an toàn cần giữ bất biến nào?",
+      "englishPrompt": "A DTO contains only DisplayName, but a payload adds Balance. What invariant must hold?",
+      "context": "Profile endpoint chỉ cho đổi thông tin hiển thị; quyền và số dư là trường do server quản lý.",
+      "code": null,
+      "hint": "Nhận diện overposting",
+      "nextHint": "DTO allowlist",
+      "followUp": "Profile API bind toàn bộ User entity; JSON client có thể gửi IsAdmin=true. Bạn ngăn overposting theo ranh giới nào?",
+      "englishFollowUp": "A profile API binds the entire User entity, allowing JSON to include IsAdmin=true. What boundary prevents overposting?",
+      "outline": [
+        "Nhận diện overposting",
+        "DTO allowlist",
+        "Server giữ trường quyền"
+      ],
+      "shortAnswer": "Balance không được thay đổi qua profile endpoint.",
+      "explanation": "Dùng input DTO chỉ có các trường được sửa và ánh xạ tường minh; quyền quản trị do server quyết định. Ẩn ô IsAdmin trên giao diện không chặn request tự tạo. Tách trường do client điều khiển khỏi trường hệ thống, không map mù toàn bộ entity. Test payload có trường nhạy cảm để bảo đảm quyền không đổi.",
+      "alternative": "Dùng allowlist binding nếu stack phù hợp, nhưng DTO làm hợp đồng dễ review hơn.",
+      "trap": "Chỉ đặt input HTML hidden cho IsAdmin.",
+      "rubric": [
+        "Nhận diện overposting",
+        "DTO allowlist",
+        "Server giữ trường quyền",
+        "Test payload nhạy cảm"
+      ],
+      "source": "https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Mọi property JSON tự động cập nhật entity.",
+          "Balance không được thay đổi qua profile endpoint."
+        ],
+        "en": [
+          "Every JSON property automatically updates the entity.",
+          "Balance must not change through the profile endpoint."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "JSON không tự cấp quyền cập nhật entity. DTO hẹp và ánh xạ tường minh phải giữ Balance ngoài tập trường được sửa; có thể từ chối hoặc bỏ qua trường lạ theo policy.",
+          "Balance không thuộc DTO và không được ánh xạ qua write path này; endpoint chỉ được sửa DisplayName theo hợp đồng, kể cả client tự thêm trường JSON."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "aspnet-avatar-fetch-destination",
+    "content": {
+      "title": "URL ảnh đại diện là đầu vào mạng",
+      "topic": "aspnet",
+      "subtopic": "URL ảnh đại diện là đầu vào mạng",
+      "tags": [
+        "SSRF",
+        "egress control",
+        "redirect validation"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "ASP.NET Core 10",
+      "prompt": "API nhận URL avatar rồi server tải về. Chỉ kiểm tra URL đúng cú pháp có đủ để bảo vệ mạng nội bộ không?",
+      "englishPrompt": "An API accepts an avatar URL and the server fetches it. Is validating URL syntax enough to protect the internal network?",
+      "context": "Server có thể truy cập tài nguyên mạng mà browser của người dùng không được truy cập trực tiếp.",
+      "code": null,
+      "hint": "Nhận diện SSRF",
+      "nextHint": "Kiểm soát destination",
+      "followUp": "Tên miền được cho phép thay đổi IP giữa lúc kiểm tra URL và lúc kết nối. Bạn đánh giá ranh giới DNS, redirect và egress thế nào, và ca test nào tái hiện được khoảng race này?",
+      "englishFollowUp": "An allowed hostname changes its IP between URL validation and connection. How would you assess DNS, redirect, and egress boundaries, and what test would reproduce that race?",
+      "outline": [
+        "Nhận diện SSRF",
+        "Kiểm soát destination",
+        "Xét redirect và DNS"
+      ],
+      "shortAnswer": "Không; cần giới hạn đích được phép và kiểm soát egress, bao gồm xử lý redirect và phân giải tên.",
+      "explanation": "Không; cần giới hạn đích được phép và kiểm soát egress, bao gồm xử lý redirect và phân giải tên. Một URI hợp lệ vẫn có thể chỉ đến loopback, mạng private hoặc metadata service. Ưu tiên allowlist đích khi nghiệp vụ cho phép và không theo redirect tự do vượt ranh giới. Giới hạn dung lượng và timeout để tránh cạn tài nguyên.",
+      "alternative": "Cho upload trực tiếp thay vì server tải URL tùy ý nếu yêu cầu sản phẩm cho phép.",
+      "trap": "Tin mọi địa chỉ dùng https và có đuôi .png.",
+      "rubric": [
+        "Nhận diện SSRF",
+        "Kiểm soát destination",
+        "Xét redirect và DNS",
+        "Giới hạn tải"
+      ],
+      "source": "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "aspnet-login-enumeration-response",
+    "content": {
+      "title": "Thông báo đăng nhập không dò tài khoản",
+      "topic": "aspnet",
+      "subtopic": "Thông báo đăng nhập không dò tài khoản",
+      "tags": [
+        "account enumeration",
+        "generic errors",
+        "authentication"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "ASP.NET Core 10",
+      "prompt": "Reset password nói rõ email chưa đăng ký. Việc sửa riêng login đã đủ chưa?",
+      "englishPrompt": "Password reset explicitly says the email is unregistered. Is fixing login alone sufficient?",
+      "context": "API đăng nhập và khôi phục mật khẩu được công khai; cần cân bằng hỗ trợ người dùng với bảo vệ tài khoản.",
+      "code": null,
+      "hint": "Nêu account enumeration",
+      "nextHint": "Nhất quán lỗi public",
+      "followUp": "Login trả “không có email” cho tài khoản lạ và “sai mật khẩu” cho tài khoản có thật. Bạn sửa thông báo thế nào mà vẫn chẩn đoán được?",
+      "englishFollowUp": "Login returns “email not found” for unknown accounts and “wrong password” for existing accounts. How would you revise messages while retaining diagnostics?",
+      "outline": [
+        "Nêu account enumeration",
+        "Nhất quán lỗi public",
+        "Xét status và timing"
+      ],
+      "shortAnswer": "Chưa, luồng khôi phục cũng cần tránh tiết lộ.",
+      "explanation": "Trả lỗi xác thực tổng quát nhất quán; ghi sự kiện an toàn nội bộ thay vì công khai trạng thái tài khoản. Thông báo phân biệt giúp dò danh sách tài khoản. Cũng xét mã trạng thái, thời gian xử lý và luồng reset password để tránh kênh phụ. Không ghi mật khẩu hoặc access token vào log.",
+      "alternative": "Hướng dẫn người dùng kiểm tra thông tin hoặc dùng luồng khôi phục với phản hồi không tiết lộ tồn tại.",
+      "trap": "Dùng cùng câu nhưng giữ status 404 riêng cho email lạ.",
+      "rubric": [
+        "Nêu account enumeration",
+        "Nhất quán lỗi public",
+        "Xét status và timing",
+        "Không log credentials"
+      ],
+      "source": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đủ vì reset không phải đăng nhập.",
+          "Chưa, luồng khôi phục cũng cần tránh tiết lộ."
+        ],
+        "en": [
+          "Yes; reset is not sign-in.",
+          "No; recovery must also avoid revealing account existence."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Attacker có thể dùng luồng khôi phục để dò tài khoản dù login đã dùng thông báo tổng quát; tên endpoint không loại bỏ rủi ro enumeration.",
+          "Thông báo reset riêng cho email chưa đăng ký vẫn tiết lộ account existence; cần xem cả login, recovery và các tín hiệu phản hồi liên quan."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-rset-boundary",
+    "content": {
+      "title": "Tạo key cùng thời hạn",
+      "topic": "systems",
+      "subtopic": "Tạo key cùng thời hạn",
+      "tags": [
+        "Redis SET",
+        "atomic expiry",
+        "NX"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "Redis 7+",
+      "prompt": "Ứng dụng SET key rồi gọi EXPIRE riêng. Nếu process chết giữa hai lệnh, điều gì xảy ra và nên gộp thao tác ra sao?",
+      "englishPrompt": "An application runs SET and then a separate EXPIRE. What happens if it crashes between them, and how should it combine the operations?",
+      "context": "Redis key được tạo từ ứng dụng có thể crash giữa các network call; expiration là yêu cầu bắt buộc.",
+      "code": null,
+      "hint": "Nêu cửa sổ crash",
+      "nextHint": "Gộp SET và expiry",
+      "followUp": "Client timeout khi tạo reservation nên chưa biết SET đã thành công hay chưa. Bạn xác định quyền sở hữu và quyết định thử lại thế nào để không tạo hai bên cùng tưởng mình đã giữ chỗ?",
+      "englishFollowUp": "The client times out creating a reservation and cannot tell whether SET succeeded. How would you establish ownership and decide on a retry without two parties both believing they hold the reservation?",
+      "outline": [
+        "Nêu cửa sổ crash",
+        "Gộp SET và expiry",
+        "Xử lý kết quả"
+      ],
+      "shortAnswer": "Key có thể không có thời hạn; dùng SET với EX hoặc PX trong cùng lệnh khi tạo.",
+      "explanation": "Key có thể không có thời hạn; dùng SET với EX hoặc PX trong cùng lệnh khi tạo. TTL là một phần yêu cầu lưu key, không phải cleanup tùy chọn sau đó. Gộp expiration vào SET loại cửa sổ lỗi giữa hai lệnh; vẫn phải xử lý lỗi mạng và kết quả lệnh. Đây không phải bảo đảm transaction giữa Redis và DB.",
+      "alternative": "Nếu nghiệp vụ cần chỉ tạo khi vắng, kết hợp NX với expiration và kiểm tra kết quả.",
+      "trap": "Tin rằng EXPIRE luôn chạy vì hai dòng mã nằm cạnh nhau.",
+      "rubric": [
+        "Nêu cửa sổ crash",
+        "Gộp SET và expiry",
+        "Xử lý kết quả",
+        "Không suy rộng sang DB"
+      ],
+      "source": "https://redis.io/docs/latest/commands/set/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-rexpire-boundary",
+    "content": {
+      "title": "Ghi đè có thể mất TTL",
+      "topic": "systems",
+      "subtopic": "Ghi đè có thể mất TTL",
+      "tags": [
+        "Redis TTL",
+        "SET",
+        "KEEPTTL"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "Redis 7+",
+      "prompt": "Hợp đồng yêu cầu giữ đúng mốc hết hạn cũ khi thay chuỗi. Dùng lựa chọn nào?",
+      "englishPrompt": "The contract requires preserving the old expiry deadline when replacing a string. Which option fits?",
+      "context": "Đang dùng Redis 7 trở lên; key là string và writer thay giá trị bằng SET theo đúng tùy chọn trong đề.",
+      "code": null,
+      "hint": "Nêu SET bỏ TTL",
+      "nextHint": "Phân biệt giữ và gia hạn",
+      "followUp": "Key cache đang có expiration. Một writer dùng SET thông thường để thay giá trị, không truyền expiration hay KEEPTTL. Vì sao key có thể không còn hết hạn?",
+      "englishFollowUp": "A cache key has an expiration. A writer replaces its value with plain SET, without expiration or KEEPTTL. Why can the key become persistent?",
+      "outline": [
+        "Nêu SET bỏ TTL",
+        "Phân biệt giữ và gia hạn",
+        "Bao phủ write path"
+      ],
+      "shortAnswer": "SET với KEEPTTL.",
+      "explanation": "SET thay giá trị sẽ xóa TTL cũ nếu không yêu cầu giữ hoặc đặt thời hạn mới. Không suy TTL là thuộc tính bất biến của tên key. Quy ước mọi write path đặt TTL hoặc KEEPTTL theo ý định. Kiểm tra TTL sau các đường cập nhật thay vì chỉ test lúc tạo key.",
+      "alternative": "Đặt lại TTL mới nếu thời hạn tính từ lần cập nhật; giữ TTL nếu muốn mốc hết hạn cũ.",
+      "trap": "Cho rằng cập nhật giá trị luôn tự giữ TTL ban đầu.",
+      "rubric": [
+        "Nêu SET bỏ TTL",
+        "Phân biệt giữ và gia hạn",
+        "Bao phủ write path",
+        "Kiểm tra sau update"
+      ],
+      "source": "https://redis.io/docs/latest/commands/expire/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "SET thường rồi không xét TTL.",
+          "SET với KEEPTTL."
+        ],
+        "en": [
+          "Plain SET without considering expiry.",
+          "SET with KEEPTTL."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "SET thường thay giá trị sẽ xóa TTL cũ; nếu không dùng KEEPTTL hoặc đặt hạn mới thì không đáp ứng hợp đồng giữ expiration.",
+          "SET KEEPTTL giữ thời điểm hết hạn đã có khi thay giá trị chuỗi, phù hợp yêu cầu không dời deadline cũ."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-rttl-boundary",
+    "content": {
+      "title": "TTL âm có hai ý nghĩa",
+      "topic": "systems",
+      "subtopic": "TTL âm có hai ý nghĩa",
+      "tags": [
+        "Redis TTL",
+        "sentinel values",
+        "cache diagnostics"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": "Redis 7+",
+      "prompt": "Redis hiện đại trả TTL=-1 cho key A và TTL=-2 cho key B. Hai kết quả khác nhau thế nào khi điều tra cache rò bộ nhớ?",
+      "englishPrompt": "Modern Redis returns TTL=-1 for key A and TTL=-2 for key B. How do these differ when investigating cache growth?",
+      "context": "Dùng ngữ nghĩa TTL của Redis 2.8 trở lên; không có thao tác đồng thời thay key giữa các phép quan sát được nêu.",
+      "code": null,
+      "hint": "Nêu -1 còn key",
+      "nextHint": "Nêu -2 vắng key",
+      "followUp": "Key có thể hết hạn giữa hai lần dashboard gọi EXISTS và TTL. Bạn trình bày số liệu và kiểm thử collector thế nào để không diễn giải một quan sát bị race thành lỗi Redis?",
+      "englishFollowUp": "A key can expire between the dashboard’s EXISTS and TTL calls. How would you present the metrics and test the collector without interpreting a raced observation as a Redis fault?",
+      "outline": [
+        "Nêu -1 còn key",
+        "Nêu -2 vắng key",
+        "Không đoán lịch sử"
+      ],
+      "shortAnswer": "A tồn tại nhưng không có expiration; B không tồn tại.",
+      "explanation": "A tồn tại nhưng không có expiration; B không tồn tại. Không gộp mọi số âm thành đã hết hạn. A cần kiểm tra write path hoặc chủ ý lưu bền; B có thể đã hết hạn, bị xóa hoặc chưa từng có. TTL không xác định nguyên nhân lịch sử khiến key vắng.",
+      "alternative": "Dùng PTTL khi cần độ phân giải mili giây, vẫn diễn giải sentinel đúng.",
+      "trap": "Xem -1 nghĩa là key đã biến mất từ một giây trước.",
+      "rubric": [
+        "Nêu -1 còn key",
+        "Nêu -2 vắng key",
+        "Không đoán lịch sử",
+        "Liên hệ kiểm tra TTL"
+      ],
+      "source": "https://redis.io/docs/latest/commands/ttl/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-revict-boundary",
+    "content": {
+      "title": "TTL chưa đến nhưng key biến mất",
+      "topic": "systems",
+      "subtopic": "TTL chưa đến nhưng key biến mất",
+      "tags": [
+        "Redis eviction",
+        "maxmemory",
+        "cache miss"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "Redis 7+",
+      "prompt": "Noeviction đạt maxmemory. Điều gì xảy ra với lệnh thêm dữ liệu mới?",
+      "englishPrompt": "Noeviction reaches maxmemory. What happens to commands that add new data?",
+      "context": "Dữ liệu cache có thể tái tạo từ nguồn chính; eviction policy và maxmemory đã được cấu hình như đề.",
+      "code": null,
+      "hint": "Tách expiry và eviction",
+      "nextHint": "Nêu áp lực bộ nhớ",
+      "followUp": "Cache dùng allkeys-lru và chạm maxmemory. Một key còn TTL một giờ bị miss. Điều đó có chứng minh Redis làm sai expiration không?",
+      "englishFollowUp": "A cache uses allkeys-lru and reaches maxmemory. A key with one hour of TTL remaining is missing. Does this prove an expiration bug?",
+      "outline": [
+        "Tách expiry và eviction",
+        "Nêu áp lực bộ nhớ",
+        "Có miss path"
+      ],
+      "shortAnswer": "Có thể bị trả lỗi thay vì tự loại key.",
+      "explanation": "Không; eviction có thể loại key trước TTL khi có áp lực bộ nhớ. Expiration là giới hạn thời gian, không phải lời hứa lưu key đến đúng mốc đó. Cache phải chịu được miss và tái tạo từ nguồn có thẩm quyền. Kiểm tra eviction metrics và memory policy thay vì chỉ tăng TTL.",
+      "alternative": "Nếu dữ liệu không tái tạo được, đừng dùng nó như cache có thể bị eviction.",
+      "trap": "Dựa vào TTL như bảo đảm key sẽ còn tồn tại.",
+      "rubric": [
+        "Tách expiry và eviction",
+        "Nêu áp lực bộ nhớ",
+        "Có miss path",
+        "Đo eviction"
+      ],
+      "source": "https://redis.io/docs/latest/develop/reference/eviction/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có thể bị trả lỗi thay vì tự loại key.",
+          "Mọi key tự bị xóa theo LRU."
+        ],
+        "en": [
+          "They can be rejected rather than evicting keys.",
+          "All keys are automatically removed by LRU."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Với maxmemory-policy=noeviction, Redis không giải phóng chỗ bằng cách loại key; lệnh cần thêm dữ liệu có thể nhận lỗi khi vượt giới hạn.",
+          "LRU là một policy eviction khác. noeviction không tự chuyển sang LRU và không xóa mọi key khi chạm maxmemory."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-rpersist-boundary",
+    "content": {
+      "title": "AOF mỗi giây không bằng không mất dữ liệu",
+      "topic": "systems",
+      "subtopic": "AOF mỗi giây không bằng không mất dữ liệu",
+      "tags": [
+        "Redis AOF",
+        "fsync",
+        "RPO"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "Redis 7+",
+      "prompt": "Redis bật AOF appendfsync everysec. Chủ sản phẩm hỏi có cam kết không mất bất kỳ write vừa được xác nhận khi máy sập không. Bạn trả lời thế nào?",
+      "englishPrompt": "Redis uses AOF with appendfsync everysec. A product owner asks whether every recently acknowledged write is guaranteed to survive a machine crash. How would you answer?",
+      "context": "AOF everysec đã bật; đang xét mất điện hoặc lỗi máy chứ không chỉ restart process có kiểm soát.",
+      "code": null,
+      "hint": "Nêu cửa sổ chưa fsync",
+      "nextHint": "Không hứa zero loss",
+      "followUp": "Đội cân nhắc đổi appendfsync từ everysec sang always cho một workload nhạy mất dữ liệu. Bạn đo trade-off độ trễ, throughput và rủi ro còn lại bằng thử nghiệm nào?",
+      "englishFollowUp": "The team is considering changing appendfsync from everysec to always for a loss-sensitive workload. What experiment would measure latency, throughput, and the remaining durability risks?",
+      "outline": [
+        "Nêu cửa sổ chưa fsync",
+        "Không hứa zero loss",
+        "Chốt RPO"
+      ],
+      "shortAnswer": "Không cam kết zero loss; có cửa sổ dữ liệu chưa fsync, thường được mô tả khoảng một giây.",
+      "explanation": "Không cam kết zero loss; có cửa sổ dữ liệu chưa fsync, thường được mô tả khoảng một giây. AOF giảm rủi ro nhưng độ bền phụ thuộc fsync và hệ thống lưu trữ. Chốt RPO/RTO theo nghiệp vụ, thử phục hồi thực tế và giữ dữ liệu quan trọng ở nguồn có mức bền phù hợp. Replica cũng không thay thế backup.",
+      "alternative": "Cân nhắc fsync always với chi phí latency, vẫn đánh giá toàn bộ hệ thống.",
+      "trap": "Đọc từ AOF là đã có backup độc lập hoàn chỉnh.",
+      "rubric": [
+        "Nêu cửa sổ chưa fsync",
+        "Không hứa zero loss",
+        "Chốt RPO",
+        "Thử restore"
+      ],
+      "source": "https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-rlock-boundary",
+    "content": {
+      "title": "Không xóa khóa của chủ mới",
+      "topic": "systems",
+      "subtopic": "Không xóa khóa của chủ mới",
+      "tags": [
+        "distributed lease",
+        "lock ownership",
+        "atomic release"
+      ],
+      "format": "quiz",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 4,
+      "technology": "Redis 7+",
+      "prompt": "A đọc token đúng rồi pause; B thay lock trước DEL. GET rồi DEL rời có đủ không?",
+      "englishPrompt": "A reads the right token, pauses, and B replaces the lock before DEL. Are separate GET and DEL sufficient?",
+      "context": "Hai worker cùng dùng một lock key; pause có thể dài hơn lease và có worker mới acquire sau expiry.",
+      "code": null,
+      "hint": "Nêu stale owner",
+      "nextHint": "Token riêng",
+      "followUp": "Worker A giữ lock có TTL, bị pause lâu đến khi lock hết hạn. Worker B lấy lock mới. A tiếp tục và gọi DEL lock. Lỗi thiết kế là gì?",
+      "englishFollowUp": "Worker A holds a TTL lock, pauses until it expires, and worker B acquires a new lock. A resumes and calls DEL lock. What is the design error?",
+      "outline": [
+        "Nêu stale owner",
+        "Token riêng",
+        "Compare-delete nguyên tử"
+      ],
+      "shortAnswer": "Không, phép kiểm tra và xóa phải nguyên tử.",
+      "explanation": "A có thể xóa lock của B; release phải kiểm tra token sở hữu và xóa nguyên tử. Mỗi lần acquire dùng giá trị riêng. Compare-and-delete phải là một thao tác nguyên tử, không GET rồi DEL rời nhau. Lease hết hạn còn có thể làm A tiếp tục side effect; thao tác quan trọng cần fencing hoặc bất biến ở nơi ghi.",
+      "alternative": "Dùng ràng buộc hoặc transaction tại DB khi đó là nơi có thể bảo vệ bất biến thật.",
+      "trap": "Cho rằng biết tên key đồng nghĩa vẫn sở hữu lease.",
+      "rubric": [
+        "Nêu stale owner",
+        "Token riêng",
+        "Compare-delete nguyên tử",
+        "Nêu giới hạn lease"
+      ],
+      "source": "https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, lần GET trước đã chứng minh quyền mãi mãi.",
+          "Không, phép kiểm tra và xóa phải nguyên tử."
+        ],
+        "en": [
+          "Yes; the earlier GET proves ownership forever.",
+          "No; checking and deleting must be atomic."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "GET chỉ xác nhận ownership tại lúc đọc; pause và expiry có thể làm token đó hết quyền trước DEL, nên kết quả GET không có hiệu lực vô thời hạn.",
+          "Giữa GET và DEL có race: token có thể đổi sang chủ mới. Kiểm token và xóa phải nằm trong một thao tác nguyên tử để không xóa lease của B."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-rpipe-boundary",
+    "content": {
+      "title": "Pipeline giảm round trip",
+      "topic": "systems",
+      "subtopic": "Pipeline giảm round trip",
+      "tags": [
+        "Redis pipelining",
+        "round trip",
+        "batch size"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Redis 7+",
+      "prompt": "Job cập nhật một nghìn key độc lập, hiện chờ từng Redis reply trước lệnh kế. RTT chiếm phần lớn thời gian. Pipeline giải quyết điểm gì và không bảo đảm gì?",
+      "englishPrompt": "A job updates a thousand independent keys, awaiting each Redis reply before issuing the next command. RTT dominates. What does pipelining address, and what does it not guarantee?",
+      "context": "Các cập nhật độc lập; RTT đáng kể và kết quả từng command vẫn cần được quan sát.",
+      "code": null,
+      "hint": "Nêu giảm RTT",
+      "nextHint": "Batch hữu hạn",
+      "followUp": "Pipeline giảm RTT nhưng client tích lũy hàng triệu reply trong RAM. Bạn chọn kích thước batch và số batch đang chạy dựa trên những số đo nào?",
+      "englishFollowUp": "Pipelining reduces RTT, but the client accumulates millions of replies in memory. Which measurements would guide batch size and the number of in-flight batches?",
+      "outline": [
+        "Nêu giảm RTT",
+        "Batch hữu hạn",
+        "Không tự atomic"
+      ],
+      "shortAnswer": "Gửi nhiều lệnh trước khi chờ replies giúp giảm chi phí round trip; pipeline không tự tạo transaction nghiệp vụ.",
+      "explanation": "Gửi nhiều lệnh trước khi chờ replies giúp giảm chi phí round trip; pipeline không tự tạo transaction nghiệp vụ. Chọn batch hữu hạn để không tích replies quá lớn. Vẫn quan sát lỗi từng lệnh và xác định retry khi mất kết nối. Nếu lệnh sau cần kết quả lệnh trước, không thể chỉ pipeline mù toàn chuỗi.",
+      "alternative": "Dùng lệnh multi-key phù hợp nếu nó diễn đạt chính xác thao tác cần làm.",
+      "trap": "Xem pipeline như rollback tất cả khi một lệnh lỗi.",
+      "rubric": [
+        "Nêu giảm RTT",
+        "Batch hữu hạn",
+        "Không tự atomic",
+        "Quan sát lỗi từng lệnh"
+      ],
+      "source": "https://redis.io/docs/latest/develop/using-commands/pipelining/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-rtx-boundary",
+    "content": {
+      "title": "WATCH phát hiện sửa cạnh tranh",
+      "topic": "systems",
+      "subtopic": "WATCH phát hiện sửa cạnh tranh",
+      "tags": [
+        "Redis WATCH",
+        "optimistic concurrency",
+        "EXEC"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "Redis 7+",
+      "prompt": "EXEC bị abort do WATCH. Có nên gửi lại phép ghi tính từ giá trị cũ mà không đọc không?",
+      "englishPrompt": "EXEC aborts because of WATCH. Should the old computed write simply be resubmitted without reading?",
+      "context": "Transaction dùng WATCH trước khi đọc và EXEC sau khi tính; có client khác ghi cùng key.",
+      "code": null,
+      "hint": "Nêu optimistic abort",
+      "nextHint": "Không mô tả khóa độc quyền",
+      "followUp": "Ứng dụng WATCH một key rồi đọc số dư. Client khác thay key trước EXEC. Kết quả kỳ vọng của optimistic transaction là gì?",
+      "englishFollowUp": "An application watches a key and reads its balance. Another client modifies the key before EXEC. What is the expected optimistic-transaction outcome?",
+      "outline": [
+        "Nêu optimistic abort",
+        "Không mô tả khóa độc quyền",
+        "Đọc lại khi retry"
+      ],
+      "shortAnswer": "Không, phải tính lại từ trạng thái mới.",
+      "explanation": "EXEC bị hủy thay vì thực hiện các lệnh đã queue; ứng dụng cần đọc lại và quyết định retry có giới hạn. WATCH kiểm tra thay đổi giữa lúc theo dõi và thực thi. Nó không khóa key để các client khác ngừng ghi. Không dùng lại phép tính dựa trên số dư cũ khi retry; cần đọc trạng thái mới.",
+      "alternative": "Một lệnh nguyên tử hoặc script ngắn có thể phù hợp hơn cho bất biến đơn key.",
+      "trap": "Nghĩ WATCH khóa độc quyền key đến hết transaction.",
+      "rubric": [
+        "Nêu optimistic abort",
+        "Không mô tả khóa độc quyền",
+        "Đọc lại khi retry",
+        "Giới hạn retry"
+      ],
+      "source": "https://redis.io/docs/latest/develop/using-commands/transactions/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, abort bảo đảm dữ liệu cũ vẫn mới nhất.",
+          "Không, phải tính lại từ trạng thái mới."
+        ],
+        "en": [
+          "Yes; abort guarantees the old value is still current.",
+          "No; recompute from the new state."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Abort không khóa hay phục hồi trạng thái cũ cho caller. Client khác đã có thể đổi key, nên phép tính dựa dữ liệu cũ không được bảo đảm còn đúng.",
+          "WATCH abort cho biết điều kiện trên dữ liệu đã quan sát không còn ổn; đọc lại, tính lại và quyết định retry có giới hạn thay vì ghi giá trị cũ."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-rpub-boundary",
+    "content": {
+      "title": "Subscriber offline không có replay",
+      "topic": "systems",
+      "subtopic": "Subscriber offline không có replay",
+      "tags": [
+        "Redis PubSub",
+        "at-most-once",
+        "replay"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Redis 7+",
+      "prompt": "Một worker Redis Pub/Sub mất mạng trong một phút rồi subscribe lại. Có thể dựa vào Pub/Sub để nhận lại lệnh thanh toán đã phát trong phút đó không?",
+      "englishPrompt": "A Redis Pub/Sub worker disconnects for a minute and subscribes again. Can Pub/Sub be relied on to replay payment commands published during that minute?",
+      "context": "Ứng dụng đang dùng Redis Pub/Sub thông thường, chưa dùng Streams hay kho lưu message riêng.",
+      "code": null,
+      "hint": "Nêu at-most-once",
+      "nextHint": "Nêu không replay",
+      "followUp": "Sau reconnect, UI chưa biết đã bỏ lỡ bao nhiêu tín hiệu và lần tải dữ liệu gốc cũng thất bại. Bạn thiết kế trạng thái hiển thị và cách xác nhận dữ liệu đã mới trở lại thế nào?",
+      "englishFollowUp": "After reconnecting, the UI does not know how many signals it missed, and reloading authoritative data also fails. How would you design the displayed state and establish when the data is current again?",
+      "outline": [
+        "Nêu at-most-once",
+        "Nêu không replay",
+        "Chọn durable messaging"
+      ],
+      "shortAnswer": "Không; Pub/Sub có ngữ nghĩa at-most-once, thông điệp bỏ lỡ không được replay.",
+      "explanation": "Không; Pub/Sub có ngữ nghĩa at-most-once, thông điệp bỏ lỡ không được replay. Nếu công việc cần tồn tại khi consumer offline, chọn cơ chế lưu message và theo dõi xử lý như stream hoặc broker phù hợp. Sau đó vẫn thiết kế deduplication và retry theo bảo đảm thực tế, không suy thành exactly-once.",
+      "alternative": "Pub/Sub phù hợp hơn cho tín hiệu tạm thời khi bên nhận có thể tự đồng bộ lại trạng thái.",
+      "trap": "Coi subscribe lại như đọc backlog tự động.",
+      "rubric": [
+        "Nêu at-most-once",
+        "Nêu không replay",
+        "Chọn durable messaging",
+        "Giữ dedup khi retry"
+      ],
+      "source": "https://redis.io/docs/latest/develop/pubsub/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-rrep-boundary",
+    "content": {
+      "title": "Replica có thể đọc giá trị cũ",
+      "topic": "systems",
+      "subtopic": "Replica có thể đọc giá trị cũ",
+      "tags": [
+        "Redis replication",
+        "replica lag",
+        "read-your-writes"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "Redis 7+",
+      "prompt": "Trang xác nhận phải thấy giá trị vừa ghi. Nên ưu tiên nguồn đọc nào?",
+      "englishPrompt": "A confirmation page must see the value just written. Which read source should be preferred?",
+      "context": "Primary và replica hoạt động theo replication mặc định; read request có thể được điều hướng sang replica.",
+      "code": null,
+      "hint": "Nêu async replication",
+      "nextHint": "Nêu lag",
+      "followUp": "Sau SET nhận OK ở Redis primary, request kế đọc từ replica và nhận giá trị trước đó. Vì sao có thể xảy ra mà không phải lỗi cache key?",
+      "englishFollowUp": "After SET returns OK on a Redis primary, the next request reads a replica and sees the previous value. How can this happen without a cache-key bug?",
+      "outline": [
+        "Nêu async replication",
+        "Nêu lag",
+        "Chọn read path phù hợp"
+      ],
+      "shortAnswer": "Primary theo hợp đồng nhất quán đã chọn.",
+      "explanation": "Replication mặc định bất đồng bộ nên replica có thể chưa nhận write mới. Read-your-writes không tự xuất hiện khi chuyển đọc sang replica. Với thao tác nhạy cảm, đọc primary hoặc thiết kế cơ chế nhất quán phù hợp. Cần đo lag và xử lý failover; đừng mô tả replica như bản sao đồng bộ tức thời.",
+      "alternative": "Cho phép stale reads rõ ràng với dữ liệu thống kê khi sản phẩm chấp nhận.",
+      "trap": "Thêm replica luôn tăng độ nhất quán của mọi read.",
+      "rubric": [
+        "Nêu async replication",
+        "Nêu lag",
+        "Chọn read path phù hợp",
+        "Không hứa failover zero loss"
+      ],
+      "source": "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Primary theo hợp đồng nhất quán đã chọn.",
+          "Replica bất kỳ vì luôn mới đồng thời."
+        ],
+        "en": [
+          "The primary under the selected consistency contract.",
+          "Any replica because they are always immediately current."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Khi cần thấy write vừa được primary xác nhận, ưu tiên đọc primary theo hợp đồng đã chọn để tránh replica lag; failover và mức durability vẫn là các điều kiện riêng.",
+          "Replication mặc định bất đồng bộ nên replica bất kỳ có thể chưa nhận write mới; không thể mặc định mọi replica luôn đồng bộ tức thì."
+        ]
+      },
+      "core": true
+    }
+  }
+]

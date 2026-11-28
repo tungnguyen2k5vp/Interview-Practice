@@ -1,0 +1,2328 @@
+[
+  {
+    "slug": "checked-runtime-overflow",
+    "content": {
+      "title": "Tràn số có kiểm tra",
+      "topic": "csharp",
+      "subtopic": "checked runtime overflow",
+      "tags": [
+        "csharp",
+        "checked"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Bộ đếm đang ở int.MaxValue. Đoạn mã in gì?",
+      "englishPrompt": "A counter is at int.MaxValue. What is printed?",
+      "context": "Worker thống kê tổng số lượt chạy trước khi ghi báo cáo ngày.",
+      "code": "int n = int.MaxValue; try { Console.Write(checked(n + 1)); } catch (OverflowException) { Console.Write(\"overflow\"); }",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng checked tự đổi kiểu sang long.",
+      "nextHint": "checked áp dụng cho phép cộng tại thời gian chạy; kết quả ngoài miền int gây OverflowException trước khi ghi số.",
+      "followUp": "Nếu chuyển toán hạng sang long trước cộng thì kết quả nào hợp lệ?",
+      "englishFollowUp": "What changes if the operand is converted to long before addition?",
+      "outline": [
+        "overflow",
+        "checked áp dụng cho phép cộng tại thời gian chạy; kết quả ngoài miền int gây OverflowException trước khi ghi số."
+      ],
+      "shortAnswer": "overflow. checked áp dụng cho phép cộng tại thời gian chạy; kết quả ngoài miền int gây OverflowException trước khi ghi số.",
+      "explanation": "checked áp dụng cho phép cộng tại thời gian chạy; kết quả ngoài miền int gây OverflowException trước khi ghi số.",
+      "alternative": "Chuyển toán hạng sang long trước phép cộng nếu tổng thực sự có thể vượt miền int; vẫn kiểm tra miền theo hợp đồng lưu trữ.",
+      "trap": "Cho rằng checked tự đổi kiểu sang long.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: overflow",
+        "checked áp dụng cho phép cộng tại thời gian chạy; kết quả ngoài miền int gây OverflowException trước khi ghi số.",
+        "Tránh ngộ nhận: Cho rằng checked tự đổi kiểu sang long.",
+        "Chuyển toán hạng sang long trước phép cộng nếu tổng thực sự có thể vượt miền int; vẫn kiểm tra miền theo hợp đồng lưu trữ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/checked-and-unchecked",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "overflow",
+          "-2147483648",
+          "2147483648"
+        ],
+        "en": [
+          "overflow",
+          "-2147483648",
+          "2147483648"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "unchecked-byte-wrap",
+    "content": {
+      "title": "Thu hẹp byte tường minh",
+      "topic": "csharp",
+      "subtopic": "unchecked byte wrap",
+      "tags": [
+        "csharp",
+        "unchecked"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Mã cảm biến 260 được ép về byte trong unchecked. Kết quả nào được ghi?",
+      "englishPrompt": "A sensor value of 260 is explicitly converted to byte in unchecked. What is printed?",
+      "context": "Bộ nhập mã cảm biến nhận số nguyên từ tệp ngoài.",
+      "code": "int n = 260; Console.Write(unchecked((byte)n));",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng phép ép tự giới hạn ở 255.",
+      "nextHint": "Chuyển số nguyên sang byte trong unchecked giữ 8 bit thấp; 260 = 256 + 4. Đây là thu hẹp tường minh, không phải kiểm tra dữ liệu.",
+      "followUp": "Nếu giá trị đến từ client, chọn kiểm tra miền hay unchecked, vì sao?",
+      "englishFollowUp": "For client input, would you validate the range or use unchecked, and why?",
+      "outline": [
+        "4",
+        "Chuyển số nguyên sang byte trong unchecked giữ 8 bit thấp; 260 = 256 + 4. Đây là thu hẹp tường minh, không phải kiểm tra dữ liệu."
+      ],
+      "shortAnswer": "4. Chuyển số nguyên sang byte trong unchecked giữ 8 bit thấp; 260 = 256 + 4. Đây là thu hẹp tường minh, không phải kiểm tra dữ liệu.",
+      "explanation": "Chuyển số nguyên sang byte trong unchecked giữ 8 bit thấp; 260 = 256 + 4. Đây là thu hẹp tường minh, không phải kiểm tra dữ liệu.",
+      "alternative": "Kiểm tra 0 <= n <= 255 trước khi cast tại ranh giới dữ liệu; dùng checked nếu cần lỗi rõ khi vượt miền.",
+      "trap": "Cho rằng phép ép tự giới hạn ở 255.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 4",
+        "Chuyển số nguyên sang byte trong unchecked giữ 8 bit thấp; 260 = 256 + 4. Đây là thu hẹp tường minh, không phải kiểm tra dữ liệu.",
+        "Tránh ngộ nhận: Cho rằng phép ép tự giới hạn ở 255.",
+        "Kiểm tra 0 <= n <= 255 trước khi cast tại ranh giới dữ liệu; dùng checked nếu cần lỗi rõ khi vượt miền."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/numeric-conversions",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "260",
+          "4",
+          "255"
+        ],
+        "en": [
+          "260",
+          "4",
+          "255"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "null-conditional-skips-index",
+    "content": {
+      "title": "Chỉ mục không được đánh giá",
+      "topic": "csharp",
+      "subtopic": "null conditional skips index",
+      "tags": [
+        "csharp",
+        "null"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Nếu danh sách null, biểu thức chỉ mục có chạy không và log là gì?",
+      "englishPrompt": "When the list is null, is the index expression evaluated, and what is printed?",
+      "context": "Parser đọc ô tùy chọn và có bộ đếm vị trí phục vụ log.",
+      "code": "int i = 0; int[]? values = null; int? value = values?[i++]; Console.Write($\"{i}:{value is null}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm kiểm tra null với kiểm tra biên mảng.",
+      "nextHint": "Toán tử ?[] bỏ toàn bộ truy cập khi toán hạng trái null, gồm cả i++. Kết quả nullable là null.",
+      "followUp": "Nếu values là mảng rỗng thay vì null, ?[] có chặn IndexOutOfRangeException không?",
+      "englishFollowUp": "If values is empty rather than null, does ?[] prevent IndexOutOfRangeException?",
+      "outline": [
+        "0:True",
+        "Toán tử ?[] bỏ toàn bộ truy cập khi toán hạng trái null, gồm cả i++. Kết quả nullable là null."
+      ],
+      "shortAnswer": "0:True. Toán tử ?[] bỏ toàn bộ truy cập khi toán hạng trái null, gồm cả i++. Kết quả nullable là null.",
+      "explanation": "Toán tử ?[] bỏ toàn bộ truy cập khi toán hạng trái null, gồm cả i++. Kết quả nullable là null.",
+      "alternative": "Kiểm tra Length riêng nếu nguồn có thể rỗng; ?[] chỉ bảo vệ receiver null chứ không bảo vệ chỉ số ngoài biên.",
+      "trap": "Nhầm kiểm tra null với kiểm tra biên mảng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 0:True",
+        "Toán tử ?[] bỏ toàn bộ truy cập khi toán hạng trái null, gồm cả i++. Kết quả nullable là null.",
+        "Tránh ngộ nhận: Nhầm kiểm tra null với kiểm tra biên mảng.",
+        "Kiểm tra Length riêng nếu nguồn có thể rỗng; ?[] chỉ bảo vệ receiver null chứ không bảo vệ chỉ số ngoài biên."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operators",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1:True",
+          "0:True",
+          "0:False"
+        ],
+        "en": [
+          "1:True",
+          "0:True",
+          "0:False"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "nullable-relational-unknown",
+    "content": {
+      "title": "Giá trị đo chưa có",
+      "topic": "csharp",
+      "subtopic": "nullable relational unknown",
+      "tags": [
+        "csharp",
+        "nullable"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Cảm biến chưa trả số đo. Hai phép so sánh sau in gì?",
+      "englishPrompt": "The sensor has no reading. What do these comparisons print?",
+      "context": "Dashboard cần tách số đo thấp, bình thường và chưa có dữ liệu.",
+      "code": "int? reading = null; Console.Write($\"{reading < 5}:{reading >= 5}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng >= luôn là phủ định của < khi có nullable.",
+      "nextHint": "Các phép quan hệ trên nullable trả false khi một toán hạng null; hai biểu thức không tạo phân hoạch đầy đủ của trạng thái thiếu dữ liệu.",
+      "followUp": "Viết điều kiện tách rõ chưa có số đo với số đo dưới ngưỡng.",
+      "englishFollowUp": "How would you distinguish a missing reading from a reading below the threshold?",
+      "outline": [
+        "False:False",
+        "Các phép quan hệ trên nullable trả false khi một toán hạng null; hai biểu thức không tạo phân hoạch đầy đủ của trạng thái thiếu dữ liệu."
+      ],
+      "shortAnswer": "False:False. Các phép quan hệ trên nullable trả false khi một toán hạng null; hai biểu thức không tạo phân hoạch đầy đủ của trạng thái thiếu dữ liệu.",
+      "explanation": "Các phép quan hệ trên nullable trả false khi một toán hạng null; hai biểu thức không tạo phân hoạch đầy đủ của trạng thái thiếu dữ liệu.",
+      "alternative": "Dùng pattern reading is int n trước khi so ngưỡng để nhánh thiếu dữ liệu luôn rõ ràng.",
+      "trap": "Cho rằng >= luôn là phủ định của < khi có nullable.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: False:False",
+        "Các phép quan hệ trên nullable trả false khi một toán hạng null; hai biểu thức không tạo phân hoạch đầy đủ của trạng thái thiếu dữ liệu.",
+        "Tránh ngộ nhận: Cho rằng >= luôn là phủ định của < khi có nullable.",
+        "Dùng pattern reading is int n trước khi so ngưỡng để nhánh thiếu dữ liệu luôn rõ ràng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "False:False",
+          "True:False",
+          "False:True"
+        ],
+        "en": [
+          "False:False",
+          "True:False",
+          "False:True"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "nullable-cast-missing",
+    "content": {
+      "title": "Ép nullable chưa có giá trị",
+      "topic": "csharp",
+      "subtopic": "nullable cast missing",
+      "tags": [
+        "csharp",
+        "nullable"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Chuyển int? null sang int trong đoạn mã dẫn tới log nào?",
+      "englishPrompt": "What is logged when this null int? is cast to int?",
+      "context": "Bộ tính cước phân biệt chưa đo với mức sử dụng thực bằng 0.",
+      "code": "int? n = null; try { Console.Write((int)n); } catch (InvalidOperationException) { Console.Write(\"missing\"); }",
+      "hint": "Kiểm tra giả định dễ sai sau: Giả định null tự chuyển thành 0 trong phép cast.",
+      "nextHint": "Ép nullable sang kiểu nền cần HasValue; khi không có giá trị, thao tác ném InvalidOperationException.",
+      "followUp": "Nếu 0 là dữ liệu hợp lệ, vì sao GetValueOrDefault không đủ để báo thiếu?",
+      "englishFollowUp": "If zero is valid data, why is GetValueOrDefault insufficient to report absence?",
+      "outline": [
+        "missing",
+        "Ép nullable sang kiểu nền cần HasValue; khi không có giá trị, thao tác ném InvalidOperationException."
+      ],
+      "shortAnswer": "missing. Ép nullable sang kiểu nền cần HasValue; khi không có giá trị, thao tác ném InvalidOperationException.",
+      "explanation": "Ép nullable sang kiểu nền cần HasValue; khi không có giá trị, thao tác ném InvalidOperationException.",
+      "alternative": "Dùng HasValue hoặc pattern để phân nhánh; chỉ dùng ?? 0 khi hợp đồng thực sự cho phép gộp thiếu với số 0.",
+      "trap": "Giả định null tự chuyển thành 0 trong phép cast.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: missing",
+        "Ép nullable sang kiểu nền cần HasValue; khi không có giá trị, thao tác ném InvalidOperationException.",
+        "Tránh ngộ nhận: Giả định null tự chuyển thành 0 trong phép cast.",
+        "Dùng HasValue hoặc pattern để phân nhánh; chỉ dùng ?? 0 khi hợp đồng thực sự cho phép gộp thiếu với số 0."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/nullable-value-types",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "missing",
+          "0",
+          "null"
+        ],
+        "en": [
+          "missing",
+          "0",
+          "null"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "string-utf16-surrogate-length",
+    "content": {
+      "title": "Độ dài mã UTF-16",
+      "topic": "csharp",
+      "subtopic": "string utf16 surrogate length",
+      "tags": [
+        "csharp",
+        "string"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Chuỗi chỉ chứa emoji này có Length và số Rune như thế nào?",
+      "englishPrompt": "What are the UTF-16 Length and Rune count of this single-emoji string?",
+      "context": "Giới hạn nhãn hiển thị phải xử lý văn bản Unicode của người dùng.",
+      "code": "string s = \"😀\"; Console.Write($\"{s.Length}:{s.EnumerateRunes().Count()}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Đồng nhất char, Unicode scalar và ký tự người dùng nhìn thấy.",
+      "nextHint": "String.Length đếm char UTF-16. Emoji này ở ngoài BMP nên dùng cặp surrogate, nhưng là một Unicode scalar và một Rune.",
+      "followUp": "Một ký tự hiển thị có luôn bằng một Rune khi có dấu kết hợp không?",
+      "englishFollowUp": "Is one displayed character always one Rune when combining marks occur?",
+      "outline": [
+        "2:1",
+        "String.Length đếm char UTF-16. Emoji này ở ngoài BMP nên dùng cặp surrogate, nhưng là một Unicode scalar và một Rune."
+      ],
+      "shortAnswer": "2:1. String.Length đếm char UTF-16. Emoji này ở ngoài BMP nên dùng cặp surrogate, nhưng là một Unicode scalar và một Rune.",
+      "explanation": "String.Length đếm char UTF-16. Emoji này ở ngoài BMP nên dùng cặp surrogate, nhưng là một Unicode scalar và một Rune.",
+      "alternative": "Dùng StringInfo khi cần đếm text element; một Rune vẫn chưa đủ biểu diễn mọi grapheme có dấu kết hợp.",
+      "trap": "Đồng nhất char, Unicode scalar và ký tự người dùng nhìn thấy.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2:1",
+        "String.Length đếm char UTF-16. Emoji này ở ngoài BMP nên dùng cặp surrogate, nhưng là một Unicode scalar và một Rune.",
+        "Tránh ngộ nhận: Đồng nhất char, Unicode scalar và ký tự người dùng nhìn thấy.",
+        "Dùng StringInfo khi cần đếm text element; một Rune vẫn chưa đủ biểu diễn mọi grapheme có dấu kết hợp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.string.length?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2:2",
+          "1:1",
+          "2:1"
+        ],
+        "en": [
+          "2:2",
+          "1:1",
+          "2:1"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "string-remove-position-count",
+    "content": {
+      "title": "Xóa đoạn nhãn",
+      "topic": "csharp",
+      "subtopic": "string remove position count",
+      "tags": [
+        "csharp",
+        "string"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Remove nhận vị trí và số lượng. Chuỗi gốc và kết quả in ra là gì?",
+      "englishPrompt": "Remove takes a start and count. What are the original and resulting labels?",
+      "context": "Bộ làm sạch mã vận đơn bỏ một đoạn có vị trí đã xác định.",
+      "code": "string label = \"AB-123-CD\"; string clean = label.Remove(2, 4); Console.Write($\"{label}:{clean}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Đọc tham số thứ hai là chỉ số kết thúc.",
+      "nextHint": "Remove(2,4) bỏ các vị trí 2 đến 5, trả chuỗi mới; chuỗi gốc vẫn nguyên.",
+      "followUp": "Nếu start + count vượt Length, API xử lý thế nào?",
+      "englishFollowUp": "What happens if start plus count exceeds Length?",
+      "outline": [
+        "AB-123-CD:AB-CD",
+        "Remove(2,4) bỏ các vị trí 2 đến 5, trả chuỗi mới; chuỗi gốc vẫn nguyên."
+      ],
+      "shortAnswer": "AB-123-CD:AB-CD. Remove(2,4) bỏ các vị trí 2 đến 5, trả chuỗi mới; chuỗi gốc vẫn nguyên.",
+      "explanation": "Remove(2,4) bỏ các vị trí 2 đến 5, trả chuỗi mới; chuỗi gốc vẫn nguyên.",
+      "alternative": "Kiểm tra miền start/count trước khi Remove; nếu cần bỏ theo dấu phân cách, tìm vị trí phân cách trước thay vì cố định offset.",
+      "trap": "Đọc tham số thứ hai là chỉ số kết thúc.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: AB-123-CD:AB-CD",
+        "Remove(2,4) bỏ các vị trí 2 đến 5, trả chuỗi mới; chuỗi gốc vẫn nguyên.",
+        "Tránh ngộ nhận: Đọc tham số thứ hai là chỉ số kết thúc.",
+        "Kiểm tra miền start/count trước khi Remove; nếu cần bỏ theo dấu phân cách, tìm vị trí phân cách trước thay vì cố định offset."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.string.remove?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "AB-123-CD:ABCD",
+          "AB-123-CD:AB-CD",
+          "AB-CD:AB-CD"
+        ],
+        "en": [
+          "AB-123-CD:ABCD",
+          "AB-123-CD:AB-CD",
+          "AB-CD:AB-CD"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "string-padleft-no-truncate",
+    "content": {
+      "title": "Độ rộng tối thiểu",
+      "topic": "csharp",
+      "subtopic": "string padleft no truncate",
+      "tags": [
+        "csharp",
+        "string"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Nhãn đã dài hơn độ rộng PadLeft yêu cầu. Log là gì?",
+      "englishPrompt": "The label is longer than the requested PadLeft width. What is logged?",
+      "context": "Máy in nhãn yêu cầu tối thiểu hai ký tự nhưng dữ liệu cũ có mã dài.",
+      "code": "Console.Write(\"ABCD\".PadLeft(2, '0'));",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi PadLeft là thao tác cố định độ dài.",
+      "nextHint": "PadLeft coi totalWidth là độ rộng tối thiểu; khi chuỗi đã đủ dài, nó không cắt chuỗi.",
+      "followUp": "Nếu đầu ra bắt buộc tối đa 2 ký tự, cần quy tắc kiểm tra nào?",
+      "englishFollowUp": "If output must have at most two characters, what validation rule is needed?",
+      "outline": [
+        "ABCD",
+        "PadLeft coi totalWidth là độ rộng tối thiểu; khi chuỗi đã đủ dài, nó không cắt chuỗi."
+      ],
+      "shortAnswer": "ABCD. PadLeft coi totalWidth là độ rộng tối thiểu; khi chuỗi đã đủ dài, nó không cắt chuỗi.",
+      "explanation": "PadLeft coi totalWidth là độ rộng tối thiểu; khi chuỗi đã đủ dài, nó không cắt chuỗi.",
+      "alternative": "Nếu nhãn có độ dài tối đa, validate riêng và báo lỗi rõ; không dùng PadLeft để cắt dữ liệu quan trọng.",
+      "trap": "Coi PadLeft là thao tác cố định độ dài.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: ABCD",
+        "PadLeft coi totalWidth là độ rộng tối thiểu; khi chuỗi đã đủ dài, nó không cắt chuỗi.",
+        "Tránh ngộ nhận: Coi PadLeft là thao tác cố định độ dài.",
+        "Nếu nhãn có độ dài tối đa, validate riêng và báo lỗi rõ; không dùng PadLeft để cắt dữ liệu quan trọng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.string.padleft?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "ABCD",
+          "CD",
+          "00ABCD"
+        ],
+        "en": [
+          "ABCD",
+          "CD",
+          "00ABCD"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "stringbuilder-length-truncate",
+    "content": {
+      "title": "Cắt bộ đệm nhãn",
+      "topic": "csharp",
+      "subtopic": "stringbuilder length truncate",
+      "tags": [
+        "csharp",
+        "stringbuilder"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Giảm Length của StringBuilder rồi append sẽ ghi gì?",
+      "englishPrompt": "What is printed after reducing StringBuilder.Length and appending?",
+      "context": "Bộ xuất nối nhãn trong một StringBuilder được tái sử dụng.",
+      "code": "var b = new System.Text.StringBuilder(\"ABCDE\"); b.Length = 2; b.Append(\"Z\"); Console.Write(b);",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng giảm Length chỉ đổi capacity.",
+      "nextHint": "Đặt Length nhỏ hơn độ dài hiện tại loại bỏ phần cuối. Append tiếp theo bắt đầu sau AB.",
+      "followUp": "Tăng Length thay vì giảm sẽ điền ký tự nào?",
+      "englishFollowUp": "Which character fills the added positions if Length is increased?",
+      "outline": [
+        "ABZ",
+        "Đặt Length nhỏ hơn độ dài hiện tại loại bỏ phần cuối. Append tiếp theo bắt đầu sau AB."
+      ],
+      "shortAnswer": "ABZ. Đặt Length nhỏ hơn độ dài hiện tại loại bỏ phần cuối. Append tiếp theo bắt đầu sau AB.",
+      "explanation": "Đặt Length nhỏ hơn độ dài hiện tại loại bỏ phần cuối. Append tiếp theo bắt đầu sau AB.",
+      "alternative": "Dùng Clear khi muốn bỏ toàn bộ nội dung; tăng Length thêm ký tự null, không khôi phục phần vừa cắt.",
+      "trap": "Cho rằng giảm Length chỉ đổi capacity.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: ABZ",
+        "Đặt Length nhỏ hơn độ dài hiện tại loại bỏ phần cuối. Append tiếp theo bắt đầu sau AB.",
+        "Tránh ngộ nhận: Cho rằng giảm Length chỉ đổi capacity.",
+        "Dùng Clear khi muốn bỏ toàn bộ nội dung; tăng Length thêm ký tự null, không khôi phục phần vừa cắt."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.text.stringbuilder.length?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "ZAB",
+          "ABCDEZ",
+          "ABZ"
+        ],
+        "en": [
+          "ZAB",
+          "ABCDEZ",
+          "ABZ"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "datetimeoffset-instant-equality",
+    "content": {
+      "title": "Cùng thời điểm khác múi giờ",
+      "topic": "csharp",
+      "subtopic": "datetimeoffset instant equality",
+      "tags": [
+        "csharp",
+        "datetimeoffset"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai dấu giờ có offset khác nhau dưới đây có bằng nhau theo Equals không?",
+      "englishPrompt": "Do these two timestamps with different offsets compare equal using Equals?",
+      "context": "Hai đối tác gửi dấu giờ cùng sự kiện với offset khác nhau.",
+      "code": "var a = new DateTimeOffset(2026, 1, 1, 10, 0, 0, TimeSpan.FromHours(7)); var b = new DateTimeOffset(2026, 1, 1, 3, 0, 0, TimeSpan.Zero); Console.Write(a.Equals(b));",
+      "hint": "Kiểm tra giả định dễ sai sau: So riêng phần giờ hiển thị.",
+      "nextHint": "DateTimeOffset.Equals so sánh thời điểm UTC; cả hai biểu diễn 03:00 UTC. Offset khác không làm thời điểm khác.",
+      "followUp": "Nếu cần so cả offset và giờ địa phương, EqualsExact giúp gì?",
+      "englishFollowUp": "How does EqualsExact help when the offset and local time must also match?",
+      "outline": [
+        "True",
+        "DateTimeOffset.Equals so sánh thời điểm UTC; cả hai biểu diễn 03:00 UTC. Offset khác không làm thời điểm khác."
+      ],
+      "shortAnswer": "True. DateTimeOffset.Equals so sánh thời điểm UTC; cả hai biểu diễn 03:00 UTC. Offset khác không làm thời điểm khác.",
+      "explanation": "DateTimeOffset.Equals so sánh thời điểm UTC; cả hai biểu diễn 03:00 UTC. Offset khác không làm thời điểm khác.",
+      "alternative": "Dùng EqualsExact khi cần so cả giờ địa phương và offset; dùng Equals khi điều kiện nghiệp vụ là cùng instant.",
+      "trap": "So riêng phần giờ hiển thị.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True",
+        "DateTimeOffset.Equals so sánh thời điểm UTC; cả hai biểu diễn 03:00 UTC. Offset khác không làm thời điểm khác.",
+        "Tránh ngộ nhận: So riêng phần giờ hiển thị.",
+        "Dùng EqualsExact khi cần so cả giờ địa phương và offset; dùng Equals khi điều kiện nghiệp vụ là cùng instant."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset.equals?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "False",
+          "InvalidOperationException"
+        ],
+        "en": [
+          "True",
+          "False",
+          "InvalidOperationException"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "dateonly-leap-year-clamp",
+    "content": {
+      "title": "Ngày kỷ niệm năm nhuận",
+      "topic": "csharp",
+      "subtopic": "dateonly leap year clamp",
+      "tags": [
+        "csharp",
+        "dateonly"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Cộng một năm vào ngày nhuận sau cho ngày nào?",
+      "englishPrompt": "Which date results from adding one year to this leap day?",
+      "context": "Dịch vụ gia hạn cần quy tắc rõ cho ngày kỷ niệm 29 tháng 2.",
+      "code": "var d = new DateOnly(2024, 2, 29).AddYears(1); Console.Write(d.ToString(\"yyyy-MM-dd\", System.Globalization.CultureInfo.InvariantCulture));",
+      "hint": "Kiểm tra giả định dễ sai sau: Giả định cộng năm luôn giữ nguyên số ngày trong tháng.",
+      "nextHint": "Năm đích không có ngày 29/2 nên AddYears điều chỉnh sang ngày cuối hợp lệ của tháng.",
+      "followUp": "Ngày kỷ niệm nghiệp vụ phải là 1/3 thì cần bổ sung quy tắc ở đâu?",
+      "englishFollowUp": "Where would you add a business rule requiring March 1 instead?",
+      "outline": [
+        "2025-02-28",
+        "Năm đích không có ngày 29/2 nên AddYears điều chỉnh sang ngày cuối hợp lệ của tháng."
+      ],
+      "shortAnswer": "2025-02-28. Năm đích không có ngày 29/2 nên AddYears điều chỉnh sang ngày cuối hợp lệ của tháng.",
+      "explanation": "Năm đích không có ngày 29/2 nên AddYears điều chỉnh sang ngày cuối hợp lệ của tháng.",
+      "alternative": "Nếu nghiệp vụ chọn 1 tháng 3 ở năm không nhuận, viết nhánh riêng và kiểm tra năm nhuận thay vì mặc định AddYears đáp ứng.",
+      "trap": "Giả định cộng năm luôn giữ nguyên số ngày trong tháng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2025-02-28",
+        "Năm đích không có ngày 29/2 nên AddYears điều chỉnh sang ngày cuối hợp lệ của tháng.",
+        "Tránh ngộ nhận: Giả định cộng năm luôn giữ nguyên số ngày trong tháng.",
+        "Nếu nghiệp vụ chọn 1 tháng 3 ở năm không nhuận, viết nhánh riêng và kiểm tra năm nhuận thay vì mặc định AddYears đáp ứng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.dateonly.addyears?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2025-02-29",
+          "2025-02-28",
+          "2025-03-01"
+        ],
+        "en": [
+          "2025-02-29",
+          "2025-02-28",
+          "2025-03-01"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "timespan-days-totaldays",
+    "content": {
+      "title": "Phần ngày và tổng ngày",
+      "topic": "csharp",
+      "subtopic": "timespan days totaldays",
+      "tags": [
+        "csharp",
+        "timespan"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một phiên dài 49 giờ có Days và TotalDays như thế nào?",
+      "englishPrompt": "For a 49-hour session, what are Days and TotalDays?",
+      "context": "Báo cáo phiên làm việc có khoảng kéo dài quá một ngày.",
+      "code": "var t = TimeSpan.FromHours(49); Console.Write($\"{t.Days}:{t.TotalDays > 2}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm thành phần thời gian với tổng thời gian.",
+      "nextHint": "Days là thành phần ngày nguyên, còn TotalDays gồm phần lẻ của toàn khoảng. 49 giờ lớn hơn hai ngày.",
+      "followUp": "Nếu cần tổng số giờ cho khoảng nhiều ngày, Hours có đủ không?",
+      "englishFollowUp": "Is Hours sufficient when you need total hours across several days?",
+      "outline": [
+        "2:True",
+        "Days là thành phần ngày nguyên, còn TotalDays gồm phần lẻ của toàn khoảng. 49 giờ lớn hơn hai ngày."
+      ],
+      "shortAnswer": "2:True. Days là thành phần ngày nguyên, còn TotalDays gồm phần lẻ của toàn khoảng. 49 giờ lớn hơn hai ngày.",
+      "explanation": "Days là thành phần ngày nguyên, còn TotalDays gồm phần lẻ của toàn khoảng. 49 giờ lớn hơn hai ngày.",
+      "alternative": "Dùng TotalHours cho toàn khoảng và Hours cho thành phần giờ còn lại sau ngày; không thay thế hai khái niệm.",
+      "trap": "Nhầm thành phần thời gian với tổng thời gian.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2:True",
+        "Days là thành phần ngày nguyên, còn TotalDays gồm phần lẻ của toàn khoảng. 49 giờ lớn hơn hai ngày.",
+        "Tránh ngộ nhận: Nhầm thành phần thời gian với tổng thời gian.",
+        "Dùng TotalHours cho toàn khoảng và Hours cho thành phần giờ còn lại sau ngày; không thay thế hai khái niệm."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.timespan.totaldays?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "49:True",
+          "2:False",
+          "2:True"
+        ],
+        "en": [
+          "49:True",
+          "2:False",
+          "2:True"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "decimal-truncate-negative",
+    "content": {
+      "title": "Bỏ phần lẻ tiền âm",
+      "topic": "csharp",
+      "subtopic": "decimal truncate negative",
+      "tags": [
+        "csharp",
+        "decimal"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Decimal.Truncate xử lý khoản -3.9 thế nào?",
+      "englishPrompt": "How does Decimal.Truncate handle -3.9?",
+      "context": "Báo cáo số tiền âm cần thống nhất cách bỏ phần lẻ.",
+      "code": "Console.Write(decimal.Truncate(-3.9m));",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng truncate và floor luôn giống nhau.",
+      "nextHint": "Truncate bỏ phần thập phân theo hướng về 0, không làm tròn xuống âm vô cực.",
+      "followUp": "Floor(-3.9m) khác kết quả này thế nào?",
+      "englishFollowUp": "How would Floor(-3.9m) differ?",
+      "outline": [
+        "-3",
+        "Truncate bỏ phần thập phân theo hướng về 0, không làm tròn xuống âm vô cực."
+      ],
+      "shortAnswer": "-3. Truncate bỏ phần thập phân theo hướng về 0, không làm tròn xuống âm vô cực.",
+      "explanation": "Truncate bỏ phần thập phân theo hướng về 0, không làm tròn xuống âm vô cực.",
+      "alternative": "Dùng decimal.Floor khi quy tắc yêu cầu hướng âm vô cực; Floor(-3.9m) là -4, khác truncate.",
+      "trap": "Cho rằng truncate và floor luôn giống nhau.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: -3",
+        "Truncate bỏ phần thập phân theo hướng về 0, không làm tròn xuống âm vô cực.",
+        "Tránh ngộ nhận: Cho rằng truncate và floor luôn giống nhau.",
+        "Dùng decimal.Floor khi quy tắc yêu cầu hướng âm vô cực; Floor(-3.9m) là -4, khác truncate."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.decimal.truncate?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "-3.9",
+          "-4",
+          "-3"
+        ],
+        "en": [
+          "-3.9",
+          "-4",
+          "-3"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "double-nan-equality",
+    "content": {
+      "title": "Giá trị đo NaN",
+      "topic": "csharp",
+      "subtopic": "double nan equality",
+      "tags": [
+        "csharp",
+        "double"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai cách kiểm tra NaN sau in gì?",
+      "englishPrompt": "What do these two NaN checks print?",
+      "context": "Dữ liệu tính toán cảm biến có thể có NaN khi phép tính không xác định.",
+      "code": "double x = double.NaN; Console.Write($\"{x == double.NaN}:{double.IsNaN(x)}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Dùng == NaN như kiểm tra số thông thường.",
+      "nextHint": "NaN không bằng chính nó theo toán tử ==. Dùng IsNaN để kiểm tra trạng thái này.",
+      "followUp": "Khi sort số đo, vì sao cần quy tắc riêng cho dữ liệu không hợp lệ?",
+      "englishFollowUp": "Why should sorting readings define a policy for invalid measurements?",
+      "outline": [
+        "False:True",
+        "NaN không bằng chính nó theo toán tử ==. Dùng IsNaN để kiểm tra trạng thái này."
+      ],
+      "shortAnswer": "False:True. NaN không bằng chính nó theo toán tử ==. Dùng IsNaN để kiểm tra trạng thái này.",
+      "explanation": "NaN không bằng chính nó theo toán tử ==. Dùng IsNaN để kiểm tra trạng thái này.",
+      "alternative": "Kiểm tra IsNaN và định nghĩa cách hiển thị, lọc hoặc xếp NaN riêng trước khi dùng số đo cho quyết định nghiệp vụ.",
+      "trap": "Dùng == NaN như kiểm tra số thông thường.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: False:True",
+        "NaN không bằng chính nó theo toán tử ==. Dùng IsNaN để kiểm tra trạng thái này.",
+        "Tránh ngộ nhận: Dùng == NaN như kiểm tra số thông thường.",
+        "Kiểm tra IsNaN và định nghĩa cách hiển thị, lọc hoặc xếp NaN riêng trước khi dùng số đo cho quyết định nghiệp vụ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.double.nan?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True:True",
+          "False:True",
+          "False:False"
+        ],
+        "en": [
+          "True:True",
+          "False:True",
+          "False:False"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "array-clear-default-values",
+    "content": {
+      "title": "Xóa một đoạn mảng",
+      "topic": "csharp",
+      "subtopic": "array clear default values",
+      "tags": [
+        "csharp",
+        "array"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Array.Clear xóa hai ô từ vị trí 1. Kết quả là gì?",
+      "englishPrompt": "Array.Clear clears two entries from index one. What is the result?",
+      "context": "Worker xóa dữ liệu nhạy cảm trong một đoạn buffer cố định.",
+      "code": "int[] a = [7, 8, 9, 10]; Array.Clear(a, 1, 2); Console.Write(string.Join(\",\", a));",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm Clear với thao tác xóa phần tử khỏi List.",
+      "nextHint": "Clear đặt phần tử về default của kiểu, không dịch phần tử hay giảm chiều dài mảng.",
+      "followUp": "Với mảng string?, các ô được clear sẽ chứa gì?",
+      "englishFollowUp": "What would cleared entries contain in a string? array?",
+      "outline": [
+        "7,0,0,10",
+        "Clear đặt phần tử về default của kiểu, không dịch phần tử hay giảm chiều dài mảng."
+      ],
+      "shortAnswer": "7,0,0,10. Clear đặt phần tử về default của kiểu, không dịch phần tử hay giảm chiều dài mảng.",
+      "explanation": "Clear đặt phần tử về default của kiểu, không dịch phần tử hay giảm chiều dài mảng.",
+      "alternative": "Với collection cần loại mục và dịch suffix, dùng List.RemoveRange; Clear của mảng giữ nguyên Length.",
+      "trap": "Nhầm Clear với thao tác xóa phần tử khỏi List.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 7,0,0,10",
+        "Clear đặt phần tử về default của kiểu, không dịch phần tử hay giảm chiều dài mảng.",
+        "Tránh ngộ nhận: Nhầm Clear với thao tác xóa phần tử khỏi List.",
+        "Với collection cần loại mục và dịch suffix, dùng List.RemoveRange; Clear của mảng giữ nguyên Length."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.array.clear?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "7,8,9,10",
+          "7,0,0,10",
+          "7,10"
+        ],
+        "en": [
+          "7,8,9,10",
+          "7,0,0,10",
+          "7,10"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "array-copy-overlap",
+    "content": {
+      "title": "Dịch dữ liệu chồng vùng",
+      "topic": "csharp",
+      "subtopic": "array copy overlap",
+      "tags": [
+        "csharp",
+        "array"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Copy có nguồn và đích cùng mảng, chồng nhau. Mảng cuối là gì?",
+      "englishPrompt": "Source and destination overlap in one array. What is the final array?",
+      "context": "Bộ xử lý gói dịch một đoạn dữ liệu ngay trong buffer hiện tại.",
+      "code": "int[] a = [1, 2, 3, 4]; Array.Copy(a, 0, a, 1, 3); Console.Write(string.Join(\",\", a));",
+      "hint": "Kiểm tra giả định dễ sai sau: Áp mô hình vòng lặp ghi đè tăng dần cho Array.Copy.",
+      "nextHint": "Array.Copy xử lý vùng chồng như giữ bản tạm của nguồn; không lan giá trị 1 qua toàn bộ mảng.",
+      "followUp": "Vòng for tăng dần gán a[i+1]=a[i] sẽ khác vì sao?",
+      "englishFollowUp": "Why would a forward loop assigning a[i+1]=a[i] behave differently?",
+      "outline": [
+        "1,1,2,3",
+        "Array.Copy xử lý vùng chồng như giữ bản tạm của nguồn; không lan giá trị 1 qua toàn bộ mảng."
+      ],
+      "shortAnswer": "1,1,2,3. Array.Copy xử lý vùng chồng như giữ bản tạm của nguồn; không lan giá trị 1 qua toàn bộ mảng.",
+      "explanation": "Array.Copy xử lý vùng chồng như giữ bản tạm của nguồn; không lan giá trị 1 qua toàn bộ mảng.",
+      "alternative": "Nếu tự viết vòng lặp cho vùng chồng, chọn chiều copy thích hợp; Copy hoặc Span.CopyTo tránh lỗi ghi đè nguồn chưa đọc.",
+      "trap": "Áp mô hình vòng lặp ghi đè tăng dần cho Array.Copy.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1,1,2,3",
+        "Array.Copy xử lý vùng chồng như giữ bản tạm của nguồn; không lan giá trị 1 qua toàn bộ mảng.",
+        "Tránh ngộ nhận: Áp mô hình vòng lặp ghi đè tăng dần cho Array.Copy.",
+        "Nếu tự viết vòng lặp cho vùng chồng, chọn chiều copy thích hợp; Copy hoặc Span.CopyTo tránh lỗi ghi đè nguồn chưa đọc."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.array.copy?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1,1,1,1",
+          "1,2,3,4",
+          "1,1,2,3"
+        ],
+        "en": [
+          "1,1,1,1",
+          "1,2,3,4",
+          "1,1,2,3"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "list-insertrange-order",
+    "content": {
+      "title": "Chèn nhiều mục giữa danh sách",
+      "topic": "csharp",
+      "subtopic": "list insertrange order",
+      "tags": [
+        "csharp",
+        "list"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "InsertRange đặt hai mục vào vị trí 1 theo thứ tự nào?",
+      "englishPrompt": "In which order does InsertRange insert two entries at index one?",
+      "context": "Editor chèn một nhóm bước vào giữa quy trình đang soạn.",
+      "code": "var a = new List<int> { 1, 4 }; a.InsertRange(1, new[] { 2, 3 }); Console.Write(string.Join(\",\", a));",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng hai mục được chèn lần lượt vào cùng chỉ số và đảo thứ tự.",
+      "nextHint": "InsertRange giữ thứ tự collection nguồn và dịch phần tử từ vị trí chèn sang phải.",
+      "followUp": "Nếu vị trí bằng Count, thao tác có hợp lệ không?",
+      "englishFollowUp": "Is insertion at index Count valid?",
+      "outline": [
+        "1,2,3,4",
+        "InsertRange giữ thứ tự collection nguồn và dịch phần tử từ vị trí chèn sang phải."
+      ],
+      "shortAnswer": "1,2,3,4. InsertRange giữ thứ tự collection nguồn và dịch phần tử từ vị trí chèn sang phải.",
+      "explanation": "InsertRange giữ thứ tự collection nguồn và dịch phần tử từ vị trí chèn sang phải.",
+      "alternative": "Dùng AddRange khi vị trí chèn luôn là Count để ý định thêm cuối rõ hơn; InsertRange cho vị trí giữa hợp lệ.",
+      "trap": "Cho rằng hai mục được chèn lần lượt vào cùng chỉ số và đảo thứ tự.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1,2,3,4",
+        "InsertRange giữ thứ tự collection nguồn và dịch phần tử từ vị trí chèn sang phải.",
+        "Tránh ngộ nhận: Cho rằng hai mục được chèn lần lượt vào cùng chỉ số và đảo thứ tự.",
+        "Dùng AddRange khi vị trí chèn luôn là Count để ý định thêm cuối rõ hơn; InsertRange cho vị trí giữa hợp lệ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1.insertrange?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1,4,2,3",
+          "1,3,2,4",
+          "1,2,3,4"
+        ],
+        "en": [
+          "1,4,2,3",
+          "1,3,2,4",
+          "1,2,3,4"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "list-sort-comparison-descending",
+    "content": {
+      "title": "Đánh giá hàm so sánh giá",
+      "topic": "csharp",
+      "subtopic": "list sort comparison descending",
+      "tags": [
+        "csharp",
+        "list"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Đoạn mã dùng Comparison sau sẽ in các mức giá theo thứ tự nào?",
+      "englishPrompt": "In what order does the following Comparison print the prices?",
+      "context": "Một thay đổi đề xuất truyền comparator vào List.Sort; cần đọc chính comparator để xác định kết quả.",
+      "code": "var prices = new List<int> { 4, 1, 3 }; prices.Sort((a, b) => b.CompareTo(a)); Console.Write(string.Join(\",\", prices));",
+      "hint": "Kiểm tra giả định dễ sai sau: Thay CompareTo bằng phép trừ không xét overflow.",
+      "nextHint": "CompareTo của b với a đảo chiều thứ tự tự nhiên; dùng CompareTo tránh tràn số từ b-a.",
+      "followUp": "Vì sao b-a có thể vi phạm hợp đồng comparer ở biên int?",
+      "englishFollowUp": "Why can b-a violate the comparer contract at Int32 boundaries?",
+      "outline": [
+        "4,3,1",
+        "CompareTo của b với a đảo chiều thứ tự tự nhiên; dùng CompareTo tránh tràn số từ b-a."
+      ],
+      "shortAnswer": "4,3,1. CompareTo của b với a đảo chiều thứ tự tự nhiên; dùng CompareTo tránh tràn số từ b-a.",
+      "explanation": "CompareTo của b với a đảo chiều thứ tự tự nhiên; dùng CompareTo tránh tràn số từ b-a.",
+      "alternative": "Dùng CompareTo thay cho b-a để tránh overflow; nếu cần ổn định khi bằng key, chọn LINQ OrderByDescending.",
+      "trap": "Thay CompareTo bằng phép trừ không xét overflow.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 4,3,1",
+        "CompareTo của b với a đảo chiều thứ tự tự nhiên; dùng CompareTo tránh tràn số từ b-a.",
+        "Tránh ngộ nhận: Thay CompareTo bằng phép trừ không xét overflow.",
+        "Dùng CompareTo thay cho b-a để tránh overflow; nếu cần ổn định khi bằng key, chọn LINQ OrderByDescending."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1.sort?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "4,3,1",
+          "1,3,4",
+          "4,1,3"
+        ],
+        "en": [
+          "4,3,1",
+          "1,3,4",
+          "4,1,3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-repeat-shared-instance",
+    "content": {
+      "title": "Repeat giữ cùng tham chiếu",
+      "topic": "linq",
+      "subtopic": "linq repeat shared instance",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Repeat tạo hai phần tử từ cùng mảng. Sửa phần tử thứ nhất có được thấy qua phần tử thứ hai không?",
+      "englishPrompt": "Repeat produces two entries from one array. Is a change through the first entry visible through the second?",
+      "context": "Bộ test tạo nhiều ô chứa mảng rồi chỉnh một ô để kiểm tra độc lập dữ liệu.",
+      "code": "int[] item = [1]; var copies = Enumerable.Repeat(item, 2).ToArray(); copies[0][0] = 9; Console.Write(copies[1][0] == 9);",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi Repeat như factory chạy lại cho từng mục.",
+      "nextHint": "Repeat trả lại cùng giá trị element cho mỗi vị trí. Khi element là reference type, các mục trỏ cùng mảng, không tạo bản clone.",
+      "followUp": "Nếu cần hai mảng độc lập, đặt new ở đâu trong pipeline?",
+      "englishFollowUp": "Where should allocation occur in the pipeline to create two independent arrays?",
+      "outline": [
+        "True",
+        "Repeat trả lại cùng giá trị element cho mỗi vị trí. Khi element là reference type, các mục trỏ cùng mảng, không tạo bản clone."
+      ],
+      "shortAnswer": "True. Repeat trả lại cùng giá trị element cho mỗi vị trí. Khi element là reference type, các mục trỏ cùng mảng, không tạo bản clone.",
+      "explanation": "Repeat trả lại cùng giá trị element cho mỗi vị trí. Khi element là reference type, các mục trỏ cùng mảng, không tạo bản clone.",
+      "alternative": "Dùng Range rồi Select với new trong selector nếu cần mỗi vị trí có mảng riêng; Repeat chỉ lặp giá trị đầu vào.",
+      "trap": "Coi Repeat như factory chạy lại cho từng mục.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True",
+        "Repeat trả lại cùng giá trị element cho mỗi vị trí. Khi element là reference type, các mục trỏ cùng mảng, không tạo bản clone.",
+        "Tránh ngộ nhận: Coi Repeat như factory chạy lại cho từng mục.",
+        "Dùng Range rồi Select với new trong selector nếu cần mỗi vị trí có mảng riêng; Repeat chỉ lặp giá trị đầu vào."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.repeat?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "False",
+          "InvalidOperationException",
+          "True"
+        ],
+        "en": [
+          "False",
+          "InvalidOperationException",
+          "True"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-takewhile-stops-first",
+    "content": {
+      "title": "Lấy tiền tố hợp lệ",
+      "topic": "linq",
+      "subtopic": "linq takewhile stops first",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "TakeWhile có tiếp tục lấy mục hợp lệ sau giá trị không đạt không? Log là gì?",
+      "englishPrompt": "Does TakeWhile resume after a failing item? What is logged?",
+      "context": "Tệp có một tiền tố dữ liệu hợp lệ trước dấu dừng.",
+      "code": "int[] a = [2, 4, 9, 6]; Console.Write(string.Join(\",\", a.TakeWhile(x => x % 2 == 0)));",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm TakeWhile với Where.",
+      "nextHint": "TakeWhile dừng tại phần tử đầu predicate false; nó không xét lại phần sau như Where.",
+      "followUp": "Nếu cần mọi số chẵn dù nằm sau 9, đổi toán tử nào?",
+      "englishFollowUp": "Which operator would include even numbers after 9?",
+      "outline": [
+        "2,4",
+        "TakeWhile dừng tại phần tử đầu predicate false; nó không xét lại phần sau như Where."
+      ],
+      "shortAnswer": "2,4. TakeWhile dừng tại phần tử đầu predicate false; nó không xét lại phần sau như Where.",
+      "explanation": "TakeWhile dừng tại phần tử đầu predicate false; nó không xét lại phần sau như Where.",
+      "alternative": "Dùng Where nếu yêu cầu giữ mọi mục đạt điều kiện ở bất kỳ vị trí nào; dùng TakeWhile khi mục lỗi đầu tiên kết thúc tiền tố.",
+      "trap": "Nhầm TakeWhile với Where.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2,4",
+        "TakeWhile dừng tại phần tử đầu predicate false; nó không xét lại phần sau như Where.",
+        "Tránh ngộ nhận: Nhầm TakeWhile với Where.",
+        "Dùng Where nếu yêu cầu giữ mọi mục đạt điều kiện ở bất kỳ vị trí nào; dùng TakeWhile khi mục lỗi đầu tiên kết thúc tiền tố."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.takewhile?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2,4,6",
+          "2,4",
+          "2,4,9,6"
+        ],
+        "en": [
+          "2,4,6",
+          "2,4",
+          "2,4,9,6"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-takelast-short-source",
+    "content": {
+      "title": "Cửa sổ cuối ngắn",
+      "topic": "linq",
+      "subtopic": "linq takelast short source",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Nguồn chỉ có hai mã nhưng yêu cầu ba mã cuối. Kết quả là gì?",
+      "englishPrompt": "The source has only two codes and requests the last three. What is returned?",
+      "context": "Màn hình nhật ký cần tối đa ba sự kiện gần nhất.",
+      "code": "Console.Write(string.Join(\",\", new[] { 8, 9 }.TakeLast(3)));",
+      "hint": "Kiểm tra giả định dễ sai sau: Giả định yêu cầu count là số lượng bắt buộc.",
+      "nextHint": "TakeLast trả tối đa count phần tử cuối, không đệm và không ném lỗi vì nguồn ngắn.",
+      "followUp": "TakeLast(0) trả chuỗi rỗng hay báo lỗi?",
+      "englishFollowUp": "Does TakeLast(0) return an empty sequence or throw?",
+      "outline": [
+        "8,9",
+        "TakeLast trả tối đa count phần tử cuối, không đệm và không ném lỗi vì nguồn ngắn."
+      ],
+      "shortAnswer": "8,9. TakeLast trả tối đa count phần tử cuối, không đệm và không ném lỗi vì nguồn ngắn.",
+      "explanation": "TakeLast trả tối đa count phần tử cuối, không đệm và không ném lỗi vì nguồn ngắn.",
+      "alternative": "Chấp nhận số mục ít hơn ở nguồn ngắn; nếu nghiệp vụ yêu cầu đủ ba, kiểm tra số lượng và báo thiếu riêng.",
+      "trap": "Giả định yêu cầu count là số lượng bắt buộc.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 8,9",
+        "TakeLast trả tối đa count phần tử cuối, không đệm và không ném lỗi vì nguồn ngắn.",
+        "Tránh ngộ nhận: Giả định yêu cầu count là số lượng bắt buộc.",
+        "Chấp nhận số mục ít hơn ở nguồn ngắn; nếu nghiệp vụ yêu cầu đủ ba, kiểm tra số lượng và báo thiếu riêng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.takelast?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0,8,9",
+          "8,9",
+          "InvalidOperationException"
+        ],
+        "en": [
+          "0,8,9",
+          "8,9",
+          "InvalidOperationException"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-skiplast-trailer",
+    "content": {
+      "title": "Bỏ phần kết thúc gói",
+      "topic": "linq",
+      "subtopic": "linq skiplast trailer",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Bỏ hai phần tử cuối của chuỗi này còn gì?",
+      "englishPrompt": "What remains after skipping the last two elements?",
+      "context": "Gói nhập chứa hai mục trailer không thuộc dữ liệu chính.",
+      "code": "Console.Write(string.Join(\",\", new[] { 1, 2, 3, 4 }.SkipLast(2)));",
+      "hint": "Kiểm tra giả định dễ sai sau: Áp quy tắc Skip từ đầu cho SkipLast.",
+      "nextHint": "SkipLast bỏ suffix với count phần tử; nó không bỏ prefix như Skip.",
+      "followUp": "Nếu count lớn hơn số phần tử, kết quả có giữ gì không?",
+      "englishFollowUp": "What remains if count exceeds the source length?",
+      "outline": [
+        "1,2",
+        "SkipLast bỏ suffix với count phần tử; nó không bỏ prefix như Skip."
+      ],
+      "shortAnswer": "1,2. SkipLast bỏ suffix với count phần tử; nó không bỏ prefix như Skip.",
+      "explanation": "SkipLast bỏ suffix với count phần tử; nó không bỏ prefix như Skip.",
+      "alternative": "Dùng Skip để bỏ header; SkipLast dành cho trailer và có thể cần buffer khi duyệt nguồn stream.",
+      "trap": "Áp quy tắc Skip từ đầu cho SkipLast.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1,2",
+        "SkipLast bỏ suffix với count phần tử; nó không bỏ prefix như Skip.",
+        "Tránh ngộ nhận: Áp quy tắc Skip từ đầu cho SkipLast.",
+        "Dùng Skip để bỏ header; SkipLast dành cho trailer và có thể cần buffer khi duyệt nguồn stream."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.skiplast?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1,2",
+          "3,4",
+          "1,2,3,4"
+        ],
+        "en": [
+          "1,2",
+          "3,4",
+          "1,2,3,4"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-indexed-select-origin",
+    "content": {
+      "title": "Đánh số trang dữ liệu",
+      "topic": "linq",
+      "subtopic": "linq indexed select origin",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Index trong Select bắt đầu ở đâu và log là gì?",
+      "englishPrompt": "Where does the indexed Select counter start, and what is logged?",
+      "context": "Màn hình đánh số các dòng sau một bước phân trang.",
+      "code": "Console.Write(string.Join(\",\", new[] { \"A\", \"B\" }.Select((x, i) => $\"{i}:{x}\")));",
+      "hint": "Kiểm tra giả định dễ sai sau: Giả định index luôn là vị trí trong nguồn ban đầu.",
+      "nextHint": "Overload Select có index dùng chỉ số bắt đầu từ 0 của chuỗi đang enumerate, không phải số thứ tự nghiệp vụ.",
+      "followUp": "Nếu đặt Skip(20) trước Select thì index đầu là 0 hay 20?",
+      "englishFollowUp": "After Skip(20) before Select, is the first index zero or twenty?",
+      "outline": [
+        "0:A,1:B",
+        "Overload Select có index dùng chỉ số bắt đầu từ 0 của chuỗi đang enumerate, không phải số thứ tự nghiệp vụ."
+      ],
+      "shortAnswer": "0:A,1:B. Overload Select có index dùng chỉ số bắt đầu từ 0 của chuỗi đang enumerate, không phải số thứ tự nghiệp vụ.",
+      "explanation": "Overload Select có index dùng chỉ số bắt đầu từ 0 của chuỗi đang enumerate, không phải số thứ tự nghiệp vụ.",
+      "alternative": "Cộng offset trang vào index của Select nếu muốn số thứ tự toàn tập; index riêng của Select bắt đầu lại từ 0.",
+      "trap": "Giả định index luôn là vị trí trong nguồn ban đầu.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 0:A,1:B",
+        "Overload Select có index dùng chỉ số bắt đầu từ 0 của chuỗi đang enumerate, không phải số thứ tự nghiệp vụ.",
+        "Tránh ngộ nhận: Giả định index luôn là vị trí trong nguồn ban đầu.",
+        "Cộng offset trang vào index của Select nếu muốn số thứ tự toàn tập; index riêng của Select bắt đầu lại từ 0."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.select?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0:A,0:B",
+          "1:A,2:B",
+          "0:A,1:B"
+        ],
+        "en": [
+          "0:A,0:B",
+          "1:A,2:B",
+          "0:A,1:B"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-indexed-where-before-filter",
+    "content": {
+      "title": "Vị trí trước lọc",
+      "topic": "linq",
+      "subtopic": "linq indexed where before filter",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Where có index sẽ giữ những mục nào?",
+      "englishPrompt": "Which items are retained by indexed Where?",
+      "context": "Bộ nhập chọn một trong hai ô xen kẽ theo vị trí nguồn.",
+      "code": "Console.Write(string.Join(\",\", new[] { \"A\", \"B\", \"C\", \"D\" }.Where((x, i) => i % 2 == 1)));",
+      "hint": "Kiểm tra giả định dễ sai sau: Tăng index chỉ khi phần tử được giữ.",
+      "nextHint": "Index được gán theo phần tử nguồn trước khi quyết định giữ hay bỏ; vị trí lẻ là 1 và 3.",
+      "followUp": "Nếu nối Where thứ hai có index, nó đánh số nguồn nào?",
+      "englishFollowUp": "Which sequence does a second indexed Where number?",
+      "outline": [
+        "B,D",
+        "Index được gán theo phần tử nguồn trước khi quyết định giữ hay bỏ; vị trí lẻ là 1 và 3."
+      ],
+      "shortAnswer": "B,D. Index được gán theo phần tử nguồn trước khi quyết định giữ hay bỏ; vị trí lẻ là 1 và 3.",
+      "explanation": "Index được gán theo phần tử nguồn trước khi quyết định giữ hay bỏ; vị trí lẻ là 1 và 3.",
+      "alternative": "Nếu cần vị trí gốc qua nhiều bước lọc, Select kèm index trước các bộ lọc rồi mang index theo từng phần tử.",
+      "trap": "Tăng index chỉ khi phần tử được giữ.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: B,D",
+        "Index được gán theo phần tử nguồn trước khi quyết định giữ hay bỏ; vị trí lẻ là 1 và 3.",
+        "Tránh ngộ nhận: Tăng index chỉ khi phần tử được giữ.",
+        "Nếu cần vị trí gốc qua nhiều bước lọc, Select kèm index trước các bộ lọc rồi mang index theo từng phần tử."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.where?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "A,C",
+          "B,C,D",
+          "B,D"
+        ],
+        "en": [
+          "A,C",
+          "B,C,D",
+          "B,D"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-defaultifempty-supplied",
+    "content": {
+      "title": "Giá trị thay khi không có dòng",
+      "topic": "linq",
+      "subtopic": "linq defaultifempty supplied",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Nguồn rỗng với DefaultIfEmpty(99) được Sum thế nào?",
+      "englishPrompt": "How does Sum behave on an empty source with DefaultIfEmpty(99)?",
+      "context": "Báo cáo thử dùng một mức dự phòng khi hoàn toàn không có dòng.",
+      "code": "Console.Write(Array.Empty<int>().DefaultIfEmpty(99).Sum());",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng DefaultIfEmpty thay mọi giá trị default.",
+      "nextHint": "DefaultIfEmpty với tham số tạo một phần tử fallback nếu nguồn rỗng; Sum nhận phần tử 99 ấy.",
+      "followUp": "Nếu nguồn chứa 0 thì fallback 99 có được chèn không?",
+      "englishFollowUp": "Is the fallback inserted if the source already contains zero?",
+      "outline": [
+        "99",
+        "DefaultIfEmpty với tham số tạo một phần tử fallback nếu nguồn rỗng; Sum nhận phần tử 99 ấy."
+      ],
+      "shortAnswer": "99. DefaultIfEmpty với tham số tạo một phần tử fallback nếu nguồn rỗng; Sum nhận phần tử 99 ấy.",
+      "explanation": "DefaultIfEmpty với tham số tạo một phần tử fallback nếu nguồn rỗng; Sum nhận phần tử 99 ấy.",
+      "alternative": "Kiểm tra nguồn rỗng riêng nếu fallback không nên tham gia phép cộng như dữ liệu thật; DefaultIfEmpty không thay các số 0 sẵn có.",
+      "trap": "Cho rằng DefaultIfEmpty thay mọi giá trị default.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 99",
+        "DefaultIfEmpty với tham số tạo một phần tử fallback nếu nguồn rỗng; Sum nhận phần tử 99 ấy.",
+        "Tránh ngộ nhận: Cho rằng DefaultIfEmpty thay mọi giá trị default.",
+        "Kiểm tra nguồn rỗng riêng nếu fallback không nên tham gia phép cộng như dữ liệu thật; DefaultIfEmpty không thay các số 0 sẵn có."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.defaultifempty?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "99",
+          "InvalidOperationException"
+        ],
+        "en": [
+          "0",
+          "99",
+          "InvalidOperationException"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "linq-nullable-sum-all-null",
+    "content": {
+      "title": "Cộng các số thiếu",
+      "topic": "linq",
+      "subtopic": "linq nullable sum all null",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Sum trên int? toàn null trả null hay số nào?",
+      "englishPrompt": "Does Sum over all-null nullable integers return null or a number?",
+      "context": "Báo cáo tiền cần phân biệt chưa có số liệu với tổng thực bằng 0.",
+      "code": "int?[] a = [null, null]; Console.Write(a.Sum());",
+      "hint": "Kiểm tra giả định dễ sai sau: Suy quy tắc null truyền từ phép cộng đơn sang Sum.",
+      "nextHint": "Overload Sum nullable bỏ các null và trả 0 khi không có giá trị để cộng. Nó không thể tự phân biệt toàn thiếu với tổng thực bằng 0.",
+      "followUp": "Nếu báo cáo cần hiển thị thiếu thay vì 0, kiểm tra thêm điều kiện gì?",
+      "englishFollowUp": "What extra check preserves missing rather than zero in a report?",
+      "outline": [
+        "0",
+        "Overload Sum nullable bỏ các null và trả 0 khi không có giá trị để cộng. Nó không thể tự phân biệt toàn thiếu với tổng thực bằng 0."
+      ],
+      "shortAnswer": "0. Overload Sum nullable bỏ các null và trả 0 khi không có giá trị để cộng. Nó không thể tự phân biệt toàn thiếu với tổng thực bằng 0.",
+      "explanation": "Overload Sum nullable bỏ các null và trả 0 khi không có giá trị để cộng. Nó không thể tự phân biệt toàn thiếu với tổng thực bằng 0.",
+      "alternative": "Kiểm tra có ít nhất một HasValue trước Sum nếu toàn null phải hiển thị thiếu; với stream một lượt cần gom cả cờ và tổng cùng lúc.",
+      "trap": "Suy quy tắc null truyền từ phép cộng đơn sang Sum.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 0",
+        "Overload Sum nullable bỏ các null và trả 0 khi không có giá trị để cộng. Nó không thể tự phân biệt toàn thiếu với tổng thực bằng 0.",
+        "Tránh ngộ nhận: Suy quy tắc null truyền từ phép cộng đơn sang Sum.",
+        "Kiểm tra có ít nhất một HasValue trước Sum nếu toàn null phải hiển thị thiếu; với stream một lượt cần gom cả cờ và tổng cùng lúc."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.sum?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "InvalidOperationException",
+          "null"
+        ],
+        "en": [
+          "0",
+          "InvalidOperationException",
+          "null"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-nullable-average-all-null",
+    "content": {
+      "title": "Trung bình khi thiếu toàn bộ",
+      "topic": "linq",
+      "subtopic": "linq nullable average all null",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Average trên double? toàn null tạo dấu hiệu nào?",
+      "englishPrompt": "What does Average produce for all-null nullable doubles?",
+      "context": "Dashboard không được hiển thị trung bình bằng 0 khi mọi phép đo đều thiếu.",
+      "code": "double?[] a = [null, null]; Console.Write(a.Average() is null);",
+      "hint": "Kiểm tra giả định dễ sai sau: Áp quy tắc Sum cho Average.",
+      "nextHint": "Average nullable bỏ null và trả null khi không có giá trị, khác quy ước tổng rỗng bằng 0 của Sum.",
+      "followUp": "Average trên int rỗng có cùng quy tắc không?",
+      "englishFollowUp": "Does Average on an empty non-nullable int sequence follow the same rule?",
+      "outline": [
+        "True",
+        "Average nullable bỏ null và trả null khi không có giá trị, khác quy ước tổng rỗng bằng 0 của Sum."
+      ],
+      "shortAnswer": "True. Average nullable bỏ null và trả null khi không có giá trị, khác quy ước tổng rỗng bằng 0 của Sum.",
+      "explanation": "Average nullable bỏ null và trả null khi không có giá trị, khác quy ước tổng rỗng bằng 0 của Sum.",
+      "alternative": "Dùng Average nullable và xử lý null tường minh; Average của nguồn int rỗng ném InvalidOperationException thay vì trả null.",
+      "trap": "Áp quy tắc Sum cho Average.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True",
+        "Average nullable bỏ null và trả null khi không có giá trị, khác quy ước tổng rỗng bằng 0 của Sum.",
+        "Tránh ngộ nhận: Áp quy tắc Sum cho Average.",
+        "Dùng Average nullable và xử lý null tường minh; Average của nguồn int rỗng ném InvalidOperationException thay vì trả null."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.average?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "InvalidOperationException",
+          "False"
+        ],
+        "en": [
+          "True",
+          "InvalidOperationException",
+          "False"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-append-does-not-mutate",
+    "content": {
+      "title": "Thêm vào chuỗi hay danh sách",
+      "topic": "linq",
+      "subtopic": "linq append does not mutate",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Append không lưu kết quả. Count của danh sách nguồn là bao nhiêu?",
+      "englishPrompt": "Append is called without retaining its result. What is the source list count?",
+      "context": "List do caller cung cấp đang chứa hai mã; một bước xử lý gọi Enumerable.Append nhưng không giữ sequence trả về.",
+      "code": "var a = new List<int> { 1, 2 }; _ = a.Append(3); Console.Write(a.Count);",
+      "hint": "Kiểm tra giả định dễ sai sau: Đồng nhất Append của LINQ với List.Add.",
+      "nextHint": "Enumerable.Append trả chuỗi mới và không sửa collection nguồn; muốn sửa List dùng Add.",
+      "followUp": "Nếu giữ kết quả Append rồi ToArray, mảng có bao nhiêu mục?",
+      "englishFollowUp": "How many elements would retaining the result and calling ToArray produce?",
+      "outline": [
+        "2",
+        "Enumerable.Append trả chuỗi mới và không sửa collection nguồn; muốn sửa List dùng Add."
+      ],
+      "shortAnswer": "2. Enumerable.Append trả chuỗi mới và không sửa collection nguồn; muốn sửa List dùng Add.",
+      "explanation": "Enumerable.Append trả chuỗi mới và không sửa collection nguồn; muốn sửa List dùng Add.",
+      "alternative": "Giữ sequence trả về nếu muốn kết quả có mục mới; dùng List.Add khi chủ ý sửa trực tiếp danh sách đang sở hữu.",
+      "trap": "Đồng nhất Append của LINQ với List.Add.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2",
+        "Enumerable.Append trả chuỗi mới và không sửa collection nguồn; muốn sửa List dùng Add.",
+        "Tránh ngộ nhận: Đồng nhất Append của LINQ với List.Add.",
+        "Giữ sequence trả về nếu muốn kết quả có mục mới; dùng List.Add khi chủ ý sửa trực tiếp danh sách đang sở hữu."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.append?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "0",
+          "3"
+        ],
+        "en": [
+          "2",
+          "0",
+          "3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-prepend-order",
+    "content": {
+      "title": "Thêm đầu hai lần",
+      "topic": "linq",
+      "subtopic": "linq prepend order",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai lần Prepend liên tiếp tạo thứ tự nào?",
+      "englishPrompt": "What order do two consecutive Prepend calls produce?",
+      "context": "Bộ tạo thông điệp thêm các header trước phần nội dung.",
+      "code": "Console.Write(string.Join(\",\", new[] { 3 }.Prepend(2).Prepend(1)));",
+      "hint": "Kiểm tra giả định dễ sai sau: Đọc thứ tự lời gọi như thứ tự xuất hiện của phần tử.",
+      "nextHint": "Mỗi Prepend đặt phần tử trước chuỗi hiện tại; lần thứ hai thêm 1 trước cả 2 và 3.",
+      "followUp": "Nếu dùng Append ở lần cuối, thứ tự sẽ đổi thế nào?",
+      "englishFollowUp": "How would replacing the final Prepend with Append change the order?",
+      "outline": [
+        "1,2,3",
+        "Mỗi Prepend đặt phần tử trước chuỗi hiện tại; lần thứ hai thêm 1 trước cả 2 và 3."
+      ],
+      "shortAnswer": "1,2,3. Mỗi Prepend đặt phần tử trước chuỗi hiện tại; lần thứ hai thêm 1 trước cả 2 và 3.",
+      "explanation": "Mỗi Prepend đặt phần tử trước chuỗi hiện tại; lần thứ hai thêm 1 trước cả 2 và 3.",
+      "alternative": "Dùng Append cho footer; thứ tự các lần Prepend được phản ánh ngược ở đầu sequence.",
+      "trap": "Đọc thứ tự lời gọi như thứ tự xuất hiện của phần tử.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1,2,3",
+        "Mỗi Prepend đặt phần tử trước chuỗi hiện tại; lần thứ hai thêm 1 trước cả 2 và 3.",
+        "Tránh ngộ nhận: Đọc thứ tự lời gọi như thứ tự xuất hiện của phần tử.",
+        "Dùng Append cho footer; thứ tự các lần Prepend được phản ánh ngược ở đầu sequence."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.prepend?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1,2,3",
+          "3,2,1",
+          "2,1,3"
+        ],
+        "en": [
+          "1,2,3",
+          "3,2,1",
+          "2,1,3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-range-count-not-end",
+    "content": {
+      "title": "Sinh dãy mã",
+      "topic": "linq",
+      "subtopic": "linq range count not end",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Range(5,3) coi 3 là gì và ghi chuỗi nào?",
+      "englishPrompt": "What does the 3 in Range(5,3) mean, and what is printed?",
+      "context": "Job tạo ba mã chạy liên tiếp bắt đầu từ 5.",
+      "code": "Console.Write(string.Join(\",\", Enumerable.Range(5, 3)));",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi tham số thứ hai là endpoint.",
+      "nextHint": "Tham số thứ hai là số phần tử, không phải mốc kết thúc; dãy bắt đầu ở 5 và có ba mục.",
+      "followUp": "Nếu start cộng count vượt int.MaxValue thì API có vòng lại không?",
+      "englishFollowUp": "Does the API wrap when the requested range exceeds Int32.MaxValue?",
+      "outline": [
+        "5,6,7",
+        "Tham số thứ hai là số phần tử, không phải mốc kết thúc; dãy bắt đầu ở 5 và có ba mục."
+      ],
+      "shortAnswer": "5,6,7. Tham số thứ hai là số phần tử, không phải mốc kết thúc; dãy bắt đầu ở 5 và có ba mục.",
+      "explanation": "Tham số thứ hai là số phần tử, không phải mốc kết thúc; dãy bắt đầu ở 5 và có ba mục.",
+      "alternative": "Kiểm tra start và count từ input; Range ném ArgumentOutOfRangeException khi phạm vi vượt int thay vì vòng số.",
+      "trap": "Coi tham số thứ hai là endpoint.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 5,6,7",
+        "Tham số thứ hai là số phần tử, không phải mốc kết thúc; dãy bắt đầu ở 5 và có ba mục.",
+        "Tránh ngộ nhận: Coi tham số thứ hai là endpoint.",
+        "Kiểm tra start và count từ input; Range ném ArgumentOutOfRangeException khi phạm vi vượt int thay vì vòng số."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.range?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "5,6,7,8",
+          "5,6",
+          "5,6,7"
+        ],
+        "en": [
+          "5,6,7,8",
+          "5,6",
+          "5,6,7"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "oop-new-hides-static-selection",
+    "content": {
+      "title": "Ẩn phương thức không virtual",
+      "topic": "oop",
+      "subtopic": "oop new hides static selection",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Cùng một đối tượng, lời gọi qua Base và Derived in gì?",
+      "englishPrompt": "For one object, what do calls through Base and Derived print?",
+      "context": "Một plugin cũ công bố method không virtual và lớp mới thêm method cùng tên.",
+      "code": "Base x = new Derived(); Console.Write($\"{x.Name()}:{((Derived)x).Name()}\");\nclass Base { public string Name() => \"base\"; }\nclass Derived : Base { public new string Name() => \"derived\"; }",
+      "hint": "Kiểm tra giả định dễ sai sau: Xem new như override.",
+      "nextHint": "new ẩn thành viên không virtual. Lựa chọn thành viên dựa trên kiểu tĩnh của biểu thức, không dispatch override.",
+      "followUp": "Nếu Base.Name là virtual và Derived dùng override, kết quả qua Base thay đổi thế nào?",
+      "englishFollowUp": "How would making Base.Name virtual and overriding it change the Base call?",
+      "outline": [
+        "base:derived",
+        "new ẩn thành viên không virtual. Lựa chọn thành viên dựa trên kiểu tĩnh của biểu thức, không dispatch override."
+      ],
+      "shortAnswer": "base:derived. new ẩn thành viên không virtual. Lựa chọn thành viên dựa trên kiểu tĩnh của biểu thức, không dispatch override.",
+      "explanation": "new ẩn thành viên không virtual. Lựa chọn thành viên dựa trên kiểu tĩnh của biểu thức, không dispatch override.",
+      "alternative": "Nếu hợp đồng cần đa hình thật, khai báo virtual/override tại kiểu sở hữu API; new chỉ ẩn thành viên theo kiểu tĩnh.",
+      "trap": "Xem new như override.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: base:derived",
+        "new ẩn thành viên không virtual. Lựa chọn thành viên dựa trên kiểu tĩnh của biểu thức, không dispatch override.",
+        "Tránh ngộ nhận: Xem new như override.",
+        "Nếu hợp đồng cần đa hình thật, khai báo virtual/override tại kiểu sở hữu API; new chỉ ẩn thành viên theo kiểu tĩnh."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/new-modifier",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "base:derived",
+          "derived:derived",
+          "base:base"
+        ],
+        "en": [
+          "base:derived",
+          "derived:derived",
+          "base:base"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "oop-base-constructor-order",
+    "content": {
+      "title": "Thứ tự thân constructor",
+      "topic": "oop",
+      "subtopic": "oop base constructor order",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Khi tạo lớp con, thân constructor base và derived in thứ tự nào?",
+      "englishPrompt": "In what order do the base and derived constructor bodies print?",
+      "context": "Nhóm theo dõi log khởi tạo các kiểu trong một cây kế thừa.",
+      "code": "_ = new Child();\nclass Parent { public Parent() { Console.Write(\"B\"); } }\nclass Child : Parent { public Child() { Console.Write(\"C\"); } }",
+      "hint": "Kiểm tra giả định dễ sai sau: Khái quát thứ tự thân constructor sang toàn bộ bước khởi tạo.",
+      "nextHint": "Thân constructor base hoàn tất trước thân constructor derived. Điều này không khẳng định mọi field initializer cũng chạy cùng thứ tự đó.",
+      "followUp": "Vì sao gọi virtual từ constructor base có thể quan sát trạng thái derived chưa hoàn tất?",
+      "englishFollowUp": "Why can a virtual call from a base constructor observe an incompletely constructed derived object?",
+      "outline": [
+        "BC",
+        "Thân constructor base hoàn tất trước thân constructor derived. Điều này không khẳng định mọi field initializer cũng chạy cùng thứ tự đó."
+      ],
+      "shortAnswer": "BC. Thân constructor base hoàn tất trước thân constructor derived. Điều này không khẳng định mọi field initializer cũng chạy cùng thứ tự đó.",
+      "explanation": "Thân constructor base hoàn tất trước thân constructor derived. Điều này không khẳng định mọi field initializer cũng chạy cùng thứ tự đó.",
+      "alternative": "Tránh gọi virtual từ constructor base nếu hành vi cần trạng thái derived đã hoàn chỉnh; chuyển bước đó sang thao tác sau xây dựng.",
+      "trap": "Khái quát thứ tự thân constructor sang toàn bộ bước khởi tạo.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: BC",
+        "Thân constructor base hoàn tất trước thân constructor derived. Điều này không khẳng định mọi field initializer cũng chạy cùng thứ tự đó.",
+        "Tránh ngộ nhận: Khái quát thứ tự thân constructor sang toàn bộ bước khởi tạo.",
+        "Tránh gọi virtual từ constructor base nếu hành vi cần trạng thái derived đã hoàn chỉnh; chuyển bước đó sang thao tác sau xây dựng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/constructors",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "BC",
+          "B",
+          "CB"
+        ],
+        "en": [
+          "BC",
+          "B",
+          "CB"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "oop-record-with-shallow-reference",
+    "content": {
+      "title": "Bản sao with chia sẻ danh sách",
+      "topic": "oop",
+      "subtopic": "oop record with shallow reference",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "with đổi tên nhưng giữ List tham chiếu. Thêm nhãn qua bản sao ảnh hưởng bản gốc thế nào?",
+      "englishPrompt": "A with expression changes a name but retains a List reference. What does adding through the copy do?",
+      "context": "Editor tạo bản nháp hồ sơ bằng with rồi thêm nhãn cho bản nháp.",
+      "code": "var a = new Card(\"A\", new List<string>()); var b = a with { Name = \"B\" }; b.Labels.Add(\"hot\"); Console.Write($\"{a.Name}:{a.Labels.Count}\");\nrecord Card(string Name, List<string> Labels);",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng record with sao sâu toàn bộ đồ thị.",
+      "nextHint": "with tạo bản sao nông; Name thay riêng nhưng List vẫn là cùng đối tượng. Record không tự sao sâu collection.",
+      "followUp": "Muốn hai bản sao thêm nhãn độc lập thì phải sao chép member nào?",
+      "englishFollowUp": "Which member must be copied for independent label changes?",
+      "outline": [
+        "A:1",
+        "with tạo bản sao nông; Name thay riêng nhưng List vẫn là cùng đối tượng. Record không tự sao sâu collection."
+      ],
+      "shortAnswer": "A:1. with tạo bản sao nông; Name thay riêng nhưng List vẫn là cùng đối tượng. Record không tự sao sâu collection.",
+      "explanation": "with tạo bản sao nông; Name thay riêng nhưng List vẫn là cùng đối tượng. Record không tự sao sâu collection.",
+      "alternative": "Tạo List mới cho member Labels khi hai bản phải sửa độc lập; chỉ đổi Name không tách danh sách.",
+      "trap": "Cho rằng record with sao sâu toàn bộ đồ thị.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: A:1",
+        "with tạo bản sao nông; Name thay riêng nhưng List vẫn là cùng đối tượng. Record không tự sao sâu collection.",
+        "Tránh ngộ nhận: Cho rằng record with sao sâu toàn bộ đồ thị.",
+        "Tạo List mới cho member Labels khi hai bản phải sửa độc lập; chỉ đổi Name không tách danh sách."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "B:1",
+          "A:0",
+          "A:1"
+        ],
+        "en": [
+          "B:1",
+          "A:0",
+          "A:1"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "oop-struct-interface-boxed-mutation",
+    "content": {
+      "title": "Sửa struct qua interface",
+      "topic": "oop",
+      "subtopic": "oop struct interface boxed mutation",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Gán struct vào interface rồi gọi Increment sẽ sửa bản nào?",
+      "englishPrompt": "After assigning a struct to an interface, which value does Increment modify?",
+      "context": "Bộ đếm nhỏ được đưa qua interface của thư viện đo lường.",
+      "code": "var c = new Counter(); ICounter boxed = c; boxed.Increment(); Console.Write($\"{c.Value}:{boxed.Value}\");\ninterface ICounter { int Value { get; } void Increment(); }\nstruct Counter : ICounter { public int Value { get; private set; } public void Increment() => Value++; }",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng interface luôn trỏ trực tiếp tới biến struct gốc.",
+      "nextHint": "Chuyển struct sang interface tạo boxing bản sao. Lời gọi sửa giá trị trong box, còn biến struct gốc vẫn 0.",
+      "followUp": "Nếu truyền struct bằng ref vào hàm generic ràng buộc interface thì cần kiểm tra khác biệt nào?",
+      "englishFollowUp": "What difference would you examine for a ref generic parameter constrained to the interface?",
+      "outline": [
+        "0:1",
+        "Chuyển struct sang interface tạo boxing bản sao. Lời gọi sửa giá trị trong box, còn biến struct gốc vẫn 0."
+      ],
+      "shortAnswer": "0:1. Chuyển struct sang interface tạo boxing bản sao. Lời gọi sửa giá trị trong box, còn biến struct gốc vẫn 0.",
+      "explanation": "Chuyển struct sang interface tạo boxing bản sao. Lời gọi sửa giá trị trong box, còn biến struct gốc vẫn 0.",
+      "alternative": "Nếu cần sửa biến struct gốc, thiết kế tham số ref phù hợp; nếu cần identity chia sẻ qua interface, cân nhắc class.",
+      "trap": "Cho rằng interface luôn trỏ trực tiếp tới biến struct gốc.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 0:1",
+        "Chuyển struct sang interface tạo boxing bản sao. Lời gọi sửa giá trị trong box, còn biến struct gốc vẫn 0.",
+        "Tránh ngộ nhận: Cho rằng interface luôn trỏ trực tiếp tới biến struct gốc.",
+        "Nếu cần sửa biến struct gốc, thiết kế tham số ref phù hợp; nếu cần identity chia sẻ qua interface, cân nhắc class."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/types/boxing-and-unboxing",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0:1",
+          "1:1",
+          "0:0"
+        ],
+        "en": [
+          "0:1",
+          "1:1",
+          "0:0"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "oop-extension-instance-wins",
+    "content": {
+      "title": "Instance và extension trùng tên",
+      "topic": "oop",
+      "subtopic": "oop extension instance wins",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Kiểu có instance method và extension cùng chữ ký. Lời gọi chọn cái nào?",
+      "englishPrompt": "A type has an instance method and a matching extension. Which is called?",
+      "context": "Một thư viện extension trùng tên với instance method mới được bổ sung.",
+      "code": "Console.Write(new Label().Render());\nclass Label { public string Render() => \"instance\"; }\nstatic class LabelExtensions { public static string Render(this Label x) => \"extension\"; }",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng extension có thể thay implementation instance.",
+      "nextHint": "Một instance method áp dụng được có ưu tiên hơn extension. Extension không override thành viên instance.",
+      "followUp": "Nếu bỏ instance method, vì sao namespace của extension còn quan trọng?",
+      "englishFollowUp": "If the instance method is removed, why does the extension namespace matter?",
+      "outline": [
+        "instance",
+        "Một instance method áp dụng được có ưu tiên hơn extension. Extension không override thành viên instance."
+      ],
+      "shortAnswer": "instance. Một instance method áp dụng được có ưu tiên hơn extension. Extension không override thành viên instance.",
+      "explanation": "Một instance method áp dụng được có ưu tiên hơn extension. Extension không override thành viên instance.",
+      "alternative": "Gọi static extension tường minh khi thực sự cần implementation đó; lời gọi dạng instance ưu tiên method instance áp dụng được.",
+      "trap": "Cho rằng extension có thể thay implementation instance.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: instance",
+        "Một instance method áp dụng được có ưu tiên hơn extension. Extension không override thành viên instance.",
+        "Tránh ngộ nhận: Cho rằng extension có thể thay implementation instance.",
+        "Gọi static extension tường minh khi thực sự cần implementation đó; lời gọi dạng instance ưu tiên method instance áp dụng được."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/extension-methods",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lỗi biên dịch vì instance method và extension gây nhập nhằng",
+          "instance",
+          "extension"
+        ],
+        "en": [
+          "Compilation error because the instance method and extension are ambiguous",
+          "instance",
+          "extension"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "oop-event-remove-one-occurrence",
+    "content": {
+      "title": "Hủy một đăng ký trùng",
+      "topic": "oop",
+      "subtopic": "oop event remove one occurrence",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Cùng handler được đăng ký hai lần rồi -= một lần. Sự kiện gọi handler mấy lần?",
+      "englishPrompt": "The same handler is subscribed twice and removed once. How many calls remain?",
+      "context": "Màn hình có thể được mở lại và vô tình đăng ký cùng handler nhiều lần.",
+      "code": "var e = new Publisher(); int n = 0; Action h = () => n++; e.Tick += h; e.Tick += h; e.Tick -= h; e.Raise(); Console.Write(n);\nclass Publisher { public event Action? Tick; public void Raise() => Tick?.Invoke(); }",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi event như tập hợp tự loại trùng.",
+      "nextHint": "Mỗi += thêm một entry vào invocation list. Một -= loại một occurrence phù hợp, không phải mọi occurrence.",
+      "followUp": "Làm sao quản lý đăng ký khi một màn hình có thể mở lại nhiều lần?",
+      "englishFollowUp": "How would you manage subscriptions when a screen can be reopened?",
+      "outline": [
+        "1",
+        "Mỗi += thêm một entry vào invocation list. Một -= loại một occurrence phù hợp, không phải mọi occurrence."
+      ],
+      "shortAnswer": "1. Mỗi += thêm một entry vào invocation list. Một -= loại một occurrence phù hợp, không phải mọi occurrence.",
+      "explanation": "Mỗi += thêm một entry vào invocation list. Một -= loại một occurrence phù hợp, không phải mọi occurrence.",
+      "alternative": "Bảo đảm mỗi lần đăng ký có cleanup tương ứng; tránh đăng ký trùng thay vì kỳ vọng một -= xóa mọi entry.",
+      "trap": "Coi event như tập hợp tự loại trùng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1",
+        "Mỗi += thêm một entry vào invocation list. Một -= loại một occurrence phù hợp, không phải mọi occurrence.",
+        "Tránh ngộ nhận: Coi event như tập hợp tự loại trùng.",
+        "Bảo đảm mỗi lần đăng ký có cleanup tương ứng; tránh đăng ký trùng thay vì kỳ vọng một -= xóa mọi entry."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.delegate.remove?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "1",
+          "2"
+        ],
+        "en": [
+          "0",
+          "1",
+          "2"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "oop-delegate-capture-this-state",
+    "content": {
+      "title": "Delegate đọc trạng thái hiện tại",
+      "topic": "oop",
+      "subtopic": "oop delegate capture this state",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Method delegate được tạo trước khi đổi Prefix. Khi gọi, nó đọc giá trị nào?",
+      "englishPrompt": "A method delegate is created before Prefix changes. Which value does it read when called?",
+      "context": "Pipeline giữ một delegate định dạng rồi cập nhật cấu hình target object.",
+      "code": "var f = new Formatter { Prefix = \"old\" }; Func<string> render = f.Render; f.Prefix = \"new\"; Console.Write(render());\nclass Formatter { public string Prefix { get; set; } = \"\"; public string Render() => Prefix; }",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm chụp target reference với chụp dữ liệu field.",
+      "nextHint": "Instance delegate giữ target object và method, không chụp snapshot mọi field tại lúc tạo.",
+      "followUp": "Nếu gán f sang object khác, delegate cũ có chuyển target không?",
+      "englishFollowUp": "If f is assigned a different object, does the old delegate change targets?",
+      "outline": [
+        "new",
+        "Instance delegate giữ target object và method, không chụp snapshot mọi field tại lúc tạo."
+      ],
+      "shortAnswer": "new. Instance delegate giữ target object và method, không chụp snapshot mọi field tại lúc tạo.",
+      "explanation": "Instance delegate giữ target object và method, không chụp snapshot mọi field tại lúc tạo.",
+      "alternative": "Để giữ prefix cố định, chụp giá trị prefix vào một local dùng trong lambda; gán lại biến f không đổi target của delegate cũ.",
+      "trap": "Nhầm chụp target reference với chụp dữ liệu field.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: new",
+        "Instance delegate giữ target object và method, không chụp snapshot mọi field tại lúc tạo.",
+        "Tránh ngộ nhận: Nhầm chụp target reference với chụp dữ liệu field.",
+        "Để giữ prefix cố định, chụp giá trị prefix vào một local dùng trong lambda; gán lại biến f không đổi target của delegate cũ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/delegates/using-delegates",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "old",
+          "null",
+          "new"
+        ],
+        "en": [
+          "old",
+          "null",
+          "new"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "oop-object-initializer-after-constructor",
+    "content": {
+      "title": "Initializer sau thân constructor",
+      "topic": "oop",
+      "subtopic": "oop object initializer after constructor",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Constructor đặt X=1 rồi object initializer đặt X=4. Hai số được in là gì?",
+      "englishPrompt": "The constructor sets X=1 and an object initializer sets X=4. What is printed?",
+      "context": "DTO có constructor ghi log và initializer thay giá trị công khai sau đó.",
+      "code": "var b = new Box { X = 4 }; Console.Write(b.X);\nclass Box { public int X { get; set; } public Box() { X = 1; Console.Write(X); } }",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng initializer cung cấp field trước constructor.",
+      "nextHint": "Constructor ghi 1 trước; initializer thực hiện các phép gán sau khi constructor trả về, nên caller ghi 4.",
+      "followUp": "Setter kiểm tra invariant có chạy với object initializer không?",
+      "englishFollowUp": "Does a validating setter still run through an object initializer?",
+      "outline": [
+        "14",
+        "Constructor ghi 1 trước; initializer thực hiện các phép gán sau khi constructor trả về, nên caller ghi 4."
+      ],
+      "shortAnswer": "14. Constructor ghi 1 trước; initializer thực hiện các phép gán sau khi constructor trả về, nên caller ghi 4.",
+      "explanation": "Constructor ghi 1 trước; initializer thực hiện các phép gán sau khi constructor trả về, nên caller ghi 4.",
+      "alternative": "Nếu invariant phải đúng ngay sau constructor và không được đổi tùy ý, đưa dữ liệu bắt buộc vào constructor thay vì setter public.",
+      "trap": "Cho rằng initializer cung cấp field trước constructor.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 14",
+        "Constructor ghi 1 trước; initializer thực hiện các phép gán sau khi constructor trả về, nên caller ghi 4.",
+        "Tránh ngộ nhận: Cho rằng initializer cung cấp field trước constructor.",
+        "Nếu invariant phải đúng ngay sau constructor và không được đổi tùy ý, đưa dữ liệu bắt buộc vào constructor thay vì setter public."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/object-and-collection-initializers",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "41",
+          "14",
+          "11"
+        ],
+        "en": [
+          "41",
+          "14",
+          "11"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "algo-prefix-range-difference",
+    "content": {
+      "title": "Tổng đoạn bằng prefix",
+      "topic": "algorithms",
+      "subtopic": "algo prefix range difference",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "P[i] là tổng i mục đầu. Tổng đoạn chỉ số [1,3) được tính ra sao?",
+      "englishPrompt": "P[i] is the sum of the first i entries. What is the sum over indices [1,3)?",
+      "context": "Báo cáo nhận nhiều truy vấn tổng đoạn trên bộ dữ liệu không đổi.",
+      "code": "int[] a = [3, -2, 7, 4]; int[] p = new int[a.Length + 1]; for (int i = 0; i < a.Length; i++) p[i + 1] = p[i] + a[i]; Console.Write(p[3] - p[1]);",
+      "hint": "Kiểm tra giả định dễ sai sau: Trừ P[l-1] khi định nghĩa prefix là n+1 và khoảng nửa mở.",
+      "nextHint": "P[3] chứa a[0..3), trừ P[1] loại a[0]; còn -2+7=5. Tiền xử lý O(n), mỗi truy vấn O(1).",
+      "followUp": "Nếu có cập nhật điểm thường xuyên thì prefix cố định gặp chi phí nào?",
+      "englishFollowUp": "What cost does a fixed prefix array incur under frequent point updates?",
+      "outline": [
+        "5",
+        "P[3] chứa a[0..3), trừ P[1] loại a[0]; còn -2+7=5. Tiền xử lý O(n), mỗi truy vấn O(1)."
+      ],
+      "shortAnswer": "5. P[3] chứa a[0..3), trừ P[1] loại a[0]; còn -2+7=5. Tiền xử lý O(n), mỗi truy vấn O(1).",
+      "explanation": "P[3] chứa a[0..3), trừ P[1] loại a[0]; còn -2+7=5. Tiền xử lý O(n), mỗi truy vấn O(1).",
+      "alternative": "Dùng Fenwick tree khi có nhiều cập nhật điểm và truy vấn tổng; prefix array cố định phải cập nhật lại nhiều prefix sau một thay đổi.",
+      "trap": "Trừ P[l-1] khi định nghĩa prefix là n+1 và khoảng nửa mở.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 5",
+        "P[3] chứa a[0..3), trừ P[1] loại a[0]; còn -2+7=5. Tiền xử lý O(n), mỗi truy vấn O(1).",
+        "Tránh ngộ nhận: Trừ P[l-1] khi định nghĩa prefix là n+1 và khoảng nửa mở.",
+        "Dùng Fenwick tree khi có nhiều cập nhật điểm và truy vấn tổng; prefix array cố định phải cập nhật lại nhiều prefix sau một thay đổi."
+      ],
+      "source": "https://cp-algorithms.com/data_structures/segment_tree.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "5",
+          "2",
+          "7"
+        ],
+        "en": [
+          "5",
+          "2",
+          "7"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "algo-stack-balanced-nesting",
+    "content": {
+      "title": "Ngoặc đúng thứ tự",
+      "topic": "algorithms",
+      "subtopic": "algo stack balanced nesting",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Stack này phát hiện lỗi của chuỗi ([)] tại đâu và in gì?",
+      "englishPrompt": "Where does this stack detect the mismatch in ([)], and what is printed?",
+      "context": "Parser cấu hình cần phát hiện ngoặc lồng sai trước khi xử lý sâu.",
+      "code": "string s = \"([)]\"; var stack = new Stack<char>(); bool ok = true; foreach (char c in s) { if (c == '(' || c == '[') stack.Push(c); else if (!stack.TryPop(out char open) || (c == ')' ? open != '(' : open != '[')) { ok = false; break; } } Console.Write(ok && stack.Count == 0);",
+      "hint": "Kiểm tra giả định dễ sai sau: Chỉ đếm số lượng mở và đóng, bỏ qua thứ tự lồng.",
+      "nextHint": "Ngoặc đóng ) phải khớp ngoặc mở gần nhất là [, nên lỗi dù tổng số mỗi loại ngoặc cân bằng. Stack giữ các ngoặc chưa đóng theo LIFO.",
+      "followUp": "Làm sao mở rộng cho dấu ngoặc nằm trong chuỗi ký tự được quote?",
+      "englishFollowUp": "What additional parsing state is needed for brackets inside quoted strings?",
+      "outline": [
+        "False",
+        "Ngoặc đóng ) phải khớp ngoặc mở gần nhất là [, nên lỗi dù tổng số mỗi loại ngoặc cân bằng. Stack giữ các ngoặc chưa đóng theo LIFO."
+      ],
+      "shortAnswer": "False. Ngoặc đóng ) phải khớp ngoặc mở gần nhất là [, nên lỗi dù tổng số mỗi loại ngoặc cân bằng. Stack giữ các ngoặc chưa đóng theo LIFO.",
+      "explanation": "Ngoặc đóng ) phải khớp ngoặc mở gần nhất là [, nên lỗi dù tổng số mỗi loại ngoặc cân bằng. Stack giữ các ngoặc chưa đóng theo LIFO.",
+      "alternative": "Nếu có quote và escape, thêm trạng thái lexer để bỏ qua ngoặc nằm trong literal; thuật toán hiện tại chỉ nhận bảng ký tự ngoặc đã nêu.",
+      "trap": "Chỉ đếm số lượng mở và đóng, bỏ qua thứ tự lồng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: False",
+        "Ngoặc đóng ) phải khớp ngoặc mở gần nhất là [, nên lỗi dù tổng số mỗi loại ngoặc cân bằng. Stack giữ các ngoặc chưa đóng theo LIFO.",
+        "Tránh ngộ nhận: Chỉ đếm số lượng mở và đóng, bỏ qua thứ tự lồng.",
+        "Nếu có quote và escape, thêm trạng thái lexer để bỏ qua ngoặc nằm trong literal; thuật toán hiện tại chỉ nhận bảng ký tự ngoặc đã nêu."
+      ],
+      "source": "https://cp-algorithms.com/combinatorics/bracket_sequences.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "InvalidOperationException",
+          "False",
+          "True"
+        ],
+        "en": [
+          "InvalidOperationException",
+          "False",
+          "True"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "algo-stable-merge-tie",
+    "content": {
+      "title": "Merge ổn định khi bằng khóa",
+      "topic": "algorithms",
+      "subtopic": "algo stable merge tie",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Gộp hai run đã sort của một stable sort. Hai đầu có cùng key; chọn bên nào để giữ thứ tự gốc?",
+      "englishPrompt": "Merging two sorted runs in a stable sort, which head should win an equal-key tie?",
+      "context": "Báo cáo giữ thứ tự tiếp nhận giữa các dòng cùng khóa sắp xếp.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm stable sort với loại trùng.",
+      "nextHint": "Các mục run trái vốn đứng trước run phải trong dữ liệu gốc. Chọn trái khi bằng giữ thứ tự đó; vẫn xuất cả hai mục. Merge tuyến tính theo tổng độ dài.",
+      "followUp": "Nếu key bằng nhưng thứ tự từ nguồn ngoài có ý nghĩa, test tối thiểu nên chứa gì?",
+      "englishFollowUp": "What minimal test demonstrates stability when equal-key source order matters?",
+      "outline": [
+        "Chọn run trái trước",
+        "Các mục run trái vốn đứng trước run phải trong dữ liệu gốc. Chọn trái khi bằng giữ thứ tự đó; vẫn xuất cả hai mục. Merge tuyến tính theo tổng độ dài."
+      ],
+      "shortAnswer": "Chọn run trái trước. Các mục run trái vốn đứng trước run phải trong dữ liệu gốc. Chọn trái khi bằng giữ thứ tự đó; vẫn xuất cả hai mục. Merge tuyến tính theo tổng độ dài.",
+      "explanation": "Các mục run trái vốn đứng trước run phải trong dữ liệu gốc. Chọn trái khi bằng giữ thứ tự đó; vẫn xuất cả hai mục. Merge tuyến tính theo tổng độ dài.",
+      "alternative": "Test hai record cùng key với ID khác nhau theo thứ tự nguồn; kiểm tra cả hai vẫn có mặt và giữ thứ tự tương đối.",
+      "trap": "Nhầm stable sort với loại trùng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Chọn run trái trước",
+        "Các mục run trái vốn đứng trước run phải trong dữ liệu gốc. Chọn trái khi bằng giữ thứ tự đó; vẫn xuất cả hai mục. Merge tuyến tính theo tổng độ dài.",
+        "Tránh ngộ nhận: Nhầm stable sort với loại trùng.",
+        "Test hai record cùng key với ID khác nhau theo thứ tự nguồn; kiểm tra cả hai vẫn có mặt và giữ thứ tự tương đối."
+      ],
+      "source": "https://docs.python.org/3/howto/sorting.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "algo-cycle-kahn-incomplete",
+    "content": {
+      "title": "Đồ thị phụ thuộc còn chu trình",
+      "topic": "algorithms",
+      "subtopic": "algo cycle kahn incomplete",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Kahn đã xử lý 4 trong 6 đỉnh rồi hàng đợi indegree 0 rỗng. Không bỏ sót đỉnh khi khởi tạo. Kết luận nào đúng?",
+      "englishPrompt": "Kahn processes four of six vertices and then has no zero-indegree vertices left. Initialization included every vertex. What follows?",
+      "context": "Hệ thống build cần phát hiện dependency không thể lập lịch.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Gắn nhãn mọi đỉnh chưa xử lý là thành viên của chu trình.",
+      "nextHint": "Nếu DAG còn đỉnh thì phải có đỉnh indegree 0 trong phần còn lại. Hàng đợi rỗng trước khi xử lý đủ chứng tỏ có chu trình; phần còn lại có thể gồm cả đỉnh phụ thuộc vào chu trình.",
+      "followUp": "Muốn chỉ rõ các đỉnh thực sự thuộc chu trình thì cần bổ sung phân tích nào?",
+      "englishFollowUp": "What further analysis identifies vertices actually belonging to a cycle?",
+      "outline": [
+        "Phần chưa xử lý chứa chu trình có hướng",
+        "Nếu DAG còn đỉnh thì phải có đỉnh indegree 0 trong phần còn lại. Hàng đợi rỗng trước khi xử lý đủ chứng tỏ có chu trình; phần còn lại có thể gồm cả đỉnh phụ thuộc vào chu trình."
+      ],
+      "shortAnswer": "Phần chưa xử lý chứa chu trình có hướng. Nếu DAG còn đỉnh thì phải có đỉnh indegree 0 trong phần còn lại. Hàng đợi rỗng trước khi xử lý đủ chứng tỏ có chu trình; phần còn lại có thể gồm cả đỉnh phụ thuộc vào chu trình.",
+      "explanation": "Nếu DAG còn đỉnh thì phải có đỉnh indegree 0 trong phần còn lại. Hàng đợi rỗng trước khi xử lý đủ chứng tỏ có chu trình; phần còn lại có thể gồm cả đỉnh phụ thuộc vào chu trình.",
+      "alternative": "Dùng phân tích strongly connected components để chỉ rõ thành viên chu trình; đỉnh downstream cũng có thể bị Kahn bỏ lại.",
+      "trap": "Gắn nhãn mọi đỉnh chưa xử lý là thành viên của chu trình.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Phần chưa xử lý chứa chu trình có hướng",
+        "Nếu DAG còn đỉnh thì phải có đỉnh indegree 0 trong phần còn lại. Hàng đợi rỗng trước khi xử lý đủ chứng tỏ có chu trình; phần còn lại có thể gồm cả đỉnh phụ thuộc vào chu trình.",
+        "Tránh ngộ nhận: Gắn nhãn mọi đỉnh chưa xử lý là thành viên của chu trình.",
+        "Dùng phân tích strongly connected components để chỉ rõ thành viên chu trình; đỉnh downstream cũng có thể bị Kahn bỏ lại."
+      ],
+      "source": "https://networkx.org/documentation/stable/_modules/networkx/algorithms/dag.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  }
+]

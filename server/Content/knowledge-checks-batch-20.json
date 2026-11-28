@@ -1,0 +1,40 @@
+[
+  {
+    "slug": "algo-stable-merge-tie",
+    "version": 1,
+    "prompt": "Hai record key=5 có ID A rồi B. Stable sort phải giữ thứ tự ID nào?",
+    "englishPrompt": "Two key-five records have IDs A then B. Which ID order must a stable sort preserve?",
+    "choices": [
+      "A rồi B",
+      "B rồi A",
+      "Chỉ còn A"
+    ],
+    "englishChoices": [
+      "A then B",
+      "B then A",
+      "A only"
+    ],
+    "correctIndex": 0,
+    "explanation": "Stable sort giữ thứ tự tương đối của các khóa bằng nhau.",
+    "englishExplanation": "A stable sort preserves the relative order of equal keys."
+  },
+  {
+    "slug": "algo-cycle-kahn-incomplete",
+    "version": 1,
+    "prompt": "Kahn bỏ lại A, B, C; A và B tạo chu trình, B trỏ tới C. Nhận định nào đúng?",
+    "englishPrompt": "Kahn leaves A, B, C; A and B form a cycle and B points to C. Which statement is correct?",
+    "choices": [
+      "C có thể bị bỏ lại dù không thuộc chu trình",
+      "C bắt buộc thuộc chu trình",
+      "Không đỉnh nào có chu trình"
+    ],
+    "englishChoices": [
+      "C can remain unprocessed without lying on a cycle",
+      "C must lie on the cycle",
+      "No vertex lies on a cycle"
+    ],
+    "correctIndex": 0,
+    "explanation": "Đỉnh phụ thuộc chu trình cũng có thể không đạt indegree 0.",
+    "englishExplanation": "Vertices downstream of a cycle can also remain blocked."
+  }
+]

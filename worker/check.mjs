@@ -30,13 +30,30 @@ let passed=0
 async function check(name,fn){await fn();passed++;console.log('PASS '+name)}
 if(process.argv.includes('--catalog')){
   const privateCases=JSON.parse(readFileSync(process.env.IP_WORKER_TESTS,'utf8'))
-  for(const [key,e] of exercises) {
+  const mutants=process.env.IP_WORKER_MUTANTS?JSON.parse(readFileSync(process.env.IP_WORKER_MUTANTS,'utf8')):{}
+  assert(Object.keys(mutants).every(slug=>[...exercises.values()].some(e=>e.slug===slug)),'Unknown mutant exercise')
+  const entries=[...exercises]
+  const resume=process.argv.indexOf('--catalog-from')
+  const first=resume<0?0:entries.findIndex(([key,e])=>key===process.argv[resume+1] || e.slug===process.argv[resume+1])
+  assert(first>=0,'Unknown catalog resume point')
+  const until=process.argv.indexOf('--catalog-to')
+  const last=until<0?entries.length:entries.findIndex(([key,e])=>key===process.argv[until+1] || e.slug===process.argv[until+1])+1
+  assert(last>first,'Unknown or reversed catalog end point')
+  for(const [key,e] of entries.slice(first,last)) {
     const gradeCode=code=>grade({...cfg,instance,privateCases},{...e,action:'submit',code,input:null},AbortSignal.timeout(150000))
     const row=await gradeCode(e.solution)
     assert.equal(row.status,'accepted',key+' '+JSON.stringify(row))
     console.log('PASS reference solution and private pack '+key)
+    if(mutants[e.slug]){
+      const mutant=mutants[e.slug]
+      assert(typeof mutant.code==='string' && mutant.code.trim() && mutant.explanation,'Invalid mutant '+e.slug)
+      const verdict=(await gradeCode(mutant.code)).status
+      assert(['wrong_answer','runtime_error'].includes(verdict),key+' surviving or invalid mutant: '+verdict)
+      console.log('PASS tests reject a compiled incorrect solution '+key)
+    }
     if(e.tags.includes('debug-lab')){
-      assert.equal((await gradeCode(e.starter)).status,'wrong_answer',key+' buggy starter')
+      const verdict=(await gradeCode(e.starter)).status
+      assert(['wrong_answer','runtime_error'].includes(verdict),key+' buggy starter: '+verdict)
       console.log('PASS starter reproduces the reported failure '+key)
     }
   }

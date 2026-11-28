@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, AudioLines, Braces, Clock3, Database, Lightbulb, Mic, Pause, Play, RotateCcw, SquareTerminal } from 'lucide-react'
+import { ArrowRight, AudioLines, Clock3, Lightbulb, Pause, Play, RotateCcw } from 'lucide-react'
 import { api, useAction, useResource } from './api'
 import { useDraft } from './draft'
 import { Voice } from './Voice'
@@ -9,7 +9,6 @@ import type { Interview, InterviewObservation, Preset } from './types'
 import { label, labels } from './types'
 import { ActionLink, Badge, Button, CodeBlock, Dialog, Field, Link, Loading, Options, PageTitle, Problem, Ratings, RubricPanel, Segments, TopicChecks, navigate, timeText } from './ui'
 
-const presetIcons = { foundation: Braces, backend: SquareTerminal, 'problem-solving': Database }
 const modes = { offline: 'Bộ câu hỏi', 'guided-ai': 'AI hướng dẫn', 'realistic-ai': 'AI mô phỏng', guided: 'Có hướng dẫn', mock: 'Mô phỏng theo bộ câu' }
 const guided = (mode: string) => ['offline', 'guided', 'guided-ai'].includes(mode)
 const aiStates: Record<string, string> = { offline: 'AI chưa cấu hình', budget: 'Đã dùng hết ngân sách phiên', time: 'Thời gian còn lại quá ngắn',
@@ -25,7 +24,7 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
   const [level, setLevel] = useState('')
   const [difficulty, setDifficulty] = useState('')
   const [language, setLanguage] = useState('')
-  const [minutes, setMinutes] = useState('15')
+  const [minutes, setMinutes] = useState('')
   const [mode, setMode] = useState('offline')
   const [timed, setTimed] = useState(false)
   const [consent, setConsent] = useState(false)
@@ -37,13 +36,14 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
   const startId = useRef(crypto.randomUUID())
   const action = useAction()
   const current = presets.data?.find(x => x.id === preset)
+  const selectedMinutes = minutes || String(current?.minutes ?? 15)
   const reviewOf = params.get('review')
   function start() {
     if (!user) { navigate(signInLink()); return }
     void action.run(async () => {
       const data = await api<Interview>('/interviews', { method: 'POST', body: {
-        id: startId.current, preset, level: level || goal.level || 'junior', difficulty: difficulty || null,
-        topics: topics ?? (reviewOf ? [] : current?.topics ?? []), minutes: Number(minutes), language: language || goal.language,
+        id: startId.current, preset, level: level || current?.targetLevel || goal.level || 'junior', difficulty: difficulty || null,
+        topics: topics ?? (reviewOf ? [] : current?.topics ?? []), minutes: Number(selectedMinutes), language: language || goal.language,
         mode: !automatic && timed ? 'mock' : mode, reviewOf, count: count ? Number(count) : null, preferWeak,
         aiConsent: automatic && consent, aiLimit: automatic ? aiLimit : 0,
       } })
@@ -55,26 +55,26 @@ export function InterviewSetup({ params }: { params: URLSearchParams }) {
       action={<div className="action-row">{resume?.path.startsWith('/phong-van/') && <ActionLink href={resume.path}><Play size={16} /> Tiếp tục phiên</ActionLink>}
         <ActionLink href="/chuan-bi">Chuẩn bị theo CV và JD <ArrowRight size={15}/></ActionLink></div>} />
     {reviewOf && <p className="notice"><RotateCcw size={18} /> Ưu tiên các câu bỏ qua, chưa tự đánh giá hoặc còn cần luyện từ phiên trước.</p>}
-    <section className="stack" aria-label="Các bộ phỏng vấn">
+    <section className="panel content-panel stack" aria-label="Các bộ phỏng vấn">
       {presets.loading && <Loading />}
       <Problem text={presets.error} retry={presets.reload} />
-      <div className="card-grid preset-grid">{presets.data?.map(item => {
-        const Icon = presetIcons[item.id as keyof typeof presetIcons] ?? Mic
-        return <button className="panel preset-card" key={item.id} type="button" aria-pressed={preset === item.id} onClick={() => { setPreset(item.id); setTopics(null); setLevel(item.targetLevel??''); setMinutes(String(item.minutes??15)); setCount('') }}>
-          <span className="topic-icon tone-oop"><Icon size={21} /></span><strong>{item.name}</strong><span>{item.description}</span>
-        </button>
-      })}</div>
+      {presets.data && <Field label="Bộ phỏng vấn"><select value={preset} disabled={action.busy} onChange={e=>{
+        const item=presets.data?.find(p=>p.id===e.target.value)
+        if(!item)return
+        setPreset(item.id);setTopics(null);setLevel(item.targetLevel??'');setMinutes(String(item.minutes??15));setCount('');startId.current=crypto.randomUUID()
+      }}>{presets.data.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>}
+      {current && <p>{current.description}</p>}
     </section>
     <div className="setup-grid">
       <section className="panel content-panel stack">
         <h2>Thiết lập phiên</h2>
         <div className="form-grid">
-          <Field label="Mức mục tiêu"><select value={level || goal.level || 'junior'} onChange={e => setLevel(e.target.value)}><Options values={labels.level} /></select></Field>
+          <Field label="Mức mục tiêu"><select value={level || current?.targetLevel || goal.level || 'junior'} onChange={e => setLevel(e.target.value)}><Options values={labels.level} /></select></Field>
           <Field label="Độ khó"><select value={difficulty} onChange={e => setDifficulty(e.target.value)}><option value="">Tất cả</option><Options values={labels.difficulty} /></select></Field>
           <Field label="Ngôn ngữ"><select value={language || goal.language} onChange={e => setLanguage(e.target.value)}><option value="vi">Tiếng Việt</option><option value="en">English</option></select></Field>
-          <Field label="Thời lượng"><select value={minutes} onChange={e => setMinutes(e.target.value)}>{[15, 30, 45].map(x => <option key={x} value={x}>{x} phút</option>)}</select></Field>
+          <Field label="Thời lượng"><select value={selectedMinutes} onChange={e => {setMinutes(e.target.value);setCount('')}}>{[15, 30, 45].map(x => <option key={x} value={x}>{x} phút</option>)}</select></Field>
           <Field label="Số câu"><select value={count} onChange={e => setCount(e.target.value)}><option value="">Theo thời lượng</option>
-            {Array.from({ length: Math.min(12, Math.floor(Number(minutes) / 2)) }, (_, i) => <option key={i} value={i+1}>{i+1}</option>)}</select></Field>
+            {Array.from({ length: Math.min(12, Math.floor(Number(selectedMinutes) / 2)) }, (_, i) => <option key={i} value={i+1}>{i+1}</option>)}</select></Field>
           <label className="check-chip"><input type="checkbox" checked={preferWeak} onChange={e => setPreferWeak(e.target.checked)} />Ưu tiên câu cần ôn</label>
         </div>
         <TopicChecks legend={reviewOf ? 'Chủ đề · để trống dùng chủ đề của phiên trước' : 'Chủ đề · để trống dùng bộ mặc định'}
@@ -140,8 +140,8 @@ function InterviewWork({ initial, owner }: { initial: Interview; owner: string }
     void action.run(async () => update(await api<Interview>(base + '/ratings/' + position, { method: 'PUT', body: { rating } })))
   }
   return <div className="page narrow">
-    <PageTitle title={report ? 'Báo cáo phỏng vấn' : label('preset', session.preset)} back={['/phong-van', 'Phỏng vấn thử']}
-      description={report ? label('preset', session.preset) + ' · ' + label('status', session.status)
+    <PageTitle title={report ? 'Báo cáo phỏng vấn' : session.presetName ?? label('preset', session.preset)} back={['/phong-van', 'Phỏng vấn thử']}
+      description={report ? (session.presetName ?? label('preset', session.preset)) + ' · ' + label('status', session.status)
         : modes[session.mode] + (data.aiLimit ? ' · Đã dùng ' + data.aiUsed + '/' + data.aiLimit + ' lượt AI' : '')}
       action={showTimer && <div className="session-clock"><Clock3 size={19} /><SessionTimer seconds={seconds} received={received}
         paused={session.status === 'paused'} expired={() => { setLimit(true); void reload() }} /></div>} />

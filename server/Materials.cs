@@ -50,7 +50,8 @@ internal sealed class Materials
         var dir=Path.Combine(env.ContentRootPath,"Content");
         T Read<T>(string name)=>DataJson.Read<T>(File.ReadAllText(Path.Combine(dir,name)));
         Concepts = Read<StudyConcept[]>("concepts.json");
-        Projects = Read<ProjectScenario[]>("project-scenarios.json");
+        Projects = Directory.GetFiles(dir,"project-scenarios-batch-*.json").Order(StringComparer.Ordinal)
+            .Prepend(Path.Combine(dir,"project-scenarios.json")).SelectMany(f=>DataJson.Read<ProjectScenario[]>(File.ReadAllText(f))).ToArray();
         var tables=Read<Dictionary<string,PreviewTable[]>>("sql-preview.json");
         var exercises=Directory.GetFiles(dir,"exercises-batch-*.json").Order(StringComparer.Ordinal).Prepend(Path.Combine(dir,"exercises.json"))
             .SelectMany(f=>DataJson.Read<ExerciseContent[]>(File.ReadAllText(f)));
@@ -65,7 +66,9 @@ internal sealed class Materials
             ..Cases<ReviewCase>("code-reviews").Select(x=>new MaterialItem("review",x.Slug,x.Version,x.Title,x)),
             ..exercises.Select(x=>new MaterialItem("exercise",x.Slug,x.Version,x.Title,x with {Tables=tables.GetValueOrDefault($"{x.Slug}@{x.Version}")})),
             ..Catalog.Topics.Select(x=>new MaterialItem("topic",x.Id,1,x.Name,x)),
-            ..Interviews.Presets.Select(x=>new MaterialItem("preset",x.Id,1,x.Name,x)),..tracks.Select(x=>new MaterialItem("track",x.Id,1,x.Name,x))];
+            ..Interviews.Presets.Concat(Directory.GetFiles(dir,"interview-presets-batch-*.json").Order(StringComparer.Ordinal)
+                .SelectMany(f=>DataJson.Read<InterviewPreset[]>(File.ReadAllText(f)))).Select(x=>new MaterialItem("preset",x.Id,1,x.Name,x)),
+            ..tracks.Select(x=>new MaterialItem("track",x.Id,1,x.Name,x))];
         if (seeds.DistinctBy(x=>(x.Kind,x.Slug,x.Version)).Count()!=seeds.Length) throw new InvalidDataException("Trùng phiên bản nội dung.");
         published=seeds;
     }

@@ -3,16 +3,22 @@ import { execFileSync } from 'node:child_process'
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { sqlTypesV3 } from './sql-types-v3.mjs'
+import { sqlTypesV4 } from './sql-types-v4.mjs'
 
 const root = resolve(import.meta.dirname, '../..')
+const draftDirs = process.argv.flatMap((value,index)=>value==='--drafts'?[resolve(root,process.argv[index+1] ?? '')]:[])
+const drafts = pattern => draftDirs.flatMap(dir=>readdirSync(dir).filter(f=>pattern.test(f))
+  .sort().flatMap(f=>JSON.parse(readFileSync(join(dir,f),'utf8'))))
 const data = name => JSON.parse(readFileSync(join(root, 'server', 'Content', name + '.json'), 'utf8'))
+const publishedBatches = name => readdirSync(join(root,'server','Content')).filter(f=>f.startsWith(name+'-batch-') && f.endsWith('.json'))
+  .sort().flatMap(f=>data(f.slice(0,-5)))
 const original = data('questions')
 const batch = data('questions-batch-02')
 const newBatches = readdirSync(join(root,'server','Content')).filter(name => /^questions-batch-.*\.json$/.test(name) && name !== 'questions-batch-02.json')
-  .sort().flatMap(name => data(name.slice(0,-5)))
+  .sort().flatMap(name => data(name.slice(0,-5))).concat(drafts(/^questions-batch-.*\.json$/))
 const questions = [...original, ...batch, ...newBatches]
 const exercises = [ ...data('exercises'), ...readdirSync(join(root,'server','Content')).filter(name=>/^exercises-batch-.*\.json$/.test(name))
-  .sort().flatMap(name=>data(name.slice(0,-5))) ]
+  .sort().flatMap(name=>data(name.slice(0,-5))), ...drafts(/^exercises-batch-.*\.json$/) ]
 assert.equal(original.length, 44)
 assert.equal(batch.length, 14)
 assert.equal(new Set(questions.map(x => x.slug)).size, questions.length)
@@ -32,7 +38,7 @@ for (const field of ['prompt','englishPrompt']) {
 }
 const slugs = new Set(questions.map(x => x.slug))
 const knowledgeChecks = [...data('knowledge-checks'), ...readdirSync(join(root,'server','Content'))
-  .filter(f=>/^knowledge-checks-batch-.*\.json$/.test(f)).flatMap(f=>data(f.slice(0,-5)))]
+  .filter(f=>/^knowledge-checks-batch-.*\.json$/.test(f)).flatMap(f=>data(f.slice(0,-5))),...drafts(/^knowledge-checks-batch-.*\.json$/)]
 assert.equal(new Set(knowledgeChecks.map(x => x.slug + '@' + x.version)).size, knowledgeChecks.length)
 for (const q of questions.filter(x => !x.content.quiz)) assert(knowledgeChecks.some(c => c.slug === q.slug && c.version === 1), q.slug)
 for (const c of knowledgeChecks) {
@@ -78,11 +84,22 @@ for(const c of concepts) {
     assert(word.trim() && !aliases.has(word),'Ambiguous alias '+word); aliases.add(word)
   }
   if(c.exercise) assert(exercises.some(e=>e.kind+'/'+e.slug===c.exercise),c.id)
-  if(c.review) assert(data('code-reviews').some(r=>r.slug===c.review),c.id)
+  if(c.review) assert([...data('code-reviews'),...publishedBatches('code-reviews')].some(r=>r.slug===c.review),c.id)
 }
-const scenarios=data('project-scenarios')
+const scenarios=[...data('project-scenarios'),...publishedBatches('project-scenarios')]
 assert.equal(new Set(scenarios.map(s=>s.slug)).size,scenarios.length)
 for(const s of scenarios) assert(s.brief && s.prompt && s.rubric && s.followUp && s.questions.every(q=>slugs.has(q)),s.slug)
+const reviews=[...data('code-reviews'),...publishedBatches('code-reviews')]
+const designs=[...data('system-design'),...publishedBatches('system-design')]
+const presets=publishedBatches('interview-presets')
+for(const rows of [reviews,designs]) assert.equal(new Set(rows.map(r=>r.slug+'@'+r.version)).size,rows.length)
+for(const r of reviews) {
+  const count=r.diff.filter(line=>!line.startsWith('-')).length
+  assert(r.lines.length && r.lines.every(line=>line>=1 && line<=count) && r.cause!==r.otherCause && r.repair!==r.otherRepair,r.slug)
+}
+for(const d of designs) assert(d.brief && d.requirements.length && d.rubric.length===5 && new Set(d.rubric).size===5,d.slug)
+assert.equal(new Set(presets.map(p=>p.id)).size,presets.length)
+for(const p of presets) assert(p.suggested.length && p.suggested.every(slug=>questions.some(q=>q.slug===slug && p.topics.includes(q.content.topic))),p.id)
 for (const {slug, content: c} of [...batch, ...newBatches]) {
   assert(c.nextHint && c.nextHint !== c.hint && c.context && c.trap && c.explanation && c.alternative, slug)
   assert(c.prerequisites.concat(c.related).every(k => k !== slug && slugs.has(k)), slug)
@@ -105,8 +122,11 @@ for (const { content } of questions) {
 }
 
 if (process.argv.includes('--sources')) {
-  const urls = [...new Set(questions.map(q => q.content.source))]
+  const manifestIndex=process.argv.indexOf('--source-manifest')
+  const sourceManifest=manifestIndex<0?[]:JSON.parse(readFileSync(resolve(root,process.argv[manifestIndex+1]),'utf8')).sources.filter(s=>s.url).map(s=>s.url)
+  const urls = [...new Set([...questions.map(q => q.content.source),...sourceManifest])]
   const failures = []
+  const report=[]
   for (const url of urls) {
     try {
       let response
@@ -119,9 +139,12 @@ if (process.argv.includes('--sources')) {
         if(delay>120000) break
         await new Promise(done=>setTimeout(done,Math.max(1000,delay||15000)))
       }
+      report.push({url,status:response.status,finalUrl:response.url,checkedAt:new Date().toISOString()})
       if (!response.ok || new URL(response.url).protocol !== 'https:') failures.push(url+' '+response.status)
-    } catch (error) { failures.push(url+' '+error.message) }
+    } catch (error) { failures.push(url+' '+error.message);report.push({url,error:error.message,checkedAt:new Date().toISOString()}) }
   }
+  mkdirSync(join(root,'.artifacts'),{recursive:true})
+  writeFileSync(join(root,'.artifacts','content-sources.json'),JSON.stringify(report,null,2)+'\n')
   assert.deepEqual(failures, [], 'Broken or unreachable source URLs')
   console.log('PASS '+urls.length+' distinct HTTPS source links')
 }
@@ -153,12 +176,12 @@ for (const { solution, examples, tests, slug } of coding) {
     const args = JSON.parse('[' + test.input + ']')
     assert.equal(args.length, types.length, slug)
     const expressions = args.map((value, arg) => 'JsonSerializer.Deserialize<' + types[arg] + '>(' + long(value) + ')!')
-    codingCalls.push('Check(' + literal(slug + ' #' + (index + 1)) + ', JsonSerializer.Serialize(Solutions.' +
+    codingCalls.push('CheckJson(' + literal(slug + ' #' + (index + 1)) + ', JsonSerializer.Serialize(Solutions.' +
       signature[1] + '(' + expressions.join(', ') + ')), ' + long(JSON.parse(test.output)) + ');')
   }
 }
 
-const sqlTypes = { ...sqlTypesV3, 'customer-orders': ['Int32', 'String', 'Int32'], 'department-salary': ['Int32', 'Int32', 'Decimal'],
+const sqlTypes = { ...sqlTypesV3,...sqlTypesV4, 'customer-orders': ['Int32', 'String', 'Int32'], 'department-salary': ['Int32', 'Int32', 'Decimal'],
   'daily-totals': ['Int32', 'DateTime', 'Int32'], 'latest-payment': ['Int32', 'Int32', 'Int32'],
   'unassigned-tickets': ['Int32', 'String'], 'product-sales': ['Int32', 'DateTime', 'Int32'],
   'above-team-average': ['Int32','Int32'], 'missing-sequence': ['Int32','Int32'], 'transfer-atomic': ['Int32','Int32'],
@@ -177,16 +200,32 @@ const previews = sql.map(item => {
 })
 const sqlPredictions = newBatches.filter(q => q.content.technology === 'SQL Server 2022' && q.content.code)
 const csPredictions = [...batch,...newBatches].filter(q => q.content.technology === '.NET 10' && q.content.code)
+const declarationSnippets = csPredictions.filter(q=>/\b(class|record|struct|interface|enum)\s+\w/.test(q.content.code))
+function expectedPrediction(q) {
+  const expected = { 'integer-division': '0', 'closure-for': '333', 'linq-any-empty': '(False, True)' }[q.slug]
+    ?? q.content.quiz?.en[q.content.quiz.correctIndex]
+  assert.equal(typeof expected,'string',q.slug)
+  return expected
+}
+if(declarationSnippets.length) {
+  const project=join(root,'.artifacts','declaration-snippets')
+  mkdirSync(project,{recursive:true})
+  writeFileSync(join(project,'PredictionCheck.csproj'),'<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup></Project>')
+  for(const q of declarationSnippets) {
+    writeFileSync(join(project,'Program.cs'),q.content.code)
+    execFileSync('dotnet',['build',project,'--nologo','-v:q','-p:NuGetAudit=false'],{cwd:root})
+    const actual=execFileSync('dotnet',[join(project,'bin','Debug','net10.0','PredictionCheck.dll')],{cwd:root,encoding:'utf8'}).trim()
+    assert.equal(actual,expectedPrediction(q),q.slug)
+  }
+}
 
 const harness = [
   'using System.Globalization;',
   'using System.Text.Json;',
   'using Microsoft.Data.SqlClient;',
   'var previews = new Dictionary<string, object>();',
-  ...csPredictions.map(q => {
-    const expected = { 'integer-division': '0', 'closure-for': '333', 'linq-any-empty': '(False, True)' }[q.slug]
-      ?? q.content.quiz?.en[q.content.quiz.correctIndex]
-    assert.equal(typeof expected, 'string', q.slug)
+  ...csPredictions.filter(q=>!declarationSnippets.includes(q)).map(q => {
+    const expected = expectedPrediction(q)
     return '{ var consoleOutput = Console.Out; using var captured = new StringWriter(); Console.SetOut(captured); try {\n' +
       q.content.code + '\n} finally { Console.SetOut(consoleOutput); } Check(' + literal(q.slug) + ', captured.ToString().Trim(), ' + literal(expected) + '); }'
   }),
@@ -199,6 +238,11 @@ const harness = [
   'static void Check(string name, string actual, string expected)',
   '{',
   '    if (actual != expected) throw new Exception($"{name}: expected {expected}, got {actual}");',
+  '}',
+  'static void CheckJson(string name, string actual, string expected)',
+  '{',
+  '    if (!System.Text.Json.Nodes.JsonNode.DeepEquals(System.Text.Json.Nodes.JsonNode.Parse(actual), System.Text.Json.Nodes.JsonNode.Parse(expected)))',
+  '        throw new Exception($"{name}: expected {expected}, got {actual}");',
   '}',
   'static async Task CheckScalar(string name, string sql, string expected)',
   '{',
@@ -226,15 +270,17 @@ const harness = [
   '        var values = columns.Select(column => reader.GetValue(column) switch',
   '        {',
   '            DBNull => "NULL",',
-  '            DateTime date when name == "daily-totals" => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),',
+  '            DateTime date when name == "daily-totals" || reader.GetDataTypeName(column) == "date" => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),',
   '            DateTime timestamp => timestamp.ToString("yyyy-MM-ddTHH:mm:ss.fffffff", CultureInfo.InvariantCulture),',
-  '            decimal amount => amount.ToString("F2", CultureInfo.InvariantCulture),',
+  '            decimal amount => amount.ToString("G29", CultureInfo.InvariantCulture),',
   '            IFormattable value => value.ToString(null, CultureInfo.InvariantCulture),',
   '            object value => value.ToString() ?? ""',
   '        });',
   '        rows.Add(string.Join(" | ", values));',
   '    }',
-  '    var expectedRows = JsonSerializer.Deserialize<string[][]>(expected)!.Select(row => string.Join(" | ", row)).ToArray();',
+  '    var expectedTypes = JsonSerializer.Deserialize<string[]>(types)!;',
+  '    var expectedRows = JsonSerializer.Deserialize<string[][]>(expected)!.Select(row => string.Join(" | ", row.Select((value,i) =>',
+  '        expectedTypes[i] == "Decimal" && value != "NULL" ? decimal.Parse(value,CultureInfo.InvariantCulture).ToString("G29",CultureInfo.InvariantCulture) : value))).ToArray();',
   '    if (!ordered) { rows.Sort(StringComparer.Ordinal); Array.Sort(expectedRows, StringComparer.Ordinal); }',
   '    Check(name + " rows", string.Join("\\n", rows), string.Join("\\n", expectedRows));',
   '}',

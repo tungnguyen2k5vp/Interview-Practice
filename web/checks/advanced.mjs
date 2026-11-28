@@ -26,10 +26,12 @@ export async function advanced({page,ctx,browser,baseURL,send,screenshots}){
   const post={cursor:{id:randomUUID(),revision:0,version:1},choices:[0],language:'vi',activeSeconds:0}
   await send(ctx.request,'/practice/questions/http-created-location/submit','POST',{...post,choices:[0,0]},[400])
   assert.equal((await send(ctx.request,'/practice/questions/http-created-location/submit','POST',post,[201])).correct,false)
-  const speed=await send(ctx.request,'/study-sessions','POST',{id:randomUUID(),mode:'speed',minutes:5,topic:'behavioral'})
+  const speed=await send(ctx.request,'/study-sessions','POST',{id:randomUUID(),mode:'speed',minutes:5,concept:'async'})
+  const written=speed.items.findIndex(item=>item.slug==='async-io')
+  assert(written>=0)
   const timed=await ctx.newPage()
   try{
-    await timed.goto('/phien-hoc/'+speed.id)
+    await timed.goto('/phien-hoc/'+speed.id+'?cau='+written)
     await timed.getByRole('button',{name:'Bắt đầu 60 giây'}).click()
     const answer=timed.getByRole('textbox',{name:'Câu trả lời của bạn'})
     await answer.fill('Bản nháp trả lời giới hạn thời gian.')

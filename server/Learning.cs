@@ -321,7 +321,10 @@ internal sealed class Learning(PracticeDb db, Catalog catalog, ExerciseCatalog e
         }
         var total = await query.CountAsync(ct);
         var p = Math.Clamp(page ?? 1, 1, Math.Max(1, (total + size - 1) / size));
-        return new(await query.Skip((p - 1) * size).Take(size).ToArrayAsync(ct), total, p, size);
+        var items = await query.Skip((p - 1) * size).Take(size).ToArrayAsync(ct);
+        if (kind == "interview")
+            items = items.Select(x => x with { Label = catalog.PresetList.FirstOrDefault(preset => preset.Id == x.Label)?.Name ?? x.Label }).ToArray();
+        return new(items, total, p, size);
     }
 
     private async Task<NotePage> Notes(string owner, string? search, string? slug, string? topic, bool? important, int? page, CancellationToken ct)

@@ -1,3 +1,13 @@
+# Audit V4 · 28/11/2026
+
+Baseline V4 là commit `30b34ea`: 256 câu, 24 C# gồm 7 debug, 21 SQL, 23 code review, 20 system design, 10 project interview và 11 mock preset. Đã kiểm đếm lại seed/API, chạy lại 218 ca thực thi và 29 nhóm browser/API trước khi mở rộng.
+
+Sau tích hợp, kiểm đếm seed đạt 500 câu, 80 C# gồm 30 debug, 60 SQL, 40 review, 30 design, 25 project và 25 preset. Không đổi slug/version đã phát hành. Sáu batch câu hỏi mới có tổng 244 mục; duplicate và near-duplicate VI/EN được kiểm tự động, mục tiêu kiến thức được review riêng. Đã thay một câu CQRS trùng mục tiêu, sửa distractor, lý do cho key và các follow-up lặp ý trước khi nhập.
+
+Kiểm thực thi nội dung đạt 546 ca; Docker xác nhận đủ 140 reference, bắt 95 lời giải sai mới và tái hiện 30 starter debugging. HTTP gate đạt 488 URL đang dùng, phân biệt với kiểm mệnh đề trong [manifest](docs/content/v4-review-manifest.json). [Báo cáo hiện hành](CONTENT_QUALITY_REPORT.md) · [Kế hoạch tiếp tục](UPGRADE_PLAN_V4.md).
+
+Khoảng trống hiện hành: 10 concept liên kết của V3 chưa phải 30 interactive lessons, 25 project interview chưa phải 10 mini project có starter/reference. Technical English, mistake journal tổng hợp, countdown sâu hơn và readiness theo vai trò thuộc Phase 3–7. Các số baseline dưới đây giữ làm lịch sử V3.
+
 # Baseline V3 · 27/11/2026
 
 Commit `8481652`, branch `main`, working tree sạch, HEAD trùng tracking ref `origin/main`. Đếm theo slug từ tất cả `server/Content/questions*.json`, đối chiếu GET /api/questions của ứng dụng local đang dùng SQL Server, cả hai trả 102. Mỗi đề song ngữ chỉ tính một lần. Đây là mốc trước khi nhập V3.

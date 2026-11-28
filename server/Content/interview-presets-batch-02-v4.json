@@ -1,0 +1,259 @@
+[
+  {
+    "id": "intern-http-client-round",
+    "name": "Intern · Đọc hợp đồng HTTP",
+    "description": "Vai trò thực tập web/API. 15 phút: 2 phút nêu giả định, 9 phút cho 3 câu, 4 phút đào sâu một request đổi media type hoặc trạng thái. Pool xoay quanh header, thành công và lỗi; không yêu cầu thiết kế phân tán.",
+    "topics": [
+      "aspnet"
+    ],
+    "suggested": [
+      "http-created-location",
+      "http-content-type-accept",
+      "http-no-content-write",
+      "http-media-type-rejected",
+      "aspnet-accepted-job-status"
+    ],
+    "targetLevel": "intern",
+    "minutes": 15
+  },
+  {
+    "id": "intern-state-and-copy",
+    "name": "Intern · Theo dấu trạng thái trong bộ nhớ",
+    "description": "Vai trò thực tập C#. 15 phút: 1 phút đọc bối cảnh, 9 phút giải thích 3 ví dụ, 5 phút đào sâu thay giá trị và quyền sở hữu. Pool tập trung snapshot, alias và điều kiện thay vì lặp bài nhập dữ liệu.",
+    "topics": [
+      "csharp"
+    ],
+    "suggested": [
+      "box-snapshot",
+      "array-range-copy",
+      "nullable-pattern-zero",
+      "short-circuit-guard",
+      "finally-on-return"
+    ],
+    "targetLevel": "intern",
+    "minutes": 15
+  },
+  {
+    "id": "intern-web-trust-boundary",
+    "name": "Intern · Đầu vào nào được tin",
+    "description": "Vai trò thực tập backend. 15 phút: 2 phút xác định dữ liệu client điều khiển, 9 phút cho 3 câu, 4 phút hỏi tiếp cách kiểm tra phía server. Pool nối secret development, return URL, DTO và upload metadata.",
+    "topics": [
+      "aspnet"
+    ],
+    "suggested": [
+      "aspnet-user-secrets-not-encrypted",
+      "aspnet-local-return-url",
+      "aspnet-profile-dto-allowlist",
+      "aspnet-untrusted-upload-name"
+    ],
+    "targetLevel": "intern",
+    "minutes": 15
+  },
+  {
+    "id": "intern-english-project-context",
+    "name": "Intern · Trình bày dự án bằng tiếng Anh",
+    "description": "Vai trò thực tập .NET có trao đổi tiếng Anh. 15 phút: 2 phút giới thiệu phạm vi, 9 phút cho 3 câu, 4 phút đào sâu một điều chưa chắc. Pool đánh giá ranh giới hệ thống, cách nói rõ và trung thực khi không nhớ API; không chấm theo accent.",
+    "topics": [
+      "behavioral"
+    ],
+    "suggested": [
+      "behavioral-projectcontext-boundary",
+      "behavioral-unknown-boundary",
+      "behavioral-englishaudience-boundary",
+      "behavioral-reviewcomment-boundary"
+    ],
+    "targetLevel": "intern",
+    "minutes": 15
+  },
+  {
+    "id": "fresher-bearer-policy-round",
+    "name": "Fresher · Token và quyết định truy cập",
+    "description": "Vai trò API developer mới tốt nghiệp. 30 phút: 3 phút dựng request, 20 phút cho 5 câu, 7 phút đào sâu challenge/forbid và metadata endpoint. Pool phân biệt decode, lifetime, scheme, claim và vai trò.",
+    "topics": [
+      "aspnet"
+    ],
+    "suggested": [
+      "aspnet-jwt-decode-vs-verify",
+      "aspnet-jwt-expired-token",
+      "aspnet-authenticated-forbid",
+      "aspnet-claim-value-allowlist",
+      "aspnet-role-list-or",
+      "aspnet-bearer-only-scheme",
+      "aspnet-anonymous-metadata-bypass"
+    ],
+    "targetLevel": "fresher",
+    "minutes": 30
+  },
+  {
+    "id": "fresher-container-runtime",
+    "name": "Fresher · Chạy container có trách nhiệm",
+    "description": "Vai trò backend triển khai container. 15 phút: 2 phút mô tả runtime, 9 phút cho 3 câu, 4 phút hỏi tiếp crash hoặc permission denied. Pool tập trung dữ liệu bền, non-root, signal và secret, khác vòng multi-stage/build-cache.",
+    "topics": [
+      "delivery"
+    ],
+    "suggested": [
+      "delivery-dockvolume-boundary",
+      "delivery-dockuser-boundary",
+      "delivery-docksignal-boundary",
+      "delivery-docksecret-boundary",
+      "delivery-dockdigest-boundary"
+    ],
+    "targetLevel": "fresher",
+    "minutes": 15
+  },
+  {
+    "id": "fresher-relational-invariants",
+    "name": "Fresher · Hợp đồng dữ liệu quan hệ",
+    "description": "Vai trò junior-entry làm ứng dụng CRUD. 30 phút: 3 phút đọc giả định, 20 phút cho 5 câu, 7 phút đào sâu NULL, default và quan hệ. Pool chú trọng bất biến schema và ý nghĩa kiểu dữ liệu, không lặp vòng báo cáo ngày tháng.",
+    "topics": [
+      "sql"
+    ],
+    "suggested": [
+      "sql-repeating-contacts",
+      "sql-transitive-department",
+      "sql-parent-delete-action",
+      "sql-check-unknown",
+      "sql-default-explicit-null",
+      "sql-fk-index-implicit",
+      "sql-case-insensitive-code"
+    ],
+    "targetLevel": "fresher",
+    "minutes": 30
+  },
+  {
+    "id": "fresher-linq-cardinality",
+    "name": "Fresher · LINQ và hình dạng kết quả",
+    "description": "Vai trò .NET developer mới vào nghề. 15 phút: 1 phút đọc collection, 9 phút giải 3 câu, 5 phút đào sâu empty input và duplicate key. Pool hỏi lượng phần tử, ghép chuỗi và tra cứu, không yêu cầu query plan.",
+    "topics": [
+      "linq"
+    ],
+    "suggested": [
+      "linq-groupjoin-unmatched",
+      "linq-zip-shortest-input",
+      "linq-lookup-missing-key",
+      "linq-sequenceequal-order",
+      "linq-chunk-tail-size",
+      "linq-single-duplicate-invariant"
+    ],
+    "targetLevel": "fresher",
+    "minutes": 15
+  },
+  {
+    "id": "junior-web-runtime-defenses",
+    "name": "Junior · Bảo vệ pipeline production",
+    "description": "Vai trò .NET web API vận hành thực tế. 30 phút: 3 phút chốt ranh giới, 20 phút cho 5 câu, 7 phút đào sâu một request bị hủy hoặc file riêng tư. Pool ghép static authorization, request lifetime, timeout và cache policy.",
+    "topics": [
+      "aspnet"
+    ],
+    "suggested": [
+      "aspnet-private-static-file",
+      "aspnet-background-httpcontext-copy",
+      "aspnet-timeout-cooperative-signal",
+      "aspnet-outputcache-authenticated-default",
+      "aspnet-safe-production-errors",
+      "aspnet-inflight-render-limit",
+      "aspnet-cookie-csrf-intent"
+    ],
+    "targetLevel": "junior",
+    "minutes": 30
+  },
+  {
+    "id": "junior-broker-consumer-contract",
+    "name": "Junior · Hợp đồng publisher và consumer",
+    "description": "Vai trò backend viết worker. 30 phút: 3 phút xác định side effect, 20 phút cho 5 câu, 7 phút đào sâu crash giữa commit/ack. Pool phân biệt confirm, ack, prefetch, poison message, thứ tự và xử lý lặp.",
+    "topics": [
+      "systems"
+    ],
+    "suggested": [
+      "systems-mqack-boundary",
+      "systems-mqconfirm-boundary",
+      "systems-mqprefetch-boundary",
+      "systems-mqdead-boundary",
+      "systems-mqorder-boundary",
+      "systems-mqduplicate-boundary"
+    ],
+    "targetLevel": "junior",
+    "minutes": 30
+  },
+  {
+    "id": "junior-cache-operational-boundaries",
+    "name": "Junior · Cache khi trạng thái thay đổi",
+    "description": "Vai trò backend tối ưu đọc bằng Redis. 30 phút: 3 phút nêu nguồn có thẩm quyền, 20 phút cho 5 câu, 7 phút đào sâu outage/cold start. Pool về TTL, eviction, replica lag, tenant key và negative cache thay vì chỉ hỏi định nghĩa cache-aside.",
+    "topics": [
+      "systems"
+    ],
+    "suggested": [
+      "systems-rexpire-boundary",
+      "systems-rttl-boundary",
+      "systems-revict-boundary",
+      "systems-rrep-boundary",
+      "systems-tenantkey-boundary",
+      "systems-negativecache-boundary",
+      "systems-cachefailure-boundary"
+    ],
+    "targetLevel": "junior",
+    "minutes": 30
+  },
+  {
+    "id": "junior-project-evidence-round",
+    "name": "Junior · Bằng chứng và phối hợp dự án",
+    "description": "Vai trò .NET developer kể dự án bằng Việt hoặc Anh. 30 phút: 3 phút dựng bối cảnh, 20 phút cho 5 câu, 7 phút đào sâu kết quả chưa đo và hành động cải tiến. Pool đánh giá scope, review, postmortem và tính chính xác của tuyên bố availability.",
+    "topics": [
+      "behavioral"
+    ],
+    "suggested": [
+      "behavioral-projecttradeoff-boundary",
+      "behavioral-smallchange-boundary",
+      "behavioral-postmortem-boundary",
+      "behavioral-metricclaim-boundary",
+      "behavioral-reviewpriority-boundary",
+      "behavioral-scope-boundary",
+      "behavioral-englishupdate-boundary"
+    ],
+    "targetLevel": "junior",
+    "minutes": 30
+  },
+  {
+    "id": "mid-reliability-tradeoff-round",
+    "name": "Mid · Ngân sách lỗi và tải dependency",
+    "description": "Vai trò backend mid chịu trách nhiệm reliability. 45 phút: 4 phút xác định SLO/deadline, 28 phút cho 7 câu, 13 phút đào sâu retry lồng nhau và phục hồi. Pool ghép circuit, bulkhead, cache-down, rollout format và compensation; cần bảo vệ lựa chọn bằng failure timeline.",
+    "topics": [
+      "systems",
+      "delivery"
+    ],
+    "suggested": [
+      "systems-retry-boundary",
+      "systems-circuit-boundary",
+      "systems-bulkhead-boundary",
+      "systems-cachefailure-boundary",
+      "systems-cacheversion-boundary",
+      "systems-rpersist-boundary",
+      "systems-compensate-boundary",
+      "delivery-ciconcurrency-boundary",
+      "delivery-ciartifact-boundary"
+    ],
+    "targetLevel": "mid",
+    "minutes": 45
+  },
+  {
+    "id": "senior-uncertain-outcome-round",
+    "name": "Senior · Quyết định khi kết quả chưa rõ",
+    "description": "Vai trò senior backend dẫn xử lý sự cố và quyết định ranh giới nhất quán. 45 phút: 5 phút nêu giả định, 28 phút cho 7 câu, 12 phút đào sâu replay, lease mất hiệu lực và thương lượng error budget. Pool kiểm tra semantic side effect, thay vì chỉ kể tên pattern.",
+    "topics": [
+      "systems",
+      "behavioral"
+    ],
+    "suggested": [
+      "systems-rlock-boundary",
+      "systems-mqduplicate-boundary",
+      "systems-compensate-boundary",
+      "systems-mqorder-boundary",
+      "systems-cachefailure-boundary",
+      "behavioral-errorbudget-boundary",
+      "behavioral-projecttradeoff-boundary",
+      "behavioral-englishupdate-boundary"
+    ],
+    "targetLevel": "senior",
+    "minutes": 45
+  }
+]

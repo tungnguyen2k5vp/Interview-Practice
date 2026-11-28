@@ -7,6 +7,7 @@ import { chromium } from 'playwright'
 import { checkLabs } from './labs.mjs'
 import { checkPersonalization } from './personalization.mjs'
 import { advanced } from './advanced.mjs'
+import { contentV4 } from './content-v4.mjs'
 
 const baseURL = process.env.IP_BASE ?? 'http://127.0.0.1:5096'
 assert(['localhost','127.0.0.1'].includes(new URL(baseURL).hostname))
@@ -510,6 +511,8 @@ try {
     await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>document.activeElement.id),'main-area')
     assert.deepEqual(errors,[])
   })
+  await check('V4 published coverage, preset pools, material schemas and responsive selection', () =>
+    contentV4({page,client,send,baseURL,browser,screenshots}))
   console.log('Passed: '+groups+', Failed: 0, Skipped: 0')
 } finally {
   for(const {ctx,password} of users){try{await send(ctx.request,'/profile/account/delete','POST',{password},[204])}finally{await ctx.close()}}

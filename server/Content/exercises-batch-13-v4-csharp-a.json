@@ -1,0 +1,744 @@
+[
+  {
+    "slug": "debug-page-count-ceiling",
+    "kind": "coding",
+    "title": "Số trang bị thiếu phần dư",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "pagination",
+      "integer-bounds",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tính số trang tối thiểu chứa total bản ghi, mỗi trang chứa tối đa size. Không có bản ghi thì có 0 trang. Starter đang bỏ phần trang cuối.",
+    "input": "total: số bản ghi; size: số mục tối đa mỗi trang.",
+    "output": "Số trang kiểu int.",
+    "constraints": [
+      "0 ≤ total ≤ 2.147.483.647; 1 ≤ size ≤ 1.000.000.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "11, 5",
+        "output": "3",
+        "explanation": "Trang cuối chỉ có một bản ghi."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, 5",
+        "output": "0",
+        "explanation": "Không có dữ liệu."
+      },
+      {
+        "input": "10, 5",
+        "output": "2",
+        "explanation": "Đúng bội số kích thước trang."
+      },
+      {
+        "input": "2147483647, 2",
+        "output": "1073741824",
+        "explanation": "Phép cộng trung gian vượt int."
+      }
+    ],
+    "starter": "public static int PageCount(int total, int size)\n{\n    return total / size;\n}",
+    "solution": "public static int PageCount(int total, int size)\n{\n    return (int)(((long)total + size - 1) / size);\n}",
+    "hint": "Chia làm tròn lên bằng cộng size−1 trước chia; nâng sang long trước phép cộng để tránh tràn.",
+    "explanation": "Chia làm tròn lên bằng cộng size−1 trước chia; nâng sang long trước phép cộng để tránh tràn.",
+    "complexity": "O(1) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với 11, 5. Kết quả đúng phải là 3. Lỗi cần sửa: Chia nguyên làm mất trang cuối chưa đầy."
+  },
+  {
+    "slug": "debug-discount-multiply-first",
+    "kind": "coding",
+    "title": "Giảm giá bị làm tròn quá sớm",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "money",
+      "integer-rounding",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tính giá sau giảm theo basis point: 10.000 điểm là 100%. Giá tính bằng đơn vị tiền nhỏ nhất. Làm tròn xuống duy nhất ở kết quả cuối.",
+    "input": "cents: giá không âm; basisPoints: tỷ lệ giảm.",
+    "output": "Giá sau giảm kiểu long.",
+    "constraints": [
+      "0 ≤ cents ≤ 10^12; 0 ≤ basisPoints ≤ 10.000.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "199, 2500",
+        "output": "149",
+        "explanation": "199 giảm 25% còn floor(149,25)."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, 100",
+        "output": "0",
+        "explanation": "Giá bằng 0."
+      },
+      {
+        "input": "12345, 0",
+        "output": "12345",
+        "explanation": "Không giảm giá."
+      },
+      {
+        "input": "1000000000000, 10000",
+        "output": "0",
+        "explanation": "Giảm toàn bộ giá."
+      }
+    ],
+    "starter": "public static long Discounted(long cents, int basisPoints)\n{\n    return cents / 10000 * (10000 - basisPoints);\n}",
+    "solution": "public static long Discounted(long cents, int basisPoints)\n{\n    return cents * (10000 - basisPoints) / 10000;\n}",
+    "hint": "Nhân tử tỷ lệ còn lại trước chia; miền tối đa 10^16 vẫn nằm trong long.",
+    "explanation": "Nhân tử tỷ lệ còn lại trước chia; miền tối đa 10^16 vẫn nằm trong long.",
+    "complexity": "O(1) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với 199, 2500. Kết quả đúng phải là 149. Lỗi cần sửa: Chia giá trước khi nhân loại mất phần tiền cần giữ."
+  },
+  {
+    "slug": "debug-attempt-budget-zero-based",
+    "kind": "coding",
+    "title": "Vượt ngân sách số lần thử",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "retry",
+      "off-by-one",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Attempt đánh số từ 0. Với ngân sách maxAttempts, chỉ các attempt từ 0 tới maxAttempts−1 được phép; ngân sách 0 cấm mọi lần.",
+    "input": "attempt: chỉ số thử hiện tại; maxAttempts: tổng số lần cho phép.",
+    "output": "true khi lần thử được phép.",
+    "constraints": [
+      "0 ≤ attempt, maxAttempts ≤ 1.000.000.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "3, 3",
+        "output": "false",
+        "explanation": "Biên bằng ngân sách phải bị từ chối."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, 0",
+        "output": "false",
+        "explanation": "Ngân sách không có lần nào."
+      },
+      {
+        "input": "0, 1",
+        "output": "true",
+        "explanation": "Lần đầu hợp lệ."
+      },
+      {
+        "input": "4, 3",
+        "output": "false",
+        "explanation": "Đã vượt ngân sách."
+      }
+    ],
+    "starter": "public static bool CanAttempt(int attempt, int maxAttempts)\n{\n    return attempt <= maxAttempts;\n}",
+    "solution": "public static bool CanAttempt(int attempt, int maxAttempts)\n{\n    return attempt < maxAttempts;\n}",
+    "hint": "Chuyển số lượng lần thử thành khoảng nửa mở [0,maxAttempts), không dùng so sánh bao gồm biên phải.",
+    "explanation": "Chuyển số lượng lần thử thành khoảng nửa mở [0,maxAttempts), không dùng so sánh bao gồm biên phải.",
+    "complexity": "O(1) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với 3, 3. Kết quả đúng phải là false. Lỗi cần sửa: Cho phép thêm một lần tại attempt bằng ngân sách."
+  },
+  {
+    "slug": "debug-token-expiry-exclusive",
+    "kind": "coding",
+    "title": "Token còn hiệu lực ở đúng giờ hết hạn",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "expiry",
+      "boundary",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Mỗi số trong expires là thời điểm hết hạn tuyệt đối của token theo tick nghiệp vụ. Token còn hiệu lực chỉ khi expires > now. Trả chỉ số token còn hiệu lực theo thứ tự nhập.",
+    "input": "expires: mảng tick hết hạn; now: tick kiểm tra.",
+    "output": "Mảng chỉ số 0-based.",
+    "constraints": [
+      "0 ≤ expires.Length ≤ 10.000; 0 ≤ expires[i], now ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[5,6,4], 5",
+        "output": "[1]",
+        "explanation": "Token tại tick 5 đã hết hạn."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 1",
+        "output": "[]",
+        "explanation": "Không có token."
+      },
+      {
+        "input": "[0,0], 0",
+        "output": "[]",
+        "explanation": "Mọi token hết hạn tại now."
+      },
+      {
+        "input": "[9,8,7], 0",
+        "output": "[0,1,2]",
+        "explanation": "Mọi token còn hiệu lực, giữ thứ tự."
+      }
+    ],
+    "starter": "public static int[] ActiveTokens(int[] expires, int now)\n{\n    return Enumerable.Range(0, expires.Length).Where(i => expires[i] >= now).ToArray();\n}",
+    "solution": "public static int[] ActiveTokens(int[] expires, int now)\n{\n    return Enumerable.Range(0, expires.Length).Where(i => expires[i] > now).ToArray();\n}",
+    "hint": "Kiểm tra từng phần tử theo điều kiện strict >. Giữ chỉ số thay vì sort thời điểm để bảo toàn thứ tự đầu vào.",
+    "explanation": "Kiểm tra từng phần tử theo điều kiện strict >. Giữ chỉ số thay vì sort thời điểm để bảo toàn thứ tự đầu vào.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [5,6,4], 5. Kết quả đúng phải là [1]. Lỗi cần sửa: Nhận token tại đúng thời điểm hết hạn."
+  },
+  {
+    "slug": "debug-secret-ordinal-case",
+    "kind": "coding",
+    "title": "So token bí mật sai quy tắc hoa thường",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "string",
+      "ordinal",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Hai token ASCII của bài tập chỉ bằng nhau khi mọi ký tự bằng nhau và cùng case. Đây là bài hợp đồng so sánh, không phải triển khai so sánh constant-time cho credential sản xuất.",
+    "input": "expected, received: token ASCII.",
+    "output": "bool biểu thị bằng nhau theo Ordinal.",
+    "constraints": [
+      "0 ≤ độ dài mỗi token ≤ 1.024.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"Ab9\", \"ab9\"",
+        "output": "false",
+        "explanation": "Cùng chữ nhưng khác case."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"\", \"\"",
+        "output": "true",
+        "explanation": "Hai token rỗng bằng nhau trong hợp đồng này."
+      },
+      {
+        "input": "\"abc\", \"abc\"",
+        "output": "true",
+        "explanation": "Khớp toàn bộ."
+      },
+      {
+        "input": "\"abc\", \"abcd\"",
+        "output": "false",
+        "explanation": "Độ dài khác nhau."
+      }
+    ],
+    "starter": "public static bool SameToken(string expected, string received)\n{\n    return string.Equals(expected, received, StringComparison.OrdinalIgnoreCase);\n}",
+    "solution": "public static bool SameToken(string expected, string received)\n{\n    return string.Equals(expected, received, StringComparison.Ordinal);\n}",
+    "hint": "StringComparison.Ordinal giữ phân biệt case và không phụ thuộc culture. So sánh token ở đây chỉ kiểm tra quy tắc nội dung.",
+    "explanation": "StringComparison.Ordinal giữ phân biệt case và không phụ thuộc culture. So sánh token ở đây chỉ kiểm tra quy tắc nội dung.",
+    "complexity": "O(min(a,b)) thời gian trong trường hợp xấu, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với \"Ab9\", \"ab9\". Kết quả đúng phải là false. Lỗi cần sửa: Bỏ qua hoa thường làm hai token khác nhau được coi là bằng."
+  },
+  {
+    "slug": "debug-midpoint-no-overflow",
+    "kind": "coding",
+    "title": "Midpoint tràn khi hai mốc lớn",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "numeric-bounds",
+      "binary-search",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tính floor((left+right)/2) cho hai chỉ số không âm left≤right. Starter cộng int trực tiếp làm kết quả âm ở biên lớn.",
+    "input": "left, right: hai chỉ số không âm đã có thứ tự.",
+    "output": "Midpoint kiểu int.",
+    "constraints": [
+      "0 ≤ left ≤ right ≤ 2.147.483.647.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "2000000000, 2100000000",
+        "output": "2050000000",
+        "explanation": "Tổng vượt int.MaxValue."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, 0",
+        "output": "0",
+        "explanation": "Hai mốc trùng nhau."
+      },
+      {
+        "input": "0, 5",
+        "output": "2",
+        "explanation": "Làm tròn xuống."
+      },
+      {
+        "input": "2147483646, 2147483647",
+        "output": "2147483646",
+        "explanation": "Hai mốc sát trần int."
+      }
+    ],
+    "starter": "public static int Midpoint(int left, int right)\n{\n    return (left + right) / 2;\n}",
+    "solution": "public static int Midpoint(int left, int right)\n{\n    return left + (right - left) / 2;\n}",
+    "hint": "Dùng left + (right−left)/2. Vì cả hai không âm và đã có thứ tự, hiệu không tràn và tổng cuối không vượt right.",
+    "explanation": "Dùng left + (right−left)/2. Vì cả hai không âm và đã có thứ tự, hiệu không tràn và tổng cuối không vượt right.",
+    "complexity": "O(1) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với 2000000000, 2100000000. Kết quả đúng phải là 2050000000. Lỗi cần sửa: Tổng hai chỉ số tràn int trước khi chia."
+  },
+  {
+    "slug": "debug-weighted-average-single-round",
+    "kind": "coding",
+    "title": "Điểm trung bình có trọng số sai",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "aggregation",
+      "weighted-average",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tính floor của tổng value[i]×weight[i] chia tổng weight. Nếu tổng weight bằng 0, trả 0. Không chia từng phần riêng.",
+    "input": "values, weights cùng chiều dài; giá trị và trọng số không âm.",
+    "output": "Điểm trung bình đã floor, int.",
+    "constraints": [
+      "0 ≤ n ≤ 1.000; 0 ≤ values[i], weights[i] ≤ 1.000.000.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,1], [1,1]",
+        "output": "1",
+        "explanation": "floor(2/2) là 1, khác tổng hai thương 1/2 đã floor."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], []",
+        "output": "0",
+        "explanation": "Không có điểm."
+      },
+      {
+        "input": "[9,8], [0,0]",
+        "output": "0",
+        "explanation": "Tổng trọng số 0."
+      },
+      {
+        "input": "[1000000,1000000], [1000000,1000000]",
+        "output": "1000000",
+        "explanation": "Tích cần long."
+      }
+    ],
+    "starter": "public static int WeightedScore(int[] values, int[] weights)\n{\n    long sum = 0, total = weights.Sum(x => (long)x); if (total == 0) return 0; for (int i = 0; i < values.Length; i++) sum += (long)values[i] * weights[i] / total; return (int)sum;\n}",
+    "solution": "public static int WeightedScore(int[] values, int[] weights)\n{\n    long sum = 0, total = 0; for (int i = 0; i < values.Length; i++) { sum += (long)values[i] * weights[i]; total += weights[i]; } return total == 0 ? 0 : (int)(sum / total);\n}",
+    "hint": "Gom tử và mẫu bằng long rồi chỉ chia một lần. Trường hợp không có trọng số được quy định trả 0 trước phép chia.",
+    "explanation": "Gom tử và mẫu bằng long rồi chỉ chia một lần. Trường hợp không có trọng số được quy định trả 0 trước phép chia.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ phụ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,1], [1,1]. Kết quả đúng phải là 1. Lỗi cần sửa: Chia từng hạng gây mất phần lẻ trước khi cộng."
+  },
+  {
+    "slug": "debug-price-upsert-last-write",
+    "kind": "coding",
+    "title": "Giá nhập sau không ghi đè",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "dictionary",
+      "upsert",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Mỗi dòng updates là [productId,price]. Đợt nhập xử lý theo thứ tự dòng: lần xuất hiện cuối của một productId thắng. Trả [id,price] tăng dần theo id.",
+    "input": "updates: các cặp [id,price].",
+    "output": "Mảng cặp cuối cùng đã sort theo id.",
+    "constraints": [
+      "0 ≤ n ≤ 5.000; 1 ≤ id ≤ 10^6; 0 ≤ price ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[2,10],[2,7],[1,4]]",
+        "output": "[[1,4],[2,7]]",
+        "explanation": "Giá id 2 phải là 7."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có cập nhật."
+      },
+      {
+        "input": "[[1,0]]",
+        "output": "[[1,0]]",
+        "explanation": "Giá 0 hợp lệ."
+      },
+      {
+        "input": "[[3,9],[1,8],[3,11]]",
+        "output": "[[1,8],[3,11]]",
+        "explanation": "Sort id sau khi chọn lần cuối."
+      }
+    ],
+    "starter": "public static int[][] FinalPrices(int[][] updates)\n{\n    var d = new Dictionary<int,int>(); foreach (var row in updates) d.TryAdd(row[0], row[1]); return d.OrderBy(x => x.Key).Select(x => new[] { x.Key, x.Value }).ToArray();\n}",
+    "solution": "public static int[][] FinalPrices(int[][] updates)\n{\n    var d = new Dictionary<int,int>(); foreach (var row in updates) d[row[0]] = row[1]; return d.OrderBy(x => x.Key).Select(x => new[] { x.Key, x.Value }).ToArray();\n}",
+    "hint": "Gán indexer cập nhật giá cho mỗi id khi duyệt. Sort dictionary theo khóa chỉ khi đã xử lý hết dòng.",
+    "explanation": "Gán indexer cập nhật giá cho mỗi id khi duyệt. Sort dictionary theo khóa chỉ khi đã xử lý hết dòng.",
+    "complexity": "O(n + u log u) thời gian kỳ vọng, O(u) bộ nhớ, u là số id.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [[2,10],[2,7],[1,4]]. Kết quả đúng phải là [[1,4],[2,7]]. Lỗi cần sửa: TryAdd giữ giá đầu tiên thay vì cập nhật giá cuối."
+  },
+  {
+    "slug": "debug-insert-before-equal",
+    "kind": "coding",
+    "title": "Chèn trước các mã bằng nhau",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "binary-search",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Tìm chỉ số chèn đầu tiên cho target trong mảng sorted không giảm: số phần tử < target. Cho phép chỉ số bằng Length.",
+    "input": "sorted: mảng int không giảm; target: số cần chèn.",
+    "output": "Chỉ số đầu có giá trị ≥ target, hoặc n.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; mọi số trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2,2,4], 2",
+        "output": "1",
+        "explanation": "Chèn ở index 1, không phải 3."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 3",
+        "output": "0",
+        "explanation": "Mảng rỗng chèn tại 0."
+      },
+      {
+        "input": "[1,2], 9",
+        "output": "2",
+        "explanation": "Sau mọi phần tử."
+      },
+      {
+        "input": "[1,2], 0",
+        "output": "0",
+        "explanation": "Trước mọi phần tử."
+      }
+    ],
+    "starter": "public static int InsertBefore(int[] sorted, int target)\n{\n    int lo = 0, hi = sorted.Length; while (lo < hi) { int mid = lo + (hi-lo)/2; if (sorted[mid] <= target) lo = mid + 1; else hi = mid; } return lo;\n}",
+    "solution": "public static int InsertBefore(int[] sorted, int target)\n{\n    int lo = 0, hi = sorted.Length; while (lo < hi) { int mid = lo + (hi-lo)/2; if (sorted[mid] < target) lo = mid + 1; else hi = mid; } return lo;\n}",
+    "hint": "Duy trì khoảng tìm kiếm nửa mở [lo,hi). Nhánh bằng target thu hi để tìm đúng biên trái, không dừng ở một phần tử bằng bất kỳ.",
+    "explanation": "Duy trì khoảng tìm kiếm nửa mở [lo,hi). Nhánh bằng target thu hi để tìm đúng biên trái, không dừng ở một phần tử bằng bất kỳ.",
+    "complexity": "O(log n) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,2,2,4], 2. Kết quả đúng phải là 1. Lỗi cần sửa: Dùng <= tìm sau nhóm bằng nhau thay vì trước nhóm."
+  },
+  {
+    "slug": "debug-rotation-signed-offset",
+    "kind": "coding",
+    "title": "Dịch vòng khi offset âm",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "array",
+      "modulo",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Dịch mảng sang phải shift bước; shift âm nghĩa là dịch trái. Trả mảng mới. Mảng rỗng trả rỗng.",
+    "input": "values: mảng int; shift: số bước có dấu.",
+    "output": "Mảng đã dịch vòng.",
+    "constraints": [
+      "0 ≤ n ≤ 10.000; -10^9 ≤ shift ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2,3], -1",
+        "output": "[2,3,1]",
+        "explanation": "Dịch trái một bước."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 7",
+        "output": "[]",
+        "explanation": "Mảng rỗng tránh chia cho 0."
+      },
+      {
+        "input": "[1,2], 0",
+        "output": "[1,2]",
+        "explanation": "Không dịch."
+      },
+      {
+        "input": "[1,2,3], 7",
+        "output": "[3,1,2]",
+        "explanation": "Offset vượt độ dài."
+      }
+    ],
+    "starter": "public static int[] Rotate(int[] values, int shift)\n{\n    int n = values.Length; if (n == 0) return []; int k = shift % n; var result = new int[n]; for (int i = 0; i < n; i++) result[(i + k) % n] = values[i]; return result;\n}",
+    "solution": "public static int[] Rotate(int[] values, int shift)\n{\n    int n = values.Length; if (n == 0) return []; int k = ((shift % n) + n) % n; var result = new int[n]; for (int i = 0; i < n; i++) result[(i + k) % n] = values[i]; return result;\n}",
+    "hint": "Chuẩn hóa offset về [0,n) bằng modulo hai lần; tính vị trí đích của từng phần tử trên mảng kết quả mới.",
+    "explanation": "Chuẩn hóa offset về [0,n) bằng modulo hai lần; tính vị trí đích của từng phần tử trên mảng kết quả mới.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,2,3], -1. Kết quả đúng phải là [2,3,1]. Lỗi cần sửa: % của C# giữ dấu âm nên có chỉ số âm."
+  },
+  {
+    "slug": "debug-trade-profit-no-loss",
+    "kind": "coding",
+    "title": "Lợi nhuận bị âm khi không nên giao dịch",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "prefix-minimum",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Chọn tối đa một lần mua trước một lần bán ở ngày sau để đạt lợi nhuận lớn nhất. Được phép không giao dịch, trả 0 nếu mọi giao dịch lỗ.",
+    "input": "prices theo ngày cũ đến mới.",
+    "output": "Lợi nhuận tối đa không âm.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; 0 ≤ prices[i] ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[9,7,3]",
+        "output": "0",
+        "explanation": "Không giao dịch là lựa chọn tốt nhất."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Không có ngày."
+      },
+      {
+        "input": "[5]",
+        "output": "0",
+        "explanation": "Không thể mua rồi bán sau."
+      },
+      {
+        "input": "[7,1,5,3,6,4]",
+        "output": "5",
+        "explanation": "Mua 1 trước khi bán 6."
+      }
+    ],
+    "starter": "public static int BestProfit(int[] prices)\n{\n    if (prices.Length < 2) return 0; int low = prices[0], best = int.MinValue; for (int i = 1; i < prices.Length; i++) { best = Math.Max(best, prices[i] - low); low = Math.Min(low, prices[i]); } return best;\n}",
+    "solution": "public static int BestProfit(int[] prices)\n{\n    if (prices.Length == 0) return 0; int low = prices[0], best = 0; foreach (int p in prices) { best = Math.Max(best, p - low); low = Math.Min(low, p); } return best;\n}",
+    "hint": "Giữ giá thấp nhất đã thấy và lợi nhuận tốt nhất ít nhất bằng 0. Giá bán được so với giá mua từ tiền tố trước hoặc cùng thời điểm; giao dịch cùng ngày chỉ cho 0.",
+    "explanation": "Giữ giá thấp nhất đã thấy và lợi nhuận tốt nhất ít nhất bằng 0. Giá bán được so với giá mua từ tiền tố trước hoặc cùng thời điểm; giao dịch cùng ngày chỉ cho 0.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [9,7,3]. Kết quả đúng phải là 0. Lỗi cần sửa: Bắt buộc có giao dịch làm chuỗi giảm trả lợi nhuận âm."
+  },
+  {
+    "slug": "debug-revision-equal-last-wins",
+    "kind": "coding",
+    "title": "Đụng revision phải lấy payload cuối",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "revision",
+      "tie-break",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Mỗi dòng [id,revision,payload]. Với mỗi id chọn revision lớn nhất; nếu revision bằng nhau chọn dòng đến sau. Trả theo id tăng.",
+    "input": "rows: [id,revision,payload] theo thứ tự nhận.",
+    "output": "Mảng dòng được chọn theo id tăng.",
+    "constraints": [
+      "0 ≤ n ≤ 5.000; id dương; revision 0..10^9; payload trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,2,10],[1,2,20]]",
+        "output": "[[1,2,20]]",
+        "explanation": "Tie revision lấy payload cuối."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có dòng."
+      },
+      {
+        "input": "[[2,3,9],[2,1,8]]",
+        "output": "[[2,3,9]]",
+        "explanation": "Revision thấp đến muộn không thắng."
+      },
+      {
+        "input": "[[2,0,0],[1,1,-5]]",
+        "output": "[[1,1,-5],[2,0,0]]",
+        "explanation": "Sort id, giữ payload âm."
+      }
+    ],
+    "starter": "public static int[][] LatestRows(int[][] rows)\n{\n    var d = new Dictionary<int,int[]>(); foreach (var r in rows) if (!d.TryGetValue(r[0], out var old) || r[1] > old[1]) d[r[0]] = r; return d.OrderBy(x => x.Key).Select(x => x.Value.ToArray()).ToArray();\n}",
+    "solution": "public static int[][] LatestRows(int[][] rows)\n{\n    var d = new Dictionary<int,int[]>(); foreach (var r in rows) if (!d.TryGetValue(r[0], out var old) || r[1] >= old[1]) d[r[0]] = r; return d.OrderBy(x => x.Key).Select(x => x.Value.ToArray()).ToArray();\n}",
+    "hint": "Tra revision hiện tại và thay khi mới lớn hơn hoặc bằng. Không nhầm last-write-wins toàn bộ với chỉ last khi revision bằng.",
+    "explanation": "Tra revision hiện tại và thay khi mới lớn hơn hoặc bằng. Không nhầm last-write-wins toàn bộ với chỉ last khi revision bằng.",
+    "complexity": "O(n + u log u) kỳ vọng, O(u) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [[1,2,10],[1,2,20]]. Kết quả đúng phải là [[1,2,20]]. Lỗi cần sửa: So > bỏ qua payload đến sau có cùng revision."
+  },
+  {
+    "slug": "debug-compress-adjacent-runs",
+    "kind": "coding",
+    "title": "Nén nhầm mọi phần tử trùng",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "array",
+      "run-compression",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Chỉ xóa các lần lặp kề nhau, giữ một phần tử cho mỗi run. Giá trị xuất hiện lại sau giá trị khác phải được giữ.",
+    "input": "values: mảng int theo thứ tự nguồn.",
+    "output": "Mảng chỉ giữ đầu mỗi run.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; mọi phần tử trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,1,2,1]",
+        "output": "[1,2,1]",
+        "explanation": "Giá trị 1 cuối thuộc run mới."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Mảng rỗng."
+      },
+      {
+        "input": "[4,4,4]",
+        "output": "[4]",
+        "explanation": "Chỉ một run."
+      },
+      {
+        "input": "[1,2,3]",
+        "output": "[1,2,3]",
+        "explanation": "Không có lặp kề nhau."
+      }
+    ],
+    "starter": "public static int[] CompressAdjacent(int[] values)\n{\n    return values.Distinct().ToArray();\n}",
+    "solution": "public static int[] CompressAdjacent(int[] values)\n{\n    var result = new List<int>(); foreach (int x in values) if (result.Count == 0 || result[^1] != x) result.Add(x); return result.ToArray();\n}",
+    "hint": "So với mục cuối của kết quả, không dùng set toàn cục; identity của run phụ thuộc hàng xóm liên tiếp.",
+    "explanation": "So với mục cuối của kết quả, không dùng set toàn cục; identity của run phụ thuộc hàng xóm liên tiếp.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [1,1,2,1]. Kết quả đúng phải là [1,2,1]. Lỗi cần sửa: Distinct xóa cả lần xuất hiện lại sau một run khác."
+  },
+  {
+    "slug": "debug-utf8-budget-not-charcount",
+    "kind": "coding",
+    "title": "Giới hạn byte bị tính bằng số char",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "unicode",
+      "encoding",
+      "debug-lab"
+    ],
+    "minutes": 20,
+    "description": "Trả các nhãn có số byte UTF-8 không quá maxBytes, giữ nguyên thứ tự và phần tử lặp. Chuỗi rỗng hợp lệ khi budget 0.",
+    "input": "labels: mảng chuỗi Unicode well-formed; maxBytes: ngân sách từng nhãn.",
+    "output": "Mảng nhãn đạt điều kiện, giữ thứ tự.",
+    "constraints": [
+      "0 ≤ n ≤ 1.000; mỗi chuỗi tối đa 1.000 UTF-16 code unit; 0 ≤ maxBytes ≤ 4.000.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[\"é\",\"A\"], 1",
+        "output": "[\"A\"]",
+        "explanation": "é cần hai byte UTF-8 còn A cần một."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 0",
+        "output": "[]",
+        "explanation": "Không có nhãn."
+      },
+      {
+        "input": "[\"\",\"a\"], 0",
+        "output": "[\"\"]",
+        "explanation": "Chỉ chuỗi rỗng vừa budget."
+      },
+      {
+        "input": "[\"😀\",\"abc\",\"é\"], 4",
+        "output": "[\"😀\",\"abc\",\"é\"]",
+        "explanation": "Emoji bốn byte và các nhãn ngắn đều hợp lệ."
+      }
+    ],
+    "starter": "public static string[] WithinUtf8(string[] labels, int maxBytes)\n{\n    return labels.Where(s => s.Length <= maxBytes).ToArray();\n}",
+    "solution": "public static string[] WithinUtf8(string[] labels, int maxBytes)\n{\n    return labels.Where(s => System.Text.Encoding.UTF8.GetByteCount(s) <= maxBytes).ToArray();\n}",
+    "hint": "Đếm Encoding.UTF8.GetByteCount trực tiếp để không cấp phát mảng byte; so sánh <= cho phép đúng biên budget.",
+    "explanation": "Đếm Encoding.UTF8.GetByteCount trực tiếp để không cấp phát mảng byte; so sánh <= cho phép đúng biên budget.",
+    "complexity": "O(t) thời gian với t là tổng độ dài nhãn, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14",
+    "reproduce": "Chạy starter với [\"é\",\"A\"], 1. Kết quả đúng phải là [\"A\"]. Lỗi cần sửa: Length đếm UTF-16 code unit, không phải byte UTF-8."
+  }
+]

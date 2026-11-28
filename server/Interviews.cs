@@ -26,7 +26,7 @@ internal sealed record InterviewPlan(string Level, string[] Topics, string? Diff
     Dictionary<string, InterviewEntry>? Entries = null, Dictionary<int, string>? Rewrites = null);
 
 /// <summary>Thông tin phiên có thể mở tiếp.</summary>
-internal sealed record InterviewSummary(Guid Id, string Preset, string Mode, string Language, string Status, DateTimeOffset StartedAt, int Minutes);
+internal sealed record InterviewSummary(Guid Id, string Preset, string Mode, string Language, string Status, DateTimeOffset StartedAt, int Minutes, string? PresetName=null);
 
 /// <summary>Câu hỏi hoặc phản hồi duy nhất đang mở.</summary>
 internal sealed record CurrentPrompt(string Slug, int Version, string Title, string Topic, string Text, string? Context, string? Code,
@@ -503,7 +503,7 @@ internal sealed class Interviews(PracticeDb db, Catalog catalog, TimeProvider cl
             }
             report = [.. items];
         }
-        return new(Summary(row), row.Revision, Math.Min(row.Position, plan.Questions.Length - 1), plan.Questions.Length, row.Stage,
+        return new(Summary(row) with { PresetName = catalog.PresetList.FirstOrDefault(p=>p.Id==row.Preset)?.Name }, row.Revision, Math.Min(row.Position, plan.Questions.Length - 1), plan.Questions.Length, row.Stage,
             row.Draft, clock.GetUtcNow(), row.Deadline, row.PausedSeconds, current, report, plan.AiLimit, plan.AiUsed,
             Elapsed(row, clock.GetUtcNow()), row.Status == "completed" ? await Comparable(row, plan, ct) : null);
     }

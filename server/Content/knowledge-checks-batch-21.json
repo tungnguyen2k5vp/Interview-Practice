@@ -1,0 +1,192 @@
+[
+  {
+    "slug": "oop-privateprotected-access-boundary",
+    "version": 1,
+    "prompt": "Đổi member thành protected internal. Class không kế thừa nhưng cùng assembly có truy cập được không?",
+    "englishPrompt": "The member becomes protected internal. Can an unrelated same-assembly class access it?",
+    "choices": [
+      "Có, nhánh internal cho phép",
+      "Không, bắt buộc phải kế thừa",
+      "Chỉ khi class là sealed"
+    ],
+    "englishChoices": [
+      "Yes, the internal branch permits it",
+      "No, derivation is always required",
+      "Only if the class is sealed"
+    ],
+    "correctIndex": 0,
+    "explanation": "protected internal cho phép cùng assembly HOẶC derived theo quy tắc protected.",
+    "englishExplanation": "protected internal permits same-assembly access OR derived-type access under protected rules."
+  },
+  {
+    "slug": "oop-strategy-explicit-switch-ceiling",
+    "version": 1,
+    "prompt": "Formatter giờ cần dependency riêng và plugin đăng ký ngoài module. Cải tiến nào phù hợp?",
+    "englishPrompt": "Formatters now need separate dependencies and external plugin registration. What fits?",
+    "choices": [
+      "Tách hợp đồng formatter và đăng ký implementation",
+      "Bỏ validation enum để nhận plugin",
+      "Nhân đôi switch trong mọi caller"
+    ],
+    "englishChoices": [
+      "Extract a formatter contract and register implementations",
+      "Remove enum validation to accept plugins",
+      "Duplicate the switch in every caller"
+    ],
+    "correctIndex": 0,
+    "explanation": "Yêu cầu mở rộng độc lập tạo lý do cụ thể cho abstraction.",
+    "englishExplanation": "Independent extension creates a concrete need for an abstraction."
+  },
+  {
+    "slug": "oop-interface-segregate-read-export",
+    "version": 1,
+    "prompt": "Exporter có interface chỉ đọc. Một caller khác giữ interface ghi của cùng object. Nhận định nào đúng?",
+    "englishPrompt": "An exporter holds a read interface. Another caller holds a write interface for the same object. Which statement is correct?",
+    "choices": [
+      "Caller khác vẫn có thể gọi thao tác ghi theo quyền của nó",
+      "Interface đọc đóng băng object cho cả tiến trình",
+      "Object được copy tự động khi ép interface"
+    ],
+    "englishChoices": [
+      "The other caller can still use its allowed write operations",
+      "The read interface freezes the object process-wide",
+      "Casting to the interface automatically copies the object"
+    ],
+    "correctIndex": 0,
+    "explanation": "Interface hẹp giới hạn member qua reference đó, không đóng băng object hay thay authorization.",
+    "englishExplanation": "A narrow interface limits member access through that reference, not all mutations or authorization."
+  },
+  {
+    "slug": "oop-is-pattern-safe-downcast",
+    "version": 1,
+    "prompt": "Mọi Animal đều cần phát âm theo kiểu riêng. Thay chuỗi kiểm tra Dog/Cat bằng gì?",
+    "englishPrompt": "Every Animal must make its own sound. What can replace a chain of Dog and Cat tests?",
+    "choices": [
+      "Hợp đồng hành vi MakeSound với dispatch phù hợp",
+      "So Type.Name với chuỗi dài hơn",
+      "Catch thêm mọi lỗi cast"
+    ],
+    "englishChoices": [
+      "A MakeSound behavior contract with appropriate dispatch",
+      "Compare Type.Name with longer strings",
+      "Catch every cast failure"
+    ],
+    "correctIndex": 0,
+    "explanation": "Hành vi chung thuộc hợp đồng của các kiểu; tránh liệt kê từng concrete type ở caller.",
+    "englishExplanation": "Shared behavior can belong to the type contract instead of caller-side type enumeration."
+  },
+  {
+    "slug": "oop-generic-static-state-isolation",
+    "version": 1,
+    "prompt": "Mọi Cache<T> phải dùng chung một counter. Nơi đặt field nào phù hợp?",
+    "englishPrompt": "All Cache<T> specializations must share one counter. Where should the field live?",
+    "choices": [
+      "Trong một class không generic dùng chung",
+      "Trong static Count riêng của từng Cache<T>",
+      "Trong biến local tạo mới mỗi lần gọi"
+    ],
+    "englishChoices": [
+      "In a shared nongeneric class",
+      "In each Cache<T> static Count",
+      "In a fresh local variable for every call"
+    ],
+    "correctIndex": 0,
+    "explanation": "Một kiểu không generic có một bộ static field cho các caller; không nhân theo T.",
+    "englishExplanation": "A nongeneric type has one static field set rather than one per T."
+  },
+  {
+    "slug": "oop-equality-hashset-mutable-key",
+    "version": 1,
+    "prompt": "Muốn đổi Code của key đang trong HashSet. Thứ tự an toàn nào phù hợp?",
+    "englishPrompt": "Code must change for a HashSet key. Which operation order is appropriate?",
+    "choices": [
+      "Remove trước khi sửa rồi Add lại",
+      "Sửa trước rồi hy vọng Remove tìm được",
+      "Chỉ gọi GC.Collect sau khi sửa"
+    ],
+    "englishChoices": [
+      "Remove before mutation, then add again",
+      "Mutate first and hope Remove finds it",
+      "Call GC.Collect after mutation"
+    ],
+    "correctIndex": 0,
+    "explanation": "Remove cần hash cũ còn khớp nơi mục được lưu.",
+    "englishExplanation": "Removal needs the old hash to still match the stored bucket."
+  },
+  {
+    "slug": "algo-dijkstra-negative-edge",
+    "version": 1,
+    "prompt": "Mọi cạnh đồ thị có trọng số 1. Thuật toán đơn giản nào tìm số cạnh ít nhất?",
+    "englishPrompt": "Every edge has weight one. Which simple algorithm finds the minimum edge count?",
+    "choices": [
+      "BFS với hàng đợi FIFO và đánh dấu khi enqueue",
+      "DFS dừng ở đường đầu tiên",
+      "Sort ID các đỉnh rồi nối lại"
+    ],
+    "englishChoices": [
+      "BFS with a FIFO queue and discovery marking",
+      "DFS stopping at its first path",
+      "Sort vertex IDs and connect them"
+    ],
+    "correctIndex": 0,
+    "explanation": "BFS mở rộng theo từng lớp số cạnh trên đồ thị không trọng số.",
+    "englishExplanation": "BFS explores increasing edge-count layers in an unweighted graph."
+  },
+  {
+    "slug": "algo-interval-halfopen-touch",
+    "version": 1,
+    "prompt": "Hẹn kết thúc 10:00 và cần dọn 15 phút. Hẹn mới 10:10 có hợp lệ không?",
+    "englishPrompt": "An appointment ends at 10:00 and needs a fifteen-minute buffer. Is 10:10 valid for the next one?",
+    "choices": [
+      "Không; phải bắt đầu từ 10:15",
+      "Có; chỉ cần sau 10:00",
+      "Có; phút khác nhau là đủ"
+    ],
+    "englishChoices": [
+      "No; it must start at or after 10:15",
+      "Yes; any time after 10:00 is enough",
+      "Yes; different minutes suffice"
+    ],
+    "correctIndex": 0,
+    "explanation": "Thêm buffer vào mốc kết thúc trước khi kiểm tra khoảng nửa mở.",
+    "englishExplanation": "Add the buffer to the previous end before comparing half-open intervals."
+  },
+  {
+    "slug": "algo-reservoir-one-pass-uniform",
+    "version": 1,
+    "prompt": "Tại mục thứ 4, reservoir kích thước 1 nên thay mẫu với xác suất nào?",
+    "englishPrompt": "At the fourth item, what replacement probability is used for a one-item reservoir?",
+    "choices": [
+      "1/4",
+      "1/2",
+      "1"
+    ],
+    "englishChoices": [
+      "One quarter",
+      "One half",
+      "One"
+    ],
+    "correctIndex": 0,
+    "explanation": "Quy tắc 1/i tại i=4 cho 1/4.",
+    "englishExplanation": "The replacement rule 1/i gives one quarter at i=4."
+  },
+  {
+    "slug": "algo-dedup-sort-versus-hash",
+    "version": 1,
+    "prompt": "Giờ phải giữ thứ tự xuất hiện ban đầu và cho phép O(n) bộ nhớ phụ. Chọn hướng nào?",
+    "englishPrompt": "Original encounter order must now be preserved and O(n) auxiliary memory is allowed. What fits?",
+    "choices": [
+      "Duyệt nguồn theo thứ tự, dùng HashSet để chỉ xuất lần đầu",
+      "Sort rồi compact như trước",
+      "Đảo mảng trước khi sort"
+    ],
+    "englishChoices": [
+      "Scan in order and emit only first occurrences using a HashSet",
+      "Sort and compact as before",
+      "Reverse the array before sorting"
+    ],
+    "correctIndex": 0,
+    "explanation": "Duyệt thứ tự nguồn và dùng set chỉ để kiểm tra đã thấy giữ thứ tự xuất hiện.",
+    "englishExplanation": "Scanning in input order and using a set only for seen-membership preserves encounter order."
+  }
+]

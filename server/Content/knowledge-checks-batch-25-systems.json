@@ -1,0 +1,342 @@
+[
+  {
+    "slug": "systems-mqack-boundary",
+    "version": 1,
+    "prompt": "DB commit thành công nhưng consumer chết trước ack. Broker có thể phát lại không?",
+    "englishPrompt": "The database commits, but the consumer dies before ack. Can the broker redeliver?",
+    "choices": [
+      "Có, cần consumer xử lý lại an toàn.",
+      "Không, DB commit tự báo broker."
+    ],
+    "englishChoices": [
+      "Yes; the consumer must tolerate repeat processing.",
+      "No; the DB commit automatically notifies the broker."
+    ],
+    "correctIndex": 0,
+    "explanation": "Dùng manual ack sau khi tác động cần thiết đã được lưu bền vững. Ack sớm làm broker coi việc đã xong trước khi ứng dụng hoàn tất. Ack sau commit cho phép redelivery nếu consumer chết, nhưng cũng tạo cửa sổ DB đã commit mà ack chưa đến broker; write path cần chịu được xử lý lại.",
+    "englishExplanation": "Yes; the consumer must tolerate repeat processing."
+  },
+  {
+    "slug": "systems-mqprefetch-boundary",
+    "version": 1,
+    "prompt": "RabbitMQ prefetch bằng 0 được hiểu là không nhận message hay không giới hạn?",
+    "englishPrompt": "Does RabbitMQ prefetch 0 mean receive no messages or no prefetch limit?",
+    "choices": [
+      "Không nhận bất kỳ message nào.",
+      "Không giới hạn prefetch."
+    ],
+    "englishChoices": [
+      "Receive no messages.",
+      "No prefetch limit."
+    ],
+    "correctIndex": 1,
+    "explanation": "Số delivery chưa được ack mà broker cho consumer giữ, theo phạm vi cấu hình. Prefetch giúp tránh một consumer nhận quá nhiều việc trước khi hoàn tất. Nó không giới hạn tổng queue và không nhất thiết bằng số tác vụ xử lý song song trong ứng dụng. Chọn theo dung lượng mỗi message và throughput đo được.",
+    "englishExplanation": "No prefetch limit."
+  },
+  {
+    "slug": "systems-mqduplicate-boundary",
+    "version": 1,
+    "prompt": "Hai consumer cùng kiểm tra chưa có event ID rồi cùng ghi. Check-then-write riêng đã đủ chưa?",
+    "englishPrompt": "Two consumers both see no event ID and then both write. Is a separate check-then-write sufficient?",
+    "choices": [
+      "Chưa, cần bất biến nguyên tử ở nơi ghi.",
+      "Đủ, vì cả hai đều đã kiểm tra."
+    ],
+    "englishChoices": [
+      "No; an atomic invariant is needed at the write boundary.",
+      "Yes; both already checked."
+    ],
+    "correctIndex": 0,
+    "explanation": "Dùng định danh nghiệp vụ ổn định và bảo đảm ghi dấu đã xử lý cùng tác động trong một transaction phù hợp. Kiểm tra đã xử lý rồi ghi riêng có khoảng đua hoặc crash. Unique key cho operation trong cùng nơi lưu ledger giúp các request cạnh tranh chỉ tạo một tác động. Idempotency phải theo tác động nghiệp vụ, không chỉ ID của từng lần delivery.",
+    "englishExplanation": "No; an atomic invariant is needed at the write boundary."
+  },
+  {
+    "slug": "systems-circuit-boundary",
+    "version": 1,
+    "prompt": "Probe half-open thất bại. Circuit nên làm gì theo chính sách thông thường?",
+    "englishPrompt": "A half-open probe fails. What should a typical circuit policy do?",
+    "choices": [
+      "Đóng ngay để nhận toàn bộ traffic.",
+      "Mở lại và chờ trước khi thăm dò tiếp."
+    ],
+    "englishChoices": [
+      "Close immediately and accept all traffic.",
+      "Reopen and wait before probing again."
+    ],
+    "correctIndex": 1,
+    "explanation": "Half-open kiểm tra khả năng hồi phục với tải nhỏ, tránh làm dependency vừa hồi phục bị ngập. Open fail fast thay vì liên tục gọi dependency đang hỏng. Probe thành công đủ điều kiện mới đóng circuit; probe thất bại mở lại. Chính sách cần phân biệt lỗi dependency với lỗi input để không mở circuit vì request sai của client.",
+    "englishExplanation": "Reopen and wait before probing again."
+  },
+  {
+    "slug": "systems-bulkhead-boundary",
+    "version": 1,
+    "prompt": "Đã tách pool cho A. A vẫn lỗi nhưng luồng B hoạt động. Điều này chứng minh mục đích nào?",
+    "englishPrompt": "Pool A is isolated. A still fails while flow B works. Which purpose does this demonstrate?",
+    "choices": [
+      "Giới hạn phạm vi ảnh hưởng của lỗi.",
+      "Bảo đảm A không bao giờ lỗi nữa."
+    ],
+    "englishChoices": [
+      "Limiting the failure blast radius.",
+      "Guaranteeing A can never fail again."
+    ],
+    "correctIndex": 0,
+    "explanation": "Tách hoặc giới hạn pool/concurrency theo workload hay dependency để lỗi A không chiếm toàn bộ tài nguyên. Đặt timeout thôi chưa đủ nếu mọi slot vẫn bị chiếm trong lúc chờ. Tài nguyên dự phòng và queue hữu hạn giúp giữ chức năng khác. Chọn mức cô lập theo tài nguyên thật đang cạn; đừng tạo pool không giới hạn.",
+    "englishExplanation": "Limiting the failure blast radius."
+  },
+  {
+    "slug": "systems-strangler-boundary",
+    "version": 1,
+    "prompt": "Catalog mới lỗi sau chuyển một phần traffic. Thiết kế nào hỗ trợ giảm ảnh hưởng?",
+    "englishPrompt": "The new catalog fails after partial traffic migration. What design helps limit impact?",
+    "choices": [
+      "Xóa ngay implementation cũ trước khi đo.",
+      "Routing có kiểm soát và đường quay về đã thử."
+    ],
+    "englishChoices": [
+      "Delete the old implementation before measuring.",
+      "Controlled routing with a tested fallback path."
+    ],
+    "correctIndex": 1,
+    "explanation": "Đưa ranh giới định tuyến trước legacy, chuyển catalog sang phần mới từng bước và giữ các luồng còn lại hoạt động. Xác định ownership dữ liệu, hợp đồng và khả năng quay routing về đường cũ. Theo dõi hành vi và tải thực tế trước khi gỡ legacy. Lớp trung gian cũng phải vận hành tin cậy; không chỉ đổi URL rồi bỏ qua phụ thuộc dữ liệu.",
+    "englishExplanation": "Controlled routing with a tested fallback path."
+  },
+  {
+    "slug": "systems-tenantkey-boundary",
+    "version": 1,
+    "prompt": "Client tự gửi tenant ID khác trong header. Có nên dùng trực tiếp làm cache namespace không?",
+    "englishPrompt": "A client supplies another tenant ID in a header. Should it directly determine the cache namespace?",
+    "choices": [
+      "Không, xác minh tenant theo principal và quyền.",
+      "Có, prefix tự bảo đảm phân quyền."
+    ],
+    "englishChoices": [
+      "No; validate tenant membership against the principal and permissions.",
+      "Yes; prefixes automatically enforce authorization."
+    ],
+    "correctIndex": 0,
+    "explanation": "Đưa tenant identity tin cậy vào namespace key và giữ kiểm tra quyền khi đọc dữ liệu. Key phải bao gồm mọi chiều làm thay đổi kết quả, không chỉ ID cục bộ. Tenant lấy từ context đã xác minh, không tin header tùy ý. Prefix tránh va chạm nhưng không tự là cơ chế phân quyền truy cập Redis.",
+    "englishExplanation": "No; validate tenant membership against the principal and permissions."
+  },
+  {
+    "slug": "systems-cacheversion-boundary",
+    "version": 1,
+    "prompt": "Bản cũ không đọc được payload v2. Đặt key v2 riêng giúp gì?",
+    "englishPrompt": "An old replica cannot read v2 payloads. What does a separate v2 key namespace help with?",
+    "choices": [
+      "Tự bảo đảm mọi cache luôn nóng ngay.",
+      "Không cho reader cũ vô tình nhận payload v2."
+    ],
+    "englishChoices": [
+      "It automatically keeps every cache warm.",
+      "It prevents old readers from accidentally receiving v2 payloads."
+    ],
+    "correctIndex": 1,
+    "explanation": "Thiết kế payload tương thích hoặc namespace theo phiên bản schema; không đổi định dạng ngầm trên cùng key đang dùng. Phân biệt app version với schema version để tránh invalidate vô ích mỗi build. Khi đổi namespace cần xét bộ nhớ tăng tạm, TTL dọn key cũ và cold-start load. Đọc payload lỗi có thể bỏ entry và tải nguồn theo giới hạn tài nguyên.",
+    "englishExplanation": "It prevents old readers from accidentally receiving v2 payloads."
+  },
+  {
+    "slug": "delivery-gitfetch-boundary",
+    "version": 1,
+    "prompt": "Sau fetch origin, feature branch không có commit mới. Có nhất thiết fetch thất bại không?",
+    "englishPrompt": "After fetch origin, the feature branch has no new commits. Does that necessarily mean fetch failed?",
+    "choices": [
+      "Không, fetch không tự tích hợp vào feature.",
+      "Có, fetch thành công luôn thêm commit vào feature."
+    ],
+    "englishChoices": [
+      "No; fetch does not automatically integrate into the feature branch.",
+      "Yes; successful fetch always adds commits to feature."
+    ],
+    "correctIndex": 0,
+    "explanation": "Fetch tải object và cập nhật refs theo refspec; không tự merge hoặc rebase vào feature branch hiện tại. Sau fetch có thể xem origin/main và diff/log trước khi chọn cách tích hợp. Pull thường thực hiện fetch rồi tích hợp theo cấu hình. Không nhầm remote-tracking ref với local branch đang checkout.",
+    "englishExplanation": "No; fetch does not automatically integrate into the feature branch."
+  },
+  {
+    "slug": "delivery-gitrebase-boundary",
+    "version": 1,
+    "prompt": "Hai commit có cùng cây file cuối nhưng parent khác. Có bắt buộc cùng commit ID không?",
+    "englishPrompt": "Two commits end with the same file tree but have different parents. Must they have the same commit ID?",
+    "choices": [
+      "Có, chỉ cây file quyết định ID.",
+      "Không, parent là một phần dữ liệu commit."
+    ],
+    "englishChoices": [
+      "Yes; only the file tree determines the ID.",
+      "No; parentage is part of commit data."
+    ],
+    "correctIndex": 1,
+    "explanation": "Commit chứa quan hệ parent và metadata, không chỉ diff; phát lại trên base mới tạo các commit mới. Rebase thay cách nối lịch sử, không chỉ đổi giao diện log. Sau khi resolve conflict cần kiểm tra lại hành vi. Với lịch sử người khác đã dùng, phối hợp trước khi rewrite; không áp dụng máy móc quy trình nhánh cá nhân cho main.",
+    "englishExplanation": "No; parentage is part of commit data."
+  },
+  {
+    "slug": "delivery-docksecret-boundary",
+    "version": 1,
+    "prompt": "Lệnh build cat secret ra stdout. Secret mount có tự xóa dòng log đó không?",
+    "englishPrompt": "A build command cats the secret to stdout. Does the secret mount erase that log line?",
+    "choices": [
+      "Không, lệnh sử dụng secret vẫn phải tránh làm lộ.",
+      "Có, secret mount tự lọc mọi stdout."
+    ],
+    "englishChoices": [
+      "No; commands consuming secrets must still avoid disclosure.",
+      "Yes; secret mounts automatically filter all stdout."
+    ],
+    "correctIndex": 0,
+    "explanation": "Dùng BuildKit secret mount trong bước cần token và không sao chép bí mật vào layer/output. ARG và ENV không phải kho bí mật. Secret mount giảm nguy cơ lưu token trong image nhưng lệnh build vẫn có thể làm lộ qua log hoặc file được copy, nên phải review chính bước sử dụng. Production nhận runtime secret riêng.",
+    "englishExplanation": "No; commands consuming secrets must still avoid disclosure."
+  },
+  {
+    "slug": "delivery-docksignal-boundary",
+    "version": 1,
+    "prompt": "Wrapper script khởi chạy app mà không exec và không forward signal. Chỉ dùng JSON ENTRYPOINT gọi wrapper đã đủ chưa?",
+    "englishPrompt": "A wrapper starts the app without exec or signal forwarding. Is JSON ENTRYPOINT pointing to the wrapper sufficient?",
+    "choices": [
+      "Đủ, mọi wrapper tự forward signal.",
+      "Chưa, wrapper vẫn phải chuyển tín hiệu hoặc exec app."
+    ],
+    "englishChoices": [
+      "Yes; every wrapper forwards signals automatically.",
+      "No; the wrapper must still forward signals or exec the app."
+    ],
+    "correctIndex": 1,
+    "explanation": "Exec form đưa executable làm process chính thay vì nằm sau shell không chuyển tiếp tín hiệu như mong đợi. Dừng có kiểm soát cần app nhận signal rồi hoàn tất hoặc hủy công việc trong thời gian cho phép. Nếu có wrapper script phải exec hoặc forward signal đúng; chỉnh Dockerfile không tự làm nghiệp vụ đang chạy trở nên durable.",
+    "englishExplanation": "No; the wrapper must still forward signals or exec the app."
+  },
+  {
+    "slug": "delivery-dockdigest-boundary",
+    "version": 1,
+    "prompt": "Image pin digest có lỗ hổng vừa công bố. Việc pin có tự đưa bản vá vào build không?",
+    "englishPrompt": "A pinned image has a newly disclosed vulnerability. Does pinning automatically bring the patch into builds?",
+    "choices": [
+      "Không, cần cập nhật digest và kiểm chứng lại.",
+      "Có, digest tự đổi sang image mới nhất."
+    ],
+    "englishChoices": [
+      "No; update the digest and validate again.",
+      "Yes; a digest automatically moves to the latest image."
+    ],
+    "correctIndex": 0,
+    "explanation": "Digest chọn đúng nội dung image; vẫn phải có quy trình cập nhật digest để nhận bản vá. Tag là tên có thể được nhà phát hành trỏ lại, còn digest định danh nội dung cụ thể. Tính lặp lại không có nghĩa image luôn an toàn. Ghi nhận digest đã kiểm tra và chạy lại kiểm tra khi nâng base.",
+    "englishExplanation": "No; update the digest and validate again."
+  },
+  {
+    "slug": "delivery-ciartifact-boundary",
+    "version": 1,
+    "prompt": "Deploy job tải artifact từ một run khác cùng tên. Tên file giống nhau có đủ chứng minh đúng bản đã test không?",
+    "englishPrompt": "Deployment downloads an artifact from a different run with the same name. Does the filename prove it is the tested build?",
+    "choices": [
+      "Có, cùng tên file là cùng nội dung.",
+      "Không, phải ràng buộc run/commit hoặc digest."
+    ],
+    "englishChoices": [
+      "Yes; identical filenames imply identical content.",
+      "No; bind it to the run/commit or digest."
+    ],
+    "correctIndex": 1,
+    "explanation": "Artifact truyền output của run theo định danh rõ; dependency cache là tối ưu tái sử dụng dữ liệu để build. Deploy phải lấy artifact từ đúng run/commit, xác minh metadata hoặc checksum theo pipeline. Cache có thể miss hoặc chứa dữ liệu theo key phục vụ build, không nên là bằng chứng release đã được kiểm tra. Không đóng gói secret vào artifact.",
+    "englishExplanation": "No; bind it to the run/commit or digest."
+  },
+  {
+    "slug": "behavioral-unknown-boundary",
+    "version": 1,
+    "prompt": "Interviewer hỏi method bạn chưa từng dùng. Câu nào giữ độ tin cậy?",
+    "englishPrompt": "The interviewer asks about a method you have never used. Which response preserves credibility?",
+    "choices": [
+      "Tôi chưa dùng method đó; tôi sẽ kiểm tra contract trước khi khẳng định.",
+      "Tôi đã dùng nhiều lần, dù không nhớ và chưa kiểm chứng."
+    ],
+    "englishChoices": [
+      "I have not used that method; I would check its contract before asserting its behavior.",
+      "I have used it many times, despite not remembering or verifying it."
+    ],
+    "correctIndex": 0,
+    "explanation": "Nêu rõ phần chắc chắn, thừa nhận giới hạn về tên API và mô tả cách kiểm chứng bằng tài liệu hoặc thử nghiệm nhỏ. Một câu phù hợp: “I can explain the retry policy, but I would verify the exact option name in the official documentation.” Sau đó trình bày cơ chế thực sự biết. Không biến sự tự tin khi nói thành bằng chứng kỹ thuật; dữ kiện và kiểm chứng quan trọng hơn vẻ trôi chảy.",
+    "englishExplanation": "I have not used that method; I would check its contract before asserting its behavior."
+  },
+  {
+    "slug": "behavioral-projecttradeoff-boundary",
+    "version": 1,
+    "prompt": "Sau sáu tháng tải và team thay đổi, bằng chứng ủng hộ read store riêng. Có phải quyết định cũ luôn sai không?",
+    "englishPrompt": "Six months later, load and team constraints change and evidence favors a separate read store. Was the original decision necessarily wrong?",
+    "choices": [
+      "Có, một quyết định đúng phải đúng mãi mãi.",
+      "Không, đánh giá theo bối cảnh cũ và ghi quyết định mới thay thế."
+    ],
+    "englishChoices": [
+      "Yes; a correct decision must remain correct forever.",
+      "No; evaluate the old context and record a superseding decision."
+    ],
+    "correctIndex": 1,
+    "explanation": "Nêu bối cảnh và ràng buộc, so các lựa chọn, quyết định cùng hệ quả và tín hiệu cần xem xét lại. Có thể nói tải đọc hiện chưa vượt khả năng DB, team nhỏ nên tránh đồng bộ thêm store; đánh đổi là ít khả năng scale đọc độc lập. Đưa ngưỡng hoặc dấu hiệu để thử lại, không dùng tên pattern làm lý do. ADR ghi context, decision, consequences để người khác hiểu tại sao.",
+    "englishExplanation": "No; evaluate the old context and record a superseding decision."
+  },
+  {
+    "slug": "behavioral-scope-boundary",
+    "version": 1,
+    "prompt": "Team học được một việc dự kiến mất hai ngày cần năm ngày. Có nên giữ backlog như chưa có gì xảy ra?",
+    "englishPrompt": "The team learns a two-day item needs five days. Should the backlog remain unchanged as if nothing happened?",
+    "choices": [
+      "Không, cập nhật và thương lượng kế hoạch dựa trên điều mới học.",
+      "Có, kế hoạch Sprint không được phép cập nhật."
+    ],
+    "englishChoices": [
+      "No; update and renegotiate the plan using the new information.",
+      "Yes; a Sprint plan must never be updated."
+    ],
+    "correctIndex": 0,
+    "explanation": "Làm rõ tác động, cộng tác với Product Owner để thương lượng scope trong khi giữ Sprint Goal hoặc xem lại tính khả thi đúng quy trình. Sprint Backlog có thể thay đổi khi học thêm; không phải mọi yêu cầu mới đều tự cộng vào cam kết. Trình bày lựa chọn như giảm phạm vi báo cáo, đổi ưu tiên hoặc chuyển hạng mục. Đây là tình huống giao tiếp dựa trên Scrum Guide, không là quy tắc làm thêm bắt buộc.",
+    "englishExplanation": "No; update and renegotiate the plan using the new information."
+  },
+  {
+    "slug": "behavioral-smallchange-boundary",
+    "version": 1,
+    "prompt": "Một phần PR nhỏ không build vì thiếu nửa thay đổi còn lại. Chỉ nhỏ về số dòng đã đủ chưa?",
+    "englishPrompt": "A small PR does not build because half the change is elsewhere. Is low line count enough?",
+    "choices": [
+      "Đủ, chất lượng PR chỉ đo bằng số dòng.",
+      "Không, mỗi phần cần ranh giới và dependency rõ để review an toàn."
+    ],
+    "englishChoices": [
+      "Yes; PR quality is measured only by line count.",
+      "No; each part needs clear boundaries and dependencies for safe review."
+    ],
+    "correctIndex": 1,
+    "explanation": "Tách thay đổi cơ học khỏi sửa hành vi thành các phần có mục đích rõ, kiểm chứng được và thứ tự tích hợp hợp lý. PR nhỏ giúp tập trung review nhưng không phải cắt tùy tiện theo số dòng khiến build hỏng. Giữ ca tái hiện lỗi thuế cùng bản sửa, ghi dependency nếu phần sau dựa phần trước. Không giấu refactor lớn trong bug fix khẩn.",
+    "englishExplanation": "No; each part needs clear boundaries and dependencies for safe review."
+  },
+  {
+    "slug": "behavioral-metricclaim-boundary",
+    "version": 1,
+    "prompt": "Chạy local 30 phút không lỗi có chứng minh availability tháng 99.9% không?",
+    "englishPrompt": "Does a 30-minute error-free local run prove 99.9% monthly availability?",
+    "choices": [
+      "Không, phạm vi và cửa sổ đo không tương đương.",
+      "Có, 100% trong demo luôn kéo dài cho production."
+    ],
+    "englishChoices": [
+      "No; the scope and measurement window are not equivalent.",
+      "Yes; 100% in a demo always extends to production."
+    ],
+    "correctIndex": 0,
+    "explanation": "Nói rõ chưa có bằng chứng đạt mục tiêu; xác định user flow, chỉ báo, cửa sổ đo và dữ liệu cần trước khi tuyên bố. Phân biệt mục tiêu thiết kế với kết quả quan sát và cam kết hợp đồng. Local test không đo mất mạng, deploy hay lỗi dependency trong production. Cùng stakeholder chọn mục tiêu thực tế rồi thiết kế monitoring và thử phục hồi; không suy số 9 từ số replica.",
+    "englishExplanation": "No; the scope and measurement window are not equivalent."
+  },
+  {
+    "slug": "behavioral-errorbudget-boundary",
+    "version": 1,
+    "prompt": "Policy cho phép bản sửa reliability khi freeze. Có nên nói “hết budget nên cấm mọi commit” không?",
+    "englishPrompt": "The freeze policy allows reliability fixes. Should you say “budget exhausted means every commit is prohibited”?",
+    "choices": [
+      "Có, mọi error budget đều cấm mọi thay đổi giống nhau.",
+      "Không, áp dụng đúng phạm vi policy và loại thay đổi."
+    ],
+    "englishChoices": [
+      "Yes; every error budget prohibits all changes identically.",
+      "No; apply the policy to the relevant change category."
+    ],
+    "correctIndex": 1,
+    "explanation": "Dùng SLI và policy đã thống nhất để giải thích tác động, ưu tiên ổn định và thương lượng phạm vi hoặc thời điểm theo quy trình ngoại lệ minh bạch. Error budget không phải công cụ để kỹ thuật tự quyết mọi ưu tiên. Kiểm tra dữ liệu, cửa sổ đo và policy, xác định thay đổi nào bị hạn chế và ai quyết định ngoại lệ. Nếu policy không còn phù hợp, review lại cùng stakeholder thay vì lặng lẽ bỏ qua.",
+    "englishExplanation": "No; apply the policy to the relevant change category."
+  }
+]

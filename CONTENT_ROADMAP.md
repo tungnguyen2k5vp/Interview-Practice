@@ -1,4 +1,10 @@
-# Lộ trình biên tập V3
+# Lộ trình biên tập V4
+
+## Checkpoint 28/11/2026
+
+Đã đạt mốc Expanded: **500 câu song ngữ**, 80 C# gồm 30 debugging, 60 T-SQL, 40 code review, 30 system design, 25 project interview và 25 mock preset. Có 424 câu Intern–Junior; 370 câu có key trực tiếp và 130 câu viết có bài vận dụng riêng. Còn 500 câu để tới ma trận 1.000 bên dưới. [Kiểm định và số lượng trước/sau](CONTENT_QUALITY_REPORT.md).
+
+Ưu tiên tiếp theo là Phase 3 của [kế hoạch V4](UPGRADE_PLAN_V4.md): 30 bài học theo concept có hoạt động dự đoán, vận dụng và kiểm tra độc lập; đọc bài không tăng mastery. Sau đó mới triển khai 10 mini project, chiều sâu AI/countdown và cá nhân hóa. Các module mới này chưa hoàn thành trong checkpoint Phase 1–2.
 
 ## Ma trận 1.000 câu
 

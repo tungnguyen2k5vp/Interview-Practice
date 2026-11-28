@@ -97,7 +97,7 @@ pre, code, kbd { font-family: var(--mono); }
 .rail-account:hover { background: var(--ground); }
 .rail-account > span:nth-child(2) { min-width: 0; flex: 1; }
 .rail-account strong { font-size: .775rem; line-height: 1.35; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-.rail-account small { font-size: .64rem; }
+.rail-account small { font-size: .6875rem; }
 .avatar {
   display: inline-grid; flex: none; place-items: center; width: 34px; height: 34px; border-radius: 50%;
   background: var(--accent-soft); color: var(--accent-ink); font-weight: 660; font-size: .875rem;
@@ -321,10 +321,6 @@ input[type="checkbox"] { accent-color: var(--primary); inline-size: 16px; block-
 .details summary { color: var(--body); font-weight: 590; font-size: .88rem; }
 .details > :not(summary) { margin-top: 9px; }
 
-.preset-card { display: grid; justify-items: start; gap: 8px; padding: 16px; text-align: left; }
-.preset-card strong { font-size: 1rem; }
-.preset-card > span:last-child { font-size: .8rem; color: var(--muted); }
-.preset-card:hover, .preset-card[aria-pressed="true"] { border-color: var(--primary); background: var(--accent-soft); }
 .setup-grid { grid-template-columns: minmax(0, 1.25fr) minmax(0, .85fr); }
 .session-clock { display: flex; align-items: center; gap: 8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
 .session-clock span { color: var(--accent-ink); font: 600 1.16rem var(--mono); font-variant-numeric: tabular-nums; }
@@ -460,7 +456,6 @@ input, textarea { color: var(--ink); }
   .stat { padding: 12px 9px; gap: 7px; }
   .stat .topic-icon { width: 34px; height: 34px; }
   .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .preset-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 860px) {
   :root { --header: 58px; }
@@ -504,9 +499,6 @@ input, textarea { color: var(--ink); }
   .question-card { padding: 12px; }
   .question-card h3, .question-card h2 { font-size: .96rem; }
   .card-grid { gap: 9px; }
-  .preset-card { padding: 10px; }
-  .preset-card strong { font-size: .84rem; }
-  .preset-card > span:last-child { font-size: .72rem; }
   input:not([type="checkbox"], [type="radio"]), select, textarea { font-size: 1rem; }
   .rubric > div { grid-template-columns: minmax(0, 1fr); gap: 3px; }
   .plan-strip { align-items: flex-start; flex-direction: column; }
@@ -518,9 +510,7 @@ input, textarea { color: var(--ink); }
   .search-form { grid-template-columns: 1fr auto; }
   .search-input { grid-column: 1 / -1; }
   .filter-grid, .form-grid { grid-template-columns: minmax(0, 1fr); gap: 9px; }
-  .card-grid, .preset-grid { grid-template-columns: minmax(0, 1fr); }
-  .preset-card { grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; }
-  .preset-card > span:last-child { grid-column: 2; }
+  .card-grid { grid-template-columns: minmax(0, 1fr); }
   .review-footer span { margin-left: 3px; }
   .study-row .row-arrow + span { display: block; }
   .report-item summary { padding: 11px; }

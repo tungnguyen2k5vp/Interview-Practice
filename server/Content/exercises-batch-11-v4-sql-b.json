@@ -1,0 +1,5661 @@
+[
+  {
+    "slug": "ops-time-weighted-day-reading",
+    "kind": "sql",
+    "title": "Trung bình số đo theo thời lượng",
+    "difficulty": "hard",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 25,
+    "description": "Giá trị hợp lệ giữ nguyên từ observed_at đến lần đo không NULL tiếp theo. Trong ngày UTC 01/01/2026, tính trung bình theo phút của phần thời gian đã có giá trị. NULL không tạo mốc đổi giá trị. Không có thời gian được phủ thì NULL; giữ mọi machine. Các event đều tại phút tròn.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "machine_id (int), time_weighted_reading (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "machine_id | time_weighted_reading\n1 | 29.27\n2 | 14.86\n3 | NULL",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "machine_id | time_weighted_reading\n1 | 29.27\n2 | 14.86\n3 | NULL",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS machine_id, CAST(NULL AS decimal(18,2)) AS time_weighted_reading;",
+    "hint": "LEAD chỉ trên các reading hợp lệ tạo các segment, rồi cắt segment theo ngày.",
+    "solution": "WITH v AS (SELECT machine_id,observed_at,reading,\n LEAD(observed_at) OVER(PARTITION BY machine_id ORDER BY observed_at,reading_id) next_at FROM #OpsReadings WHERE reading IS NOT NULL),\nc AS (SELECT machine_id,reading,CASE WHEN observed_at<'20260101' THEN CAST('20260101' AS datetime2(0)) ELSE observed_at END s,\n CASE WHEN next_at IS NULL OR next_at>'20260102' THEN CAST('20260102' AS datetime2(0)) ELSE next_at END e\n FROM v WHERE observed_at<'20260102' AND (next_at IS NULL OR next_at>'20260101')),\nt AS (SELECT machine_id,SUM(reading*DATEDIFF(minute,s,e)) weighted,SUM(DATEDIFF(minute,s,e)) minutes FROM c WHERE e>s GROUP BY machine_id)\nSELECT m.machine_id,CAST(t.weighted/NULLIF(t.minutes,0) AS decimal(18,2)) time_weighted_reading\nFROM #OpsMachines m LEFT JOIN t ON t.machine_id=m.machine_id;",
+    "explanation": "Mỗi segment góp reading × số phút đã phủ. Mẫu số là tổng phút phủ, không phải số lần đo hay mặc định 1440 nếu chưa có phép đo từ đầu ngày; machine không dữ liệu vẫn cần NULL.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "machine_id | time_weighted_reading\n1 | 29.27\n2 | 14.86\n3 | NULL",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-continuous-median",
+    "kind": "sql",
+    "title": "Median liên tục thay cho average",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trả median của toàn bộ reading không NULL theo từng machine. Dùng định nghĩa percentile liên tục 0.5: nếu số phần tử chẵn, nội suy giữa hai giá trị giữa. Giữ machine không có số đo hợp lệ với NULL. Kết quả decimal(18,2).",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "machine_id (int), median_reading (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "machine_id | median_reading\n1 | 30\n2 | 5\n3 | NULL",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "machine_id | median_reading\n1 | 30\n2 | 5\n3 | NULL",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS machine_id, CAST(NULL AS decimal(18,2)) AS median_reading;",
+    "hint": "PERCENTILE_CONT là window nên cần gộp kết quả lặp về một dòng mỗi machine.",
+    "solution": "WITH p AS (SELECT machine_id,PERCENTILE_CONT(0.5) WITHIN GROUP(ORDER BY reading) OVER(PARTITION BY machine_id) median_value FROM #OpsReadings WHERE reading IS NOT NULL),\nt AS (SELECT DISTINCT machine_id,CAST(median_value AS decimal(18,2)) median_reading FROM p)\nSELECT m.machine_id,t.median_reading FROM #OpsMachines m LEFT JOIN t ON t.machine_id=m.machine_id;",
+    "explanation": "Percentile liên tục trả float; cast ở đầu ra tạo contract decimal rõ ràng. Outlier tác động đến mean và median khác nhau nên không dùng AVG để thay định nghĩa percentile.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "machine_id | median_reading\n1 | 30\n2 | 5\n3 | NULL",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "ops-negative-reading-histogram",
+    "kind": "sql",
+    "title": "Histogram có giá trị âm",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "operations",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Chia reading không NULL thành các bucket rộng 10 đơn vị: [k,k+10), k là bội của 10 kể cả số âm. Trả machine_id, bucket_start và số reading từng bucket có dữ liệu. Ví dụ -5 thuộc bucket -10 chứ không phải 0.",
+    "input": "Timestamp dùng cùng múi giờ UTC và có độ chính xác một phút trong fixture. Reading NULL là lần đo không hợp lệ, không phải số 0. Khoảng downtime là nửa mở [started_at, ended_at); các báo cáo có thể chồng lấn hoặc chứa nhau.",
+    "output": "machine_id (int), bucket_start (int), reading_count (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "machine_id | bucket_start | reading_count\n2 | -10 | 1\n2 | 0 | 1\n1 | 10 | 1",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "machine_id | bucket_start | reading_count\n2 | -10 | 1\n2 | 0 | 1\n1 | 10 | 1\n2 | 10 | 1\n1 | 20 | 1\n1 | 30 | 1\n1 | 40 | 1\n1 | 200 | 1",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS machine_id, CAST(NULL AS int) AS bucket_start, CAST(NULL AS int) AS reading_count;",
+    "hint": "Floor hướng về âm vô cực; ép kiểu integer là phép khác khi giá trị âm.",
+    "solution": "SELECT machine_id,CAST(FLOOR(reading/10.0)*10 AS int) bucket_start,COUNT(*) reading_count\nFROM #OpsReadings WHERE reading IS NOT NULL GROUP BY machine_id,CAST(FLOOR(reading/10.0)*10 AS int);",
+    "explanation": "Định nghĩa nửa mở của bucket được thể hiện bằng floor(value/width) × width. NULL không là số đo nên bị loại; bucket không có dữ liệu không cần dòng.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #OpsMachines (machine_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (machine_id),\n  CHECK (machine_id > 0));\nCREATE TABLE #OpsReadings (reading_id int NOT NULL,\n  machine_id int NOT NULL,\n  observed_at datetime2(0) NOT NULL,\n  reading decimal(10,2) NULL,\n  PRIMARY KEY (reading_id),\n  CHECK (reading_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (reading IS NULL OR reading BETWEEN -1000 AND 10000));\nCREATE TABLE #OpsStops (stop_id int NOT NULL,\n  machine_id int NOT NULL,\n  started_at datetime2(0) NOT NULL,\n  ended_at datetime2(0) NOT NULL,\n  PRIMARY KEY (stop_id),\n  CHECK (stop_id > 0),\n  CHECK (machine_id > 0),\n  CHECK (ended_at > started_at));\nCREATE TABLE #OpsDays (report_on date NOT NULL,\n  PRIMARY KEY (report_on));",
+    "dataset": "INSERT #OpsMachines (machine_id, name) VALUES\n(1,N'Máy ép'),\n(2,N'Máy cắt'),\n(3,N'Máy dự phòng');\nINSERT #OpsReadings (reading_id, machine_id, observed_at, reading) VALUES\n(1,1,N'2026-01-01T00:00:00',N'10.00'),\n(2,1,N'2026-01-01T00:10:00',NULL),\n(3,1,N'2026-01-01T00:30:00',N'20.00'),\n(4,1,N'2026-01-01T01:15:00',N'30.00'),\n(5,1,N'2026-01-02T00:00:00',N'40.00'),\n(6,1,N'2026-01-04T00:00:00',N'200.00'),\n(7,2,N'2026-01-01T00:00:00',N'5.00'),\n(8,2,N'2026-01-01T00:20:00',N'15.00'),\n(9,2,N'2026-01-01T00:30:00',NULL),\n(10,2,N'2026-01-03T00:00:00',N'-5.00'),\n(11,1,N'2026-01-01T01:00:00',NULL),\n(12,2,N'2025-12-31T23:50:00',NULL),\n(13,1,N'2026-01-01T00:20:00',NULL);\nINSERT #OpsStops (stop_id, machine_id, started_at, ended_at) VALUES\n(1,1,N'2025-12-31T23:00:00',N'2026-01-01T01:00:00'),\n(2,1,N'2026-01-01T00:30:00',N'2026-01-01T02:00:00'),\n(3,1,N'2026-01-01T02:00:00',N'2026-01-01T03:00:00'),\n(4,1,N'2026-01-01T06:00:00',N'2026-01-01T07:00:00'),\n(5,2,N'2026-01-01T10:00:00',N'2026-01-01T11:00:00'),\n(6,2,N'2026-01-02T00:00:00',N'2026-01-02T01:00:00'),\n(7,1,N'2026-01-01T00:45:00',N'2026-01-01T01:00:00');\nINSERT #OpsDays (report_on) VALUES\n(N'20260101'),\n(N'20260102'),\n(N'20260103'),\n(N'20260104'),\n(N'20260105');",
+    "expected": "machine_id | bucket_start | reading_count\n2 | -10 | 1\n2 | 0 | 1\n1 | 10 | 1\n2 | 10 | 1\n1 | 20 | 1\n1 | 30 | 1\n1 | 40 | 1\n1 | 200 | 1",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#OpsMachines",
+        "columns": [
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Máy ép"
+          ],
+          [
+            "2",
+            "Máy cắt"
+          ],
+          [
+            "3",
+            "Máy dự phòng"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsReadings",
+        "columns": [
+          {
+            "name": "reading_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "observed_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "reading",
+            "type": "decimal(10,2) NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2026-01-01T00:00:00",
+            "10.00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:10:00",
+            null
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T00:30:00",
+            "20.00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T01:15:00",
+            "30.00"
+          ],
+          [
+            "5",
+            "1",
+            "2026-01-02T00:00:00",
+            "40.00"
+          ],
+          [
+            "6",
+            "1",
+            "2026-01-04T00:00:00",
+            "200.00"
+          ],
+          [
+            "7",
+            "2",
+            "2026-01-01T00:00:00",
+            "5.00"
+          ],
+          [
+            "8",
+            "2",
+            "2026-01-01T00:20:00",
+            "15.00"
+          ],
+          [
+            "9",
+            "2",
+            "2026-01-01T00:30:00",
+            null
+          ],
+          [
+            "10",
+            "2",
+            "2026-01-03T00:00:00",
+            "-5.00"
+          ],
+          [
+            "11",
+            "1",
+            "2026-01-01T01:00:00",
+            null
+          ],
+          [
+            "12",
+            "2",
+            "2025-12-31T23:50:00",
+            null
+          ],
+          [
+            "13",
+            "1",
+            "2026-01-01T00:20:00",
+            null
+          ]
+        ]
+      },
+      {
+        "name": "#OpsStops",
+        "columns": [
+          {
+            "name": "stop_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "machine_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "started_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ended_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "2025-12-31T23:00:00",
+            "2026-01-01T01:00:00"
+          ],
+          [
+            "2",
+            "1",
+            "2026-01-01T00:30:00",
+            "2026-01-01T02:00:00"
+          ],
+          [
+            "3",
+            "1",
+            "2026-01-01T02:00:00",
+            "2026-01-01T03:00:00"
+          ],
+          [
+            "4",
+            "1",
+            "2026-01-01T06:00:00",
+            "2026-01-01T07:00:00"
+          ],
+          [
+            "5",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "6",
+            "2",
+            "2026-01-02T00:00:00",
+            "2026-01-02T01:00:00"
+          ],
+          [
+            "7",
+            "1",
+            "2026-01-01T00:45:00",
+            "2026-01-01T01:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#OpsDays",
+        "columns": [
+          {
+            "name": "report_on",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260102"
+          ],
+          [
+            "20260103"
+          ],
+          [
+            "20260104"
+          ],
+          [
+            "20260105"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-january-daily-proration",
+    "kind": "sql",
+    "title": "Phí tháng theo số ngày hiệu lực",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Tính phí tháng 01/2026 cho từng account: mỗi subscription đóng góp monthly_fee × số ngày hiệu lực trong [01/01,01/02) / 31. Cộng các đóng góp chưa làm tròn rồi cast decimal(18,2) một lần. Giữ account không có ngày hiệu lực với 0.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), january_charge (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | january_charge\n1 | 47\n2 | 17\n3 | 5.16",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | january_charge\n1 | 47\n2 | 17\n3 | 5.16\n4 | 0\n5 | 60",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS decimal(18,2)) AS january_charge;",
+    "hint": "Cắt subscription theo tháng và nhớ ends_on là exclusive.",
+    "solution": "WITH c AS (SELECT s.account_id,p.monthly_fee,\n CASE WHEN s.starts_on<'20260101' THEN CAST('20260101' AS date) ELSE s.starts_on END a,\n CASE WHEN s.ends_on IS NULL OR s.ends_on>'20260201' THEN CAST('20260201' AS date) ELSE s.ends_on END b\n FROM #BillSubscriptions s JOIN #BillPlans p ON p.plan_id=s.plan_id\n WHERE s.starts_on<'20260201' AND (s.ends_on IS NULL OR s.ends_on>'20260101')),\nt AS (SELECT account_id,SUM(monthly_fee*DATEDIFF(day,a,b)/31.0) charge FROM c GROUP BY account_id)\nSELECT a.account_id,CAST(COALESCE(t.charge,0) AS decimal(18,2)) january_charge FROM #BillAccounts a LEFT JOIN t ON t.account_id=a.account_id;",
+    "explanation": "Hai subscription nối nhau tại ngày đổi gói không được cùng tính ngày đó. Phí tính theo ngày thật của tháng đã nêu; làm tròn sau khi cộng tránh tích lũy sai số từ từng đoạn nhỏ.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | january_charge\n1 | 47\n2 | 17\n3 | 5.16\n4 | 0\n5 | 60",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-recognized-service-revenue",
+    "kind": "sql",
+    "title": "Doanh thu theo phần kỳ dịch vụ đã qua",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Chốt cuối 31/01/2026. Với invoice chưa void và issued_on trước 01/02, ghi nhận total tỷ lệ theo số ngày service đã qua đến 01/02 exclusive trên toàn service period. Không ghi nhận ngày dịch vụ tương lai. Cộng trước rồi cast decimal(18,2); giữ mọi account với 0 nếu chưa ghi nhận.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), recognized_total (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | recognized_total\n1 | 125.81\n2 | 30\n3 | 0",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | recognized_total\n1 | 125.81\n2 | 30\n3 | 0\n4 | 0\n5 | 0",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS decimal(18,2)) AS recognized_total;",
+    "hint": "Ngày phát hành không có nghĩa toàn kỳ dịch vụ đã được cung cấp.",
+    "solution": "WITH c AS (SELECT account_id,total,service_start,service_end,\n CASE WHEN service_end<'20260201' THEN service_end ELSE CAST('20260201' AS date) END cutoff\n FROM #BillInvoices WHERE voided=0 AND issued_on<'20260201' AND service_start<'20260201'),\nt AS (SELECT account_id,SUM(total*DATEDIFF(day,service_start,cutoff)/CAST(DATEDIFF(day,service_start,service_end) AS decimal(18,6))) earned\n FROM c GROUP BY account_id)\nSELECT a.account_id,CAST(COALESCE(t.earned,0) AS decimal(18,2)) recognized_total FROM #BillAccounts a LEFT JOIN t ON t.account_id=a.account_id;",
+    "explanation": "Tỷ lệ chỉ phụ thuộc phần service period đã qua, với mẫu số dương do CHECK. Receipt không quyết định doanh thu theo định nghĩa bài; voided và invoice phát hành sau ngày chốt bị loại.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | recognized_total\n1 | 125.81\n2 | 30\n3 | 0\n4 | 0\n5 | 0",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-graduated-usage-tiers",
+    "kind": "sql",
+    "title": "Giá usage lũy tiến theo từng phần",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Tổng usage tháng 01/2026 theo account rồi tính phí lũy tiến: 10 unit đầu giá 1.00/unit, 20 unit tiếp theo giá 0.50/unit, phần vượt 30 giá 0.25/unit. Đây là graduated pricing, không áp giá tier cuối cho toàn bộ usage. Giữ mọi account; không usage phí 0.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), usage_charge (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | usage_charge\n1 | 21.75\n2 | 15\n3 | 0",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | usage_charge\n1 | 21.75\n2 | 15\n3 | 0\n4 | 25\n5 | 0",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS decimal(18,2)) AS usage_charge;",
+    "hint": "Mỗi tier chỉ nhận phần unit rơi trong đoạn của nó.",
+    "solution": "WITH u AS (SELECT account_id,SUM(CAST(units AS bigint)) units FROM #BillUsage WHERE used_on>='20260101' AND used_on<'20260201' GROUP BY account_id),\nc AS (SELECT a.account_id,COALESCE(u.units,0) units FROM #BillAccounts a LEFT JOIN u ON u.account_id=a.account_id)\nSELECT account_id,CAST(CASE WHEN units<=10 THEN units*1.0 WHEN units<=30 THEN 10+(units-10)*0.5 ELSE 20+(units-30)*0.25 END AS decimal(18,2)) usage_charge FROM c;",
+    "explanation": "Ở mốc 10 và 30, phần thuộc tier trước giữ nguyên giá. SUM bigint bảo vệ phép cộng units; phép tính decimal và cast đầu ra giữ contract tiền chính xác.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | usage_charge\n1 | 21.75\n2 | 15\n3 | 0\n4 | 25\n5 | 0",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-historical-aging-buckets",
+    "kind": "sql",
+    "title": "Tuổi nợ tại ngày chốt lịch sử",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Chốt cuối 31/01/2026. Chỉ invoice đã phát hành trước 01/02 và chưa void. Trừ receipt nhận trước 01/02, kẹp balance tối thiểu 0. Chia balance theo ngày quá hạn so với 31/01: due cùng ngày hoặc tương lai vào current_due; còn lại vào 1–7, 8–30, >=31. Giữ mọi account.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), current_due (decimal(18,2)), overdue_1_7 (decimal(18,2)), overdue_8_30 (decimal(18,2)), overdue_31_plus (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | current_due | overdue_1_7 | overdue_8_30 | overdue_31_plus\n1 | 50 | 0 | 40 | 0\n2 | 0 | 0 | 0 | 0\n3 | 0 | 0 | 0 | 0",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | current_due | overdue_1_7 | overdue_8_30 | overdue_31_plus\n1 | 50 | 0 | 40 | 0\n2 | 0 | 0 | 0 | 0\n3 | 0 | 0 | 0 | 0\n4 | 0 | 0 | 0 | 0\n5 | 0 | 0 | 0 | 0",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS decimal(18,2)) AS current_due, CAST(NULL AS decimal(18,2)) AS overdue_1_7, CAST(NULL AS decimal(18,2)) AS overdue_8_30, CAST(NULL AS decimal(18,2)) AS overdue_31_plus;",
+    "hint": "Receipt sau ngày chốt không được làm giảm lịch sử balance.",
+    "solution": "WITH p AS (SELECT invoice_id,SUM(amount) paid FROM #BillReceipts WHERE received_on<'20260201' GROUP BY invoice_id),\nb AS (SELECT i.account_id,i.due_on,CASE WHEN i.total>COALESCE(p.paid,0) THEN i.total-COALESCE(p.paid,0) ELSE 0 END balance\n FROM #BillInvoices i LEFT JOIN p ON p.invoice_id=i.invoice_id WHERE i.voided=0 AND i.issued_on<'20260201')\nSELECT a.account_id,\n CAST(COALESCE(SUM(CASE WHEN b.due_on>='20260131' THEN b.balance ELSE 0 END),0) AS decimal(18,2)) current_due,\n CAST(COALESCE(SUM(CASE WHEN DATEDIFF(day,b.due_on,'20260131') BETWEEN 1 AND 7 THEN b.balance ELSE 0 END),0) AS decimal(18,2)) overdue_1_7,\n CAST(COALESCE(SUM(CASE WHEN DATEDIFF(day,b.due_on,'20260131') BETWEEN 8 AND 30 THEN b.balance ELSE 0 END),0) AS decimal(18,2)) overdue_8_30,\n CAST(COALESCE(SUM(CASE WHEN DATEDIFF(day,b.due_on,'20260131')>=31 THEN b.balance ELSE 0 END),0) AS decimal(18,2)) overdue_31_plus\nFROM #BillAccounts a LEFT JOIN b ON b.account_id=a.account_id GROUP BY a.account_id;",
+    "explanation": "Pre-aggregate receipt tránh nhân tiền invoice, lọc thời gian trước khi trừ và chia bucket không chồng lấn. Due đúng 31/01 chưa quá hạn; nguồn dữ liệu được xuất sau ngày chốt nên có receipt tương lai.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | current_due | overdue_1_7 | overdue_8_30 | overdue_31_plus\n1 | 50 | 0 | 40 | 0\n2 | 0 | 0 | 0 | 0\n3 | 0 | 0 | 0 | 0\n4 | 0 | 0 | 0 | 0\n5 | 0 | 0 | 0 | 0",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-reactivation-gaps",
+    "kind": "sql",
+    "title": "Khoảng gián đoạn trước khi quay lại",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trong từng account, tìm khoảng không còn subscription trước khi bắt đầu subscription tiếp theo. Các subscription không overlap. Nếu starts_on mới lớn hơn ends_on cũ thì trả gap [previous_end,starts_on) và số ngày. Hai kỳ nối đúng ngày không có gap; kỳ đầu không có gap giả trước nó.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), gap_start (date), gap_end (date), gap_days (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | gap_start | gap_end | gap_days\n2 | 2026-01-20 | 2026-01-25 | 5",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | gap_start | gap_end | gap_days\n2 | 2026-01-20 | 2026-01-25 | 5",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS date) AS gap_start, CAST(NULL AS date) AS gap_end, CAST(NULL AS int) AS gap_days;",
+    "hint": "Ngày ends_on cũ đã là ngày đầu không được phục vụ.",
+    "solution": "WITH p AS (SELECT *,LAG(ends_on) OVER(PARTITION BY account_id ORDER BY starts_on,subscription_id) previous_end FROM #BillSubscriptions)\nSELECT account_id,previous_end gap_start,starts_on gap_end,DATEDIFF(day,previous_end,starts_on) gap_days\nFROM p WHERE previous_end<starts_on;",
+    "explanation": "Vì end exclusive, DATEDIFF từ end cũ đến start mới trực tiếp là số ngày bị gián đoạn. Không trừ thêm một như khi cả hai đầu là ngày có hiệu lực.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | gap_start | gap_end | gap_days\n2 | 2026-01-20 | 2026-01-25 | 5",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-contiguous-price-upgrades",
+    "kind": "sql",
+    "title": "Đổi gói tăng phí thật sự",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trả lần đổi subscription liên tục trong cùng account: end của kỳ trước đúng bằng start kỳ mới và monthly_fee mới lớn hơn fee cũ. So sánh giá trị phí, không so plan_id. Trả old_fee và new_fee decimal(12,2). Reactivation có khoảng trống không phải đổi liên tục.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), upgraded_on (date), old_fee (decimal(12,2)), new_fee (decimal(12,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | upgraded_on | old_fee | new_fee\n1 | 2026-01-16 | 31 | 62\n3 | 2026-01-10 | 0 | 10",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | upgraded_on | old_fee | new_fee\n1 | 2026-01-16 | 31 | 62\n3 | 2026-01-10 | 0 | 10",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS date) AS upgraded_on, CAST(NULL AS decimal(12,2)) AS old_fee, CAST(NULL AS decimal(12,2)) AS new_fee;",
+    "hint": "LAG lấy cả end và fee trước; plan_id chỉ là định danh.",
+    "solution": "WITH p AS (SELECT s.*,v.monthly_fee,\n LAG(s.ends_on) OVER(PARTITION BY s.account_id ORDER BY s.starts_on,s.subscription_id) previous_end,\n LAG(v.monthly_fee) OVER(PARTITION BY s.account_id ORDER BY s.starts_on,s.subscription_id) old_fee,\n LAG(s.plan_id) OVER(PARTITION BY s.account_id ORDER BY s.starts_on,s.subscription_id) old_plan\n FROM #BillSubscriptions s JOIN #BillPlans v ON v.plan_id=s.plan_id)\nSELECT account_id,starts_on upgraded_on,CAST(old_fee AS decimal(12,2)) old_fee,CAST(monthly_fee AS decimal(12,2)) new_fee\nFROM p WHERE previous_end=starts_on AND monthly_fee>old_fee;",
+    "explanation": "Tính liên tục và tăng giá là hai điều kiện độc lập. Plan 5 có giá thấp hơn plan 4 dù mã lớn hơn; dùng mã để suy thứ hạng giá là giả định không có trong schema.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | upgraded_on | old_fee | new_fee\n1 | 2026-01-16 | 31 | 62\n3 | 2026-01-10 | 0 | 10",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-month-end-mrr-snapshot",
+    "kind": "sql",
+    "title": "MRR của subscription ở ngày cuối tháng",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Cho mỗi month_start trong #BillMonths, cộng monthly_fee của subscription còn hiệu lực trong ngày lịch cuối tháng. Không prorate, không cộng usage hay invoice. Giữ tháng không hoạt động với 0. Subscription ends_on đúng ngày cuối tháng đã hết hiệu lực trong ngày đó.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "month_start (date), month_end_mrr (decimal(18,2)). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "month_start | month_end_mrr\n2026-01-01 | 98\n2026-02-01 | 98\n2026-03-01 | 98",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "month_start | month_end_mrr\n2026-01-01 | 98\n2026-02-01 | 98\n2026-03-01 | 98",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS date) AS month_start, CAST(NULL AS decimal(18,2)) AS month_end_mrr;",
+    "hint": "EOMONTH tạo ngày đánh giá; vẫn áp end exclusive của subscription.",
+    "solution": "SELECT m.month_start,CAST(COALESCE(SUM(p.monthly_fee),0) AS decimal(18,2)) month_end_mrr\nFROM #BillMonths m LEFT JOIN #BillSubscriptions s ON s.starts_on<=EOMONTH(m.month_start)\n AND (s.ends_on IS NULL OR s.ends_on>EOMONTH(m.month_start))\nLEFT JOIN #BillPlans p ON p.plan_id=s.plan_id GROUP BY m.month_start;",
+    "explanation": "MRR snapshot khác charge theo số ngày. Subscription bắt đầu đầu tháng sau không có trong snapshot tháng này, còn end đúng ngày snapshot phải bị loại theo hợp đồng nửa mở.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "month_start | month_end_mrr\n2026-01-01 | 98\n2026-02-01 | 98\n2026-03-01 | 98",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "billing-first-daily-quota-crossing",
+    "kind": "sql",
+    "title": "Ngày đầu vượt quota tích lũy",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "billing",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trong tháng 01/2026, cộng mọi usage trong cùng ngày rồi tính tổng lũy kế theo account. Trả đúng ngày đầu cumulative_units lớn hơn 20 và tổng tại cuối ngày đó. Đúng 20 chưa vượt. Account không vượt không có dòng; cumulative_units là bigint.",
+    "input": "Mỗi account có các subscription không chồng lấn; ends_on là ngày đầu không còn hiệu lực, NULL là chưa kết thúc. Id plan không biểu thị mức giá. Service period của invoice cũng nửa mở. Hóa đơn voided không có hiệu lực; receipt sau ngày chốt không thay lịch sử tại ngày chốt.",
+    "output": "account_id (int), crossed_on (date), cumulative_units (bigint). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "account_id | crossed_on | cumulative_units\n1 | 2026-01-02 | 22\n4 | 2026-01-04 | 50",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "account_id | crossed_on | cumulative_units\n1 | 2026-01-02 | 22\n4 | 2026-01-04 | 50",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS account_id, CAST(NULL AS date) AS crossed_on, CAST(NULL AS bigint) AS cumulative_units;",
+    "hint": "Gộp ngày trước window để các event cùng ngày không tạo nhiều thời điểm vượt khác nhau.",
+    "solution": "WITH d AS (SELECT account_id,used_on,SUM(CAST(units AS bigint)) units FROM #BillUsage\n WHERE used_on>='20260101' AND used_on<'20260201' GROUP BY account_id,used_on),\nr AS (SELECT *,SUM(units) OVER(PARTITION BY account_id ORDER BY used_on ROWS UNBOUNDED PRECEDING) cumulative_units FROM d),\nx AS (SELECT *,ROW_NUMBER() OVER(PARTITION BY account_id ORDER BY used_on) rn FROM r WHERE cumulative_units>20)\nSELECT account_id,used_on crossed_on,cumulative_units FROM x WHERE rn=1;",
+    "explanation": "Chỉ xét tháng yêu cầu, SUM bigint theo ngày rồi cumulative SUM. Sau khi lọc các ngày vượt, ROW_NUMBER chọn ngày đầu; không dùng ngưỡng >= vì quota cho phép dùng đúng 20.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #BillAccounts (account_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (account_id),\n  CHECK (account_id > 0));\nCREATE TABLE #BillPlans (plan_id int NOT NULL,\n  monthly_fee decimal(12,2) NOT NULL,\n  PRIMARY KEY (plan_id),\n  CHECK (plan_id > 0),\n  CHECK (monthly_fee >= 0));\nCREATE TABLE #BillSubscriptions (subscription_id int NOT NULL,\n  account_id int NOT NULL,\n  plan_id int NOT NULL,\n  starts_on date NOT NULL,\n  ends_on date NULL,\n  PRIMARY KEY (subscription_id),\n  CHECK (subscription_id > 0),\n  CHECK (account_id > 0),\n  CHECK (plan_id > 0),\n  CHECK (ends_on IS NULL OR ends_on > starts_on));\nCREATE TABLE #BillInvoices (invoice_id int NOT NULL,\n  account_id int NOT NULL,\n  issued_on date NOT NULL,\n  due_on date NOT NULL,\n  service_start date NOT NULL,\n  service_end date NOT NULL,\n  total decimal(12,2) NOT NULL,\n  voided bit NOT NULL,\n  PRIMARY KEY (invoice_id),\n  CHECK (invoice_id > 0),\n  CHECK (account_id > 0),\n  CHECK (due_on >= issued_on),\n  CHECK (service_end > service_start),\n  CHECK (total >= 0));\nCREATE TABLE #BillReceipts (receipt_id int NOT NULL,\n  invoice_id int NOT NULL,\n  received_on date NOT NULL,\n  amount decimal(12,2) NOT NULL,\n  PRIMARY KEY (receipt_id),\n  CHECK (receipt_id > 0),\n  CHECK (invoice_id > 0),\n  CHECK (amount > 0));\nCREATE TABLE #BillUsage (usage_id int NOT NULL,\n  account_id int NOT NULL,\n  used_on date NOT NULL,\n  units int NOT NULL,\n  PRIMARY KEY (usage_id),\n  CHECK (usage_id > 0),\n  CHECK (account_id > 0),\n  CHECK (units >= 0));\nCREATE TABLE #BillMonths (month_start date NOT NULL,\n  PRIMARY KEY (month_start),\n  CHECK (DAY(month_start) = 1));",
+    "dataset": "INSERT #BillAccounts (account_id, name) VALUES\n(1,N'Tài khoản 1'),\n(2,N'Tài khoản 2'),\n(3,N'Tài khoản 3'),\n(4,N'Tài khoản 4'),\n(5,N'Tài khoản 5');\nINSERT #BillPlans (plan_id, monthly_fee) VALUES\n(1,N'31.00'),\n(2,N'62.00'),\n(3,N'0.00'),\n(4,N'10.00'),\n(5,N'5.00');\nINSERT #BillSubscriptions (subscription_id, account_id, plan_id, starts_on, ends_on) VALUES\n(1,1,1,N'20260101',N'20260116'),\n(2,1,2,N'20260116',N'20260201'),\n(3,2,1,N'20260110',N'20260120'),\n(4,2,1,N'20260125',NULL),\n(5,3,3,N'20260101',N'20260110'),\n(6,4,2,N'20260201',NULL),\n(7,3,4,N'20260110',N'20260120'),\n(8,3,5,N'20260120',NULL),\n(9,5,2,N'20260101',N'20260131');\nINSERT #BillInvoices (invoice_id, account_id, issued_on, due_on, service_start, service_end, total, voided) VALUES\n(1,1,N'20260101',N'20260110',N'20260101',N'20260201',N'100.00',0),\n(2,1,N'20260115',N'20260201',N'20260116',N'20260216',N'50.00',0),\n(3,2,N'20260102',N'20260105',N'20260101',N'20260111',N'30.00',0),\n(4,2,N'20260125',N'20260210',N'20260125',N'20260201',N'0.00',0),\n(5,3,N'20260103',N'20260104',N'20260101',N'20260201',N'20.00',1),\n(6,4,N'20260201',N'20260215',N'20260201',N'20260301',N'62.00',0);\nINSERT #BillReceipts (receipt_id, invoice_id, received_on, amount) VALUES\n(1,1,N'20260109',N'40.00'),\n(2,1,N'20260111',N'20.00'),\n(3,2,N'20260202',N'50.00'),\n(4,3,N'20260105',N'30.00'),\n(5,5,N'20260103',N'20.00'),\n(6,1,N'20260201',N'10.00');\nINSERT #BillUsage (usage_id, account_id, used_on, units) VALUES\n(1,1,N'20260101',5),\n(2,1,N'20260101',7),\n(3,1,N'20260102',10),\n(4,1,N'20260103',15),\n(5,1,N'20260201',100),\n(6,2,N'20260101',10),\n(7,2,N'20260102',10),\n(8,3,N'20260101',0),\n(9,4,N'20260104',50);\nINSERT #BillMonths (month_start) VALUES\n(N'20260101'),\n(N'20260201'),\n(N'20260301');",
+    "expected": "account_id | crossed_on | cumulative_units\n1 | 2026-01-02 | 22\n4 | 2026-01-04 | 50",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#BillAccounts",
+        "columns": [
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Tài khoản 1"
+          ],
+          [
+            "2",
+            "Tài khoản 2"
+          ],
+          [
+            "3",
+            "Tài khoản 3"
+          ],
+          [
+            "4",
+            "Tài khoản 4"
+          ],
+          [
+            "5",
+            "Tài khoản 5"
+          ]
+        ]
+      },
+      {
+        "name": "#BillPlans",
+        "columns": [
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "monthly_fee",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "31.00"
+          ],
+          [
+            "2",
+            "62.00"
+          ],
+          [
+            "3",
+            "0.00"
+          ],
+          [
+            "4",
+            "10.00"
+          ],
+          [
+            "5",
+            "5.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillSubscriptions",
+        "columns": [
+          {
+            "name": "subscription_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "plan_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "ends_on",
+            "type": "date NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "1",
+            "20260101",
+            "20260116"
+          ],
+          [
+            "2",
+            "1",
+            "2",
+            "20260116",
+            "20260201"
+          ],
+          [
+            "3",
+            "2",
+            "1",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "4",
+            "2",
+            "1",
+            "20260125",
+            null
+          ],
+          [
+            "5",
+            "3",
+            "3",
+            "20260101",
+            "20260110"
+          ],
+          [
+            "6",
+            "4",
+            "2",
+            "20260201",
+            null
+          ],
+          [
+            "7",
+            "3",
+            "4",
+            "20260110",
+            "20260120"
+          ],
+          [
+            "8",
+            "3",
+            "5",
+            "20260120",
+            null
+          ],
+          [
+            "9",
+            "5",
+            "2",
+            "20260101",
+            "20260131"
+          ]
+        ]
+      },
+      {
+        "name": "#BillInvoices",
+        "columns": [
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "issued_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "due_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_start",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "service_end",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "total",
+            "type": "decimal(12,2) NOT NULL"
+          },
+          {
+            "name": "voided",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "20260110",
+            "20260101",
+            "20260201",
+            "100.00",
+            "0"
+          ],
+          [
+            "2",
+            "1",
+            "20260115",
+            "20260201",
+            "20260116",
+            "20260216",
+            "50.00",
+            "0"
+          ],
+          [
+            "3",
+            "2",
+            "20260102",
+            "20260105",
+            "20260101",
+            "20260111",
+            "30.00",
+            "0"
+          ],
+          [
+            "4",
+            "2",
+            "20260125",
+            "20260210",
+            "20260125",
+            "20260201",
+            "0.00",
+            "0"
+          ],
+          [
+            "5",
+            "3",
+            "20260103",
+            "20260104",
+            "20260101",
+            "20260201",
+            "20.00",
+            "1"
+          ],
+          [
+            "6",
+            "4",
+            "20260201",
+            "20260215",
+            "20260201",
+            "20260301",
+            "62.00",
+            "0"
+          ]
+        ]
+      },
+      {
+        "name": "#BillReceipts",
+        "columns": [
+          {
+            "name": "receipt_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "invoice_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "received_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "amount",
+            "type": "decimal(12,2) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260109",
+            "40.00"
+          ],
+          [
+            "2",
+            "1",
+            "20260111",
+            "20.00"
+          ],
+          [
+            "3",
+            "2",
+            "20260202",
+            "50.00"
+          ],
+          [
+            "4",
+            "3",
+            "20260105",
+            "30.00"
+          ],
+          [
+            "5",
+            "5",
+            "20260103",
+            "20.00"
+          ],
+          [
+            "6",
+            "1",
+            "20260201",
+            "10.00"
+          ]
+        ]
+      },
+      {
+        "name": "#BillUsage",
+        "columns": [
+          {
+            "name": "usage_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "account_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "used_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "units",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "1",
+            "20260101",
+            "5"
+          ],
+          [
+            "2",
+            "1",
+            "20260101",
+            "7"
+          ],
+          [
+            "3",
+            "1",
+            "20260102",
+            "10"
+          ],
+          [
+            "4",
+            "1",
+            "20260103",
+            "15"
+          ],
+          [
+            "5",
+            "1",
+            "20260201",
+            "100"
+          ],
+          [
+            "6",
+            "2",
+            "20260101",
+            "10"
+          ],
+          [
+            "7",
+            "2",
+            "20260102",
+            "10"
+          ],
+          [
+            "8",
+            "3",
+            "20260101",
+            "0"
+          ],
+          [
+            "9",
+            "4",
+            "20260104",
+            "50"
+          ]
+        ]
+      },
+      {
+        "name": "#BillMonths",
+        "columns": [
+          {
+            "name": "month_start",
+            "type": "date NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20260101"
+          ],
+          [
+            "20260201"
+          ],
+          [
+            "20260301"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "clinic-room-overlap-pairs",
+    "kind": "sql",
+    "title": "Xung đột phòng theo khoảng nửa mở",
+    "difficulty": "easy",
+    "topic": "sql",
+    "tags": [
+      "clinic",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Trả mọi cặp appointment không cancelled trong cùng room có thời gian giao nhau dương. Mỗi cặp xuất một lần với appointment_a < appointment_b. Lịch chỉ chạm tại end/start không xung đột. Kiểm mọi ngày trong dữ liệu.",
+    "input": "Appointment và slot là khoảng nửa mở. Mọi appointment trừ cancelled giữ chỗ theo lịch. Các slot của một room không chồng nhau và dài 15 phút. Calendar bao phủ toàn thời gian được hỏi; is_business là lịch hành chính, không phải lịch mở cửa phòng khám. Không có quy tắc y khoa trong bài.",
+    "output": "appointment_a (int), appointment_b (int), room_id (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "appointment_a | appointment_b | room_id\n1 | 2 | 1\n1 | 9 | 1\n2 | 9 | 1",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "appointment_a | appointment_b | room_id\n1 | 2 | 1\n1 | 9 | 1\n2 | 9 | 1",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS appointment_a, CAST(NULL AS int) AS appointment_b, CAST(NULL AS int) AS room_id;",
+    "hint": "Hai bất đẳng thức đều phải strict khi interval là [start,end).",
+    "solution": "SELECT a.appointment_id appointment_a,b.appointment_id appointment_b,a.room_id\nFROM #ClinicAppointments a JOIN #ClinicAppointments b ON b.room_id=a.room_id AND a.appointment_id<b.appointment_id\n AND a.starts_at<b.ends_at AND a.ends_at>b.starts_at\nWHERE a.status<>N'cancelled' AND b.status<>N'cancelled';",
+    "explanation": "Self join theo room rồi giới hạn thứ tự Id tạo cặp không đảo. Loại cancelled ở cả hai vế; điều kiện interval không cần giả định các lịch đã được sort hay không lồng nhau.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ClinicRooms (room_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (room_id),\n  CHECK (room_id > 0));\nCREATE TABLE #ClinicPatients (patient_id int NOT NULL,\n  PRIMARY KEY (patient_id),\n  CHECK (patient_id > 0));\nCREATE TABLE #ClinicAppointments (appointment_id int NOT NULL,\n  patient_id int NOT NULL,\n  room_id int NOT NULL,\n  starts_at datetime2(0) NOT NULL,\n  ends_at datetime2(0) NOT NULL,\n  booked_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (appointment_id),\n  CHECK (appointment_id > 0),\n  CHECK (patient_id > 0),\n  CHECK (room_id > 0),\n  CHECK (ends_at > starts_at),\n  CHECK (booked_on <= CAST(starts_at AS date)),\n  CHECK (status IN (N'completed',N'scheduled',N'noshow',N'cancelled')));\nCREATE TABLE #ClinicSlots (slot_id int NOT NULL,\n  room_id int NOT NULL,\n  starts_at datetime2(0) NOT NULL,\n  ends_at datetime2(0) NOT NULL,\n  PRIMARY KEY (slot_id),\n  CHECK (slot_id > 0),\n  CHECK (room_id > 0),\n  CHECK (DATEDIFF(minute,starts_at,ends_at) = 15));\nCREATE TABLE #ClinicDays (calendar_on date NOT NULL,\n  is_business bit NOT NULL,\n  PRIMARY KEY (calendar_on));\nCREATE TABLE #ClinicRequests (request_id int NOT NULL,\n  minutes_needed int NOT NULL,\n  PRIMARY KEY (request_id),\n  CHECK (request_id > 0),\n  CHECK (minutes_needed > 0));",
+    "dataset": "INSERT #ClinicRooms (room_id, name) VALUES\n(1,N'Phòng A'),\n(2,N'Phòng B'),\n(3,N'Phòng C');\nINSERT #ClinicPatients (patient_id) VALUES\n(11),\n(12),\n(13),\n(14),\n(15),\n(16),\n(17),\n(18),\n(19);\nINSERT #ClinicAppointments (appointment_id, patient_id, room_id, starts_at, ends_at, booked_on, status) VALUES\n(1,11,1,N'2026-01-01T09:00:00',N'2026-01-01T09:30:00',N'20251231',N'completed'),\n(2,12,1,N'2026-01-01T09:15:00',N'2026-01-01T09:45:00',N'20251230',N'scheduled'),\n(3,13,1,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00',N'20251231',N'noshow'),\n(4,14,1,N'2026-01-01T10:00:00',N'2026-01-01T10:30:00',N'20251231',N'cancelled'),\n(5,11,2,N'2026-01-01T09:10:00',N'2026-01-01T09:40:00',N'20251231',N'scheduled'),\n(6,15,2,N'2026-01-01T11:00:00',N'2026-01-01T11:30:00',N'20251229',N'completed'),\n(7,16,1,N'2026-01-02T09:00:00',N'2026-01-02T10:00:00',N'20251231',N'completed'),\n(8,17,2,N'2026-01-01T09:40:00',N'2026-01-01T10:00:00',N'20251231',N'scheduled'),\n(9,18,1,N'2026-01-01T09:20:00',N'2026-01-01T09:25:00',N'20251231',N'scheduled'),\n(10,13,1,N'2026-01-02T10:00:00',N'2026-01-02T10:15:00',N'20251231',N'cancelled'),\n(11,19,3,N'2026-01-05T09:00:00',N'2026-01-05T09:15:00',N'20260102',N'scheduled'),\n(12,18,3,N'2026-01-01T23:45:00',N'2026-01-02T00:15:00',N'20251231',N'scheduled');\nINSERT #ClinicSlots (slot_id, room_id, starts_at, ends_at) VALUES\n(100,1,N'2026-01-01T09:00:00',N'2026-01-01T09:15:00'),\n(101,1,N'2026-01-01T09:15:00',N'2026-01-01T09:30:00'),\n(102,1,N'2026-01-01T09:30:00',N'2026-01-01T09:45:00'),\n(103,1,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00'),\n(104,1,N'2026-01-01T10:00:00',N'2026-01-01T10:15:00'),\n(105,1,N'2026-01-01T10:15:00',N'2026-01-01T10:30:00'),\n(106,1,N'2026-01-01T10:30:00',N'2026-01-01T10:45:00'),\n(107,1,N'2026-01-01T10:45:00',N'2026-01-01T11:00:00'),\n(108,1,N'2026-01-01T11:00:00',N'2026-01-01T11:15:00'),\n(109,1,N'2026-01-01T11:15:00',N'2026-01-01T11:30:00'),\n(110,1,N'2026-01-01T11:30:00',N'2026-01-01T11:45:00'),\n(111,1,N'2026-01-01T11:45:00',N'2026-01-01T12:00:00'),\n(200,2,N'2026-01-01T09:00:00',N'2026-01-01T09:15:00'),\n(201,2,N'2026-01-01T09:15:00',N'2026-01-01T09:30:00'),\n(202,2,N'2026-01-01T09:30:00',N'2026-01-01T09:45:00'),\n(203,2,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00'),\n(204,2,N'2026-01-01T10:00:00',N'2026-01-01T10:15:00'),\n(205,2,N'2026-01-01T10:15:00',N'2026-01-01T10:30:00'),\n(206,2,N'2026-01-01T10:30:00',N'2026-01-01T10:45:00'),\n(207,2,N'2026-01-01T10:45:00',N'2026-01-01T11:00:00'),\n(208,2,N'2026-01-01T11:00:00',N'2026-01-01T11:15:00'),\n(209,2,N'2026-01-01T11:15:00',N'2026-01-01T11:30:00'),\n(210,2,N'2026-01-01T11:30:00',N'2026-01-01T11:45:00'),\n(211,2,N'2026-01-01T11:45:00',N'2026-01-01T12:00:00'),\n(300,3,N'2026-01-01T09:00:00',N'2026-01-01T09:15:00'),\n(301,3,N'2026-01-01T09:15:00',N'2026-01-01T09:30:00'),\n(302,3,N'2026-01-01T09:30:00',N'2026-01-01T09:45:00'),\n(303,3,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00'),\n(304,3,N'2026-01-01T10:00:00',N'2026-01-01T10:15:00'),\n(305,3,N'2026-01-01T10:15:00',N'2026-01-01T10:30:00'),\n(306,3,N'2026-01-01T10:30:00',N'2026-01-01T10:45:00'),\n(307,3,N'2026-01-01T10:45:00',N'2026-01-01T11:00:00'),\n(308,3,N'2026-01-01T11:00:00',N'2026-01-01T11:15:00'),\n(309,3,N'2026-01-01T11:15:00',N'2026-01-01T11:30:00'),\n(310,3,N'2026-01-01T11:30:00',N'2026-01-01T11:45:00'),\n(311,3,N'2026-01-01T11:45:00',N'2026-01-01T12:00:00');\nINSERT #ClinicDays (calendar_on, is_business) VALUES\n(N'20251229',1),\n(N'20251230',1),\n(N'20251231',1),\n(N'20260101',0),\n(N'20260102',1),\n(N'20260103',0),\n(N'20260104',0),\n(N'20260105',1),\n(N'20260106',1),\n(N'20260107',1);\nINSERT #ClinicRequests (request_id, minutes_needed) VALUES\n(201,45),\n(202,75),\n(203,130);",
+    "expected": "appointment_a | appointment_b | room_id\n1 | 2 | 1\n1 | 9 | 1\n2 | 9 | 1",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ClinicRooms",
+        "columns": [
+          {
+            "name": "room_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Phòng A"
+          ],
+          [
+            "2",
+            "Phòng B"
+          ],
+          [
+            "3",
+            "Phòng C"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicPatients",
+        "columns": [
+          {
+            "name": "patient_id",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "11"
+          ],
+          [
+            "12"
+          ],
+          [
+            "13"
+          ],
+          [
+            "14"
+          ],
+          [
+            "15"
+          ],
+          [
+            "16"
+          ],
+          [
+            "17"
+          ],
+          [
+            "18"
+          ],
+          [
+            "19"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicAppointments",
+        "columns": [
+          {
+            "name": "appointment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "patient_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "room_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ends_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "booked_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "11",
+            "1",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:30:00",
+            "20251231",
+            "completed"
+          ],
+          [
+            "2",
+            "12",
+            "1",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:45:00",
+            "20251230",
+            "scheduled"
+          ],
+          [
+            "3",
+            "13",
+            "1",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00",
+            "20251231",
+            "noshow"
+          ],
+          [
+            "4",
+            "14",
+            "1",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:30:00",
+            "20251231",
+            "cancelled"
+          ],
+          [
+            "5",
+            "11",
+            "2",
+            "2026-01-01T09:10:00",
+            "2026-01-01T09:40:00",
+            "20251231",
+            "scheduled"
+          ],
+          [
+            "6",
+            "15",
+            "2",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:30:00",
+            "20251229",
+            "completed"
+          ],
+          [
+            "7",
+            "16",
+            "1",
+            "2026-01-02T09:00:00",
+            "2026-01-02T10:00:00",
+            "20251231",
+            "completed"
+          ],
+          [
+            "8",
+            "17",
+            "2",
+            "2026-01-01T09:40:00",
+            "2026-01-01T10:00:00",
+            "20251231",
+            "scheduled"
+          ],
+          [
+            "9",
+            "18",
+            "1",
+            "2026-01-01T09:20:00",
+            "2026-01-01T09:25:00",
+            "20251231",
+            "scheduled"
+          ],
+          [
+            "10",
+            "13",
+            "1",
+            "2026-01-02T10:00:00",
+            "2026-01-02T10:15:00",
+            "20251231",
+            "cancelled"
+          ],
+          [
+            "11",
+            "19",
+            "3",
+            "2026-01-05T09:00:00",
+            "2026-01-05T09:15:00",
+            "20260102",
+            "scheduled"
+          ],
+          [
+            "12",
+            "18",
+            "3",
+            "2026-01-01T23:45:00",
+            "2026-01-02T00:15:00",
+            "20251231",
+            "scheduled"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicSlots",
+        "columns": [
+          {
+            "name": "slot_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "room_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ends_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "100",
+            "1",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:15:00"
+          ],
+          [
+            "101",
+            "1",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:30:00"
+          ],
+          [
+            "102",
+            "1",
+            "2026-01-01T09:30:00",
+            "2026-01-01T09:45:00"
+          ],
+          [
+            "103",
+            "1",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00"
+          ],
+          [
+            "104",
+            "1",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:15:00"
+          ],
+          [
+            "105",
+            "1",
+            "2026-01-01T10:15:00",
+            "2026-01-01T10:30:00"
+          ],
+          [
+            "106",
+            "1",
+            "2026-01-01T10:30:00",
+            "2026-01-01T10:45:00"
+          ],
+          [
+            "107",
+            "1",
+            "2026-01-01T10:45:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "108",
+            "1",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:15:00"
+          ],
+          [
+            "109",
+            "1",
+            "2026-01-01T11:15:00",
+            "2026-01-01T11:30:00"
+          ],
+          [
+            "110",
+            "1",
+            "2026-01-01T11:30:00",
+            "2026-01-01T11:45:00"
+          ],
+          [
+            "111",
+            "1",
+            "2026-01-01T11:45:00",
+            "2026-01-01T12:00:00"
+          ],
+          [
+            "200",
+            "2",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:15:00"
+          ],
+          [
+            "201",
+            "2",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:30:00"
+          ],
+          [
+            "202",
+            "2",
+            "2026-01-01T09:30:00",
+            "2026-01-01T09:45:00"
+          ],
+          [
+            "203",
+            "2",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00"
+          ],
+          [
+            "204",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:15:00"
+          ],
+          [
+            "205",
+            "2",
+            "2026-01-01T10:15:00",
+            "2026-01-01T10:30:00"
+          ],
+          [
+            "206",
+            "2",
+            "2026-01-01T10:30:00",
+            "2026-01-01T10:45:00"
+          ],
+          [
+            "207",
+            "2",
+            "2026-01-01T10:45:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "208",
+            "2",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:15:00"
+          ],
+          [
+            "209",
+            "2",
+            "2026-01-01T11:15:00",
+            "2026-01-01T11:30:00"
+          ],
+          [
+            "210",
+            "2",
+            "2026-01-01T11:30:00",
+            "2026-01-01T11:45:00"
+          ],
+          [
+            "211",
+            "2",
+            "2026-01-01T11:45:00",
+            "2026-01-01T12:00:00"
+          ],
+          [
+            "300",
+            "3",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:15:00"
+          ],
+          [
+            "301",
+            "3",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:30:00"
+          ],
+          [
+            "302",
+            "3",
+            "2026-01-01T09:30:00",
+            "2026-01-01T09:45:00"
+          ],
+          [
+            "303",
+            "3",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00"
+          ],
+          [
+            "304",
+            "3",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:15:00"
+          ],
+          [
+            "305",
+            "3",
+            "2026-01-01T10:15:00",
+            "2026-01-01T10:30:00"
+          ],
+          [
+            "306",
+            "3",
+            "2026-01-01T10:30:00",
+            "2026-01-01T10:45:00"
+          ],
+          [
+            "307",
+            "3",
+            "2026-01-01T10:45:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "308",
+            "3",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:15:00"
+          ],
+          [
+            "309",
+            "3",
+            "2026-01-01T11:15:00",
+            "2026-01-01T11:30:00"
+          ],
+          [
+            "310",
+            "3",
+            "2026-01-01T11:30:00",
+            "2026-01-01T11:45:00"
+          ],
+          [
+            "311",
+            "3",
+            "2026-01-01T11:45:00",
+            "2026-01-01T12:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicDays",
+        "columns": [
+          {
+            "name": "calendar_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "is_business",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20251229",
+            "1"
+          ],
+          [
+            "20251230",
+            "1"
+          ],
+          [
+            "20251231",
+            "1"
+          ],
+          [
+            "20260101",
+            "0"
+          ],
+          [
+            "20260102",
+            "1"
+          ],
+          [
+            "20260103",
+            "0"
+          ],
+          [
+            "20260104",
+            "0"
+          ],
+          [
+            "20260105",
+            "1"
+          ],
+          [
+            "20260106",
+            "1"
+          ],
+          [
+            "20260107",
+            "1"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicRequests",
+        "columns": [
+          {
+            "name": "request_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "minutes_needed",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "201",
+            "45"
+          ],
+          [
+            "202",
+            "75"
+          ],
+          [
+            "203",
+            "130"
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "clinic-contiguous-free-slot-islands",
+    "kind": "sql",
+    "title": "Gộp các slot trống nối tiếp",
+    "difficulty": "medium",
+    "topic": "sql",
+    "tags": [
+      "clinic",
+      "T-SQL",
+      "SQL Server 2022"
+    ],
+    "version": 1,
+    "testVersion": 1,
+    "runtime": "SQL Server 2022 · T-SQL",
+    "minutes": 18,
+    "description": "Một slot 15 phút là trống khi không có phần giao dương với bất kỳ appointment không cancelled cùng room. Gộp các slot trống kề nhau thành block tối đa; trả start/end và tổng phút. Không ghép qua một slot bận hoặc khoảng trống không nằm trong calendar slot.",
+    "input": "Appointment và slot là khoảng nửa mở. Mọi appointment trừ cancelled giữ chỗ theo lịch. Các slot của một room không chồng nhau và dài 15 phút. Calendar bao phủ toàn thời gian được hỏi; is_business là lịch hành chính, không phải lịch mở cửa phòng khám. Không có quy tắc y khoa trong bài.",
+    "output": "room_id (int), block_start (datetime2(0)), block_end (datetime2(0)), free_minutes (int). Chấp nhận mọi thứ tự dòng.",
+    "constraints": [
+      "Chỉ dùng các bảng tạm # của schema; không dùng ngày hệ thống, dữ liệu ngoài hay kết quả hard-code.",
+      "Dữ liệu công khai là ví dụ; hidden variants bổ sung giá trị và trường hợp biên nhưng giữ hợp đồng đã nêu."
+    ],
+    "examples": [
+      {
+        "input": "Trích các dòng đầu từ dataset công khai; expected có toàn bộ kết quả.",
+        "output": "room_id | block_start | block_end | free_minutes\n3 | 2026-01-01T09:00:00.0000000 | 2026-01-01T12:00:00.0000000 | 180\n1 | 2026-01-01T10:00:00.0000000 | 2026-01-01T12:00:00.0000000 | 120\n2 | 2026-01-01T10:00:00.0000000 | 2026-01-01T11:00:00.0000000 | 60",
+        "explanation": "Các dòng này minh họa contract cột và trường hợp biên của dataset."
+      }
+    ],
+    "tests": [
+      {
+        "input": "Chạy toàn bộ schema và dataset công khai trong một session sạch.",
+        "output": "room_id | block_start | block_end | free_minutes\n3 | 2026-01-01T09:00:00.0000000 | 2026-01-01T12:00:00.0000000 | 180\n1 | 2026-01-01T10:00:00.0000000 | 2026-01-01T12:00:00.0000000 | 120\n2 | 2026-01-01T10:00:00.0000000 | 2026-01-01T11:00:00.0000000 | 60\n2 | 2026-01-01T11:30:00.0000000 | 2026-01-01T12:00:00.0000000 | 30",
+        "explanation": "Expected được lấy từ SQL Server 2022 thật; mutant công khai phải cho kết quả khác hoặc lỗi có ý nghĩa."
+      }
+    ],
+    "starter": "-- TODO: viết một truy vấn trả đúng cột và kiểu dữ liệu bên dưới.\nSELECT TOP (0) CAST(NULL AS int) AS room_id, CAST(NULL AS datetime2(0)) AS block_start, CAST(NULL AS datetime2(0)) AS block_end, CAST(NULL AS int) AS free_minutes;",
+    "hint": "Tìm free slot bằng interval overlap, rồi dùng start trừ ordinal ×15 phút làm khóa island.",
+    "solution": "WITH f AS (SELECT s.* FROM #ClinicSlots s WHERE NOT EXISTS\n (SELECT 1 FROM #ClinicAppointments a WHERE a.room_id=s.room_id AND a.status<>N'cancelled' AND a.starts_at<s.ends_at AND a.ends_at>s.starts_at)),\nr AS (SELECT *,DATEADD(minute,-15*CONVERT(int,ROW_NUMBER() OVER(PARTITION BY room_id ORDER BY starts_at,slot_id)),starts_at) island FROM f),\nb AS (SELECT room_id,MIN(starts_at) block_start,MAX(ends_at) block_end,SUM(DATEDIFF(minute,starts_at,ends_at)) free_minutes FROM r GROUP BY room_id,island) SELECT room_id,block_start,block_end,free_minutes FROM b;",
+    "explanation": "Slot calendar có chiều dài cố định và không chồng nhau. Appointment lệch mốc 15 phút vẫn chiếm slot nếu hai khoảng có giao; chỉ so start bằng nhau sẽ bỏ qua lịch lệch mốc.",
+    "complexity": "Phụ thuộc execution plan và index. Các phép nhóm/window cần xử lý tập dòng phù hợp; sắp xếp có thể tốn O(N log N), bộ nhớ tùy hash/sort và cardinality. Không suy ra chi phí cố định chỉ từ cú pháp.",
+    "schema": "CREATE TABLE #ClinicRooms (room_id int NOT NULL,\n  name nvarchar(30) NOT NULL,\n  PRIMARY KEY (room_id),\n  CHECK (room_id > 0));\nCREATE TABLE #ClinicPatients (patient_id int NOT NULL,\n  PRIMARY KEY (patient_id),\n  CHECK (patient_id > 0));\nCREATE TABLE #ClinicAppointments (appointment_id int NOT NULL,\n  patient_id int NOT NULL,\n  room_id int NOT NULL,\n  starts_at datetime2(0) NOT NULL,\n  ends_at datetime2(0) NOT NULL,\n  booked_on date NOT NULL,\n  status nvarchar(12) NOT NULL,\n  PRIMARY KEY (appointment_id),\n  CHECK (appointment_id > 0),\n  CHECK (patient_id > 0),\n  CHECK (room_id > 0),\n  CHECK (ends_at > starts_at),\n  CHECK (booked_on <= CAST(starts_at AS date)),\n  CHECK (status IN (N'completed',N'scheduled',N'noshow',N'cancelled')));\nCREATE TABLE #ClinicSlots (slot_id int NOT NULL,\n  room_id int NOT NULL,\n  starts_at datetime2(0) NOT NULL,\n  ends_at datetime2(0) NOT NULL,\n  PRIMARY KEY (slot_id),\n  CHECK (slot_id > 0),\n  CHECK (room_id > 0),\n  CHECK (DATEDIFF(minute,starts_at,ends_at) = 15));\nCREATE TABLE #ClinicDays (calendar_on date NOT NULL,\n  is_business bit NOT NULL,\n  PRIMARY KEY (calendar_on));\nCREATE TABLE #ClinicRequests (request_id int NOT NULL,\n  minutes_needed int NOT NULL,\n  PRIMARY KEY (request_id),\n  CHECK (request_id > 0),\n  CHECK (minutes_needed > 0));",
+    "dataset": "INSERT #ClinicRooms (room_id, name) VALUES\n(1,N'Phòng A'),\n(2,N'Phòng B'),\n(3,N'Phòng C');\nINSERT #ClinicPatients (patient_id) VALUES\n(11),\n(12),\n(13),\n(14),\n(15),\n(16),\n(17),\n(18),\n(19);\nINSERT #ClinicAppointments (appointment_id, patient_id, room_id, starts_at, ends_at, booked_on, status) VALUES\n(1,11,1,N'2026-01-01T09:00:00',N'2026-01-01T09:30:00',N'20251231',N'completed'),\n(2,12,1,N'2026-01-01T09:15:00',N'2026-01-01T09:45:00',N'20251230',N'scheduled'),\n(3,13,1,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00',N'20251231',N'noshow'),\n(4,14,1,N'2026-01-01T10:00:00',N'2026-01-01T10:30:00',N'20251231',N'cancelled'),\n(5,11,2,N'2026-01-01T09:10:00',N'2026-01-01T09:40:00',N'20251231',N'scheduled'),\n(6,15,2,N'2026-01-01T11:00:00',N'2026-01-01T11:30:00',N'20251229',N'completed'),\n(7,16,1,N'2026-01-02T09:00:00',N'2026-01-02T10:00:00',N'20251231',N'completed'),\n(8,17,2,N'2026-01-01T09:40:00',N'2026-01-01T10:00:00',N'20251231',N'scheduled'),\n(9,18,1,N'2026-01-01T09:20:00',N'2026-01-01T09:25:00',N'20251231',N'scheduled'),\n(10,13,1,N'2026-01-02T10:00:00',N'2026-01-02T10:15:00',N'20251231',N'cancelled'),\n(11,19,3,N'2026-01-05T09:00:00',N'2026-01-05T09:15:00',N'20260102',N'scheduled'),\n(12,18,3,N'2026-01-01T23:45:00',N'2026-01-02T00:15:00',N'20251231',N'scheduled');\nINSERT #ClinicSlots (slot_id, room_id, starts_at, ends_at) VALUES\n(100,1,N'2026-01-01T09:00:00',N'2026-01-01T09:15:00'),\n(101,1,N'2026-01-01T09:15:00',N'2026-01-01T09:30:00'),\n(102,1,N'2026-01-01T09:30:00',N'2026-01-01T09:45:00'),\n(103,1,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00'),\n(104,1,N'2026-01-01T10:00:00',N'2026-01-01T10:15:00'),\n(105,1,N'2026-01-01T10:15:00',N'2026-01-01T10:30:00'),\n(106,1,N'2026-01-01T10:30:00',N'2026-01-01T10:45:00'),\n(107,1,N'2026-01-01T10:45:00',N'2026-01-01T11:00:00'),\n(108,1,N'2026-01-01T11:00:00',N'2026-01-01T11:15:00'),\n(109,1,N'2026-01-01T11:15:00',N'2026-01-01T11:30:00'),\n(110,1,N'2026-01-01T11:30:00',N'2026-01-01T11:45:00'),\n(111,1,N'2026-01-01T11:45:00',N'2026-01-01T12:00:00'),\n(200,2,N'2026-01-01T09:00:00',N'2026-01-01T09:15:00'),\n(201,2,N'2026-01-01T09:15:00',N'2026-01-01T09:30:00'),\n(202,2,N'2026-01-01T09:30:00',N'2026-01-01T09:45:00'),\n(203,2,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00'),\n(204,2,N'2026-01-01T10:00:00',N'2026-01-01T10:15:00'),\n(205,2,N'2026-01-01T10:15:00',N'2026-01-01T10:30:00'),\n(206,2,N'2026-01-01T10:30:00',N'2026-01-01T10:45:00'),\n(207,2,N'2026-01-01T10:45:00',N'2026-01-01T11:00:00'),\n(208,2,N'2026-01-01T11:00:00',N'2026-01-01T11:15:00'),\n(209,2,N'2026-01-01T11:15:00',N'2026-01-01T11:30:00'),\n(210,2,N'2026-01-01T11:30:00',N'2026-01-01T11:45:00'),\n(211,2,N'2026-01-01T11:45:00',N'2026-01-01T12:00:00'),\n(300,3,N'2026-01-01T09:00:00',N'2026-01-01T09:15:00'),\n(301,3,N'2026-01-01T09:15:00',N'2026-01-01T09:30:00'),\n(302,3,N'2026-01-01T09:30:00',N'2026-01-01T09:45:00'),\n(303,3,N'2026-01-01T09:45:00',N'2026-01-01T10:00:00'),\n(304,3,N'2026-01-01T10:00:00',N'2026-01-01T10:15:00'),\n(305,3,N'2026-01-01T10:15:00',N'2026-01-01T10:30:00'),\n(306,3,N'2026-01-01T10:30:00',N'2026-01-01T10:45:00'),\n(307,3,N'2026-01-01T10:45:00',N'2026-01-01T11:00:00'),\n(308,3,N'2026-01-01T11:00:00',N'2026-01-01T11:15:00'),\n(309,3,N'2026-01-01T11:15:00',N'2026-01-01T11:30:00'),\n(310,3,N'2026-01-01T11:30:00',N'2026-01-01T11:45:00'),\n(311,3,N'2026-01-01T11:45:00',N'2026-01-01T12:00:00');\nINSERT #ClinicDays (calendar_on, is_business) VALUES\n(N'20251229',1),\n(N'20251230',1),\n(N'20251231',1),\n(N'20260101',0),\n(N'20260102',1),\n(N'20260103',0),\n(N'20260104',0),\n(N'20260105',1),\n(N'20260106',1),\n(N'20260107',1);\nINSERT #ClinicRequests (request_id, minutes_needed) VALUES\n(201,45),\n(202,75),\n(203,130);",
+    "expected": "room_id | block_start | block_end | free_minutes\n3 | 2026-01-01T09:00:00.0000000 | 2026-01-01T12:00:00.0000000 | 180\n1 | 2026-01-01T10:00:00.0000000 | 2026-01-01T12:00:00.0000000 | 120\n2 | 2026-01-01T10:00:00.0000000 | 2026-01-01T11:00:00.0000000 | 60\n2 | 2026-01-01T11:30:00.0000000 | 2026-01-01T12:00:00.0000000 | 30",
+    "ordered": false,
+    "tables": [
+      {
+        "name": "#ClinicRooms",
+        "columns": [
+          {
+            "name": "room_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "name",
+            "type": "nvarchar(30) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "Phòng A"
+          ],
+          [
+            "2",
+            "Phòng B"
+          ],
+          [
+            "3",
+            "Phòng C"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicPatients",
+        "columns": [
+          {
+            "name": "patient_id",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "11"
+          ],
+          [
+            "12"
+          ],
+          [
+            "13"
+          ],
+          [
+            "14"
+          ],
+          [
+            "15"
+          ],
+          [
+            "16"
+          ],
+          [
+            "17"
+          ],
+          [
+            "18"
+          ],
+          [
+            "19"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicAppointments",
+        "columns": [
+          {
+            "name": "appointment_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "patient_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "room_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ends_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "booked_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "status",
+            "type": "nvarchar(12) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "1",
+            "11",
+            "1",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:30:00",
+            "20251231",
+            "completed"
+          ],
+          [
+            "2",
+            "12",
+            "1",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:45:00",
+            "20251230",
+            "scheduled"
+          ],
+          [
+            "3",
+            "13",
+            "1",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00",
+            "20251231",
+            "noshow"
+          ],
+          [
+            "4",
+            "14",
+            "1",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:30:00",
+            "20251231",
+            "cancelled"
+          ],
+          [
+            "5",
+            "11",
+            "2",
+            "2026-01-01T09:10:00",
+            "2026-01-01T09:40:00",
+            "20251231",
+            "scheduled"
+          ],
+          [
+            "6",
+            "15",
+            "2",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:30:00",
+            "20251229",
+            "completed"
+          ],
+          [
+            "7",
+            "16",
+            "1",
+            "2026-01-02T09:00:00",
+            "2026-01-02T10:00:00",
+            "20251231",
+            "completed"
+          ],
+          [
+            "8",
+            "17",
+            "2",
+            "2026-01-01T09:40:00",
+            "2026-01-01T10:00:00",
+            "20251231",
+            "scheduled"
+          ],
+          [
+            "9",
+            "18",
+            "1",
+            "2026-01-01T09:20:00",
+            "2026-01-01T09:25:00",
+            "20251231",
+            "scheduled"
+          ],
+          [
+            "10",
+            "13",
+            "1",
+            "2026-01-02T10:00:00",
+            "2026-01-02T10:15:00",
+            "20251231",
+            "cancelled"
+          ],
+          [
+            "11",
+            "19",
+            "3",
+            "2026-01-05T09:00:00",
+            "2026-01-05T09:15:00",
+            "20260102",
+            "scheduled"
+          ],
+          [
+            "12",
+            "18",
+            "3",
+            "2026-01-01T23:45:00",
+            "2026-01-02T00:15:00",
+            "20251231",
+            "scheduled"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicSlots",
+        "columns": [
+          {
+            "name": "slot_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "room_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "starts_at",
+            "type": "datetime2(0) NOT NULL"
+          },
+          {
+            "name": "ends_at",
+            "type": "datetime2(0) NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "100",
+            "1",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:15:00"
+          ],
+          [
+            "101",
+            "1",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:30:00"
+          ],
+          [
+            "102",
+            "1",
+            "2026-01-01T09:30:00",
+            "2026-01-01T09:45:00"
+          ],
+          [
+            "103",
+            "1",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00"
+          ],
+          [
+            "104",
+            "1",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:15:00"
+          ],
+          [
+            "105",
+            "1",
+            "2026-01-01T10:15:00",
+            "2026-01-01T10:30:00"
+          ],
+          [
+            "106",
+            "1",
+            "2026-01-01T10:30:00",
+            "2026-01-01T10:45:00"
+          ],
+          [
+            "107",
+            "1",
+            "2026-01-01T10:45:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "108",
+            "1",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:15:00"
+          ],
+          [
+            "109",
+            "1",
+            "2026-01-01T11:15:00",
+            "2026-01-01T11:30:00"
+          ],
+          [
+            "110",
+            "1",
+            "2026-01-01T11:30:00",
+            "2026-01-01T11:45:00"
+          ],
+          [
+            "111",
+            "1",
+            "2026-01-01T11:45:00",
+            "2026-01-01T12:00:00"
+          ],
+          [
+            "200",
+            "2",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:15:00"
+          ],
+          [
+            "201",
+            "2",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:30:00"
+          ],
+          [
+            "202",
+            "2",
+            "2026-01-01T09:30:00",
+            "2026-01-01T09:45:00"
+          ],
+          [
+            "203",
+            "2",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00"
+          ],
+          [
+            "204",
+            "2",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:15:00"
+          ],
+          [
+            "205",
+            "2",
+            "2026-01-01T10:15:00",
+            "2026-01-01T10:30:00"
+          ],
+          [
+            "206",
+            "2",
+            "2026-01-01T10:30:00",
+            "2026-01-01T10:45:00"
+          ],
+          [
+            "207",
+            "2",
+            "2026-01-01T10:45:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "208",
+            "2",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:15:00"
+          ],
+          [
+            "209",
+            "2",
+            "2026-01-01T11:15:00",
+            "2026-01-01T11:30:00"
+          ],
+          [
+            "210",
+            "2",
+            "2026-01-01T11:30:00",
+            "2026-01-01T11:45:00"
+          ],
+          [
+            "211",
+            "2",
+            "2026-01-01T11:45:00",
+            "2026-01-01T12:00:00"
+          ],
+          [
+            "300",
+            "3",
+            "2026-01-01T09:00:00",
+            "2026-01-01T09:15:00"
+          ],
+          [
+            "301",
+            "3",
+            "2026-01-01T09:15:00",
+            "2026-01-01T09:30:00"
+          ],
+          [
+            "302",
+            "3",
+            "2026-01-01T09:30:00",
+            "2026-01-01T09:45:00"
+          ],
+          [
+            "303",
+            "3",
+            "2026-01-01T09:45:00",
+            "2026-01-01T10:00:00"
+          ],
+          [
+            "304",
+            "3",
+            "2026-01-01T10:00:00",
+            "2026-01-01T10:15:00"
+          ],
+          [
+            "305",
+            "3",
+            "2026-01-01T10:15:00",
+            "2026-01-01T10:30:00"
+          ],
+          [
+            "306",
+            "3",
+            "2026-01-01T10:30:00",
+            "2026-01-01T10:45:00"
+          ],
+          [
+            "307",
+            "3",
+            "2026-01-01T10:45:00",
+            "2026-01-01T11:00:00"
+          ],
+          [
+            "308",
+            "3",
+            "2026-01-01T11:00:00",
+            "2026-01-01T11:15:00"
+          ],
+          [
+            "309",
+            "3",
+            "2026-01-01T11:15:00",
+            "2026-01-01T11:30:00"
+          ],
+          [
+            "310",
+            "3",
+            "2026-01-01T11:30:00",
+            "2026-01-01T11:45:00"
+          ],
+          [
+            "311",
+            "3",
+            "2026-01-01T11:45:00",
+            "2026-01-01T12:00:00"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicDays",
+        "columns": [
+          {
+            "name": "calendar_on",
+            "type": "date NOT NULL"
+          },
+          {
+            "name": "is_business",
+            "type": "bit NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "20251229",
+            "1"
+          ],
+          [
+            "20251230",
+            "1"
+          ],
+          [
+            "20251231",
+            "1"
+          ],
+          [
+            "20260101",
+            "0"
+          ],
+          [
+            "20260102",
+            "1"
+          ],
+          [
+            "20260103",
+            "0"
+          ],
+          [
+            "20260104",
+            "0"
+          ],
+          [
+            "20260105",
+            "1"
+          ],
+          [
+            "20260106",
+            "1"
+          ],
+          [
+            "20260107",
+            "1"
+          ]
+        ]
+      },
+      {
+        "name": "#ClinicRequests",
+        "columns": [
+          {
+            "name": "request_id",
+            "type": "int NOT NULL"
+          },
+          {
+            "name": "minutes_needed",
+            "type": "int NOT NULL"
+          }
+        ],
+        "rows": [
+          [
+            "201",
+            "45"
+          ],
+          [
+            "202",
+            "75"
+          ],
+          [
+            "203",
+            "130"
+          ]
+        ]
+      }
+    ]
+  }
+]

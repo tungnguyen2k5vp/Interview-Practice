@@ -1,0 +1,192 @@
+[
+  {
+    "slug": "ef-savepoint-mars-limit",
+    "version": 1,
+    "prompt": "Sau SaveChanges lỗi trên connection bật MARS, code định tiếp tục transaction như chưa có lỗi nhờ auto-savepoint. Phản hồi nào đúng?",
+    "englishPrompt": "After SaveChanges fails on a MARS-enabled connection, code plans to continue as if an automatic savepoint restored state. Which response is correct?",
+    "choices": [
+      "Chỉ Clear tracker là khôi phục transaction database",
+      "Không được dựa vào savepoint tự động; rollback theo chính sách lỗi",
+      "Tiếp tục vì savepoint luôn tồn tại"
+    ],
+    "englishChoices": [
+      "Clearing the tracker restores the database transaction",
+      "Do not rely on an automatic savepoint; roll back according to failure policy",
+      "Continue because a savepoint always exists"
+    ],
+    "correctIndex": 1,
+    "explanation": "Tracker state không khôi phục transaction và MARS ngăn EF tạo savepoint tự động.",
+    "englishExplanation": "Tracker state does not restore a transaction, and MARS prevents EF's automatic savepoints."
+  },
+  {
+    "slug": "ef-execution-strategy-unit",
+    "version": 1,
+    "prompt": "Delegate retry đã chứa BeginTransaction và hai SaveChanges, nhưng gửi SMS thật trong delegate. Vì sao vẫn có rủi ro khi replay?",
+    "englishPrompt": "A retry delegate contains BeginTransaction and two SaveChanges calls, but also sends a real SMS. Why is replay still risky?",
+    "choices": [
+      "Transaction SQL tự rollback SMS đã gửi",
+      "Execution strategy bảo đảm mọi hệ thống ngoài exactly-once",
+      "SMS có thể gửi lặp dù transaction DB rollback; cần tách và bảo vệ side effect"
+    ],
+    "englishChoices": [
+      "The SQL transaction rolls back an already sent SMS",
+      "The execution strategy guarantees exactly-once for every external system",
+      "The SMS may repeat despite DB rollback; the side effect needs separation and protection"
+    ],
+    "correctIndex": 2,
+    "explanation": "Ranh giới transaction DB không bao gồm nhà cung cấp SMS; replay đòi xử lý hiệu ứng ngoài riêng.",
+    "englishExplanation": "The database transaction does not encompass the SMS provider; replay needs separate external-effect handling."
+  },
+  {
+    "slug": "ef-value-comparer-mutable",
+    "version": 1,
+    "prompt": "Converter JSON lưu List<int>. Snapshot dùng cùng list reference với entity. Sửa list tại chỗ gây thiếu khả năng phát hiện nào?",
+    "englishPrompt": "A JSON converter stores List<int>. Its snapshot uses the same list reference as the entity. What detection capability is missing for in-place edits?",
+    "choices": [
+      "Snapshot nội dung cũ độc lập để so với nội dung mới",
+      "Tên cột dài hơn để chứa list",
+      "Một DbSet khác cho mỗi số trong list"
+    ],
+    "englishChoices": [
+      "An independent old-content snapshot for comparison with the new content",
+      "A longer column name for the list",
+      "A separate DbSet for every integer in the list"
+    ],
+    "correctIndex": 0,
+    "explanation": "Snapshot cùng reference cũng bị thay đổi, nên không còn bản cũ đáng tin để so sánh.",
+    "englishExplanation": "A shared-reference snapshot changes too and no longer preserves reliable old content."
+  },
+  {
+    "slug": "ef-pooled-context-tenant-state",
+    "version": 1,
+    "prompt": "Context pool phát lại instance từng dùng cho tenant A cho request B. Field TenantId riêng chưa được gán lại. Test nào phát hiện rủi ro sát nhất?",
+    "englishPrompt": "A context pool leases an instance previously used by tenant A to request B. A custom TenantId field is not reassigned. Which test best exposes the risk?",
+    "choices": [
+      "Tắt mọi tenant filter trong test",
+      "Luân phiên A rồi B qua pool nhỏ và xác minh mỗi request chỉ thấy tenant của mình",
+      "Chỉ query A nhiều lần"
+    ],
+    "englishChoices": [
+      "Disable every tenant filter in the test",
+      "Alternate A then B through a small pool and verify each request sees only its tenant",
+      "Query only A repeatedly"
+    ],
+    "correctIndex": 1,
+    "explanation": "Luân phiên tenant ép state phải thay đổi; test một tenant không phát hiện giá trị bị giữ từ lượt trước.",
+    "englishExplanation": "Alternating tenants forces state transitions; a single-tenant test cannot expose retained prior-tenant state."
+  },
+  {
+    "slug": "ef-model-cache-schema-tenant",
+    "version": 1,
+    "prompt": "Hai context cùng type chọn schema A và B bằng OnModelCreating. Chỉ thay connection string nhưng model vẫn cached theo type. Điều gì cần kiểm chứng?",
+    "englishPrompt": "Two contexts of the same type select schemas A and B in OnModelCreating. Only the connection string changes while the model is cached by type. What must be verified?",
+    "choices": [
+      "Connection string luôn tự sửa mọi schema trong cached model",
+      "Tên schema luôn là value parameter nên không cần kiểm",
+      "Mapping thực tế và chiến lược cache model có phân biệt biến thể schema"
+    ],
+    "englishChoices": [
+      "The connection string always rewrites every schema in a cached model",
+      "Schema names are always value parameters, so no check is needed",
+      "The actual mapping and whether model caching distinguishes schema variants"
+    ],
+    "correctIndex": 2,
+    "explanation": "Model mapping và kết nối là hai cấu hình khác nhau; biến thể schema cần được thiết kế rõ.",
+    "englishExplanation": "Model mapping and connections are separate configurations; schema variation needs explicit design."
+  },
+  {
+    "slug": "ef-spatial-client-distance",
+    "version": 1,
+    "prompt": "Một phép Distance với kinh vĩ độ trả khoảng 0.01 ở client. Dashboard ghi nhãn mét mà không có phép chiếu. Bước xác minh nào phù hợp?",
+    "englishPrompt": "A client-side longitude/latitude Distance returns about 0.01. A dashboard labels it meters without projection. Which verification fits?",
+    "choices": [
+      "So với khoảng cách đã biết và dùng tính toán geography hoặc phép chiếu đúng đơn vị",
+      "Chỉ thêm SRID 4326 lần nữa để đổi số thành mét",
+      "Nhân số bất kỳ để ảnh nhìn hợp lý"
+    ],
+    "englishChoices": [
+      "Compare a known distance and use geography computation or an appropriate projection",
+      "Assign SRID 4326 again to convert the number to meters",
+      "Multiply by an arbitrary factor until it looks plausible"
+    ],
+    "correctIndex": 0,
+    "explanation": "SRID không tự biến phép tính phẳng NTS thành mét; cần xác định hệ tọa độ và vị trí tính.",
+    "englishExplanation": "SRID does not turn NTS planar computation into meters; establish the coordinate system and execution location."
+  },
+  {
+    "slug": "test-concurrency-barrier",
+    "version": 1,
+    "prompt": "Hai task phải tới điểm đọc trước khi một bên ghi. Một task lỗi trước gate. Test cần cơ chế nào để không treo task còn lại?",
+    "englishPrompt": "Two tasks must reach a read point before either writes. One fails before the gate. What does the test need to avoid hanging the other?",
+    "choices": [
+      "Thêm Sleep ở task đã lỗi",
+      "Timeout hoặc cancellation và cleanup để giải phóng gate",
+      "Một while chờ vô hạn vì lỗi là hiếm"
+    ],
+    "englishChoices": [
+      "Add Sleep to the failed task",
+      "A timeout or cancellation and cleanup that releases the gate",
+      "An infinite wait because failure is rare"
+    ],
+    "correctIndex": 1,
+    "explanation": "Đồng bộ test cũng cần đường lỗi hữu hạn; timeout phải giữ đủ chẩn đoán của cả hai nhánh.",
+    "englishExplanation": "Test synchronization needs bounded failure paths and diagnostics for both branches."
+  },
+  {
+    "slug": "test-real-auth-scope-limit",
+    "version": 1,
+    "prompt": "Policy test với identity giả pass nhưng token sai issuer vẫn vào được môi trường thật. Bộ kiểm nào còn thiếu?",
+    "englishPrompt": "Policy tests using fake identities pass, but a wrong-issuer token is accepted in the real environment. Which test scope is missing?",
+    "choices": [
+      "Thêm một identity giả có tên khác",
+      "Chỉ kiểm route trả JSON",
+      "Integration test dùng JWT handler thật và token sai issuer"
+    ],
+    "englishChoices": [
+      "Add another fake identity with a different name",
+      "Only check that the route returns JSON",
+      "An integration test using the real JWT handler and wrong-issuer token"
+    ],
+    "correctIndex": 2,
+    "explanation": "Double xác thực bỏ qua kiểm issuer; phải đi qua handler thật để chứng minh điều đó.",
+    "englishExplanation": "An authentication double bypasses issuer validation; the real handler must execute to prove it."
+  },
+  {
+    "slug": "oop-authorized-write-precondition",
+    "version": 1,
+    "prompt": "A đọc note của mình, B nhận quyền sở hữu trước khi A ghi. UPDATE vẫn chỉ lọc Id và sửa một dòng. Theo hợp đồng chỉ owner hiện tại được sửa, còn thiếu gì?",
+    "englishPrompt": "A reads a note they own, then B becomes its owner before A writes. UPDATE filters only by Id and affects one row. If only the current owner may edit, what is missing?",
+    "choices": [
+      "Điều kiện owner/version tại lệnh ghi và xử lý khi không còn khớp",
+      "Chỉ kiểm owner thêm một lần trước UPDATE nhưng không gắn với ghi",
+      "Retry vô điều kiện cho tới khi UPDATE thành công"
+    ],
+    "englishChoices": [
+      "An owner/version precondition at the write and handling when it no longer matches",
+      "Only check the owner again before UPDATE without coupling it to the write",
+      "Retry unconditionally until UPDATE succeeds"
+    ],
+    "correctIndex": 0,
+    "explanation": "Id không mang điều kiện ủy quyền. Predicate gắn owner/version với phép ghi ngăn dùng kết quả kiểm quyền đã cũ.",
+    "englishExplanation": "Id alone carries no authorization precondition. An owner/version predicate couples the write to the authorization state rather than relying on a stale check."
+  },
+  {
+    "slug": "oop-anticorruption-semantics",
+    "version": 1,
+    "prompt": "Partner thêm trạng thái Z chưa được tài liệu hóa. Mapping hiện default về Paid. Cách xử lý nào bảo vệ semantics tốt hơn?",
+    "englishPrompt": "A partner adds undocumented status Z. The mapping currently defaults to Paid. Which handling better protects semantics?",
+    "choices": [
+      "Đổi mọi trạng thái domain thành chuỗi Z",
+      "Giữ unknown hoặc từ chối theo hợp đồng, ghi chẩn đoán và yêu cầu làm rõ",
+      "Mặc định Paid để luồng luôn thành công"
+    ],
+    "englishChoices": [
+      "Change every domain state into the string Z",
+      "Keep unknown or reject by contract, record diagnostics, and seek clarification",
+      "Default to Paid so the flow always succeeds"
+    ],
+    "correctIndex": 1,
+    "explanation": "Không suy diễn trạng thái thành công từ dữ liệu chưa hiểu; ACL phải giữ ranh giới ý nghĩa.",
+    "englishExplanation": "Success must not be inferred from unknown data; the ACL preserves semantic boundaries."
+  }
+]

@@ -15,7 +15,8 @@ async function seedRows(prefix) {
   const names = files.filter(f => f === prefix+'.json' || f.startsWith(prefix+'-batch-'))
   return (await Promise.all(names.map(async f=>JSON.parse(await readFile(resolve(contentDir,f),'utf8'))))).flat()
 }
-const questionCount = (await seedRows('questions')).length
+const questionSeeds = await seedRows('questions')
+const questionCount = questionSeeds.length
 const exerciseSeeds = await seedRows('exercises')
 await mkdir(artifacts, { recursive: true })
 const browser = await chromium.launch({ ...(process.env.IP_BROWSER ? { channel: process.env.IP_BROWSER } : {}) })
@@ -77,8 +78,8 @@ try {
     assert.equal(dashboard.completedMocks, 0)
     assert.equal(dashboard.questionCount, questionCount)
     assert.equal(dashboard.topics.length, 11)
-    assert.equal((await send(context.request, '/interview-presets')).length, 11)
-    assert.deepEqual(await send(context.request, '/questions/technologies'), ['.NET 10','ASP.NET Core 10','EF Core 10','HTTP','SQL Server 2022'])
+    assert.equal((await send(context.request, '/interview-presets')).length, 25)
+    assert.deepEqual((await send(context.request, '/questions/technologies')).sort(), [...new Set(questionSeeds.map(q=>q.content.technology).filter(Boolean))].sort())
     for(const kind of ['coding','sql']) assert.equal((await send(context.request, '/exercises?kind='+kind)).length, exerciseSeeds.filter(e=>e.kind===kind).length)
     const di = await send(context.request,'/questions?search=DI')
     assert(di.items.some(q=>q.slug==='di-scope-worker') && di.total===3)
@@ -288,7 +289,7 @@ try {
   await check('guided mock in English, pause survives refresh, one follow-up and early finish', async () => {
     const { page } = learner
     await at(page, '/phong-van')
-    await visible(page.getByRole('button', { name: /^Nền tảng \.NET/ }))
+    await visible(page.getByRole('combobox', { name: 'Bộ phỏng vấn', exact: true }))
     await page.getByRole('combobox', { name: 'Ngôn ngữ', exact: true }).selectOption('en')
     for (const topic of ['C# & .NET', 'OOP & Thiết kế', 'LINQ & Async'])
       await page.getByRole('checkbox', { name: topic, exact: true }).uncheck()

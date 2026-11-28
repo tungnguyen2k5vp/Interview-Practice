@@ -1,0 +1,2162 @@
+[
+  {
+    "slug": "systems-mqack-boundary",
+    "content": {
+      "title": "Ack sau tác động bền vững",
+      "topic": "systems",
+      "subtopic": "Ack sau tác động bền vững",
+      "tags": [
+        "consumer ack",
+        "commit boundary",
+        "redelivery"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "RabbitMQ 4.x / AMQP 0-9-1",
+      "prompt": "Consumer auto-ack message ngay khi nhận, sau đó ghi DB và có thể crash. Bạn thay thời điểm acknowledgement thế nào để tránh mất việc chưa xử lý?",
+      "englishPrompt": "A consumer auto-acknowledges a message on delivery, then writes to a database and may crash. How should acknowledgement timing change to avoid losing unfinished work?",
+      "context": "Consumer dùng AMQP 0-9-1; database transaction và broker acknowledgement là hai thao tác riêng.",
+      "code": null,
+      "hint": "Nêu ack sau commit",
+      "nextHint": "Nêu mất việc khi ack sớm",
+      "followUp": "Một message cần commit DB rồi gửi email qua dịch vụ ngoài; hai tác động không cùng transaction. Bạn mô tả các khoảng crash và hợp đồng xử lý lại cần có trước khi chọn thời điểm ack thế nào?",
+      "englishFollowUp": "A message must commit database changes and send email through an external service; the effects do not share a transaction. How would you describe crash windows and replay requirements before choosing when to acknowledge?",
+      "outline": [
+        "Nêu ack sau commit",
+        "Nêu mất việc khi ack sớm",
+        "Nêu cửa sổ redelivery"
+      ],
+      "shortAnswer": "Dùng manual ack sau khi tác động cần thiết đã được lưu bền vững.",
+      "explanation": "Dùng manual ack sau khi tác động cần thiết đã được lưu bền vững. Ack sớm làm broker coi việc đã xong trước khi ứng dụng hoàn tất. Ack sau commit cho phép redelivery nếu consumer chết, nhưng cũng tạo cửa sổ DB đã commit mà ack chưa đến broker; write path cần chịu được xử lý lại.",
+      "alternative": "Với tác động ngoài DB, chọn cơ chế idempotency theo hợp đồng dịch vụ đích.",
+      "trap": "Ack trước để broker trống queue rồi hy vọng worker luôn sống.",
+      "rubric": [
+        "Nêu ack sau commit",
+        "Nêu mất việc khi ack sớm",
+        "Nêu cửa sổ redelivery",
+        "Yêu cầu xử lý lại an toàn"
+      ],
+      "source": "https://www.rabbitmq.com/docs/confirms",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-mqconfirm-boundary",
+    "content": {
+      "title": "Publisher confirm chưa phải email đã gửi",
+      "topic": "systems",
+      "subtopic": "Publisher confirm chưa phải email đã gửi",
+      "tags": [
+        "publisher confirm",
+        "consumer ack",
+        "job completion"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "RabbitMQ 4.x / AMQP 0-9-1",
+      "prompt": "Một message không route vào queue nào nhưng broker vẫn confirm. Có thể suy ra worker đã chạy không?",
+      "englishPrompt": "A message routes to no queue but the broker confirms it. Can you infer the worker ran?",
+      "context": "Publisher đã bật confirms; hoàn tất tác động email là trạng thái riêng của worker/provider.",
+      "code": null,
+      "hint": "Tách confirm và ack",
+      "nextHint": "Không hứa email đã gửi",
+      "followUp": "Publisher nhận confirm từ RabbitMQ rồi báo email đã gửi cho khách hàng. Kết luận này thiếu bước nào?",
+      "englishFollowUp": "A publisher receives a RabbitMQ confirm and tells the customer that an email has been sent. What is missing from that conclusion?",
+      "outline": [
+        "Tách confirm và ack",
+        "Không hứa email đã gửi",
+        "Có trạng thái xử lý"
+      ],
+      "shortAnswer": "Không, cần xử lý routing và kết quả nghiệp vụ riêng.",
+      "explanation": "Confirm xác nhận phía broker nhận trách nhiệm theo cơ chế đã cấu hình, không xác nhận consumer hoàn tất gửi email. Publisher confirm và consumer acknowledgement độc lập. Để báo trạng thái nghiệp vụ, cần kết quả xử lý từ worker hoặc trạng thái job bền vững. Cũng kiểm tra routing/returns vì confirm không có nghĩa message chắc được consumer mong muốn nhận.",
+      "alternative": "Hiển thị “đang chờ gửi” sau enqueue và “đã gửi” khi hệ thống gửi xác nhận phù hợp.",
+      "trap": "Đồng nhất broker accepted với tác động nghiệp vụ completed.",
+      "rubric": [
+        "Tách confirm và ack",
+        "Không hứa email đã gửi",
+        "Có trạng thái xử lý",
+        "Kiểm tra routing"
+      ],
+      "source": "https://www.rabbitmq.com/docs/confirms",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, confirm chứng minh consumer hoàn tất.",
+          "Không, cần xử lý routing và kết quả nghiệp vụ riêng."
+        ],
+        "en": [
+          "Yes; confirm proves consumer completion.",
+          "No; routing and business completion require separate handling."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Confirm là tín hiệu phía broker, không phải xác nhận consumer đã hoàn tất; trong đề không có queue nhận thì càng không thể suy ra worker đã chạy.",
+          "Publisher confirm không chứng minh consumer chạy. Unroutable message cũng có thể được confirm; cần xử lý routing như mandatory/basic.return và theo dõi kết quả nghiệp vụ riêng."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-mqprefetch-boundary",
+    "content": {
+      "title": "Prefetch không phải kích thước queue",
+      "topic": "systems",
+      "subtopic": "Prefetch không phải kích thước queue",
+      "tags": [
+        "prefetch",
+        "unacked messages",
+        "worker memory"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "RabbitMQ 4.x / AMQP 0-9-1",
+      "prompt": "Consumer xử lý chậm và giữ quá nhiều message chưa ack trong RAM. Prefetch hữu hạn giới hạn đại lượng nào?",
+      "englishPrompt": "A slow consumer holds too many unacknowledged messages in memory. What does a finite prefetch limit?",
+      "context": "Consumer dùng manual acknowledgements; cần tách số delivery giữ lại khỏi concurrency của handler.",
+      "code": null,
+      "hint": "Nêu unacked deliveries",
+      "nextHint": "Phân biệt queue length",
+      "followUp": "Một số message mất vài mili giây, số khác mất nhiều giây. Bạn điều chỉnh prefetch và concurrency theo dữ liệu nào để cân bằng bộ nhớ, độ trễ và phân phối công việc giữa consumer?",
+      "englishFollowUp": "Some messages take milliseconds and others take seconds. What data would guide prefetch and concurrency tuning to balance memory, latency, and work distribution across consumers?",
+      "outline": [
+        "Nêu unacked deliveries",
+        "Phân biệt queue length",
+        "Phân biệt worker concurrency"
+      ],
+      "shortAnswer": "Số delivery chưa được ack mà broker cho consumer giữ, theo phạm vi cấu hình.",
+      "explanation": "Số delivery chưa được ack mà broker cho consumer giữ, theo phạm vi cấu hình. Prefetch giúp tránh một consumer nhận quá nhiều việc trước khi hoàn tất. Nó không giới hạn tổng queue và không nhất thiết bằng số tác vụ xử lý song song trong ứng dụng. Chọn theo dung lượng mỗi message và throughput đo được.",
+      "alternative": "Kết hợp giới hạn concurrency ở worker; không đặt prefetch khổng lồ chỉ vì queue dài.",
+      "trap": "Dùng prefetch để bảo đảm queue chỉ có tối đa N message.",
+      "rubric": [
+        "Nêu unacked deliveries",
+        "Phân biệt queue length",
+        "Phân biệt worker concurrency",
+        "Chọn theo memory"
+      ],
+      "source": "https://www.rabbitmq.com/docs/consumer-prefetch",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-mqdead-boundary",
+    "content": {
+      "title": "Poison message không requeue vô hạn",
+      "topic": "systems",
+      "subtopic": "Poison message không requeue vô hạn",
+      "tags": [
+        "dead-letter",
+        "requeue",
+        "poison message"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "RabbitMQ 4.x / AMQP 0-9-1",
+      "prompt": "Nack requeue=false nhưng chưa có DLX. Có bảo đảm message được giữ ở DLQ không?",
+      "englishPrompt": "A message is nacked with requeue=false but no DLX exists. Is DLQ retention guaranteed?",
+      "context": "Payload sai schema có tính lặp lại; queue có thể có hoặc chưa có đường dead-letter tùy phần câu hỏi.",
+      "code": null,
+      "hint": "Tách lỗi vĩnh viễn",
+      "nextHint": "Giới hạn retry",
+      "followUp": "Consumer luôn thất bại với một payload sai schema và nack requeue=true. Queue bận mãi với message đó. Bạn thiết kế đường xử lý lỗi lâu dài thế nào?",
+      "englishFollowUp": "A consumer always fails on a malformed payload and nacks with requeue=true. The queue remains busy with it. How would you design the permanent-failure path?",
+      "outline": [
+        "Tách lỗi vĩnh viễn",
+        "Giới hạn retry",
+        "Cấu hình DLX rõ"
+      ],
+      "shortAnswer": "Không, phải có cấu hình đường dead-letter phù hợp.",
+      "explanation": "Phân loại lỗi vĩnh viễn, giới hạn retry và chuyển dead-letter theo cấu hình để điều tra. Nack requeue=false có thể dead-letter nếu queue đã cấu hình DLX; nếu chưa cấu hình, message có thể bị bỏ. DLQ cần cảnh báo, quyền truy cập và quy trình sửa/replay kiểm soát, không phải thùng rác không ai xem.",
+      "alternative": "Validate schema sớm và ghi lý do thất bại không chứa bí mật.",
+      "trap": "Dùng retry vô hạn cho mọi lỗi để chứng minh không mất dữ liệu.",
+      "rubric": [
+        "Tách lỗi vĩnh viễn",
+        "Giới hạn retry",
+        "Cấu hình DLX rõ",
+        "Có điều tra và replay"
+      ],
+      "source": "https://www.rabbitmq.com/docs/dlx",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, mọi queue tự có DLQ mặc định.",
+          "Không, phải có cấu hình đường dead-letter phù hợp."
+        ],
+        "en": [
+          "Yes; every queue automatically has a default DLQ.",
+          "No; an appropriate dead-letter route must be configured."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Queue không có DLQ mặc định tự động cho mọi nack; không có đường dead-letter thì message có thể bị bỏ thay vì được lưu ở một DLQ.",
+          "Nack với requeue=false không tự tạo DLQ. Cần cấu hình DLX, đích và routing phù hợp nếu muốn giữ message để điều tra."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-mqduplicate-boundary",
+    "content": {
+      "title": "Lặp message không lặp cộng tiền",
+      "topic": "systems",
+      "subtopic": "Lặp message không lặp cộng tiền",
+      "tags": [
+        "idempotent consumer",
+        "unique constraint",
+        "ledger"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 9,
+      "technology": "RabbitMQ 4.x / AMQP 0-9-1",
+      "prompt": "Consumer nhận cùng payment event hai lần sau reconnect. Bảng ledger đang cộng tiền mỗi lần nhận. Bạn bảo vệ tác động như thế nào?",
+      "englishPrompt": "A consumer receives the same payment event twice after reconnecting. Its ledger credits money on every delivery. How would you protect the effect?",
+      "context": "Một business operation có ID ổn định; nhiều consumer hoặc các lần reconnect có thể cùng xử lý.",
+      "code": null,
+      "hint": "Nêu stable operation ID",
+      "nextHint": "Gộp dedup và effect",
+      "followUp": "Hai event ID khác nhau cùng nói về một lần thanh toán nghiệp vụ. Bạn chọn identity cho dedup và quy tắc cập nhật ledger thế nào để không chỉ chống được bản sao có cùng message ID?",
+      "englishFollowUp": "Two different event IDs refer to the same business payment. How would you choose deduplication identity and ledger rules so that protection is not limited to messages sharing one message ID?",
+      "outline": [
+        "Nêu stable operation ID",
+        "Gộp dedup và effect",
+        "Chống concurrency bằng constraint"
+      ],
+      "shortAnswer": "Dùng định danh nghiệp vụ ổn định và bảo đảm ghi dấu đã xử lý cùng tác động trong một transaction phù hợp.",
+      "explanation": "Dùng định danh nghiệp vụ ổn định và bảo đảm ghi dấu đã xử lý cùng tác động trong một transaction phù hợp. Kiểm tra đã xử lý rồi ghi riêng có khoảng đua hoặc crash. Unique key cho operation trong cùng nơi lưu ledger giúp các request cạnh tranh chỉ tạo một tác động. Idempotency phải theo tác động nghiệp vụ, không chỉ ID của từng lần delivery.",
+      "alternative": "Nếu dịch vụ đích hỗ trợ idempotency key, dùng key ổn định xuyên suốt retry.",
+      "trap": "Tin reconnect tạo exactly-once hoặc chỉ giữ HashSet trong RAM.",
+      "rubric": [
+        "Nêu stable operation ID",
+        "Gộp dedup và effect",
+        "Chống concurrency bằng constraint",
+        "Không dùng RAM làm bằng chứng bền"
+      ],
+      "source": "https://www.rabbitmq.com/docs/reliability",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-mqorder-boundary",
+    "content": {
+      "title": "Thứ tự nhận khác thứ tự hoàn tất",
+      "topic": "systems",
+      "subtopic": "Thứ tự nhận khác thứ tự hoàn tất",
+      "tags": [
+        "message ordering",
+        "consumer concurrency",
+        "entity version"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "RabbitMQ 4.x / AMQP 0-9-1",
+      "prompt": "Worker xử lý Cancelled xong trước Created. Có nhất thiết broker đã đảo thứ tự enqueue không?",
+      "englishPrompt": "Cancelled finishes before Created. Must the broker have reversed enqueue order?",
+      "context": "Mỗi đơn có chuỗi event phụ thuộc trạng thái; thời gian xử lý của các consumer không bằng nhau.",
+      "code": null,
+      "hint": "Tách delivery và completion",
+      "nextHint": "Nêu cạnh tranh",
+      "followUp": "Hai message cùng đơn hàng vào queue theo thứ tự Created rồi Cancelled. Hai consumer xử lý song song. Có thể dựa vào FIFO để chắc Created hoàn tất trước không?",
+      "englishFollowUp": "Created and then Cancelled for one order enter a queue in that order. Two consumers process concurrently. Does FIFO guarantee that Created finishes first?",
+      "outline": [
+        "Tách delivery và completion",
+        "Nêu cạnh tranh",
+        "Serialize theo key nếu cần"
+      ],
+      "shortAnswer": "Không, thời gian xử lý song song đủ gây hiện tượng.",
+      "explanation": "Không; phân phối và hoàn tất là hai thứ tự khác nhau, concurrency và redelivery có thể làm thay đổi thứ tự quan sát. Nếu nghiệp vụ cần thứ tự theo đơn hàng, chọn partition/consumer serialization phù hợp và kiểm tra version hoặc trạng thái. Không cần ép toàn hệ thống tuần tự nếu chỉ yêu cầu theo key; vẫn xử lý event đến muộn.",
+      "alternative": "Thiết kế handler chấp nhận trạng thái đã tiến xa và bỏ qua event cũ có kiểm chứng.",
+      "trap": "Coi một queue FIFO là bảo đảm thứ tự commit trên nhiều worker.",
+      "rubric": [
+        "Tách delivery và completion",
+        "Nêu cạnh tranh",
+        "Serialize theo key nếu cần",
+        "Xử lý event cũ"
+      ],
+      "source": "https://www.rabbitmq.com/docs/queues",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, thời gian xử lý song song đủ gây hiện tượng.",
+          "Có, FIFO bắt buộc mọi tác vụ hoàn tất đúng thứ tự."
+        ],
+        "en": [
+          "No; concurrent processing time alone can cause it.",
+          "Yes; FIFO forces all work to finish in order."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Enqueue order và completion order khác nhau: hai worker có thời gian xử lý khác nhau nên Cancelled có thể xong trước Created dù delivery vẫn theo thứ tự.",
+          "FIFO không buộc các tác vụ xử lý song song commit hoặc hoàn tất đúng thứ tự; cần cơ chế tuần tự hóa riêng nếu nghiệp vụ yêu cầu điều đó."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-circuit-boundary",
+    "content": {
+      "title": "Half-open để thăm dò hồi phục",
+      "topic": "systems",
+      "subtopic": "Half-open để thăm dò hồi phục",
+      "tags": [
+        "circuit breaker",
+        "half-open",
+        "recovery probe"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "System architecture principles",
+      "prompt": "Dependency hỏng liên tục và circuit đã mở. Hết thời gian chờ, vì sao chỉ cho một số request thăm dò thay vì cho toàn bộ traffic ngay?",
+      "englishPrompt": "A dependency repeatedly fails and its circuit is open. When the waiting period ends, why allow only a few probes rather than all traffic immediately?",
+      "context": "Circuit breaker theo dõi lỗi dependency; thời gian chờ không phải bằng chứng dependency đã phục hồi.",
+      "code": null,
+      "hint": "Nêu probe hữu hạn",
+      "nextHint": "Bảo vệ phục hồi",
+      "followUp": "Health endpoint của dependency đã trả 200 nhưng thao tác ghi thật vẫn lỗi. Bạn chọn request thăm dò và tiêu chí đóng circuit thế nào để phép đo phản ánh luồng cần bảo vệ?",
+      "englishFollowUp": "The dependency’s health endpoint returns 200, but real writes still fail. How would you choose probe requests and circuit-closing criteria that reflect the operation being protected?",
+      "outline": [
+        "Nêu probe hữu hạn",
+        "Bảo vệ phục hồi",
+        "Đóng hoặc mở theo kết quả"
+      ],
+      "shortAnswer": "Half-open kiểm tra khả năng hồi phục với tải nhỏ, tránh làm dependency vừa hồi phục bị ngập.",
+      "explanation": "Half-open kiểm tra khả năng hồi phục với tải nhỏ, tránh làm dependency vừa hồi phục bị ngập. Open fail fast thay vì liên tục gọi dependency đang hỏng. Probe thành công đủ điều kiện mới đóng circuit; probe thất bại mở lại. Chính sách cần phân biệt lỗi dependency với lỗi input để không mở circuit vì request sai của client.",
+      "alternative": "Kết hợp timeout và fallback hợp lệ; circuit không sửa dữ liệu hay tự retry mọi request.",
+      "trap": "Coi hết timer là bằng chứng dependency chắc chắn khỏe.",
+      "rubric": [
+        "Nêu probe hữu hạn",
+        "Bảo vệ phục hồi",
+        "Đóng hoặc mở theo kết quả",
+        "Chọn lỗi được đếm"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-retry-boundary",
+    "content": {
+      "title": "Retry nhân lên qua nhiều tầng",
+      "topic": "systems",
+      "subtopic": "Retry nhân lên qua nhiều tầng",
+      "tags": [
+        "retry budget",
+        "backoff",
+        "jitter"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "System architecture principles",
+      "prompt": "Timeout tổng còn 100 ms nhưng lần retry cần timeout 2 giây. Có nên bắt đầu như cũ không?",
+      "englishPrompt": "Only 100 ms remains in the total budget, but a retry uses a 2-second timeout. Should it start unchanged?",
+      "context": "Nhiều tầng độc lập đang retry cùng một dependency; request có deadline tổng và tài nguyên hữu hạn.",
+      "code": null,
+      "hint": "Nhận diện khuếch đại",
+      "nextHint": "Có tổng deadline",
+      "followUp": "Gateway retry ba lần, API retry ba lần và SDK cũng retry ba lần khi dependency chậm. Vì sao thêm retry có thể làm sự cố nặng hơn?",
+      "englishFollowUp": "A gateway retries three times, an API retries three times, and its SDK retries three times when a dependency slows. Why can more retries worsen the incident?",
+      "outline": [
+        "Nhận diện khuếch đại",
+        "Có tổng deadline",
+        "Backoff jitter hữu hạn"
+      ],
+      "shortAnswer": "Không, tôn trọng ngân sách tổng và dừng khi không phù hợp.",
+      "explanation": "Retry lồng nhau nhân số attempt, tiêu ngân sách thời gian và tăng tải lên dependency đang yếu. Chọn một nơi chịu trách nhiệm retry chủ đạo, số lần hữu hạn, backoff và jitter trong deadline tổng. Chỉ retry lỗi có khả năng tạm thời; thao tác ghi phải có hợp đồng idempotency khi kết quả trước không rõ.",
+      "alternative": "Fail fast hoặc degraded mode khi retry không còn cơ hội hoàn tất trong ngân sách.",
+      "trap": "Mỗi lớp tự retry càng nhiều thì xác suất thành công luôn tăng.",
+      "rubric": [
+        "Nhận diện khuếch đại",
+        "Có tổng deadline",
+        "Backoff jitter hữu hạn",
+        "Chọn lỗi và idempotency"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/retry",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, mỗi tầng có quyền bỏ qua deadline ngoài.",
+          "Không, tôn trọng ngân sách tổng và dừng khi không phù hợp."
+        ],
+        "en": [
+          "Yes; each layer may ignore the outer deadline.",
+          "No; honor the total budget and stop when inappropriate."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Timeout của từng tầng không cho phép bỏ qua deadline đầu cuối; retry như cũ có thể kéo dài request và tăng tải sau khi caller không còn chờ.",
+          "Attempt mới phải nằm trong ngân sách tổng còn lại. Chỉ còn 100 ms thì không nên bắt đầu nguyên trạng một attempt có timeout 2 giây."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-bulkhead-boundary",
+    "content": {
+      "title": "Tách tài nguyên cho dependency chậm",
+      "topic": "systems",
+      "subtopic": "Tách tài nguyên cho dependency chậm",
+      "tags": [
+        "bulkhead",
+        "resource isolation",
+        "cascading failure"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "System architecture principles",
+      "prompt": "Partner A treo làm hết connection slot dùng chung, khiến báo cáo nội bộ không gọi partner cũng chậm. Bulkhead nên tách gì?",
+      "englishPrompt": "A hung partner A exhausts shared connection slots and slows internal reports that do not call that partner. What should a bulkhead isolate?",
+      "context": "Các workload hiện chia sẻ tài nguyên hữu hạn; lỗi chậm của một dependency có thể giữ slot lâu.",
+      "code": null,
+      "hint": "Nêu failure isolation",
+      "nextHint": "Chọn đúng tài nguyên",
+      "followUp": "Đã tách HTTP connection pool nhưng hai workload vẫn tranh cùng DB pool và CPU. Bạn chứng minh mức cô lập thực tế và tìm ranh giới tài nguyên còn thiếu bằng cách nào?",
+      "englishFollowUp": "HTTP connection pools are isolated, but the workloads still compete for a shared database pool and CPU. How would you establish actual isolation and identify missing resource boundaries?",
+      "outline": [
+        "Nêu failure isolation",
+        "Chọn đúng tài nguyên",
+        "Giới hạn từng phần"
+      ],
+      "shortAnswer": "Tách hoặc giới hạn pool/concurrency theo workload hay dependency để lỗi A không chiếm toàn bộ tài nguyên.",
+      "explanation": "Tách hoặc giới hạn pool/concurrency theo workload hay dependency để lỗi A không chiếm toàn bộ tài nguyên. Đặt timeout thôi chưa đủ nếu mọi slot vẫn bị chiếm trong lúc chờ. Tài nguyên dự phòng và queue hữu hạn giúp giữ chức năng khác. Chọn mức cô lập theo tài nguyên thật đang cạn; đừng tạo pool không giới hạn.",
+      "alternative": "Ưu tiên riêng tài nguyên cho luồng quan trọng khi có yêu cầu dịch vụ khác nhau.",
+      "trap": "Chỉ tăng pool chung vô hạn để mọi cuộc gọi cùng chờ lâu hơn.",
+      "rubric": [
+        "Nêu failure isolation",
+        "Chọn đúng tài nguyên",
+        "Giới hạn từng phần",
+        "Giữ chức năng khác"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/bulkhead",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-compensate-boundary",
+    "content": {
+      "title": "Bù nghiệp vụ không phải quay ngược thời gian",
+      "topic": "systems",
+      "subtopic": "Bù nghiệp vụ không phải quay ngược thời gian",
+      "tags": [
+        "compensation",
+        "saga",
+        "refund reconciliation"
+      ],
+      "format": "quiz",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 4,
+      "technology": "System architecture principles",
+      "prompt": "Lần hoàn tiền bị timeout, kết quả chưa rõ. Retry bằng refund ID mới có an toàn mặc định không?",
+      "englishPrompt": "A refund times out with an unknown outcome. Is retrying under a new refund ID safe by default?",
+      "context": "Workflow đi qua nhiều hệ thống đã commit độc lập; không có transaction chung rollback tất cả.",
+      "code": null,
+      "hint": "Nêu bù theo nghiệp vụ",
+      "nextHint": "Giữ audit",
+      "followUp": "Workflow đặt chỗ đã thanh toán nhưng bước đặt phòng thất bại. Vì sao compensation không nhất thiết khôi phục chính xác mọi dữ liệu về trạng thái ban đầu?",
+      "englishFollowUp": "A booking workflow charges payment but the hotel reservation fails. Why may compensation not restore every datum exactly to its original state?",
+      "outline": [
+        "Nêu bù theo nghiệp vụ",
+        "Giữ audit",
+        "Bù chịu được retry"
+      ],
+      "shortAnswer": "Không, cần identity ổn định và đối chiếu trạng thái để tránh hoàn hai lần.",
+      "explanation": "Bù là hành động nghiệp vụ như hoàn tiền có dấu vết; không xóa lịch sử như chưa có thanh toán. Các hệ thống có thể đã quan sát bước trước và chính sách có phí hoặc thời gian hoàn khác nhau. Lưu tiến độ và dữ liệu cần để bù, cho phép retry an toàn và xử lý thủ công khi bù thất bại. Không giữ một SQL transaction xuyên mọi dịch vụ.",
+      "alternative": "Giữ trạng thái refund-pending minh bạch khi nhà cung cấp hoàn tiền bất đồng bộ.",
+      "trap": "Đặt lại số dư bằng snapshot cũ và xóa lịch sử giao dịch.",
+      "rubric": [
+        "Nêu bù theo nghiệp vụ",
+        "Giữ audit",
+        "Bù chịu được retry",
+        "Xử lý bù thất bại"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/compensating-transaction",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, cần identity ổn định và đối chiếu trạng thái để tránh hoàn hai lần.",
+          "Có, timeout chứng minh refund đầu chưa chạy."
+        ],
+        "en": [
+          "No; use stable identity and reconcile status to avoid double refunds.",
+          "Yes; timeout proves the first refund did not run."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Timeout để lại kết quả chưa biết: refund đầu có thể đã thành công. Giữ identity ổn định và đối chiếu trạng thái giúp retry an toàn, tránh hoàn hai lần.",
+          "Không nhận response không chứng minh refund chưa chạy; dùng ID mới có thể tạo một tác động hoàn tiền mới thay vì nhận lại kết quả lần trước."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-strangler-boundary",
+    "content": {
+      "title": "Thay từng luồng của legacy",
+      "topic": "systems",
+      "subtopic": "Thay từng luồng của legacy",
+      "tags": [
+        "Strangler Fig",
+        "legacy migration",
+        "data ownership"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "System architecture principles",
+      "prompt": "Legacy có nhiều nghiệp vụ nhưng chỉ catalog cần thay trước. Bạn dùng Strangler Fig để giảm rủi ro triển khai thế nào?",
+      "englishPrompt": "A legacy application has many capabilities, but only catalog needs replacing first. How would Strangler Fig reduce migration risk?",
+      "context": "Legacy phải tiếp tục phục vụ các nghiệp vụ chưa thay; có thể chèn ranh giới routing có kiểm soát.",
+      "code": null,
+      "hint": "Nêu chuyển từng phần",
+      "nextHint": "Có routing boundary",
+      "followUp": "Catalog mới ghi theo schema mà legacy không đọc được. Bạn xác định quyền sở hữu dữ liệu và khả năng quay lui trước khi chuyển thêm traffic như thế nào?",
+      "englishFollowUp": "The new catalog writes a schema that the legacy implementation cannot read. How would you establish data ownership and rollback feasibility before shifting more traffic?",
+      "outline": [
+        "Nêu chuyển từng phần",
+        "Có routing boundary",
+        "Chốt data ownership"
+      ],
+      "shortAnswer": "Đưa ranh giới định tuyến trước legacy, chuyển catalog sang phần mới từng bước và giữ các luồng còn lại hoạt động.",
+      "explanation": "Đưa ranh giới định tuyến trước legacy, chuyển catalog sang phần mới từng bước và giữ các luồng còn lại hoạt động. Xác định ownership dữ liệu, hợp đồng và khả năng quay routing về đường cũ. Theo dõi hành vi và tải thực tế trước khi gỡ legacy. Lớp trung gian cũng phải vận hành tin cậy; không chỉ đổi URL rồi bỏ qua phụ thuộc dữ liệu.",
+      "alternative": "Chọn một lát nghiệp vụ nhỏ có thể kiểm chứng thay vì viết lại mọi tầng cùng lúc.",
+      "trap": "Xóa legacy ngay khi service catalog chạy trên máy developer.",
+      "rubric": [
+        "Nêu chuyển từng phần",
+        "Có routing boundary",
+        "Chốt data ownership",
+        "Có quan sát và rollback"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-cqrs-boundary",
+    "content": {
+      "title": "CQRS không bắt buộc hai database",
+      "topic": "systems",
+      "subtopic": "CQRS không bắt buộc hai database",
+      "tags": [
+        "CQRS",
+        "read model",
+        "shared data store"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "System architecture principles",
+      "prompt": "Đọc và ghi dùng chung DB nhưng handler/model riêng. Có nhất thiết cần broker để gọi đó là CQRS không?",
+      "englishPrompt": "Reads and writes share a DB but use separate handlers/models. Is a broker mandatory for CQRS?",
+      "context": "Đọc báo cáo và ghi đơn hàng có nhu cầu model khác nhau; chưa có yêu cầu tách database vật lý.",
+      "code": null,
+      "hint": "Nêu tách model",
+      "nextHint": "Cho phép chung store",
+      "followUp": "Team muốn tách model đọc báo cáo khỏi lệnh cập nhật đơn hàng nhưng vẫn dùng cùng SQL Server database. Có mâu thuẫn với CQRS không?",
+      "englishFollowUp": "A team separates reporting read models from order-update commands while keeping one SQL Server database. Does that contradict CQRS?",
+      "outline": [
+        "Nêu tách model",
+        "Cho phép chung store",
+        "Không bắt buộc event sourcing"
+      ],
+      "shortAnswer": "Không, broker không phải điều kiện bắt buộc.",
+      "explanation": "Không; CQRS tách trách nhiệm và model đọc/ghi, có thể dùng chung data store. Data store riêng là một biến thể có thêm chi phí đồng bộ và eventual consistency. Bắt đầu từ nhu cầu query/write thật, không kéo event sourcing hay broker vào chỉ vì tên pattern. Nếu tách store sau này, phải thiết kế lag và recovery.",
+      "alternative": "Với CRUD đơn giản, một model có thể đủ và ít chi phí hơn.",
+      "trap": "Định nghĩa CQRS là luôn có hai DB cùng event sourcing.",
+      "rubric": [
+        "Nêu tách model",
+        "Cho phép chung store",
+        "Không bắt buộc event sourcing",
+        "Nêu chi phí nếu tách store"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, broker không phải điều kiện bắt buộc.",
+          "Có, mọi CQRS phải đi qua message broker."
+        ],
+        "en": [
+          "No; a broker is not mandatory.",
+          "Yes; all CQRS must use a message broker."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "CQRS tách model/trách nhiệm đọc và ghi; broker không phải thành phần bắt buộc, và biến thể dùng chung database vẫn có thể đáp ứng pattern.",
+          "Broker là lựa chọn triển khai cho một số thiết kế bất đồng bộ, không phải điều kiện định nghĩa CQRS hay lý do bắt buộc hai database."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-tenantkey-boundary",
+    "content": {
+      "title": "Cache key phải giữ ranh giới tenant",
+      "topic": "systems",
+      "subtopic": "Cache key phải giữ ranh giới tenant",
+      "tags": [
+        "tenant isolation",
+        "cache key",
+        "authorization"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "System architecture principles",
+      "prompt": "Hai tenant đều có ProductId=15. Cache dùng product:15 nên người dùng tenant B có thể nhận dữ liệu tenant A. Bạn sửa hợp đồng key thế nào?",
+      "englishPrompt": "Two tenants both have ProductId=15. The cache uses product:15 and tenant B can receive tenant A data. How should the key contract change?",
+      "context": "Product ID chỉ duy nhất trong tenant; người dùng không được tự chọn tenant ngoài quyền đã xác minh.",
+      "code": null,
+      "hint": "Nêu tenant trong key",
+      "nextHint": "Dùng tenant tin cậy",
+      "followUp": "Một user vừa chuyển tenant nhưng session và cache cũ còn sống. Bạn xác định khi nào phải đánh giá lại membership và những test nào chứng minh dữ liệu tenant cũ không bị lộ?",
+      "englishFollowUp": "A user has moved to another tenant while the old session and cache entries remain live. When must membership be reevaluated, and which tests would demonstrate that the previous tenant’s data is not exposed?",
+      "outline": [
+        "Nêu tenant trong key",
+        "Dùng tenant tin cậy",
+        "Giữ authorization"
+      ],
+      "shortAnswer": "Đưa tenant identity tin cậy vào namespace key và giữ kiểm tra quyền khi đọc dữ liệu.",
+      "explanation": "Đưa tenant identity tin cậy vào namespace key và giữ kiểm tra quyền khi đọc dữ liệu. Key phải bao gồm mọi chiều làm thay đổi kết quả, không chỉ ID cục bộ. Tenant lấy từ context đã xác minh, không tin header tùy ý. Prefix tránh va chạm nhưng không tự là cơ chế phân quyền truy cập Redis.",
+      "alternative": "Nếu yêu cầu cô lập cao, chọn cache instance hoặc cơ chế ACL phù hợp cùng ranh giới vận hành.",
+      "trap": "Chỉ tăng TTL để giảm số lần ghi đè cache.",
+      "rubric": [
+        "Nêu tenant trong key",
+        "Dùng tenant tin cậy",
+        "Giữ authorization",
+        "Prefix không thay ACL"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/guide/multitenant/service/managed-redis",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-negativecache-boundary",
+    "content": {
+      "title": "Cache kết quả không tồn tại",
+      "topic": "systems",
+      "subtopic": "Cache kết quả không tồn tại",
+      "tags": [
+        "negative caching",
+        "not found",
+        "cache sentinel"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "System architecture principles",
+      "prompt": "DB timeout khi tìm mã. Có nên lưu not-found sentinel không?",
+      "englishPrompt": "The database times out during a code lookup. Should a not-found sentinel be stored?",
+      "context": "Nguồn chính phân biệt not-found với lỗi truy cập; dữ liệu mới có thể được tạo sau lần tìm vắng.",
+      "code": null,
+      "hint": "Phân biệt ba trạng thái",
+      "nextHint": "Nêu sentinel",
+      "followUp": "Lookup một mã không tồn tại bị gọi liên tục. Team muốn cache kết quả vắng mặt. Cần phân biệt những trạng thái nào để không cache lỗi mạng thành không có dữ liệu?",
+      "englishFollowUp": "A nonexistent code is looked up repeatedly. The team wants to cache absence. Which states must remain distinct so network failures are not cached as missing data?",
+      "outline": [
+        "Phân biệt ba trạng thái",
+        "Nêu sentinel",
+        "TTL và create invalidation"
+      ],
+      "shortAnswer": "Không, kết quả chưa xác định.",
+      "explanation": "Phân biệt miss cache, kết quả không tìm thấy từ nguồn có thẩm quyền và lỗi truy cập nguồn. Dùng sentinel hoặc kiểu kết quả rõ cho not-found và thời hạn ngắn phù hợp khả năng tạo dữ liệu mới. Khi có create, cập nhật hoặc vô hiệu hóa negative entry. Timeout DB không phải bằng chứng bản ghi không tồn tại.",
+      "alternative": "Không negative-cache nếu dữ liệu có thể xuất hiện ngay và stale absence không được chấp nhận.",
+      "trap": "Cache mọi exception thành null trong một giờ.",
+      "rubric": [
+        "Phân biệt ba trạng thái",
+        "Nêu sentinel",
+        "TTL và create invalidation",
+        "Không cache exception thành absence"
+      ],
+      "source": "https://aws.amazon.com/builders-library/caching-challenges-and-strategies/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, không nhận được hàng tức là không tồn tại.",
+          "Không, kết quả chưa xác định."
+        ],
+        "en": [
+          "Yes; receiving no row proves absence.",
+          "No; the outcome is unknown."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Không nhận được hàng do lỗi truy cập khác với truy vấn thành công trả không có hàng. Cache timeout thành not-found sẽ tạo dữ liệu âm sai.",
+          "DB timeout nghĩa là chưa biết kết quả lookup; không có bằng chứng not-found từ nguồn có thẩm quyền để cache thành vắng mặt."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "systems-cacheversion-boundary",
+    "content": {
+      "title": "Schema cache qua rolling deployment",
+      "topic": "systems",
+      "subtopic": "Schema cache qua rolling deployment",
+      "tags": [
+        "cache schema",
+        "rolling deployment",
+        "serialization"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "System architecture principles",
+      "prompt": "Bản app mới đổi kiểu payload cache, bản cũ vẫn chạy và đọc cùng key. Bạn giảm lỗi deserialize trong rolling deployment thế nào?",
+      "englishPrompt": "A new application version changes the cache payload type while old replicas still read the same key. How would you reduce deserialization failures during rolling deployment?",
+      "context": "Trong rolling deployment, replica cũ và mới cùng hoạt động; cache payload không được xem là private của một process.",
+      "code": null,
+      "hint": "Nêu tương thích reader",
+      "nextHint": "Dùng schema namespace",
+      "followUp": "Hai namespace v1/v2 làm tăng bộ nhớ trong khi bản cũ còn phục vụ traffic. Bạn lập kế hoạch warm-up, retirement và rollback theo tín hiệu nào để tránh dọn v1 quá sớm?",
+      "englishFollowUp": "Keeping v1 and v2 namespaces increases memory while old replicas still serve traffic. Which signals would guide warm-up, retirement, and rollback without deleting v1 too early?",
+      "outline": [
+        "Nêu tương thích reader",
+        "Dùng schema namespace",
+        "Xét bộ nhớ và cold miss"
+      ],
+      "shortAnswer": "Thiết kế payload tương thích hoặc namespace theo phiên bản schema; không đổi định dạng ngầm trên cùng key đang dùng.",
+      "explanation": "Thiết kế payload tương thích hoặc namespace theo phiên bản schema; không đổi định dạng ngầm trên cùng key đang dùng. Phân biệt app version với schema version để tránh invalidate vô ích mỗi build. Khi đổi namespace cần xét bộ nhớ tăng tạm, TTL dọn key cũ và cold-start load. Đọc payload lỗi có thể bỏ entry và tải nguồn theo giới hạn tài nguyên.",
+      "alternative": "Nếu thay đổi chỉ thêm trường tùy chọn tương thích, giữ schema version và kiểm thử cả hai reader.",
+      "trap": "Flush toàn bộ Redis dùng chung mỗi lần deploy mà không xét tenant khác.",
+      "rubric": [
+        "Nêu tương thích reader",
+        "Dùng schema namespace",
+        "Xét bộ nhớ và cold miss",
+        "Dọn key cũ có TTL"
+      ],
+      "source": "https://aws.amazon.com/builders-library/caching-challenges-and-strategies/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "systems-cachefailure-boundary",
+    "content": {
+      "title": "Cache hỏng có thể kéo sập DB",
+      "topic": "systems",
+      "subtopic": "Cache hỏng có thể kéo sập DB",
+      "tags": [
+        "cache outage",
+        "fallback budget",
+        "load shedding"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "System architecture principles",
+      "prompt": "DB gần hết connection pool trong sự cố cache. Tăng retry ở mọi request có giúp chắc chắn không?",
+      "englishPrompt": "The DB pool is almost exhausted during a cache outage. Will increasing retries on every request reliably help?",
+      "context": "Cache hit rate bình thường cao; dung lượng DB được cấp theo tải miss thường ngày và không tự tăng tức thì.",
+      "code": null,
+      "hint": "Nêu khuếch đại tải",
+      "nextHint": "Giới hạn fallback",
+      "followUp": "Khi Redis mất kết nối, mọi request cùng fallback xuống DB. Bình thường DB chỉ chịu 5% traffic nhờ hit rate cao. Cần bảo vệ đường fallback thế nào?",
+      "englishFollowUp": "When Redis disconnects, every request falls back to the DB. Normally the DB handles only 5% of traffic because cache hit rates are high. How should the fallback path be protected?",
+      "outline": [
+        "Nêu khuếch đại tải",
+        "Giới hạn fallback",
+        "Có degraded contract"
+      ],
+      "shortAnswer": "Không, retry có thể khuếch đại quá tải.",
+      "explanation": "Giới hạn tải xuống DB, timeout ngắn cho cache và có degraded mode hoặc từ chối có kiểm soát khi vượt ngân sách. Cache là lớp tối ưu nhưng bỏ nó đi không có nghĩa nguồn chịu được tải gấp nhiều lần. Load-test trạng thái cache unavailable và cold cache, theo dõi DB concurrency; tránh retry Redis kéo dài trước mỗi fallback.",
+      "alternative": "Cho trả stale dữ liệu đã được phép lưu cục bộ chỉ khi hợp đồng sản phẩm và quyền cho phép.",
+      "trap": "Bỏ mọi giới hạn để mọi request đều đến DB cho chắc đúng.",
+      "rubric": [
+        "Nêu khuếch đại tải",
+        "Giới hạn fallback",
+        "Có degraded contract",
+        "Test cache-down"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, retry càng nhiều tải DB càng giảm.",
+          "Không, retry có thể khuếch đại quá tải."
+        ],
+        "en": [
+          "Yes; more retries always reduce DB load.",
+          "No; retries can amplify overload."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Thêm retry không tự giảm số kết nối hay tải DB; khi dependency quá tải, nhiều attempt thường làm tình trạng nặng hơn.",
+          "Retry tạo thêm attempt lên DB đang gần cạn pool và có thể khuếch đại quá tải. Cần giới hạn concurrency, ngân sách retry và degraded mode phù hợp."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-gitfetch-boundary",
+    "content": {
+      "title": "Fetch không tích hợp vào nhánh đang làm",
+      "topic": "delivery",
+      "subtopic": "Fetch không tích hợp vào nhánh đang làm",
+      "tags": [
+        "git fetch",
+        "remote-tracking refs",
+        "git pull"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": "Git 2.50+",
+      "prompt": "Bạn muốn xem main trên remote mới có gì mà chưa thay đổi feature branch hiện tại. Fetch khác pull ở điểm nào cho nhu cầu này?",
+      "englishPrompt": "You want to inspect new remote main commits without changing your current feature branch. How does fetch differ from pull for this need?",
+      "context": "Feature branch chưa cần tích hợp remote; refspec thông thường cập nhật origin tracking refs.",
+      "code": null,
+      "hint": "Nêu tải và cập nhật refs",
+      "nextHint": "Không tự tích hợp",
+      "followUp": "Remote main vừa bị rewrite và fetch làm remote-tracking ref đổi sang lịch sử khác. Trước khi tích hợp vào feature, bạn kiểm tra chênh lệch lịch sử và phối hợp với team ra sao?",
+      "englishFollowUp": "Remote main has been rewritten, and fetching moves its remote-tracking ref to a different history. Before integrating into the feature branch, how would you inspect the divergence and coordinate with the team?",
+      "outline": [
+        "Nêu tải và cập nhật refs",
+        "Không tự tích hợp",
+        "Tách local và tracking"
+      ],
+      "shortAnswer": "Fetch tải object và cập nhật refs theo refspec; không tự merge hoặc rebase vào feature branch hiện tại.",
+      "explanation": "Fetch tải object và cập nhật refs theo refspec; không tự merge hoặc rebase vào feature branch hiện tại. Sau fetch có thể xem origin/main và diff/log trước khi chọn cách tích hợp. Pull thường thực hiện fetch rồi tích hợp theo cấu hình. Không nhầm remote-tracking ref với local branch đang checkout.",
+      "alternative": "Dùng fetch tường minh trước một quyết định merge/rebase để dễ review lịch sử.",
+      "trap": "Nghĩ fetch luôn merge remote main vào mọi nhánh local.",
+      "rubric": [
+        "Nêu tải và cập nhật refs",
+        "Không tự tích hợp",
+        "Tách local và tracking",
+        "Đọc diff trước quyết định"
+      ],
+      "source": "https://git-scm.com/docs/git-fetch",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-gitconflict-boundary",
+    "content": {
+      "title": "Giải conflict bằng ý định hai bên",
+      "topic": "delivery",
+      "subtopic": "Giải conflict bằng ý định hai bên",
+      "tags": [
+        "merge conflict",
+        "semantic merge",
+        "staged diff"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "Git 2.50+",
+      "prompt": "File hết marker nhưng bỏ mất điều kiện miễn phí mới. Merge đã đúng về nghiệp vụ chưa?",
+      "englishPrompt": "Markers are gone but a new free-shipping condition was lost. Is the merge semantically correct?",
+      "context": "Hai nhánh đều sửa hành vi tính phí có ý nghĩa nghiệp vụ; kết quả phải được review sau khi hết marker.",
+      "code": null,
+      "hint": "Đọc ý định hai bên",
+      "nextHint": "Giải marker đúng",
+      "followUp": "Merge báo conflict ở công thức tính phí. Bạn có thể chọn toàn bộ ours hoặc theirs rồi commit ngay không? Nêu quy trình review kết quả.",
+      "englishFollowUp": "A merge conflicts in fee calculation. Can you simply choose all of ours or theirs and commit? Describe how to review the result.",
+      "outline": [
+        "Đọc ý định hai bên",
+        "Giải marker đúng",
+        "Kiểm chứng hành vi phí"
+      ],
+      "shortAnswer": "Chưa, kết quả phải giữ hành vi đã thống nhất.",
+      "explanation": "Cần hiểu thay đổi của cả hai phía, kết hợp theo hành vi mong muốn rồi kiểm tra và stage kết quả. Xóa marker chỉ tạo file hợp cú pháp, chưa chứng minh công thức đúng. Xem base và ý định từng commit, chạy ca phí biên liên quan và review diff đã giải. Nếu chưa sẵn sàng, có thể abort merge thay vì ghi đè mất công việc.",
+      "alternative": "Commit hoặc stash thay đổi local trước khi merge để khả năng phục hồi rõ hơn.",
+      "trap": "Chọn ours vì code của mình luôn là phiên bản mới nhất.",
+      "rubric": [
+        "Đọc ý định hai bên",
+        "Giải marker đúng",
+        "Kiểm chứng hành vi phí",
+        "Review staged diff"
+      ],
+      "source": "https://git-scm.com/docs/git-merge",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Rồi, không còn marker là đủ.",
+          "Chưa, kết quả phải giữ hành vi đã thống nhất."
+        ],
+        "en": [
+          "Yes; removing markers is sufficient.",
+          "No; the result must preserve the agreed behavior."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Git không tự xác minh business rule. Một file merge sạch marker vẫn có thể mất hành vi từ một phía.",
+          "Hết marker chỉ chứng minh đã xử lý cú pháp conflict; bỏ điều kiện miễn phí đã thống nhất vẫn là regression nghiệp vụ và cần sửa, kiểm thử."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-gitrebase-boundary",
+    "content": {
+      "title": "Rebase tạo commit mới",
+      "topic": "delivery",
+      "subtopic": "Rebase tạo commit mới",
+      "tags": [
+        "git rebase",
+        "commit identity",
+        "parent commit"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Git 2.50+",
+      "prompt": "Feature riêng chưa ai dựa vào được rebase lên main mới. Vì sao commit ID của các thay đổi được phát lại có thể khác dù nội dung patch gần như cũ?",
+      "englishPrompt": "A private feature branch with no downstream users is rebased onto newer main. Why can replayed commits have different IDs even when their patches are nearly unchanged?",
+      "context": "Nhánh feature riêng chưa có người khác dựa vào; rebase đã được chọn theo quy ước team.",
+      "code": null,
+      "hint": "Nêu parent trong identity",
+      "nextHint": "Nêu replay tạo commit",
+      "followUp": "CI và một bản phê duyệt bảo mật đang tham chiếu commit ID trước rebase. Bạn xác định bằng chứng nào phải chạy hoặc xin lại sau rewrite, thay vì chỉ dựa vào patch nhìn giống nhau?",
+      "englishFollowUp": "CI and a security approval reference commit IDs from before a rebase. How would you decide which evidence must be rerun or renewed after rewriting rather than relying only on similar-looking patches?",
+      "outline": [
+        "Nêu parent trong identity",
+        "Nêu replay tạo commit",
+        "Kiểm tra sau resolve"
+      ],
+      "shortAnswer": "Commit chứa quan hệ parent và metadata, không chỉ diff; phát lại trên base mới tạo các commit mới.",
+      "explanation": "Commit chứa quan hệ parent và metadata, không chỉ diff; phát lại trên base mới tạo các commit mới. Rebase thay cách nối lịch sử, không chỉ đổi giao diện log. Sau khi resolve conflict cần kiểm tra lại hành vi. Với lịch sử người khác đã dùng, phối hợp trước khi rewrite; không áp dụng máy móc quy trình nhánh cá nhân cho main.",
+      "alternative": "Merge giữ lịch sử các commit đã có khi team ưu tiên không rewrite.",
+      "trap": "Cho rằng commit ID chỉ là hash nội dung file cuối.",
+      "rubric": [
+        "Nêu parent trong identity",
+        "Nêu replay tạo commit",
+        "Kiểm tra sau resolve",
+        "Phân biệt private và shared"
+      ],
+      "source": "https://git-scm.com/docs/git-rebase",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-gitlease-boundary",
+    "content": {
+      "title": "Force với expected remote cụ thể",
+      "topic": "delivery",
+      "subtopic": "Force với expected remote cụ thể",
+      "tags": [
+        "force-with-lease",
+        "expected ref",
+        "shared history"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "Git 2.50+",
+      "prompt": "Lease bị từ chối sau một push mới. Bước hợp lý tiếp theo là gì?",
+      "englishPrompt": "A lease is rejected after another push. What is the appropriate next step?",
+      "context": "Rewrite đã được thống nhất; expected remote tip được ghi lại tường minh trước khi người khác push.",
+      "code": null,
+      "hint": "Nêu expected remote tip",
+      "nextHint": "Từ chối khi khác",
+      "followUp": "Bạn đã thống nhất rewrite feature branch và ghi lại remote tip mong đợi. Trong lúc đó đồng nghiệp push commit mới. Force-with-lease với expected tip giúp gì?",
+      "englishFollowUp": "A feature-branch rewrite is agreed upon and you record the expected remote tip. A teammate then pushes another commit. What does force-with-lease with that explicit expected tip protect?",
+      "outline": [
+        "Nêu expected remote tip",
+        "Từ chối khi khác",
+        "Review thay đổi mới"
+      ],
+      "shortAnswer": "Đọc và phối hợp với thay đổi mới trước khi push lại.",
+      "explanation": "Từ chối cập nhật nếu remote tip hiện tại khác giá trị mong đợi, tránh ghi đè thay đổi chưa xem. Lease là phép kiểm tra trạng thái ref trước khi thay, không phải khóa remote hay bảo đảm hợp nhất đúng. Nếu thất bại, fetch và review thay đổi mới rồi phối hợp; không đổi sang force thường để vượt kiểm tra.",
+      "alternative": "Dùng expected commit tường minh để tránh phụ thuộc tracking ref bị background fetch cập nhật.",
+      "trap": "Xem lease như permission tự động xóa mọi commit của người khác.",
+      "rubric": [
+        "Nêu expected remote tip",
+        "Từ chối khi khác",
+        "Review thay đổi mới",
+        "Không vượt bằng force"
+      ],
+      "source": "https://git-scm.com/docs/git-push",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đọc và phối hợp với thay đổi mới trước khi push lại.",
+          "Dùng force thường ngay để bỏ bảo vệ."
+        ],
+        "en": [
+          "Inspect and coordinate around the new changes before another push.",
+          "Immediately use ordinary force to bypass the check."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Lease bị từ chối bảo vệ remote tip mới. Cần fetch/đọc commit mới và phối hợp trước khi quyết định rewrite lại với expected tip phù hợp.",
+          "Force thường bỏ qua kiểm tra tip mong đợi và có thể ghi đè commit đồng nghiệp vừa push; nó né bảo vệ thay vì giải quyết thay đổi mới."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "delivery-docksecret-boundary",
+    "content": {
+      "title": "Secret dùng khi build không nằm trong image",
+      "topic": "delivery",
+      "subtopic": "Secret dùng khi build không nằm trong image",
+      "tags": [
+        "BuildKit",
+        "secret mount",
+        "image layers"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Docker Engine / BuildKit",
+      "prompt": "Docker build cần token tải package private. Team dùng ARG rồi ghi token vào config trong image. Cách cấp secret nào phù hợp hơn?",
+      "englishPrompt": "A Docker build needs a private-package token. The team uses ARG and writes it to configuration in the image. What secret-delivery approach fits better?",
+      "context": "Token chỉ cần trong một bước build để tải dependency private; không phải runtime configuration của ứng dụng.",
+      "code": null,
+      "hint": "Nêu secret mount",
+      "nextHint": "Không ARG/ENV cho secret",
+      "followUp": "Lệnh restore dùng secret mount nhưng công cụ package ghi credential vào cache và artifact đầu ra. Bạn kiểm tra nơi lưu và thử nghiệm build thế nào để phát hiện rò rỉ ngoài layer mount?",
+      "englishFollowUp": "Restore uses a secret mount, but the package tool writes credentials into caches and output artifacts. How would you inspect storage locations and test the build for leakage outside the mount?",
+      "outline": [
+        "Nêu secret mount",
+        "Không ARG/ENV cho secret",
+        "Không copy vào layer"
+      ],
+      "shortAnswer": "Dùng BuildKit secret mount trong bước cần token và không sao chép bí mật vào layer/output.",
+      "explanation": "Dùng BuildKit secret mount trong bước cần token và không sao chép bí mật vào layer/output. ARG và ENV không phải kho bí mật. Secret mount giảm nguy cơ lưu token trong image nhưng lệnh build vẫn có thể làm lộ qua log hoặc file được copy, nên phải review chính bước sử dụng. Production nhận runtime secret riêng.",
+      "alternative": "Nếu cần SSH để tải source, dùng SSH mount phù hợp thay vì copy private key.",
+      "trap": "Xóa file token ở layer sau rồi kết luận lịch sử image sạch.",
+      "rubric": [
+        "Nêu secret mount",
+        "Không ARG/ENV cho secret",
+        "Không copy vào layer",
+        "Kiểm tra log output"
+      ],
+      "source": "https://docs.docker.com/build/building/secrets/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-dockvolume-boundary",
+    "content": {
+      "title": "Container bị thay nhưng dữ liệu phải còn",
+      "topic": "delivery",
+      "subtopic": "Container bị thay nhưng dữ liệu phải còn",
+      "tags": [
+        "Docker volume",
+        "persistence",
+        "backup"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "Docker Engine / BuildKit",
+      "prompt": "Volume vẫn trên cùng máy vật lý bị hỏng ổ đĩa. Có bảo đảm backup nhờ volume không?",
+      "englishPrompt": "A volume remains on the same physical machine whose disk fails. Does the volume guarantee a backup?",
+      "context": "Container có thể bị remove và tạo lại; dữ liệu DB cần tồn tại qua vòng đời container.",
+      "code": null,
+      "hint": "Tách writable layer và volume",
+      "nextHint": "Nêu attach lại",
+      "followUp": "Database lưu file chỉ trong writable layer của container. Sau khi remove và tạo container mới, dữ liệu mất. Volume thay đổi lifetime nào?",
+      "englishFollowUp": "A database stores files only in the container writable layer. Data disappears after removing and recreating the container. Which lifetime does a volume change?",
+      "outline": [
+        "Tách writable layer và volume",
+        "Nêu attach lại",
+        "Giữ quyền file"
+      ],
+      "shortAnswer": "Không, persistence và backup là hai yêu cầu khác nhau.",
+      "explanation": "Volume tách vòng đời dữ liệu khỏi vòng đời container; container mới có thể gắn lại volume đã lưu. Container không nên là nơi duy nhất giữ dữ liệu cần tồn tại qua recreate. Cần gắn đúng volume và quyền truy cập; volume vẫn có thể bị xóa hoặc hỏng và không tự thay thế backup/restore được thử.",
+      "alternative": "Dùng dịch vụ database được quản lý khi cần độ bền và vận hành theo yêu cầu sản phẩm.",
+      "trap": "Dùng restart policy rồi xem đó là backup database.",
+      "rubric": [
+        "Tách writable layer và volume",
+        "Nêu attach lại",
+        "Giữ quyền file",
+        "Volume không thay backup"
+      ],
+      "source": "https://docs.docker.com/engine/storage/volumes/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, persistence và backup là hai yêu cầu khác nhau.",
+          "Có, volume luôn có bản sao ngoài máy."
+        ],
+        "en": [
+          "No; persistence and backup are separate requirements.",
+          "Yes; volumes always have an off-machine copy."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Volume tách lifetime dữ liệu khỏi container, nhưng vẫn có thể mất khi ổ đĩa chứa nó hỏng; cần backup độc lập và kiểm tra restore theo yêu cầu.",
+          "Volume không mặc định có bản sao ngoài máy; persistence tại cùng host không tự tạo bảo vệ trước lỗi ổ đĩa hay mất host."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-docksignal-boundary",
+    "content": {
+      "title": "Process nhận tín hiệu dừng",
+      "topic": "delivery",
+      "subtopic": "Process nhận tín hiệu dừng",
+      "tags": [
+        "ENTRYPOINT",
+        "PID 1",
+        "SIGTERM"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Docker Engine / BuildKit",
+      "prompt": "Linux container chạy app qua shell-form ENTRYPOINT và app không nhận SIGTERM đúng cách. Vì sao exec form thường thích hợp hơn?",
+      "englishPrompt": "A Linux container launches its app through shell-form ENTRYPOINT and the app does not receive SIGTERM correctly. Why is exec form often more appropriate?",
+      "context": "Đang xét Linux container và quy trình dừng có kiểm soát bằng tín hiệu của Docker.",
+      "code": null,
+      "hint": "Nêu process chính",
+      "nextHint": "Tách shell và exec",
+      "followUp": "App tạo child process để xử lý file và cần shutdown trong ngân sách 20 giây. Bạn kiểm thử đường truyền tín hiệu, cleanup và thời điểm cưỡng bức dừng cho cả cây process thế nào?",
+      "englishFollowUp": "The app spawns child processes for file processing and must shut down within twenty seconds. How would you test signal delivery, cleanup, and forced termination across the process tree?",
+      "outline": [
+        "Nêu process chính",
+        "Tách shell và exec",
+        "Wrapper phải forward"
+      ],
+      "shortAnswer": "Exec form đưa executable làm process chính thay vì nằm sau shell không chuyển tiếp tín hiệu như mong đợi.",
+      "explanation": "Exec form đưa executable làm process chính thay vì nằm sau shell không chuyển tiếp tín hiệu như mong đợi. Dừng có kiểm soát cần app nhận signal rồi hoàn tất hoặc hủy công việc trong thời gian cho phép. Nếu có wrapper script phải exec hoặc forward signal đúng; chỉnh Dockerfile không tự làm nghiệp vụ đang chạy trở nên durable.",
+      "alternative": "Thử stop thật và quan sát shutdown trước khi triển khai.",
+      "trap": "Tăng stop timeout vô hạn để thay cho xử lý signal.",
+      "rubric": [
+        "Nêu process chính",
+        "Tách shell và exec",
+        "Wrapper phải forward",
+        "Thử graceful stop"
+      ],
+      "source": "https://docs.docker.com/reference/dockerfile/#entrypoint",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-dockuser-boundary",
+    "content": {
+      "title": "Không cần root để chạy web API",
+      "topic": "delivery",
+      "subtopic": "Không cần root để chạy web API",
+      "tags": [
+        "non-root",
+        "least privilege",
+        "file permissions"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "Docker Engine / BuildKit",
+      "prompt": "App báo permission denied khi ghi /data. Cách xử lý nào giữ quyền tối thiểu?",
+      "englishPrompt": "The app gets permission denied writing /data. Which fix preserves least privilege?",
+      "context": "Web API không có nhu cầu đặc quyền hệ thống; chỉ một thư mục dữ liệu cần quyền ghi.",
+      "code": null,
+      "hint": "Chọn non-root",
+      "nextHint": "Cấp quyền thư mục cụ thể",
+      "followUp": "Web API trong Linux container chỉ cần đọc binary và ghi một thư mục dữ liệu. Bạn giảm quyền runtime thế nào mà không làm app mất quyền ghi cần thiết?",
+      "englishFollowUp": "A web API in a Linux container only reads binaries and writes one data directory. How would you reduce runtime privileges while preserving required writes?",
+      "outline": [
+        "Chọn non-root",
+        "Cấp quyền thư mục cụ thể",
+        "Kiểm tra mount"
+      ],
+      "shortAnswer": "Sửa ownership/quyền của /data cho user runtime.",
+      "explanation": "Chạy bằng user không phải root và cấp quyền tối thiểu cho đúng thư mục cần ghi. Cần kiểm tra owner/mode của file và mount, không chỉ thêm USER rồi chạy thử với mọi đường dẫn 777. Non-root giảm phạm vi tác động nhưng không thay việc cập nhật image và kiểm soát mạng/secret.",
+      "alternative": "Dùng filesystem read-only và mount ghi riêng nếu môi trường hỗ trợ và ứng dụng tương thích.",
+      "trap": "Dùng privileged container để chữa mọi lỗi permission.",
+      "rubric": [
+        "Chọn non-root",
+        "Cấp quyền thư mục cụ thể",
+        "Kiểm tra mount",
+        "Không dùng privileged chữa lỗi"
+      ],
+      "source": "https://docs.docker.com/build/building/best-practices/#user",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chạy privileged và root cho toàn container.",
+          "Sửa ownership/quyền của /data cho user runtime."
+        ],
+        "en": [
+          "Run the entire container as privileged root.",
+          "Fix /data ownership and permissions for the runtime user."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Root hoặc privileged cấp nhiều quyền hơn nhu cầu và không phải cách sửa least-privilege cho một thư mục dữ liệu thiếu quyền ghi.",
+          "Cấp ownership/quyền cần thiết cho runtime user trên đúng /data giải quyết lỗi ghi mà không nâng quyền toàn container."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-dockdigest-boundary",
+    "content": {
+      "title": "Tag image có thể thay đổi",
+      "topic": "delivery",
+      "subtopic": "Tag image có thể thay đổi",
+      "tags": [
+        "image digest",
+        "mutable tag",
+        "supply chain"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Docker Engine / BuildKit",
+      "prompt": "Hai lần build dùng cùng tag base image nhưng lấy nội dung khác nhau. Pin digest giải quyết gì và cần duy trì điều gì sau đó?",
+      "englishPrompt": "Two builds use the same base-image tag but obtain different contents. What does digest pinning solve, and what maintenance remains?",
+      "context": "Registry cho phép tag được cập nhật; pipeline cần ghi nhận chính xác base image đã kiểm tra.",
+      "code": null,
+      "hint": "Nêu tag mutable",
+      "nextHint": "Nêu content digest",
+      "followUp": "Một digest mới chứa bản vá nhưng cũng đổi hành vi runtime. Bạn thiết kế quy trình đề xuất cập nhật, kiểm tra tương thích và khả năng quay lại digest cũ thế nào?",
+      "englishFollowUp": "A new digest includes a security fix but also changes runtime behavior. How would you design the update proposal, compatibility checks, and ability to return to the previous digest?",
+      "outline": [
+        "Nêu tag mutable",
+        "Nêu content digest",
+        "Không đồng nhất reproducible và secure"
+      ],
+      "shortAnswer": "Digest chọn đúng nội dung image; vẫn phải có quy trình cập nhật digest để nhận bản vá.",
+      "explanation": "Digest chọn đúng nội dung image; vẫn phải có quy trình cập nhật digest để nhận bản vá. Tag là tên có thể được nhà phát hành trỏ lại, còn digest định danh nội dung cụ thể. Tính lặp lại không có nghĩa image luôn an toàn. Ghi nhận digest đã kiểm tra và chạy lại kiểm tra khi nâng base.",
+      "alternative": "Dùng công cụ cập nhật tự động tạo thay đổi review được thay vì theo latest không kiểm soát.",
+      "trap": "Pin một digest rồi bỏ cập nhật bảo mật mãi mãi.",
+      "rubric": [
+        "Nêu tag mutable",
+        "Nêu content digest",
+        "Không đồng nhất reproducible và secure",
+        "Có cập nhật kiểm chứng"
+      ],
+      "source": "https://docs.docker.com/build/building/best-practices/#pin-base-image-versions",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-cipermission-boundary",
+    "content": {
+      "title": "Quyền của token CI theo job",
+      "topic": "delivery",
+      "subtopic": "Quyền của token CI theo job",
+      "tags": [
+        "GITHUB_TOKEN",
+        "job permissions",
+        "least privilege"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "GitHub Actions (2026-11)",
+      "prompt": "Chỉ job release cần tạo release. Có cần nâng mọi job test lên write không?",
+      "englishPrompt": "Only the release job must create a release. Must all test jobs receive write access?",
+      "context": "Job test chỉ cần đọc source và thực thi kiểm tra; release job có nhiệm vụ riêng.",
+      "code": null,
+      "hint": "Nêu least privilege",
+      "nextHint": "Cấu hình job/workflow",
+      "followUp": "Job CI chỉ checkout source và chạy test nhưng GITHUB_TOKEN được cấp quyền ghi repository. Bạn thu hẹp quyền ở đâu?",
+      "englishFollowUp": "A CI job only checks out source and runs tests, but GITHUB_TOKEN can write the repository. Where should permissions be reduced?",
+      "outline": [
+        "Nêu least privilege",
+        "Cấu hình job/workflow",
+        "Tách publish permissions"
+      ],
+      "shortAnswer": "Không, cấp quyền cần thiết cho đúng job.",
+      "explanation": "Đặt permissions tối thiểu ở workflow/job; job chỉ đọc source không cần quyền ghi không liên quan. Token workflow là ranh giới tin cậy thực tế. Khi có job publish, cấp thêm đúng quyền tại job đó thay vì mở write-all cho mọi bước. Review action bên thứ ba và không in token trong log.",
+      "alternative": "Dùng credential riêng có phạm vi phù hợp chỉ khi GITHUB_TOKEN không đáp ứng tính năng cần thiết.",
+      "trap": "Đổi tên secret nhưng giữ write-all để đơn giản.",
+      "rubric": [
+        "Nêu least privilege",
+        "Cấu hình job/workflow",
+        "Tách publish permissions",
+        "Không log token"
+      ],
+      "source": "https://docs.github.com/en/actions/tutorials/authenticate-with-github_token",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, quyền phải luôn giống nhau ở mọi job.",
+          "Không, cấp quyền cần thiết cho đúng job."
+        ],
+        "en": [
+          "Yes; all jobs must always have identical permissions.",
+          "No; grant the needed permission only to the appropriate job."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Các job không bắt buộc có quyền giống nhau. Nâng tất cả test job lên write làm rộng tác động nếu code/test trong một job bị khai thác.",
+          "GitHub Actions cho phép giới hạn permissions ở workflow/job. Chỉ job release cần quyền ghi liên quan; test job giữ quyền tối thiểu cho công việc của nó."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-ciartifact-boundary",
+    "content": {
+      "title": "Artifact khác dependency cache",
+      "topic": "delivery",
+      "subtopic": "Artifact khác dependency cache",
+      "tags": [
+        "workflow artifact",
+        "build provenance",
+        "dependency cache"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "GitHub Actions (2026-11)",
+      "prompt": "Build job tạo package cần deploy job dùng đúng bytes đã kiểm tra. Vì sao workflow artifact phù hợp hơn việc đoán package sẽ còn trong cache dependency?",
+      "englishPrompt": "A build job creates a package that deployment must consume as the exact tested bytes. Why is a workflow artifact more appropriate than assuming it remains in a dependency cache?",
+      "context": "Build và deploy là các job tách nhau; cần deploy đúng output đã kiểm tra của một run cụ thể.",
+      "code": null,
+      "hint": "Tách artifact và cache",
+      "nextHint": "Gắn run/commit",
+      "followUp": "Deploy job có quyền cao nhận artifact do một workflow từ fork tạo. Ngoài kiểm tra digest, bạn cần chứng minh điều gì về nguồn run và chính sách tin cậy trước khi triển khai?",
+      "englishFollowUp": "A privileged deployment job receives an artifact from a fork-triggered workflow. Beyond checking its digest, what must be established about the producing run and trust policy before deployment?",
+      "outline": [
+        "Tách artifact và cache",
+        "Gắn run/commit",
+        "Giữ đúng bytes"
+      ],
+      "shortAnswer": "Artifact truyền output của run theo định danh rõ; dependency cache là tối ưu tái sử dụng dữ liệu để build.",
+      "explanation": "Artifact truyền output của run theo định danh rõ; dependency cache là tối ưu tái sử dụng dữ liệu để build. Deploy phải lấy artifact từ đúng run/commit, xác minh metadata hoặc checksum theo pipeline. Cache có thể miss hoặc chứa dữ liệu theo key phục vụ build, không nên là bằng chứng release đã được kiểm tra. Không đóng gói secret vào artifact.",
+      "alternative": "Đẩy immutable package/image vào registry cùng digest cũng phù hợp cho promote giữa môi trường.",
+      "trap": "Build lại package tùy ý lúc deploy rồi gọi đó là đúng binary đã test.",
+      "rubric": [
+        "Tách artifact và cache",
+        "Gắn run/commit",
+        "Giữ đúng bytes",
+        "Không đóng secret"
+      ],
+      "source": "https://docs.github.com/en/actions/tutorials/store-and-share-data",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "delivery-ciconcurrency-boundary",
+    "content": {
+      "title": "CI cũ bị hủy khi có commit mới",
+      "topic": "delivery",
+      "subtopic": "CI cũ bị hủy khi có commit mới",
+      "tags": [
+        "CI concurrency",
+        "cancel-in-progress",
+        "workflow group"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "GitHub Actions (2026-11)",
+      "prompt": "Hai PR độc lập dùng cùng concurrency group với cancel-in-progress. Rủi ro là gì?",
+      "englishPrompt": "Two independent PRs share one concurrency group with cancel-in-progress. What is the risk?",
+      "context": "Các commit cũ của cùng PR có thể bỏ kết quả; PR độc lập và deployment có ranh giới khác.",
+      "code": null,
+      "hint": "Nhóm theo đúng phạm vi",
+      "nextHint": "Hủy run obsolete",
+      "followUp": "PR nhận nhiều push liên tiếp. Các run test cũ tốn runner dù chỉ kết quả commit mới còn hữu ích. Concurrency group nên gắn với gì?",
+      "englishFollowUp": "A PR receives several pushes. Old test runs consume runners even though only the newest commit matters. What should the concurrency group identify?",
+      "outline": [
+        "Nhóm theo đúng phạm vi",
+        "Hủy run obsolete",
+        "Tách test và deploy"
+      ],
+      "shortAnswer": "Run của PR này có thể hủy run PR kia.",
+      "explanation": "Nhóm theo workflow và PR hoặc branch, dùng cancel-in-progress cho các run cũ có thể hủy an toàn. Nếu dùng một group chung cho mọi PR, các PR độc lập sẽ hủy lẫn nhau. Hủy test cũ thường hợp lý; hủy deployment đang ghi trạng thái có thể cần cơ chế khác. Concurrency không bảo đảm thứ tự FIFO cho mọi deployment.",
+      "alternative": "Với deploy cần hoàn tất tuần tự, thiết kế khóa hoặc queue theo môi trường và quy tắc phục hồi rõ.",
+      "trap": "Dùng một concurrency key toàn repository để mọi PR triệt tiêu nhau.",
+      "rubric": [
+        "Nhóm theo đúng phạm vi",
+        "Hủy run obsolete",
+        "Tách test và deploy",
+        "Không hứa FIFO"
+      ],
+      "source": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không có ảnh hưởng vì group chỉ là nhãn hiển thị.",
+          "Run của PR này có thể hủy run PR kia."
+        ],
+        "en": [
+          "No effect; the group is only a display label.",
+          "One PR run can cancel the other PR run."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Group không chỉ là nhãn hiển thị. Dùng một key chung cho các PR độc lập có thể tạo hủy chéo ngoài ý muốn.",
+          "Concurrency group có tác dụng điều phối run thật; với cancel-in-progress, một run PR có thể hủy run của PR khác nếu dùng chung group."
+        ]
+      },
+      "core": false
+    }
+  },
+  {
+    "slug": "behavioral-unknown-boundary",
+    "content": {
+      "title": "Không nhớ API nhưng không bịa",
+      "topic": "behavioral",
+      "subtopic": "Không nhớ API nhưng không bịa",
+      "tags": [
+        "technical English",
+        "uncertainty",
+        "evidence"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": "Engineering communication",
+      "prompt": "Trong phỏng vấn tiếng Anh, bạn hiểu cơ chế retry nhưng không nhớ tên option chính xác của thư viện. Hãy trả lời sao cho thể hiện được kiến thức mà không bịa API.",
+      "englishPrompt": "In an English interview, you understand retry behavior but cannot recall the exact library option name. How would you demonstrate knowledge without inventing an API?",
+      "context": "Ứng viên biết nguyên lý nhưng chưa nhớ tên API chính xác; chưa được kiểm tra tài liệu ở thời điểm phát biểu.",
+      "code": null,
+      "hint": "Tách biết và chưa biết",
+      "nextHint": "Không bịa tên API",
+      "followUp": "Interviewer không cho tra tài liệu ngay và yêu cầu bạn dự đoán hành vi. Bạn diễn đạt giả định, mức chắc chắn và kế hoạch kiểm chứng sau buổi phỏng vấn bằng tiếng Anh như thế nào?",
+      "englishFollowUp": "The interviewer does not allow an immediate documentation lookup and asks you to predict behavior. How would you express assumptions, confidence, and a later verification plan in English?",
+      "outline": [
+        "Tách biết và chưa biết",
+        "Không bịa tên API",
+        "Giải thích cơ chế"
+      ],
+      "shortAnswer": "Nêu rõ phần chắc chắn, thừa nhận giới hạn về tên API và mô tả cách kiểm chứng bằng tài liệu hoặc thử nghiệm nhỏ.",
+      "explanation": "Nêu rõ phần chắc chắn, thừa nhận giới hạn về tên API và mô tả cách kiểm chứng bằng tài liệu hoặc thử nghiệm nhỏ. Một câu phù hợp: “I can explain the retry policy, but I would verify the exact option name in the official documentation.” Sau đó trình bày cơ chế thực sự biết. Không biến sự tự tin khi nói thành bằng chứng kỹ thuật; dữ kiện và kiểm chứng quan trọng hơn vẻ trôi chảy.",
+      "alternative": "Nếu được phép dùng tài liệu, kiểm tra đúng phiên bản và quay lại trả lời câu hỏi cụ thể.",
+      "trap": "Bịa tên method nghe hợp lý rồi khẳng định đã dùng production.",
+      "rubric": [
+        "Tách biết và chưa biết",
+        "Không bịa tên API",
+        "Giải thích cơ chế",
+        "Đề xuất cách xác minh"
+      ],
+      "source": "https://google.github.io/eng-practices/review/reviewer/standard.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-projectcontext-boundary",
+    "content": {
+      "title": "Giới thiệu ranh giới dự án",
+      "topic": "behavioral",
+      "subtopic": "Giới thiệu ranh giới dự án",
+      "tags": [
+        "project interview",
+        "system boundary",
+        "C4 context"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "Engineering communication",
+      "prompt": "Interviewer tưởng dịch vụ thanh toán ngoài do bạn tự viết. Bạn nên làm gì?",
+      "englishPrompt": "The interviewer assumes you wrote the external payment service. What should you do?",
+      "context": "Người nghe chưa biết dự án; thời lượng giới thiệu hai phút và cần hiểu phạm vi sở hữu trước khi hỏi sâu.",
+      "code": null,
+      "hint": "Nêu người dùng và mục tiêu",
+      "nextHint": "Ranh giới sở hữu",
+      "followUp": "Bạn có hai phút giới thiệu hệ thống đặt lịch cho người phỏng vấn chưa biết dự án. Bạn mở đầu bằng danh sách package hay bằng gì để họ hiểu đúng phạm vi?",
+      "englishFollowUp": "You have two minutes to introduce a booking system to an interviewer who has never seen it. Should you start with package names, or what would establish its scope?",
+      "outline": [
+        "Nêu người dùng và mục tiêu",
+        "Ranh giới sở hữu",
+        "Nêu hệ thống ngoài"
+      ],
+      "shortAnswer": "Làm rõ ranh giới tích hợp và phần team sở hữu.",
+      "explanation": "Bắt đầu từ người dùng, mục tiêu, ranh giới hệ thống và các hệ thống ngoài; sau đó mới đi sâu vào phần liên quan. Ví dụ: khách đặt lịch, nhân viên quản lý chỗ, hệ thống gọi dịch vụ gửi thông báo. Nêu phần nào do team sở hữu và phần nào là dependency để người nghe không nhầm khả năng dự án với dịch vụ bên ngoài. C4 context là khung tham khảo, không bắt buộc vẽ đủ mọi tầng.",
+      "alternative": "Dùng một luồng nghiệp vụ tiêu biểu để nối bức tranh tổng thể với quyết định kỹ thuật.",
+      "trap": "Đọc phiên bản mọi NuGet package trước khi giải thích sản phẩm làm gì.",
+      "rubric": [
+        "Nêu người dùng và mục tiêu",
+        "Ranh giới sở hữu",
+        "Nêu hệ thống ngoài",
+        "Đi từ tổng thể đến chi tiết"
+      ],
+      "source": "https://c4model.com/diagrams/system-context",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Làm rõ ranh giới tích hợp và phần team sở hữu.",
+          "Giữ im lặng để dự án có vẻ lớn hơn."
+        ],
+        "en": [
+          "Clarify the integration boundary and what the team owns.",
+          "Stay silent so the project appears larger."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Nói rõ payment service là hệ thống ngoài và phần bạn/team xây là tích hợp giúp interviewer đánh giá đúng phạm vi đóng góp.",
+          "Giữ im lặng trước hiểu nhầm sẽ tạo tuyên bố đóng góp sai bằng ngụ ý; cần làm rõ thay vì khiến dự án có vẻ lớn hơn."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-projecttradeoff-boundary",
+    "content": {
+      "title": "Giải thích quyết định có điều kiện",
+      "topic": "behavioral",
+      "subtopic": "Giải thích quyết định có điều kiện",
+      "tags": [
+        "ADR",
+        "tradeoffs",
+        "decision context"
+      ],
+      "format": "experience",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": "Engineering communication",
+      "prompt": "Trong phỏng vấn dự án, bạn chọn một database thay vì tách read store. Trình bày quyết định để người nghe thấy tiêu chí và điều kiện đổi lựa chọn.",
+      "englishPrompt": "In a project interview, you chose one database instead of a separate read store. Explain the criteria and the conditions under which you would revisit that choice.",
+      "context": "Quyết định được đánh giá theo tải, năng lực team và dữ kiện tại thời điểm chọn; ràng buộc có thể thay đổi.",
+      "code": null,
+      "hint": "Nêu context",
+      "nextHint": "So lựa chọn theo tiêu chí",
+      "followUp": "Dữ liệu tải mới khác dự báo ban đầu nhưng một phần phép đo bị thiếu. Bạn phân biệt quyết định hợp lý theo thông tin cũ với sai sót trong quá trình thu thập bằng chứng ra sao?",
+      "englishFollowUp": "New load data differs from the original forecast, but some measurements are missing. How would you distinguish a reasonable decision based on earlier information from a failure to gather necessary evidence?",
+      "outline": [
+        "Nêu context",
+        "So lựa chọn theo tiêu chí",
+        "Thừa nhận hệ quả"
+      ],
+      "shortAnswer": "Nêu bối cảnh và ràng buộc, so các lựa chọn, quyết định cùng hệ quả và tín hiệu cần xem xét lại.",
+      "explanation": "Nêu bối cảnh và ràng buộc, so các lựa chọn, quyết định cùng hệ quả và tín hiệu cần xem xét lại. Có thể nói tải đọc hiện chưa vượt khả năng DB, team nhỏ nên tránh đồng bộ thêm store; đánh đổi là ít khả năng scale đọc độc lập. Đưa ngưỡng hoặc dấu hiệu để thử lại, không dùng tên pattern làm lý do. ADR ghi context, decision, consequences để người khác hiểu tại sao.",
+      "alternative": "Nếu chưa có số đo, trình bày đó là giả định cần kiểm chứng bằng thử tải.",
+      "trap": "Kết luận một database luôn tốt hơn mọi kiến trúc khác.",
+      "rubric": [
+        "Nêu context",
+        "So lựa chọn theo tiêu chí",
+        "Thừa nhận hệ quả",
+        "Có điều kiện xem lại"
+      ],
+      "source": "https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/adr-process.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "behavioral-englishupdate-boundary",
+    "content": {
+      "title": "Cập nhật sự cố bằng tiếng Anh",
+      "topic": "behavioral",
+      "subtopic": "Cập nhật sự cố bằng tiếng Anh",
+      "tags": [
+        "technical English",
+        "incident update",
+        "confirmed facts"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "Engineering communication",
+      "prompt": "Rollback hoàn tất nhưng metrics chưa hồi phục. Câu “The incident is resolved” đã đủ bằng chứng chưa?",
+      "englishPrompt": "Rollback is complete but metrics have not recovered. Is “The incident is resolved” supported?",
+      "context": "Đã có hành động mitigation nhưng nguyên nhân gốc và mức phục hồi vẫn cần xác minh.",
+      "code": null,
+      "hint": "Nêu impact xác minh",
+      "nextHint": "Nêu mitigation",
+      "followUp": "API có lỗi tăng cao, đã rollback nhưng chưa biết nguyên nhân gốc. Hãy tạo cập nhật tiếng Anh ngắn cho người quản lý, tách điều đã biết khỏi giả thuyết.",
+      "englishFollowUp": "An API error rate rose and rollback is complete, but the root cause is unknown. Give a short English update for a manager, separating confirmed facts from hypotheses.",
+      "outline": [
+        "Nêu impact xác minh",
+        "Nêu mitigation",
+        "Tách hypothesis"
+      ],
+      "shortAnswer": "Chưa, cần kiểm chứng phục hồi và báo trạng thái hiện tại.",
+      "explanation": "Nêu ảnh hưởng đã xác minh, hành động giảm ảnh hưởng, trạng thái hiện tại và thời điểm cập nhật tiếp; đánh dấu nguyên nhân là đang điều tra. Ví dụ tự soạn: “Checkout errors increased at 09:10. We rolled back the release and are monitoring recovery. The cause is still under investigation. The next update is at 09:40.” Không khẳng định hết lỗi chỉ vì deploy rollback xong; kiểm tra metrics trước.",
+      "alternative": "Với khách hàng, chọn chi tiết và hướng xử lý phù hợp, không công khai bí mật vận hành.",
+      "trap": "Im lặng đến khi tìm đủ root cause hoặc nói đã sửa vĩnh viễn khi chưa đo.",
+      "rubric": [
+        "Nêu impact xác minh",
+        "Nêu mitigation",
+        "Tách hypothesis",
+        "Hẹn cập nhật tiếp"
+      ],
+      "source": "https://sre.google/workbook/incident-response/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chưa, cần kiểm chứng phục hồi và báo trạng thái hiện tại.",
+          "Rồi, rollback luôn đồng nghĩa hết sự cố."
+        ],
+        "en": [
+          "No; verify recovery and report the current state.",
+          "Yes; rollback always means resolution."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Rollback là hành động giảm ảnh hưởng, không tự là bằng chứng phục hồi. Khi metrics chưa hồi phục, phải báo trạng thái còn đang kiểm chứng.",
+          "Rollback có thể chưa giải quyết hết nguyên nhân hoặc tác động. Không được đồng nhất việc deploy bản cũ với incident đã resolved."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-scope-boundary",
+    "content": {
+      "title": "Yêu cầu mới giữa Sprint",
+      "topic": "behavioral",
+      "subtopic": "Yêu cầu mới giữa Sprint",
+      "tags": [
+        "Scrum",
+        "Sprint Goal",
+        "scope negotiation"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "Scrum Guide 2020",
+      "prompt": "Giữa Sprint, Product Owner đưa thêm báo cáo lớn có thể làm chậm Sprint Goal. Bạn trao đổi scope thế nào thay vì âm thầm tăng giờ làm?",
+      "englishPrompt": "Mid-Sprint, the Product Owner adds a substantial report that may jeopardize the Sprint Goal. How would you discuss scope instead of silently adding overtime?",
+      "context": "Team đang dùng Scrum Guide 2020; Sprint Goal và Product Owner đã được xác định.",
+      "code": null,
+      "hint": "Nêu tác động đến Goal",
+      "nextHint": "Thương lượng với PO",
+      "followUp": "Yêu cầu mới là thay đổi pháp lý bắt buộc và khiến Sprint Goal có thể không còn phù hợp. Bạn trình bày lựa chọn, người có thẩm quyền quyết định và tác động tới stakeholder thế nào?",
+      "englishFollowUp": "A mandatory regulatory change may make the Sprint Goal no longer appropriate. How would you present the options, decision authority, and stakeholder impact?",
+      "outline": [
+        "Nêu tác động đến Goal",
+        "Thương lượng với PO",
+        "Đưa lựa chọn scope"
+      ],
+      "shortAnswer": "Làm rõ tác động, cộng tác với Product Owner để thương lượng scope trong khi giữ Sprint Goal hoặc xem lại tính khả thi đúng quy trình.",
+      "explanation": "Làm rõ tác động, cộng tác với Product Owner để thương lượng scope trong khi giữ Sprint Goal hoặc xem lại tính khả thi đúng quy trình. Sprint Backlog có thể thay đổi khi học thêm; không phải mọi yêu cầu mới đều tự cộng vào cam kết. Trình bày lựa chọn như giảm phạm vi báo cáo, đổi ưu tiên hoặc chuyển hạng mục. Đây là tình huống giao tiếp dựa trên Scrum Guide, không là quy tắc làm thêm bắt buộc.",
+      "alternative": "Nếu Sprint Goal trở nên lỗi thời, Product Owner có thẩm quyền hủy Sprint theo Scrum; không tự ý đổi mục tiêu.",
+      "trap": "Đồng ý tất cả rồi báo trễ vào ngày cuối.",
+      "rubric": [
+        "Nêu tác động đến Goal",
+        "Thương lượng với PO",
+        "Đưa lựa chọn scope",
+        "Cập nhật kế hoạch minh bạch"
+      ],
+      "source": "https://scrumguides.org/scrum-guide.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-reviewcomment-boundary",
+    "content": {
+      "title": "Review nói về tác động cụ thể",
+      "topic": "behavioral",
+      "subtopic": "Review nói về tác động cụ thể",
+      "tags": [
+        "code review",
+        "actionable feedback",
+        "technical English"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "Engineering communication",
+      "prompt": "Comment chỉ nói “bad code”. Bổ sung nào giúp tác giả sửa đúng?",
+      "englishPrompt": "A comment only says “bad code.” What addition helps the author fix it correctly?",
+      "context": "Comment viết cho tác giả PR có thể hành động; rủi ro kỹ thuật cần tách khỏi nhận xét về con người.",
+      "code": null,
+      "hint": "Tập trung vào code",
+      "nextHint": "Giải thích tác động",
+      "followUp": "Bạn review thấy API ghi token vào log. Hãy viết comment tiếng Anh vừa chỉ rõ rủi ro vừa giúp tác giả hành động, tránh nhận xét về năng lực cá nhân.",
+      "englishFollowUp": "During review you notice an API logs tokens. Write an English comment that identifies the risk and gives an actionable path without judging the author.",
+      "outline": [
+        "Tập trung vào code",
+        "Giải thích tác động",
+        "Có bước sửa cụ thể"
+      ],
+      "shortAnswer": "Vị trí, lý do, hành vi cần thay đổi và cách xác minh.",
+      "explanation": "Chỉ vị trí và hậu quả, đề nghị bỏ hoặc che token, giải thích lý do bảo mật và cách kiểm tra. Ví dụ tự soạn: “Could we remove the token from this log? Anyone with log access could reuse it. Please keep the request ID and add a check that credentials are excluded.” Comment có lý do giúp tác giả tự chọn cách sửa phù hợp thay vì chỉ nghe mệnh lệnh.",
+      "alternative": "Dùng nhãn blocker cho vấn đề bảo mật thực sự theo quy ước team, không đánh đồng với sở thích style.",
+      "trap": "Viết “You clearly do not understand security” mà không chỉ ra cách sửa.",
+      "rubric": [
+        "Tập trung vào code",
+        "Giải thích tác động",
+        "Có bước sửa cụ thể",
+        "Không công kích người"
+      ],
+      "source": "https://google.github.io/eng-practices/review/reviewer/comments.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Vị trí, lý do, hành vi cần thay đổi và cách xác minh.",
+          "Một nhận xét mạnh hơn về tính cách tác giả."
+        ],
+        "en": [
+          "The location, reason, required behavior change, and verification.",
+          "A harsher judgment about the author's character."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Vị trí, hậu quả, hành vi cần thay và phép kiểm giúp tác giả hiểu lý do rồi sửa có thể xác minh; đây là phản hồi về code.",
+          "Công kích tính cách không chỉ ra hành vi lỗi hay cách kiểm chứng bản sửa, nên không biến comment bad code thành hướng dẫn hữu ích."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-smallchange-boundary",
+    "content": {
+      "title": "Tách PR theo hành vi có thể review",
+      "topic": "behavioral",
+      "subtopic": "Tách PR theo hành vi có thể review",
+      "tags": [
+        "small PR",
+        "reviewability",
+        "change isolation"
+      ],
+      "format": "experience",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 6,
+      "technology": "Engineering communication",
+      "prompt": "PR của bạn vừa sửa lỗi tính thuế vừa đổi tên hàng trăm file. Reviewer khó tìm thay đổi ảnh hưởng tiền. Bạn đề xuất chia PR thế nào?",
+      "englishPrompt": "Your PR fixes tax calculation and renames hundreds of files. Reviewers struggle to find the money-related change. How would you split it?",
+      "context": "PR có một bug fix ảnh hưởng tiền và một phần đổi tên cơ học không cần phát hành cùng lúc.",
+      "code": null,
+      "hint": "Tách mechanical và behavioral",
+      "nextHint": "Giữ mỗi phần hiểu được",
+      "followUp": "Bản sửa cần cả migration DB và app trong lúc hai phiên bản còn chạy. Bạn chia thay đổi thành các PR và thứ tự phát hành thế nào để từng phần kiểm chứng được và hệ thống vẫn tương thích?",
+      "englishFollowUp": "A fix needs database and application changes while two application versions coexist. How would you split PRs and sequence releases so that each part is verifiable and the system remains compatible?",
+      "outline": [
+        "Tách mechanical và behavioral",
+        "Giữ mỗi phần hiểu được",
+        "Giữ test cùng bugfix"
+      ],
+      "shortAnswer": "Tách thay đổi cơ học khỏi sửa hành vi thành các phần có mục đích rõ, kiểm chứng được và thứ tự tích hợp hợp lý.",
+      "explanation": "Tách thay đổi cơ học khỏi sửa hành vi thành các phần có mục đích rõ, kiểm chứng được và thứ tự tích hợp hợp lý. PR nhỏ giúp tập trung review nhưng không phải cắt tùy tiện theo số dòng khiến build hỏng. Giữ ca tái hiện lỗi thuế cùng bản sửa, ghi dependency nếu phần sau dựa phần trước. Không giấu refactor lớn trong bug fix khẩn.",
+      "alternative": "Đổi tên thuần cơ học có thể là PR riêng trước hoặc sau tùy ảnh hưởng conflict.",
+      "trap": "Chia mỗi file thành một PR dù không phần nào chạy được.",
+      "rubric": [
+        "Tách mechanical và behavioral",
+        "Giữ mỗi phần hiểu được",
+        "Giữ test cùng bugfix",
+        "Nêu dependency"
+      ],
+      "source": "https://google.github.io/eng-practices/review/developer/small-cls.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-postmortem-boundary",
+    "content": {
+      "title": "Sau lỗi cần hành động hệ thống",
+      "topic": "behavioral",
+      "subtopic": "Sau lỗi cần hành động hệ thống",
+      "tags": [
+        "blameless postmortem",
+        "contributing factors",
+        "action owner"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "Engineering communication",
+      "prompt": "Postmortem chỉ yêu cầu “be more careful”. Thiếu điều gì để giảm tái diễn?",
+      "englishPrompt": "A postmortem only says “be more careful.” What is missing to reduce recurrence?",
+      "context": "Cần kể sự kiện trung thực và rút ra hành động giảm tái diễn; không yêu cầu che giấu trách nhiệm.",
+      "code": null,
+      "hint": "Nêu sự kiện và impact",
+      "nextHint": "Phân tích điều kiện hệ thống",
+      "followUp": "Bạn nhập nhầm cấu hình làm production lỗi. Trong phỏng vấn, ngoài nhận trách nhiệm, bạn trình bày postmortem và cải tiến thế nào?",
+      "englishFollowUp": "You entered an incorrect configuration and caused an outage. In an interview, beyond taking responsibility, how would you describe the postmortem and improvements?",
+      "outline": [
+        "Nêu sự kiện và impact",
+        "Phân tích điều kiện hệ thống",
+        "Có owner và action"
+      ],
+      "shortAnswer": "Biện pháp hệ thống cụ thể có owner và kiểm chứng.",
+      "explanation": "Nêu timeline và điều kiện góp phần, tác động đã biết, biện pháp giảm ảnh hưởng và hành động có owner để giảm khả năng lặp. Blameless không có nghĩa xóa sự kiện ai làm gì; nó giúp tìm vì sao hệ thống cho phép lỗi đi qua. Ví dụ validation trước deploy, preview diff cấu hình và rollback đã thử. Không chỉ hứa cẩn thận hơn hay đổ hết cho một người.",
+      "alternative": "Ưu tiên vài hành động tác động cao có thời hạn và kiểm tra hoàn thành.",
+      "trap": "Kết luận “người gây lỗi phải cẩn thận” là toàn bộ phân tích.",
+      "rubric": [
+        "Nêu sự kiện và impact",
+        "Phân tích điều kiện hệ thống",
+        "Có owner và action",
+        "Không đổ lỗi cá nhân"
+      ],
+      "source": "https://sre.google/sre-book/postmortem-culture/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Biện pháp hệ thống cụ thể có owner và kiểm chứng.",
+          "Tên người để trách công khai."
+        ],
+        "en": [
+          "Specific systemic measures with ownership and verification.",
+          "A name to blame publicly."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Hành động hệ thống có owner và phép kiểm biến bài học thành thay đổi theo dõi được; ví dụ validation cấu hình hoặc rollback đã thử.",
+          "Chỉ nêu người để trách không giải thích các điều kiện cho lỗi đi qua và không tạo biện pháp giảm tái diễn."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-metricclaim-boundary",
+    "content": {
+      "title": "Không hứa SLA từ demo local",
+      "topic": "behavioral",
+      "subtopic": "Không hứa SLA từ demo local",
+      "tags": [
+        "availability",
+        "SLI",
+        "measurement window"
+      ],
+      "format": "experience",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": "Engineering communication",
+      "prompt": "Người phỏng vấn hỏi hệ thống có đạt 99.9% availability không. Bạn chỉ có demo local và chưa có dữ liệu production. Bạn trả lời và đề xuất xác minh thế nào?",
+      "englishPrompt": "An interviewer asks whether the system achieves 99.9% availability. You have only a local demo and no production data. How would you answer and propose validation?",
+      "context": "Chưa có telemetry production đủ cửa sổ đo; con số availability đang là câu hỏi cần bằng chứng.",
+      "code": null,
+      "hint": "Phân biệt target và observed",
+      "nextHint": "Thừa nhận thiếu dữ liệu",
+      "followUp": "Load balancer ghi 99.9% response 200 nhưng một nhóm người dùng vẫn không hoàn tất thanh toán. Bạn đề xuất SLI và phạm vi đo nào để đánh giá đúng trải nghiệm thay vì chỉ dùng status ở proxy?",
+      "englishFollowUp": "The load balancer reports 99.9% status-200 responses, but some users cannot complete payment. Which SLI and measurement scope would assess their experience rather than only proxy status codes?",
+      "outline": [
+        "Phân biệt target và observed",
+        "Thừa nhận thiếu dữ liệu",
+        "Định nghĩa flow và window"
+      ],
+      "shortAnswer": "Nói rõ chưa có bằng chứng đạt mục tiêu; xác định user flow, chỉ báo, cửa sổ đo và dữ liệu cần trước khi tuyên bố.",
+      "explanation": "Nói rõ chưa có bằng chứng đạt mục tiêu; xác định user flow, chỉ báo, cửa sổ đo và dữ liệu cần trước khi tuyên bố. Phân biệt mục tiêu thiết kế với kết quả quan sát và cam kết hợp đồng. Local test không đo mất mạng, deploy hay lỗi dependency trong production. Cùng stakeholder chọn mục tiêu thực tế rồi thiết kế monitoring và thử phục hồi; không suy số 9 từ số replica.",
+      "alternative": "Có thể trình bày rủi ro và kiến trúc dự kiến mà gắn nhãn giả định rõ.",
+      "trap": "Nói chắc 99.9% vì API từng chạy một buổi không lỗi.",
+      "rubric": [
+        "Phân biệt target và observed",
+        "Thừa nhận thiếu dữ liệu",
+        "Định nghĩa flow và window",
+        "Đề xuất đo production"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/well-architected/reliability/metrics",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-reviewpriority-boundary",
+    "content": {
+      "title": "Không để review treo im lặng",
+      "topic": "behavioral",
+      "subtopic": "Không để review treo im lặng",
+      "tags": [
+        "review latency",
+        "team throughput",
+        "review handoff"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "Engineering communication",
+      "prompt": "Bạn không thể review trong hai ngày và PR đang chặn release. Cách giao tiếp nào hợp lý?",
+      "englishPrompt": "You cannot review for two days and the PR blocks a release. What communication is appropriate?",
+      "context": "Một PR đang chặn đồng đội nhưng reviewer cũng có công việc tập trung; quy ước thời gian phản hồi do team thống nhất.",
+      "code": null,
+      "hint": "Nhận diện blocker",
+      "nextHint": "Phản hồi và hẹn mốc",
+      "followUp": "Bạn đang làm tác vụ tập trung, đồng đội cần review PR đang chặn họ. Bạn cân bằng công việc và giao tiếp ra sao?",
+      "englishFollowUp": "You are in focused work while a teammate needs a review that blocks them. How would you balance the work and communicate?",
+      "outline": [
+        "Nhận diện blocker",
+        "Phản hồi và hẹn mốc",
+        "Bảo vệ chất lượng review"
+      ],
+      "shortAnswer": "Báo sớm và tìm reviewer có quyền/phạm vi phù hợp.",
+      "explanation": "Xác nhận đã nhận, hẹn một mốc review gần ở điểm nghỉ hợp lý hoặc giúp tìm reviewer khác nếu không thể đáp ứng. Tốc độ team quan trọng hơn chỉ số code cá nhân, nhưng ngắt việc sâu liên tục cũng có chi phí. Nêu cách chọn ưu tiên theo blocker và mức khẩn; phản hồi sớm không đồng nghĩa approve vội. Mốc một ngày trong hướng dẫn Google là quy ước của họ, không là SLA của mọi team.",
+      "alternative": "Thỏa thuận review window của team để giảm chờ không rõ thời hạn.",
+      "trap": "Không trả lời vài ngày rồi yêu cầu người khác tự đoán tiến độ.",
+      "rubric": [
+        "Nhận diện blocker",
+        "Phản hồi và hẹn mốc",
+        "Bảo vệ chất lượng review",
+        "Có phương án reviewer khác"
+      ],
+      "source": "https://google.github.io/eng-practices/review/reviewer/speed.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Approve ngay mà không đọc để giải phóng blocker.",
+          "Báo sớm và tìm reviewer có quyền/phạm vi phù hợp."
+        ],
+        "en": [
+          "Approve without reading to remove the blocker.",
+          "Say so early and find an appropriately authorized reviewer."
+        ],
+        "correctIndex": 1,
+        "reasons": [
+          "Approve không đọc chỉ tạo vẻ hết blocker trong khi bỏ qua trách nhiệm kiểm thay đổi, đặc biệt khi PR chặn release.",
+          "Báo sớm việc không thể review trong hai ngày và tìm reviewer phù hợp giúp xử lý blocker minh bạch mà vẫn giữ chất lượng review."
+        ]
+      },
+      "core": true
+    }
+  },
+  {
+    "slug": "behavioral-errorbudget-boundary",
+    "content": {
+      "title": "Đàm phán tính năng khi hết error budget",
+      "topic": "behavioral",
+      "subtopic": "Đàm phán tính năng khi hết error budget",
+      "tags": [
+        "SLO",
+        "error budget",
+        "stakeholder negotiation"
+      ],
+      "format": "experience",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 9,
+      "technology": "Engineering communication",
+      "prompt": "Sản phẩm muốn thêm tính năng gấp nhưng service đã dùng hết error budget theo SLO thống nhất. Bạn dẫn cuộc trao đổi kỹ thuật và kinh doanh thế nào?",
+      "englishPrompt": "Product wants an urgent feature, but the service has exhausted its agreed SLO error budget. How would you lead the engineering-business discussion?",
+      "context": "SLO và error-budget policy đã được stakeholder thống nhất; cần áp dụng đúng loại thay đổi và quy trình ngoại lệ.",
+      "code": null,
+      "hint": "Dùng dữ liệu SLI",
+      "nextHint": "Áp dụng policy rõ",
+      "followUp": "SLI toàn service còn budget nhưng một tenant lớn liên tục lỗi. Bạn mở cuộc trao đổi về cách gộp số liệu, mục tiêu theo nhóm người dùng và quyết định phát hành thế nào?",
+      "englishFollowUp": "The service-wide SLI has budget remaining, but one large tenant experiences repeated failures. How would you discuss aggregation, user-group objectives, and the release decision?",
+      "outline": [
+        "Dùng dữ liệu SLI",
+        "Áp dụng policy rõ",
+        "Thương lượng với stakeholder"
+      ],
+      "shortAnswer": "Dùng SLI và policy đã thống nhất để giải thích tác động, ưu tiên ổn định và thương lượng phạm vi hoặc thời điểm theo quy trình ngoại lệ minh bạch.",
+      "explanation": "Dùng SLI và policy đã thống nhất để giải thích tác động, ưu tiên ổn định và thương lượng phạm vi hoặc thời điểm theo quy trình ngoại lệ minh bạch. Error budget không phải công cụ để kỹ thuật tự quyết mọi ưu tiên. Kiểm tra dữ liệu, cửa sổ đo và policy, xác định thay đổi nào bị hạn chế và ai quyết định ngoại lệ. Nếu policy không còn phù hợp, review lại cùng stakeholder thay vì lặng lẽ bỏ qua.",
+      "alternative": "Cho phép thay đổi cải thiện reliability theo policy; freeze không nhất thiết chặn mọi bản sửa.",
+      "trap": "Tự hứa release mọi tính năng để làm hài lòng dù vi phạm policy đã chốt.",
+      "rubric": [
+        "Dùng dữ liệu SLI",
+        "Áp dụng policy rõ",
+        "Thương lượng với stakeholder",
+        "Có escalation và ngoại lệ"
+      ],
+      "source": "https://sre.google/workbook/implementing-slos/",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": null,
+      "core": false
+    }
+  },
+  {
+    "slug": "behavioral-englishaudience-boundary",
+    "content": {
+      "title": "Dịch cơ chế thành tác động người dùng",
+      "topic": "behavioral",
+      "subtopic": "Dịch cơ chế thành tác động người dùng",
+      "tags": [
+        "plain language",
+        "technical English",
+        "causal explanation"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "Engineering communication",
+      "prompt": "Chưa xác minh cache là nguyên nhân. Cụm nào làm rõ mức chắc chắn trong English update?",
+      "englishPrompt": "The cache has not been confirmed as the cause. Which phrase clarifies certainty in an English update?",
+      "context": "Người nghe không chuyên kỹ thuật; độ chắc chắn của quan hệ nhân quả phải tương ứng bằng chứng hiện có.",
+      "code": null,
+      "hint": "Giải thích chuỗi nguyên nhân",
+      "nextHint": "Nêu tác động người dùng",
+      "followUp": "Bạn giải thích sự cố cache cho người quản lý không chuyên bằng tiếng Anh. Hãy diễn đạt “cache miss caused connection pool saturation” dễ hiểu nhưng không mất quan hệ nhân quả.",
+      "englishFollowUp": "Explain a cache incident in English to a nontechnical manager. Restate “cache misses caused connection pool saturation” understandably without losing the causal chain.",
+      "outline": [
+        "Giải thích chuỗi nguyên nhân",
+        "Nêu tác động người dùng",
+        "Phù hợp người nghe"
+      ],
+      "shortAnswer": "Giả thuyết hiện tại là sự cố cache làm tăng tải database.",
+      "explanation": "Nói dữ liệu cần đọc không có trong cache nên nhiều request phải đọc DB, làm đầy connection pool và gây chậm hoặc lỗi. Cache miss không tự chứng minh cache service bị outage. Ví dụ tự soạn: “The requested data was not in the cache, so more requests reached the database than its connection pool could handle. Some users saw delays and errors.” Chỉ khẳng định quan hệ này nếu có bằng chứng; nếu đang điều tra, thêm “Our current hypothesis is”. Dùng ngôn ngữ theo người nghe nhưng giữ đúng tác động và mức chắc chắn.",
+      "alternative": "Có thể bổ sung thuật ngữ trong ngoặc khi người nghe cần đối chiếu báo cáo kỹ thuật.",
+      "trap": "Lặp nguyên thuật ngữ dày đặc rồi cho rằng người nghe phải tự học.",
+      "rubric": [
+        "Giải thích chuỗi nguyên nhân",
+        "Nêu tác động người dùng",
+        "Phù hợp người nghe",
+        "Gắn mức chắc chắn"
+      ],
+      "source": "https://digital.gov/guides/plain-language",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Giả thuyết hiện tại là sự cố cache làm tăng tải database.",
+          "Chắc chắn cache là nguyên nhân gốc dù chưa có bằng chứng."
+        ],
+        "en": [
+          "Our current hypothesis is that the cache outage increased database load.",
+          "The root cause is definitely the cache, even without evidence."
+        ],
+        "correctIndex": 0,
+        "reasons": [
+          "Our current hypothesis is đánh dấu nguyên nhân chưa được xác nhận; người nghe phân biệt giả thuyết điều tra với kết luận có bằng chứng.",
+          "Khẳng định definitely/root cause khi chưa có bằng chứng làm quá mức chắc chắn; đổi sang ngôn ngữ dễ hiểu không cho phép bỏ nhãn giả thuyết."
+        ]
+      },
+      "core": true
+    }
+  }
+]

@@ -78,7 +78,7 @@ export type Preset = { id: string; name: string; description: string; topics: st
 export type InterviewObservation = { model: string; assessment: { findings: {kind: string; quote: string; note: string}[]; improvedAnswer: string } }
 type InterviewEntry = { seconds: number; aiState?: string; observation?: InterviewObservation }
 export type Interview = {
-  session: { id: string; preset: string; mode: 'guided' | 'mock' | 'offline' | 'guided-ai' | 'realistic-ai'; language: 'vi' | 'en'; status: string; startedAt: string; minutes: number }
+  session: { id: string; preset: string; presetName?: string; mode: 'guided' | 'mock' | 'offline' | 'guided-ai' | 'realistic-ai'; language: 'vi' | 'en'; status: string; startedAt: string; minutes: number }
   revision: number; position: number; count: number; stage: 'question' | 'followup' | 'feedback'; draft: string
   serverNow: string; deadline: string; pausedSeconds?: number
   current?: { slug: string; version: number; title: string; topic: string; text: string; context?: string; code?: string; hint?: string;

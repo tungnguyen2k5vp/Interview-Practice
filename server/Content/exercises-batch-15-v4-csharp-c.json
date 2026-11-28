@@ -1,0 +1,716 @@
+[
+  {
+    "slug": "gcd-all-batch-sizes",
+    "kind": "coding",
+    "title": "Ước chung lớn nhất của các lô",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "number-theory"
+    ],
+    "minutes": 25,
+    "description": "Tìm số nguyên không âm lớn nhất chia hết mọi kích thước lô. Mảng rỗng hoặc toàn 0 trả 0.",
+    "input": "sizes: kích thước lô không âm.",
+    "output": "GCD kiểu int.",
+    "constraints": [
+      "0 ≤ n ≤ 10.000; 0 ≤ sizes[i] ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[12,18,30]",
+        "output": "6",
+        "explanation": "Ước chung lớn nhất là 6."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Không có lô."
+      },
+      {
+        "input": "[0,0]",
+        "output": "0",
+        "explanation": "Tất cả bằng 0."
+      },
+      {
+        "input": "[0,15]",
+        "output": "15",
+        "explanation": "GCD với 0 giữ số còn lại."
+      }
+    ],
+    "starter": "public static int BatchGcd(int[] sizes)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int BatchGcd(int[] sizes)\n{\n    int g = 0; foreach (int x in sizes) { int b = x; while (b != 0) { int r = g % b; g = b; b = r; } } return g;\n}",
+    "hint": "Gom bằng Euclid và gcd(0,x)=x; vòng lặp modulo giảm toán hạng cho tới 0.",
+    "explanation": "Gom bằng Euclid và gcd(0,x)=x; vòng lặp modulo giảm toán hạng cho tới 0.",
+    "complexity": "O(n log M) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "polynomial-horner-high-first",
+    "kind": "coding",
+    "title": "Tính đa thức bằng Horner",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "horner"
+    ],
+    "minutes": 25,
+    "description": "coefficients ghi từ hệ số bậc cao nhất tới hằng số. Tính đa thức tại x bằng số nguyên; mảng hệ số rỗng biểu diễn 0.",
+    "input": "coefficients: hệ số cao tới thấp; x: điểm tính.",
+    "output": "long giá trị đa thức.",
+    "constraints": [
+      "0 ≤ n ≤ 12; -1000 ≤ coefficients[i] ≤ 1000; -5 ≤ x ≤ 5.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[2,3,4], 2",
+        "output": "18",
+        "explanation": "2x²+3x+4 tại x=2 là 18."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 3",
+        "output": "0",
+        "explanation": "Đa thức 0."
+      },
+      {
+        "input": "[7], -5",
+        "output": "7",
+        "explanation": "Hằng số không phụ thuộc x."
+      },
+      {
+        "input": "[1,0,-1], 0",
+        "output": "-1",
+        "explanation": "Tại 0 chỉ còn hệ số cuối."
+      }
+    ],
+    "starter": "public static long EvaluatePolynomial(int[] coefficients, int x)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long EvaluatePolynomial(int[] coefficients, int x)\n{\n    long value = 0; foreach (int c in coefficients) value = value * x + c; return value;\n}",
+    "hint": "Mỗi bước Horner nhân giá trị đã tích lũy với x rồi cộng hệ số kế tiếp, không tính lũy thừa riêng.",
+    "explanation": "Mỗi bước Horner nhân giá trị đã tích lũy với x rồi cộng hệ số kế tiếp, không tính lũy thừa riêng.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "sparse-vector-dot-by-index",
+    "kind": "coding",
+    "title": "Tích vô hướng vector thưa",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "sparse-vector"
+    ],
+    "minutes": 25,
+    "description": "Mỗi vector chứa cặp [index,value] với index duy nhất, có thể không sort. Chỉ các index cùng có mặt ở hai vector mới đóng góp vào tổng.",
+    "input": "left,right: các cặp [index,value].",
+    "output": "long tổng tích theo index chung.",
+    "constraints": [
+      "Mỗi vector tối đa 10.000 cặp; index 0..10^9 duy nhất trong từng vector; |value| ≤ 10^6.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[3,2],[1,4]], [[1,5],[7,9]]",
+        "output": "20",
+        "explanation": "Chỉ index 1 chung, kết quả 20."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], []",
+        "output": "0",
+        "explanation": "Hai vector rỗng."
+      },
+      {
+        "input": "[[1,7]], [[2,8]]",
+        "output": "0",
+        "explanation": "Không có index chung."
+      },
+      {
+        "input": "[[2,-3]], [[2,4]]",
+        "output": "-12",
+        "explanation": "Giá trị âm được giữ."
+      }
+    ],
+    "starter": "public static long SparseDot(int[][] left, int[][] right)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long SparseDot(int[][] left, int[][] right)\n{\n    var d = left.ToDictionary(r => r[0], r => r[1]); long total = 0; foreach (var r in right) if (d.TryGetValue(r[0], out int value)) total += (long)value * r[1]; return total;\n}",
+    "hint": "Tạo map index của một vector, dò vector kia và nâng sang long trước nhân. Thứ tự các cặp không ảnh hưởng.",
+    "explanation": "Tạo map index của một vector, dò vector kia và nâng sang long trước nhân. Thứ tự các cặp không ảnh hưởng.",
+    "complexity": "O(l+r) thời gian kỳ vọng, O(l) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "matrix-clockwise-spiral",
+    "kind": "coding",
+    "title": "Duyệt ma trận xoắn ốc",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "matrix"
+    ],
+    "minutes": 25,
+    "description": "Trả các phần tử theo vòng xoắn ốc chiều kim đồng hồ, bắt đầu góc trên trái đi sang phải. Ma trận chữ nhật, không có hàng hoặc không có cột trả [].",
+    "input": "matrix: int[][] chữ nhật.",
+    "output": "int[] theo thứ tự xoắn ốc.",
+    "constraints": [
+      "0 ≤ hàng,cột ≤ 200; mọi giá trị trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,2,3],[4,5,6],[7,8,9]]",
+        "output": "[1,2,3,6,9,8,7,4,5]",
+        "explanation": "Vòng ngoài rồi phần tử giữa."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có hàng."
+      },
+      {
+        "input": "[[1,2,3]]",
+        "output": "[1,2,3]",
+        "explanation": "Chỉ một hàng không được đọc lại từ phải."
+      },
+      {
+        "input": "[[1],[2],[3]]",
+        "output": "[1,2,3]",
+        "explanation": "Chỉ một cột."
+      }
+    ],
+    "starter": "public static int[] Spiral(int[][] matrix)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] Spiral(int[][] matrix)\n{\n    if (matrix.Length == 0 || matrix[0].Length == 0) return []; int top = 0, bottom = matrix.Length-1, left = 0, right = matrix[0].Length-1; var output = new List<int>(); while (top <= bottom && left <= right) { for (int j = left; j <= right; j++) output.Add(matrix[top][j]); top++; for (int i = top; i <= bottom; i++) output.Add(matrix[i][right]); right--; if (top <= bottom) { for (int j = right; j >= left; j--) output.Add(matrix[bottom][j]); bottom--; } if (left <= right) { for (int i = bottom; i >= top; i--) output.Add(matrix[i][left]); left++; } } return output.ToArray();\n}",
+    "hint": "Thu hẹp bốn biên sau mỗi cạnh; kiểm tra lại hàng và cột trước hai cạnh cuối để tránh đọc trùng vòng mỏng.",
+    "explanation": "Thu hẹp bốn biên sau mỗi cạnh; kiểm tra lại hàng và cột trước hai cạnh cuối để tránh đọc trùng vòng mỏng.",
+    "complexity": "O(r×c) thời gian, O(r×c) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "grid-right-down-obstacles",
+    "kind": "coding",
+    "title": "Đếm đường đi tránh ô chặn",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "dynamic-programming"
+    ],
+    "minutes": 25,
+    "description": "Từ góc trên trái tới góc dưới phải, mỗi bước chỉ đi phải hoặc xuống. Ô 1 bị chặn, ô 0 đi được. Đếm số đường; lưới không có ô trả 0.",
+    "input": "grid: ma trận chữ nhật chỉ 0 hoặc 1.",
+    "output": "long số đường hợp lệ.",
+    "constraints": [
+      "0 ≤ số hàng,cột ≤ 15.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[0,0,0],[0,1,0],[0,0,0]]",
+        "output": "2",
+        "explanation": "Hai đường vòng qua ô giữa."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Lưới rỗng."
+      },
+      {
+        "input": "[[1]]",
+        "output": "0",
+        "explanation": "Điểm đầu bị chặn."
+      },
+      {
+        "input": "[[0]]",
+        "output": "1",
+        "explanation": "Một ô trống có một đường không bước."
+      }
+    ],
+    "starter": "public static long CountGridPaths(int[][] grid)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long CountGridPaths(int[][] grid)\n{\n    if (grid.Length == 0 || grid[0].Length == 0) return 0; var dp = new long[grid[0].Length]; dp[0] = 1; foreach (var row in grid) for (int j = 0; j < row.Length; j++) { if (row[j] == 1) dp[j] = 0; else if (j > 0) dp[j] += dp[j-1]; } return dp[^1];\n}",
+    "hint": "dp[j] giữ số đường từ trên, dp[j−1] là từ trái đã cập nhật. Ô chặn đặt 0 để đường không truyền xuyên qua.",
+    "explanation": "dp[j] giữ số đường từ trên, dp[j−1] là từ trái đã cập nhật. Ô chặn đặt 0 để đường không truyền xuyên qua.",
+    "complexity": "O(r×c) thời gian, O(c) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "ascii-edit-distance-unit-cost",
+    "kind": "coding",
+    "title": "Khoảng cách sửa chuỗi ASCII",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "dynamic-programming"
+    ],
+    "minutes": 25,
+    "description": "Tính số thao tác ít nhất để đổi source thành target. Mỗi thao tác chèn, xóa hoặc thay một ký tự có chi phí 1; giữ ký tự bằng nhau có chi phí 0. Phân biệt hoa thường.",
+    "input": "source,target: chuỗi ASCII.",
+    "output": "int chi phí Levenshtein.",
+    "constraints": [
+      "0 ≤ mỗi độ dài ≤ 200.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"kitten\", \"sitting\"",
+        "output": "3",
+        "explanation": "Hai thay và một chèn."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"\", \"abc\"",
+        "output": "3",
+        "explanation": "Ba lần chèn."
+      },
+      {
+        "input": "\"abc\", \"abc\"",
+        "output": "0",
+        "explanation": "Không sửa."
+      },
+      {
+        "input": "\"A\", \"a\"",
+        "output": "1",
+        "explanation": "Khác case cần thay."
+      }
+    ],
+    "starter": "public static int EditDistance(string source, string target)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int EditDistance(string source, string target)\n{\n    var dp = new int[source.Length+1,target.Length+1]; for (int i = 0; i <= source.Length; i++) dp[i,0] = i; for (int j = 0; j <= target.Length; j++) dp[0,j] = j; for (int i = 1; i <= source.Length; i++) for (int j = 1; j <= target.Length; j++) dp[i,j] = Math.Min(Math.Min(dp[i-1,j]+1, dp[i,j-1]+1), dp[i-1,j-1]+(source[i-1] == target[j-1] ? 0 : 1)); return dp[source.Length,target.Length];\n}",
+    "hint": "dp[i,j] là chi phí giữa hai prefix. Lấy nhỏ nhất của xóa, chèn và khớp/thay; các biên là đổi với prefix rỗng.",
+    "explanation": "dp[i,j] là chi phí giữa hai prefix. Lấy nhỏ nhất của xóa, chèn và khớp/thay; các biên là đổi với prefix rỗng.",
+    "complexity": "O((s+1)×(t+1)) thời gian và bộ nhớ, tính cả khi một chuỗi rỗng.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "strict-increasing-subsequence-length",
+    "kind": "coding",
+    "title": "Dãy con tăng nghiêm ngặt dài nhất",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "dynamic-programming"
+    ],
+    "minutes": 25,
+    "description": "Chọn một subsequence, không cần liên tiếp, sao cho mỗi số sau lớn hơn số trước. Trả độ dài lớn nhất; các số bằng nhau không kéo dài dãy.",
+    "input": "values: mảng int.",
+    "output": "int độ dài LIS nghiêm ngặt.",
+    "constraints": [
+      "0 ≤ n ≤ 500; mọi số trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[10,9,2,5,3,7,101,18]",
+        "output": "4",
+        "explanation": "Độ dài 4, không yêu cầu trả dãy."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Mảng rỗng."
+      },
+      {
+        "input": "[2,2,2]",
+        "output": "1",
+        "explanation": "Các số bằng nhau chỉ tạo dãy dài 1."
+      },
+      {
+        "input": "[3,2,1]",
+        "output": "1",
+        "explanation": "Mảng giảm."
+      }
+    ],
+    "starter": "public static int IncreasingLength(int[] values)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int IncreasingLength(int[] values)\n{\n    var dp = new int[values.Length]; int best = 0; for (int i = 0; i < values.Length; i++) { dp[i] = 1; for (int j = 0; j < i; j++) if (values[j] < values[i]) dp[i] = Math.Max(dp[i], dp[j]+1); best = Math.Max(best, dp[i]); } return best;\n}",
+    "hint": "dp[i] là độ dài dãy kết thúc tại i. Chỉ nối j<i khi values[j]<values[i]. Bài cho n≤500 nên DP bậc hai đủ rõ.",
+    "explanation": "dp[i] là độ dài dãy kết thúc tại i. Chỉ nối j<i khi values[j]<values[i]. Bài cho n≤500 nên DP bậc hai đủ rõ.",
+    "complexity": "O(n²) thời gian, O(n) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "positive-window-minimum-length",
+    "kind": "coding",
+    "title": "Cửa sổ ngắn nhất đạt mục tiêu",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "sliding-window"
+    ],
+    "minutes": 25,
+    "description": "Mảng gồm số dương. Tìm độ dài đoạn liên tiếp ngắn nhất có tổng ≥ target; nếu không có trả 0.",
+    "input": "values: mảng số dương; target: tổng tối thiểu.",
+    "output": "int độ dài nhỏ nhất hoặc 0.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; 1 ≤ values[i] ≤ 10^9; 1 ≤ target ≤ 10^12.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[2,3,1,2,4,3], 7",
+        "output": "2",
+        "explanation": "Đoạn [4,3] có độ dài 2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 1",
+        "output": "0",
+        "explanation": "Không có đoạn."
+      },
+      {
+        "input": "[5], 5",
+        "output": "1",
+        "explanation": "Đạt đúng biên."
+      },
+      {
+        "input": "[1,1], 3",
+        "output": "0",
+        "explanation": "Không đủ tổng."
+      }
+    ],
+    "starter": "public static int ShortestTargetWindow(int[] values, long target)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int ShortestTargetWindow(int[] values, long target)\n{\n    int left = 0, best = int.MaxValue; long sum = 0; for (int right = 0; right < values.Length; right++) { sum += values[right]; while (sum >= target) { best = Math.Min(best, right-left+1); sum -= values[left++]; } } return best == int.MaxValue ? 0 : best;\n}",
+    "hint": "Vì mọi số dương, tăng phải chỉ tăng tổng và tăng trái chỉ giảm tổng. Khi đủ tổng, thu trái liên tục để tìm đoạn ngắn nhất cho mỗi phải.",
+    "explanation": "Vì mọi số dương, tăng phải chỉ tăng tổng và tăng trái chỉ giảm tổng. Khi đủ tổng, thu trái liên tục để tìm đoạn ngắn nhất cho mỗi phải.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "subarray-exact-target-count",
+    "kind": "coding",
+    "title": "Đếm đoạn có tổng đúng mục tiêu",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "prefix-hash"
+    ],
+    "minutes": 25,
+    "description": "Đếm mọi đoạn liên tiếp không rỗng có tổng bằng target. Các số có thể âm hoặc bằng 0; các đoạn khác vị trí được tính riêng.",
+    "input": "values: mảng int; target: long tổng cần tìm.",
+    "output": "long số đoạn.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; |values[i]| ≤ 10^9; |target| ≤ 10^12.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,-1,1], 1",
+        "output": "3",
+        "explanation": "Có ba đoạn tổng 1."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 0",
+        "output": "0",
+        "explanation": "Không có đoạn rỗng được tính."
+      },
+      {
+        "input": "[0,0,0], 0",
+        "output": "6",
+        "explanation": "Sáu đoạn khác vị trí."
+      },
+      {
+        "input": "[2,3], 99",
+        "output": "0",
+        "explanation": "Không có đáp án."
+      }
+    ],
+    "starter": "public static long ExactTargetCount(int[] values, long target)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long ExactTargetCount(int[] values, long target)\n{\n    var counts = new Dictionary<long,long> { [0] = 1 }; long prefix = 0, answer = 0; foreach (int x in values) { prefix += x; if (counts.TryGetValue(prefix-target, out long count)) answer += count; counts.TryGetValue(prefix, out long old); counts[prefix] = old+1; } return answer;\n}",
+    "hint": "Nếu prefix hiện tại là p, cần số prefix trước có giá trị p−target. Seed prefix 0 một lần; đếm trước khi thêm prefix hiện tại để không tính đoạn rỗng.",
+    "explanation": "Nếu prefix hiện tại là p, cần số prefix trước có giá trị p−target. Seed prefix 0 một lần; đếm trước khi thêm prefix hiện tại để không tính đoạn rỗng.",
+    "complexity": "O(n) thời gian kỳ vọng, O(n) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "maximum-nonempty-subarray-sum",
+    "kind": "coding",
+    "title": "Tổng lớn nhất của đoạn không rỗng",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "kadane"
+    ],
+    "minutes": 25,
+    "description": "Tìm tổng lớn nhất của một đoạn liên tiếp không rỗng. Nếu mảng rỗng trả 0; nếu toàn âm vẫn phải chọn một phần tử khi không rỗng.",
+    "input": "values: mảng int.",
+    "output": "long tổng lớn nhất.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; mọi số trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[-2,1,-3,4,-1,2,1,-5,4]",
+        "output": "6",
+        "explanation": "Đoạn [4,-1,2,1] có tổng 6."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "0",
+        "explanation": "Quy ước rỗng trả 0."
+      },
+      {
+        "input": "[-5,-2,-7]",
+        "output": "-2",
+        "explanation": "Phải chọn -2, không phải 0."
+      },
+      {
+        "input": "[2147483647,2147483647]",
+        "output": "4294967294",
+        "explanation": "Tổng vượt int."
+      }
+    ],
+    "starter": "public static long MaximumSegment(int[] values)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long MaximumSegment(int[] values)\n{\n    if (values.Length == 0) return 0; long ending = values[0], best = ending; for (int i = 1; i < values.Length; i++) { ending = Math.Max((long)values[i], ending + values[i]); best = Math.Max(best, ending); } return best;\n}",
+    "hint": "Kadane giữ tổng tốt nhất kết thúc tại i, chọn bắt đầu mới hoặc nối đoạn cũ. Khởi tạo bằng phần tử đầu bảo đảm đoạn không rỗng.",
+    "explanation": "Kadane giữ tổng tốt nhất kết thúc tại i, chọn bắt đầu mới hoặc nối đoạn cũ. Khởi tạo bằng phần tử đầu bảo đảm đoạn không rỗng.",
+    "complexity": "O(n) thời gian, O(1) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "kth-largest-count-duplicates",
+    "kind": "coding",
+    "title": "Phần tử lớn thứ k có tính trùng",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "order-statistic"
+    ],
+    "minutes": 25,
+    "description": "Trả phần tử lớn thứ k khi sort giảm. Các lần lặp chiếm vị trí riêng; k đánh số từ 1. Không sửa mảng nguồn.",
+    "input": "values: mảng không rỗng; k: thứ hạng 1-based.",
+    "output": "int phần tử lớn thứ k.",
+    "constraints": [
+      "1 ≤ n ≤ 10.000; 1 ≤ k ≤ n; mọi số trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[5,5,3,1], 2",
+        "output": "5",
+        "explanation": "Lớn thứ hai vẫn là 5."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[9], 1",
+        "output": "9",
+        "explanation": "Một phần tử."
+      },
+      {
+        "input": "[-3,-1,-2], 3",
+        "output": "-3",
+        "explanation": "Hạng cuối trong số âm."
+      },
+      {
+        "input": "[1,2,3], 1",
+        "output": "3",
+        "explanation": "Hạng đầu."
+      }
+    ],
+    "starter": "public static int KthLargest(int[] values, int k)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int KthLargest(int[] values, int k)\n{\n    return values.OrderByDescending(x => x).ElementAt(k-1);\n}",
+    "hint": "Sort bản sao bằng OrderByDescending rồi lấy k−1. Không cần quickselect trong miền dữ liệu đã cho.",
+    "explanation": "Sort bản sao bằng OrderByDescending rồi lấy k−1. Không cần quickselect trong miền dữ liệu đã cho.",
+    "complexity": "O(n log n) thời gian, O(n) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "inverse-index-permutation",
+    "kind": "coding",
+    "title": "Đảo ánh xạ hoán vị",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "permutation"
+    ],
+    "minutes": 25,
+    "description": "p là hoán vị các số 0..n−1. Trả inverse sao cho inverse[p[i]]=i cho mọi i.",
+    "input": "permutation: hoán vị hợp lệ.",
+    "output": "int[] ánh xạ ngược.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; chứa mỗi số 0..n−1 đúng một lần.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[2,0,1]",
+        "output": "[1,2,0]",
+        "explanation": "Nghịch đảo là [1,2,0]."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Hoán vị rỗng."
+      },
+      {
+        "input": "[0]",
+        "output": "[0]",
+        "explanation": "Một điểm bất động."
+      },
+      {
+        "input": "[1,0,3,2]",
+        "output": "[1,0,3,2]",
+        "explanation": "Các chu kỳ hai phần tử tự nghịch đảo."
+      }
+    ],
+    "starter": "public static int[] InversePermutation(int[] permutation)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] InversePermutation(int[] permutation)\n{\n    var inverse = new int[permutation.Length]; for (int i = 0; i < permutation.Length; i++) inverse[permutation[i]] = i; return inverse;\n}",
+    "hint": "Mỗi index nguồn i ghi vào ô được p[i] chỉ định. Dữ liệu đã bảo đảm là hoán vị nên không có ghi đè xung đột.",
+    "explanation": "Mỗi index nguồn i ghi vào ô được p[i] chỉ định. Dữ liệu đã bảo đảm là hoán vị nên không có ghi đè xung đột.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "undirected-connected-components",
+    "kind": "coding",
+    "title": "Đếm nhóm kết nối kể cả nút cô lập",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "graph"
+    ],
+    "minutes": 25,
+    "description": "Đồ thị vô hướng có count đỉnh 0..count−1. Đếm connected components, bao gồm mỗi đỉnh không có cạnh là một component.",
+    "input": "count: số đỉnh; edges: cặp đỉnh vô hướng.",
+    "output": "int số component.",
+    "constraints": [
+      "0 ≤ count ≤ 2.000; tối đa 10.000 cạnh hợp lệ; cho phép cạnh lặp và self-loop.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "4, [[0,1]]",
+        "output": "3",
+        "explanation": "Nhóm {0,1}, {2}, {3}."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, []",
+        "output": "0",
+        "explanation": "Đồ thị rỗng."
+      },
+      {
+        "input": "3, []",
+        "output": "3",
+        "explanation": "Ba đỉnh cô lập."
+      },
+      {
+        "input": "3, [[0,1],[1,2],[2,0]]",
+        "output": "1",
+        "explanation": "Một component có chu trình."
+      }
+    ],
+    "starter": "public static int ComponentCount(int count, int[][] edges)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int ComponentCount(int count, int[][] edges)\n{\n    var graph = Enumerable.Range(0, count).Select(_ => new List<int>()).ToArray(); foreach (var edge in edges) { graph[edge[0]].Add(edge[1]); graph[edge[1]].Add(edge[0]); } var seen = new bool[count]; int groups = 0; for (int s = 0; s < count; s++) { if (seen[s]) continue; groups++; var queue = new Queue<int>(); queue.Enqueue(s); seen[s] = true; while (queue.Count > 0) { int v = queue.Dequeue(); foreach (int u in graph[v]) if (!seen[u]) { seen[u] = true; queue.Enqueue(u); } } } return groups;\n}",
+    "hint": "Duyệt BFS từ mỗi đỉnh chưa thấy, kể cả đỉnh có adjacency rỗng. Đánh dấu khi enqueue để không thêm lại do cạnh lặp hoặc chu trình.",
+    "explanation": "Duyệt BFS từ mỗi đỉnh chưa thấy, kể cả đỉnh có adjacency rỗng. Đánh dấu khi enqueue để không thêm lại do cạnh lặp hoặc chu trình.",
+    "complexity": "O(v+e) thời gian và bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "graph-bipartite-all-components",
+    "kind": "coding",
+    "title": "Hai màu trên mọi component",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "bipartite"
+    ],
+    "minutes": 25,
+    "description": "Kiểm tra đồ thị vô hướng có thể tô hai màu sao cho hai đầu mỗi cạnh khác màu. Self-loop khiến kết quả false. Đồ thị rỗng hợp lệ.",
+    "input": "count: số đỉnh; edges: các cặp vô hướng.",
+    "output": "bool có tồn tại phép tô hai màu.",
+    "constraints": [
+      "0 ≤ count ≤ 2.000; tối đa 10.000 cạnh hợp lệ, cho phép cạnh lặp.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "4, [[1,2],[2,3],[3,1]]",
+        "output": "false",
+        "explanation": "Đỉnh 0 cô lập không che được tam giác ở component khác."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, []",
+        "output": "true",
+        "explanation": "Đồ thị rỗng."
+      },
+      {
+        "input": "1, [[0,0]]",
+        "output": "false",
+        "explanation": "Self-loop không tô được."
+      },
+      {
+        "input": "4, [[0,1],[1,2],[2,3],[3,0]]",
+        "output": "true",
+        "explanation": "Chu trình chẵn tô được."
+      }
+    ],
+    "starter": "public static bool IsBipartite(int count, int[][] edges)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static bool IsBipartite(int count, int[][] edges)\n{\n    var graph = Enumerable.Range(0, count).Select(_ => new List<int>()).ToArray(); foreach (var e in edges) { graph[e[0]].Add(e[1]); graph[e[1]].Add(e[0]); } var color = Enumerable.Repeat(-1, count).ToArray(); for (int s = 0; s < count; s++) { if (color[s] != -1) continue; color[s] = 0; var queue = new Queue<int>(); queue.Enqueue(s); while (queue.Count > 0) { int v = queue.Dequeue(); foreach (int u in graph[v]) { if (color[u] == -1) { color[u] = 1-color[v]; queue.Enqueue(u); } else if (color[u] == color[v]) return false; } } } return true;\n}",
+    "hint": "BFS gán màu đối lập cho hàng xóm; cạnh nối hai đỉnh cùng màu là mâu thuẫn. Lặp điểm khởi đầu để bao phủ toàn bộ component.",
+    "explanation": "BFS gán màu đối lập cho hàng xóm; cạnh nối hai đỉnh cùng màu là mâu thuẫn. Lặp điểm khởi đầu để bao phủ toàn bộ component.",
+    "complexity": "O(v+e) thời gian và bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  }
+]

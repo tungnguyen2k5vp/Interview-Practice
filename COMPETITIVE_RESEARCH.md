@@ -1,5 +1,27 @@
 # Nghiên cứu nội dung · 27/11/2026
 
+## Bổ sung V4 · học tương tác và thực hành dự án
+
+Các trang dưới đây đã mở ngày 27/11/2026 bằng công cụ web. NeetCode trả trang gần như rỗng trong text browser; Playwright sau khi chạy JavaScript hiển thị được danh mục, roadmap và trang giới thiệu khóa học. Phạm vi quan sát là trang công khai. Các luồng bên trong tài khoản, chấm bài và nội dung trả phí chưa được xác minh trong lần nghiên cứu này.
+
+| Nguồn thực sự mở | Quan sát và cách áp dụng |
+|---|---|
+| [Frontend Mentor](https://www.frontendmentor.io/) | Có bài theo thiết kế và bài theo đặc tả sản phẩm, phản hồi sau nộp. Mini project .NET cần hợp đồng và tiêu chí nghiệm thu có thể kiểm tra, kèm bài review; nội dung và tài sản tự biên soạn. |
+| [Codewars](https://www.codewars.com/) | Trang mô tả kata, kiểm tra bằng test và so sánh cách giải sau hoàn thành. Thêm mutant sai có chủ đích để đo khả năng bắt lỗi, cùng giải thích trade-off sau khi nộp. |
+| [NeetCode](https://neetcode.io/) | Trang có thứ tự chủ đề từ array/hash tới graph và DP, các mục có phần giải thích dạng video. Dùng quan hệ tiên quyết rõ ràng và một đường tiếp tục học. Thống kê trên trang là tuyên bố của nhà cung cấp. |
+| [DataLemur](https://datalemur.com/) | Danh sách SQL thể hiện chủ đề và độ khó ngay trong bảng. Dùng dataset có ngữ cảnh và edge case; đáp án của dự án giữ dialect SQL Server 2022. |
+| [SQLZoo](https://sqlzoo.net/) | Có chuỗi bài theo thao tác, bài quiz và nhiều dataset. Một số phần DDL hướng dẫn MySQL nên cần đối chiếu riêng T-SQL trước khi áp dụng. |
+| [Brilliant](https://brilliant.org/) | Trang công khai mô tả học qua tương tác và phản hồi khi làm bài. Bài học của dự án cần yêu cầu dự đoán hoặc giải thích trước khi mở phần đối chiếu, rồi chuyển sang một tình huống khác. |
+| [Anki](https://apps.ankiweb.net/) | Trình bày lịch ôn và tùy chỉnh thời gian thẻ. Tiếp tục dùng scheduler hiện có và bằng chứng độc lập theo ngày. Chưa kiểm thử cài đặt hay đồng bộ Anki. |
+| [Pramp](https://www.pramp.com/) | Trang cho biết các phiên mới chuyển sang Aced Practice từ tháng 7/2024. Dùng hoạt động trình bày lời giải và phản hồi theo vai trò; chưa kiểm thử buổi ghép cặp thật. |
+| [Microsoft Learn](https://learn.microsoft.com/) | Có điểm vào tài liệu, hướng dẫn tác vụ và đào tạo. Dẫn lại section hỗ trợ chính xác mệnh đề của bài, ghi riêng nguồn đã đọc và URL chỉ kiểm HTTP. |
+| [Refactoring.Guru](https://refactoring.guru/) | Kết nối refactoring, code smell và design patterns. Dùng tình huống trước/sau với lý do thay đổi, tránh chấm theo việc thuộc tên pattern. |
+| [Design Gurus](https://www.designgurus.io/) | Trang tách vòng coding, system design và behavioral; ví dụ tiêu chí nêu ràng buộc trước kiến trúc. Preset nên xác định kỹ năng và ngân sách thời gian, không suy rộng bối cảnh tuyển dụng FAANG sang Việt Nam. |
+
+Exercism C#, roadmap ASP.NET Core và Hello Interview đã có quan sát phù hợp trong V3 bên dưới; lần này tiếp tục áp dụng kết quả đó. Các trang bổ sung dùng để nghiên cứu cấu trúc hoạt động, không có nội dung đề/test/hình được tái sử dụng. Chưa xác minh giấy phép chuyển thể cho các trang thương mại. Anki có mã nguồn mở nhưng bài học và thẻ cộng đồng có thể mang điều khoản riêng; V4 không nhập deck hay mã Anki.
+
+Áp dụng ở checkpoint Phase 1–2 ngày 28/11/2026: 95 lời giải sai có chủ đích đã bị test Docker bắt; 25 preset có mức và quỹ thời gian cụ thể, dùng bộ chọn gọn thay cho danh sách card dài. Mẫu interactive lesson, mini project và nhật ký lỗi vẫn là định hướng cho phase tiếp theo, chưa được tính như tính năng hoàn thành.
+
 Mở trực tiếp các trang công khai bằng trình duyệt web. Dùng thêm Playwright để đọc trang đầu SQLBolt. Quan sát dưới đây giới hạn ở nội dung trả về trong phiên, gồm bản lưu khi trang tuyển dụng đã đóng. Không đăng nhập, thu thập dữ liệu cá nhân, tải bộ đề, sao chép editorial hay test.
 
 | Trang đã truy cập | Quan sát, giới hạn và cách áp dụng |

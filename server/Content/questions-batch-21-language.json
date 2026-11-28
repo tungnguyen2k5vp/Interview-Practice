@@ -1,0 +1,2226 @@
+[
+  {
+    "slug": "priorityqueue-low-priority-first",
+    "content": {
+      "title": "Ưu tiên số nhỏ",
+      "topic": "csharp",
+      "subtopic": "priorityqueue low priority first",
+      "tags": [
+        "csharp",
+        "priorityqueue"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai job có priority 10 và 1. Queue lấy job nào trước?",
+      "englishPrompt": "Two jobs have priorities ten and one. Which is dequeued first?",
+      "context": "Worker lấy job dựa trên mức độ ưu tiên dạng số.",
+      "code": "var q = new PriorityQueue<string, int>(); q.Enqueue(\"bulk\", 10); q.Enqueue(\"urgent\", 1); Console.Write(q.Dequeue());",
+      "hint": "Kiểm tra giả định dễ sai sau: Đồng nhất số priority lớn với ưu tiên cao.",
+      "nextHint": "PriorityQueue mặc định loại phần tử có priority nhỏ nhất trước. Số lớn hơn không tự có nghĩa là khẩn cấp hơn.",
+      "followUp": "Các job cùng priority có được bảo đảm FIFO không?",
+      "englishFollowUp": "Are equal-priority jobs guaranteed FIFO?",
+      "outline": [
+        "urgent",
+        "PriorityQueue mặc định loại phần tử có priority nhỏ nhất trước. Số lớn hơn không tự có nghĩa là khẩn cấp hơn."
+      ],
+      "shortAnswer": "urgent. PriorityQueue mặc định loại phần tử có priority nhỏ nhất trước. Số lớn hơn không tự có nghĩa là khẩn cấp hơn.",
+      "explanation": "PriorityQueue mặc định loại phần tử có priority nhỏ nhất trước. Số lớn hơn không tự có nghĩa là khẩn cấp hơn.",
+      "alternative": "Nếu cần FIFO khi priority bằng nhau, thêm sequence tăng vào priority tuple; PriorityQueue không bảo đảm FIFO cho các tie.",
+      "trap": "Đồng nhất số priority lớn với ưu tiên cao.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: urgent",
+        "PriorityQueue mặc định loại phần tử có priority nhỏ nhất trước. Số lớn hơn không tự có nghĩa là khẩn cấp hơn.",
+        "Tránh ngộ nhận: Đồng nhất số priority lớn với ưu tiên cao.",
+        "Nếu cần FIFO khi priority bằng nhau, thêm sequence tăng vào priority tuple; PriorityQueue không bảo đảm FIFO cho các tie."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.priorityqueue-2?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "urgent",
+          "bulk",
+          "10"
+        ],
+        "en": [
+          "urgent",
+          "bulk",
+          "10"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sortedset-uniqueness-comparer",
+    "content": {
+      "title": "Trùng theo comparer của SortedSet",
+      "topic": "csharp",
+      "subtopic": "sortedset uniqueness comparer",
+      "tags": [
+        "csharp",
+        "sortedset"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "SortedSet bỏ trùng theo comparer nào và Count là gì?",
+      "englishPrompt": "How does the comparer affect SortedSet uniqueness, and what is Count?",
+      "context": "Danh mục mã kho cần vừa sort vừa loại trùng không phân biệt hoa thường.",
+      "code": "var s = new SortedSet<string>(StringComparer.OrdinalIgnoreCase) { \"A\", \"a\", \"B\" }; Console.Write(s.Count);",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng comparer chỉ ảnh hưởng thứ tự và không ảnh hưởng uniqueness.",
+      "nextHint": "SortedSet coi hai mục là trùng khi comparer trả 0. OrdinalIgnoreCase gộp A với a.",
+      "followUp": "Nếu comparer chỉ xét độ dài, hai mã khác nhau cùng dài có cùng tồn tại không?",
+      "englishFollowUp": "If the comparer examines only length, can different equal-length codes coexist?",
+      "outline": [
+        "2",
+        "SortedSet coi hai mục là trùng khi comparer trả 0. OrdinalIgnoreCase gộp A với a."
+      ],
+      "shortAnswer": "2. SortedSet coi hai mục là trùng khi comparer trả 0. OrdinalIgnoreCase gộp A với a.",
+      "explanation": "SortedSet coi hai mục là trùng khi comparer trả 0. OrdinalIgnoreCase gộp A với a.",
+      "alternative": "Dùng comparer xét đủ identity nghiệp vụ; comparer chỉ xét độ dài sẽ coi mọi chuỗi cùng độ dài là trùng.",
+      "trap": "Cho rằng comparer chỉ ảnh hưởng thứ tự và không ảnh hưởng uniqueness.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2",
+        "SortedSet coi hai mục là trùng khi comparer trả 0. OrdinalIgnoreCase gộp A với a.",
+        "Tránh ngộ nhận: Cho rằng comparer chỉ ảnh hưởng thứ tự và không ảnh hưởng uniqueness.",
+        "Dùng comparer xét đủ identity nghiệp vụ; comparer chỉ xét độ dài sẽ coi mọi chuỗi cùng độ dài là trùng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.sortedset-1?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "1",
+          "3"
+        ],
+        "en": [
+          "2",
+          "1",
+          "3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "stack-trypeek-retains-item",
+    "content": {
+      "title": "Xem đỉnh stack",
+      "topic": "csharp",
+      "subtopic": "stack trypeek retains item",
+      "tags": [
+        "csharp",
+        "stack"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "TryPeek đọc mục nhưng có xóa nó không? Log là gì?",
+      "englishPrompt": "Does TryPeek remove the item? What is printed?",
+      "context": "Bộ xử lý undo xem thao tác gần nhất trước khi quyết định thực hiện.",
+      "code": "var s = new Stack<int>(); s.Push(5); bool ok = s.TryPeek(out int x); Console.Write($\"{ok}:{x}:{s.Count}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm TryPeek với TryPop.",
+      "nextHint": "TryPeek thành công trả mục đỉnh mà không thay stack; Count vẫn một.",
+      "followUp": "TryPeek trên stack rỗng cho bool và out int thế nào?",
+      "englishFollowUp": "What bool and out int does TryPeek produce on an empty stack?",
+      "outline": [
+        "True:5:1",
+        "TryPeek thành công trả mục đỉnh mà không thay stack; Count vẫn một."
+      ],
+      "shortAnswer": "True:5:1. TryPeek thành công trả mục đỉnh mà không thay stack; Count vẫn một.",
+      "explanation": "TryPeek thành công trả mục đỉnh mà không thay stack; Count vẫn một.",
+      "alternative": "Dùng TryPop nếu phải lấy và loại đỉnh; TryPeek trên rỗng trả false và out int là 0.",
+      "trap": "Nhầm TryPeek với TryPop.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True:5:1",
+        "TryPeek thành công trả mục đỉnh mà không thay stack; Count vẫn một.",
+        "Tránh ngộ nhận: Nhầm TryPeek với TryPop.",
+        "Dùng TryPop nếu phải lấy và loại đỉnh; TryPeek trên rỗng trả false và out int là 0."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.stack-1.trypeek?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True:5:1",
+          "False:0:1",
+          "True:5:0"
+        ],
+        "en": [
+          "True:5:1",
+          "False:0:1",
+          "True:5:0"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "dictionary-remove-out-value",
+    "content": {
+      "title": "Lấy dữ liệu khi xóa khóa",
+      "topic": "csharp",
+      "subtopic": "dictionary remove out value",
+      "tags": [
+        "csharp",
+        "dictionary"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Remove(key,out value) trả giá trị cũ và Count thế nào?",
+      "englishPrompt": "What removed value and Count does Remove(key,out value) produce?",
+      "context": "Cache cục bộ cần ghi audit giá trị trước khi loại mục.",
+      "code": "var d = new Dictionary<string, int> { [\"A\"] = 7 }; bool ok = d.Remove(\"A\", out int old); Console.Write($\"{ok}:{old}:{d.Count}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Suy ra thread safety từ một lời gọi API đơn.",
+      "nextHint": "Overload này trả cờ tìm thấy và giá trị bị loại qua out trong cùng thao tác; khóa không còn trong dictionary.",
+      "followUp": "Có nên dùng Dictionary này cho nhiều thread ghi đồng thời không?",
+      "englishFollowUp": "Is this Dictionary suitable for concurrent writers without synchronization?",
+      "outline": [
+        "True:7:0",
+        "Overload này trả cờ tìm thấy và giá trị bị loại qua out trong cùng thao tác; khóa không còn trong dictionary."
+      ],
+      "shortAnswer": "True:7:0. Overload này trả cờ tìm thấy và giá trị bị loại qua out trong cùng thao tác; khóa không còn trong dictionary.",
+      "explanation": "Overload này trả cờ tìm thấy và giá trị bị loại qua out trong cùng thao tác; khóa không còn trong dictionary.",
+      "alternative": "Nếu nhiều thread ghi đồng thời, dùng đồng bộ phù hợp hoặc ConcurrentDictionary.TryRemove; Dictionary không tự bảo đảm cạnh tranh ghi.",
+      "trap": "Suy ra thread safety từ một lời gọi API đơn.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True:7:0",
+        "Overload này trả cờ tìm thấy và giá trị bị loại qua out trong cùng thao tác; khóa không còn trong dictionary.",
+        "Tránh ngộ nhận: Suy ra thread safety từ một lời gọi API đơn.",
+        "Nếu nhiều thread ghi đồng thời, dùng đồng bộ phù hợp hoặc ConcurrentDictionary.TryRemove; Dictionary không tự bảo đảm cạnh tranh ghi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2.remove?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "False:7:1",
+          "True:0:0",
+          "True:7:0"
+        ],
+        "en": [
+          "False:7:1",
+          "True:0:0",
+          "True:7:0"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "memory-stream-position-after-write",
+    "content": {
+      "title": "Con trỏ stream sau ghi",
+      "topic": "csharp",
+      "subtopic": "memory stream position after write",
+      "tags": [
+        "csharp",
+        "memory"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Ghi ba byte vào MemoryStream mới rồi đọc ngay. ReadByte trả gì?",
+      "englishPrompt": "Three bytes are written to a new MemoryStream and immediately read. What does ReadByte return?",
+      "context": "Bộ test xuất byte vào stream rồi đọc lại để xác minh.",
+      "code": "using var s = new MemoryStream(); s.Write(new byte[] { 1, 2, 3 }); Console.Write(s.ReadByte());",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng đọc luôn bắt đầu từ đầu sau khi ghi.",
+      "nextHint": "Write dịch Position đến cuối dữ liệu. ReadByte ở cuối trả -1; muốn đọc từ đầu phải đặt Position=0.",
+      "followUp": "Với network stream không seek được, có thể đặt Position=0 không?",
+      "englishFollowUp": "Can Position be reset on a non-seekable network stream?",
+      "outline": [
+        "-1",
+        "Write dịch Position đến cuối dữ liệu. ReadByte ở cuối trả -1; muốn đọc từ đầu phải đặt Position=0."
+      ],
+      "shortAnswer": "-1. Write dịch Position đến cuối dữ liệu. ReadByte ở cuối trả -1; muốn đọc từ đầu phải đặt Position=0.",
+      "explanation": "Write dịch Position đến cuối dữ liệu. ReadByte ở cuối trả -1; muốn đọc từ đầu phải đặt Position=0.",
+      "alternative": "Đặt Position=0 trước khi đọc lại MemoryStream; với stream không seek được, dùng buffer hoặc thiết kế luồng đọc ghi phù hợp.",
+      "trap": "Cho rằng đọc luôn bắt đầu từ đầu sau khi ghi.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: -1",
+        "Write dịch Position đến cuối dữ liệu. ReadByte ở cuối trả -1; muốn đọc từ đầu phải đặt Position=0.",
+        "Tránh ngộ nhận: Cho rằng đọc luôn bắt đầu từ đầu sau khi ghi.",
+        "Đặt Position=0 trước khi đọc lại MemoryStream; với stream không seek được, dùng buffer hoặc thiết kế luồng đọc ghi phù hợp."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.io.stream.readbyte?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "-1",
+          "0",
+          "1"
+        ],
+        "en": [
+          "-1",
+          "0",
+          "1"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "memory-stream-toarray-entire-content",
+    "content": {
+      "title": "ToArray bỏ qua Position",
+      "topic": "csharp",
+      "subtopic": "memory stream toarray entire content",
+      "tags": [
+        "csharp",
+        "memory"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Position đang ở 2. ToArray trả các byte nào?",
+      "englishPrompt": "Position is two. Which bytes does ToArray return?",
+      "context": "Bộ xuất cần snapshot đầy đủ dữ liệu dù caller đã đọc một phần.",
+      "code": "using var s = new MemoryStream(new byte[] { 1, 2, 3 }); s.Position = 2; Console.Write(string.Join(\",\", s.ToArray()));",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi ToArray như Read từ con trỏ hiện tại.",
+      "nextHint": "ToArray sao chép toàn bộ nội dung logic của MemoryStream, không chỉ phần từ Position hiện tại.",
+      "followUp": "Để chỉ lấy phần chưa đọc, cần dùng Position và Length thế nào?",
+      "englishFollowUp": "How would Position and Length help identify only unread data?",
+      "outline": [
+        "1,2,3",
+        "ToArray sao chép toàn bộ nội dung logic của MemoryStream, không chỉ phần từ Position hiện tại."
+      ],
+      "shortAnswer": "1,2,3. ToArray sao chép toàn bộ nội dung logic của MemoryStream, không chỉ phần từ Position hiện tại.",
+      "explanation": "ToArray sao chép toàn bộ nội dung logic của MemoryStream, không chỉ phần từ Position hiện tại.",
+      "alternative": "Muốn lấy phần chưa đọc, copy từ Position hiện tại bằng thao tác đọc; ToArray luôn lấy toàn bộ nội dung logic.",
+      "trap": "Coi ToArray như Read từ con trỏ hiện tại.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1,2,3",
+        "ToArray sao chép toàn bộ nội dung logic của MemoryStream, không chỉ phần từ Position hiện tại.",
+        "Tránh ngộ nhận: Coi ToArray như Read từ con trỏ hiện tại.",
+        "Muốn lấy phần chưa đọc, copy từ Position hiện tại bằng thao tác đọc; ToArray luôn lấy toàn bộ nội dung logic."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.io.memorystream.toarray?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1,2,3",
+          "3",
+          "1,2"
+        ],
+        "en": [
+          "1,2,3",
+          "3",
+          "1,2"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "guid-tryparseexact-format",
+    "content": {
+      "title": "GUID đúng giá trị sai khuôn",
+      "topic": "csharp",
+      "subtopic": "guid tryparseexact format",
+      "tags": [
+        "csharp",
+        "guid"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Chuỗi GUID dạng N được kiểm bằng khuôn D. Kết quả là gì?",
+      "englishPrompt": "An N-format GUID string is checked using D format. What is the result?",
+      "context": "Đối tác yêu cầu GUID có gạch nối trong payload cố định.",
+      "code": "string s = Guid.Empty.ToString(\"N\"); Console.Write(Guid.TryParseExact(s, \"D\", out _));",
+      "hint": "Kiểm tra giả định dễ sai sau: Giả định mọi chuỗi parse được đều đạt mọi format.",
+      "nextHint": "TryParseExact yêu cầu đúng khuôn chỉ định. N không có dấu gạch nối, D có; cùng giá trị số không đủ.",
+      "followUp": "Nếu API chấp nhận nhiều khuôn GUID, nên kiểm tra hợp đồng đầu vào thế nào?",
+      "englishFollowUp": "How would you specify validation if the API accepts multiple GUID formats?",
+      "outline": [
+        "False",
+        "TryParseExact yêu cầu đúng khuôn chỉ định. N không có dấu gạch nối, D có; cùng giá trị số không đủ."
+      ],
+      "shortAnswer": "False. TryParseExact yêu cầu đúng khuôn chỉ định. N không có dấu gạch nối, D có; cùng giá trị số không đủ.",
+      "explanation": "TryParseExact yêu cầu đúng khuôn chỉ định. N không có dấu gạch nối, D có; cùng giá trị số không đủ.",
+      "alternative": "Dùng TryParse nếu hợp đồng cho phép nhiều khuôn; dùng TryParseExact và thông báo lỗi khi bắt buộc D.",
+      "trap": "Giả định mọi chuỗi parse được đều đạt mọi format.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: False",
+        "TryParseExact yêu cầu đúng khuôn chỉ định. N không có dấu gạch nối, D có; cùng giá trị số không đủ.",
+        "Tránh ngộ nhận: Giả định mọi chuỗi parse được đều đạt mọi format.",
+        "Dùng TryParse nếu hợp đồng cho phép nhiều khuôn; dùng TryParseExact và thông báo lỗi khi bắt buộc D."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.guid.tryparseexact?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "False",
+          "FormatException"
+        ],
+        "en": [
+          "True",
+          "False",
+          "FormatException"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "enum-tryparse-undefined-number",
+    "content": {
+      "title": "Parse enum ngoài miền tên",
+      "topic": "csharp",
+      "subtopic": "enum tryparse undefined number",
+      "tags": [
+        "csharp",
+        "enum"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Enum chỉ định 0 và 1. TryParse số 7 và IsDefined cho kết quả gì?",
+      "englishPrompt": "The enum declares only zero and one. What do TryParse of seven and IsDefined report?",
+      "context": "API nhập trạng thái dạng chuỗi nhưng chỉ chấp nhận trạng thái đã khai báo.",
+      "code": "bool ok = Enum.TryParse<Status>(\"7\", out var s); Console.Write($\"{ok}:{Enum.IsDefined(s)}\");\nenum Status { Pending = 0, Done = 1 }",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi parse thành công là đúng miền nghiệp vụ.",
+      "nextHint": "TryParse có thể nhận chuỗi số biểu diễn được trong kiểu nền dù chưa khai báo tên; IsDefined mới kiểm tra hằng khai báo.",
+      "followUp": "Với Flags enum, vì sao IsDefined không đủ để chấp nhận mọi tổ hợp bit hợp lệ?",
+      "englishFollowUp": "For a Flags enum, why is IsDefined insufficient for validating every valid bit combination?",
+      "outline": [
+        "True:False",
+        "TryParse có thể nhận chuỗi số biểu diễn được trong kiểu nền dù chưa khai báo tên; IsDefined mới kiểm tra hằng khai báo."
+      ],
+      "shortAnswer": "True:False. TryParse có thể nhận chuỗi số biểu diễn được trong kiểu nền dù chưa khai báo tên; IsDefined mới kiểm tra hằng khai báo.",
+      "explanation": "TryParse có thể nhận chuỗi số biểu diễn được trong kiểu nền dù chưa khai báo tên; IsDefined mới kiểm tra hằng khai báo.",
+      "alternative": "Với enum không Flags, kết hợp TryParse và IsDefined; với Flags, kiểm tra bit ngoài mặt nạ hợp lệ thay vì chỉ IsDefined.",
+      "trap": "Coi parse thành công là đúng miền nghiệp vụ.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True:False",
+        "TryParse có thể nhận chuỗi số biểu diễn được trong kiểu nền dù chưa khai báo tên; IsDefined mới kiểm tra hằng khai báo.",
+        "Tránh ngộ nhận: Coi parse thành công là đúng miền nghiệp vụ.",
+        "Với enum không Flags, kết hợp TryParse và IsDefined; với Flags, kiểm tra bit ngoài mặt nạ hợp lệ thay vì chỉ IsDefined."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.enum.tryparse?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True:True",
+          "False:False",
+          "True:False"
+        ],
+        "en": [
+          "True:True",
+          "False:False",
+          "True:False"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "flags-hasflag-zero",
+    "content": {
+      "title": "Cờ rỗng luôn khớp",
+      "topic": "csharp",
+      "subtopic": "flags hasflag zero",
+      "tags": [
+        "csharp",
+        "flags"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "HasFlag với zero mask trả gì dù giá trị không có bit nào?",
+      "englishPrompt": "What does HasFlag return for a zero mask when the value contains no bits?",
+      "context": "Bộ phân quyền dùng một mask có thể bằng 0 từ cấu hình.",
+      "code": "Console.Write(((Access)0).HasFlag((Access)0));\n[Flags] enum Access { Read = 1, Write = 2 }",
+      "hint": "Kiểm tra giả định dễ sai sau: Dùng HasFlag(0) để kiểm tra không có quyền.",
+      "nextHint": "HasFlag kiểm tra các bit của flag đều có trong value. Với zero mask, không có bit bắt buộc nên luôn true.",
+      "followUp": "Muốn kiểm tra có ít nhất một quyền trong mask, biểu thức bit nào phù hợp?",
+      "englishFollowUp": "Which bit expression tests whether any requested permission is present?",
+      "outline": [
+        "True",
+        "HasFlag kiểm tra các bit của flag đều có trong value. Với zero mask, không có bit bắt buộc nên luôn true."
+      ],
+      "shortAnswer": "True. HasFlag kiểm tra các bit của flag đều có trong value. Với zero mask, không có bit bắt buộc nên luôn true.",
+      "explanation": "HasFlag kiểm tra các bit của flag đều có trong value. Với zero mask, không có bit bắt buộc nên luôn true.",
+      "alternative": "Kiểm tra (value & mask) != 0 nếu cần ít nhất một bit chung; mask 0 không chứng minh có quyền nào.",
+      "trap": "Dùng HasFlag(0) để kiểm tra không có quyền.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True",
+        "HasFlag kiểm tra các bit của flag đều có trong value. Với zero mask, không có bit bắt buộc nên luôn true.",
+        "Tránh ngộ nhận: Dùng HasFlag(0) để kiểm tra không có quyền.",
+        "Kiểm tra (value & mask) != 0 nếu cần ít nhất một bit chung; mask 0 không chứng minh có quyền nào."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.enum.hasflag?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "ArgumentException",
+          "False"
+        ],
+        "en": [
+          "True",
+          "ArgumentException",
+          "False"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "regex-match-entire-input",
+    "content": {
+      "title": "Regex tìm đoạn khớp",
+      "topic": "csharp",
+      "subtopic": "regex match entire input",
+      "tags": [
+        "csharp",
+        "regex"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "IsMatch với pattern không có anchor có chấp nhận A12B không?",
+      "englishPrompt": "Does IsMatch accept A12B with this unanchored pattern?",
+      "context": "Validator muốn cả mã nhập chỉ gồm chữ số ASCII.",
+      "code": "Console.Write(System.Text.RegularExpressions.Regex.IsMatch(\"A12B\", \"[0-9]+\"));",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi IsMatch mặc định là full match.",
+      "nextHint": "IsMatch tìm một đoạn khớp ở bất kỳ vị trí nào. Pattern chữ số không anchor không buộc toàn chuỗi chỉ chứa số.",
+      "followUp": "Muốn toàn input là chữ số ASCII, anchor \\A và \\z giải quyết điều gì?",
+      "englishFollowUp": "How do \\A and \\z help require the entire input to consist of ASCII digits?",
+      "outline": [
+        "True",
+        "IsMatch tìm một đoạn khớp ở bất kỳ vị trí nào. Pattern chữ số không anchor không buộc toàn chuỗi chỉ chứa số."
+      ],
+      "shortAnswer": "True. IsMatch tìm một đoạn khớp ở bất kỳ vị trí nào. Pattern chữ số không anchor không buộc toàn chuỗi chỉ chứa số.",
+      "explanation": "IsMatch tìm một đoạn khớp ở bất kỳ vị trí nào. Pattern chữ số không anchor không buộc toàn chuỗi chỉ chứa số.",
+      "alternative": "Dùng chuỗi C# verbatim @\"\\A[0-9]+\\z\" để kiểm tra toàn bộ mã chỉ gồm chữ số; \\z cũng loại phần xuống dòng cuối.",
+      "trap": "Coi IsMatch mặc định là full match.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True",
+        "IsMatch tìm một đoạn khớp ở bất kỳ vị trí nào. Pattern chữ số không anchor không buộc toàn chuỗi chỉ chứa số.",
+        "Tránh ngộ nhận: Coi IsMatch mặc định là full match.",
+        "Dùng pattern \\\\A[0-9]+\\\\z để buộc khớp toàn chuỗi; vẫn giới hạn độ dài input và chọn timeout khi pattern có nguy cơ backtracking."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.text.regularexpressions.regex.ismatch?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "FormatException",
+          "False"
+        ],
+        "en": [
+          "True",
+          "FormatException",
+          "False"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "uri-base-trailing-slash",
+    "content": {
+      "title": "Base URI coi đoạn cuối là file",
+      "topic": "csharp",
+      "subtopic": "uri base trailing slash",
+      "tags": [
+        "csharp",
+        "uri"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Base thiếu dấu / cuối. Ghép child tạo AbsolutePath nào?",
+      "englishPrompt": "The base URI lacks a trailing slash. What AbsolutePath does resolving child produce?",
+      "context": "Http client ghép endpoint tương đối vào đường dẫn API cấu hình.",
+      "code": "var u = new Uri(new Uri(\"https://example.test/api\"), \"orders\"); Console.Write(u.AbsolutePath);",
+      "hint": "Kiểm tra giả định dễ sai sau: Ghép URI như nối hai chuỗi.",
+      "nextHint": "Theo phân giải relative URI, segment api cuối bị thay bằng orders vì base không kết thúc bằng /. Base /api/ mới giữ api như thư mục.",
+      "followUp": "Nếu child bắt đầu bằng /, base /api/ còn được giữ không?",
+      "englishFollowUp": "If child begins with a slash, is the /api/ base path preserved?",
+      "outline": [
+        "/orders",
+        "Theo phân giải relative URI, segment api cuối bị thay bằng orders vì base không kết thúc bằng /. Base /api/ mới giữ api như thư mục."
+      ],
+      "shortAnswer": "/orders. Theo phân giải relative URI, segment api cuối bị thay bằng orders vì base không kết thúc bằng /. Base /api/ mới giữ api như thư mục.",
+      "explanation": "Theo phân giải relative URI, segment api cuối bị thay bằng orders vì base không kết thúc bằng /. Base /api/ mới giữ api như thư mục.",
+      "alternative": "Kết thúc base bằng / để giữ segment thư mục; child bắt đầu bằng / sẽ thay path base ngay cả khi base có dấu / cuối.",
+      "trap": "Ghép URI như nối hai chuỗi.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: /orders",
+        "Theo phân giải relative URI, segment api cuối bị thay bằng orders vì base không kết thúc bằng /. Base /api/ mới giữ api như thư mục.",
+        "Tránh ngộ nhận: Ghép URI như nối hai chuỗi.",
+        "Kết thúc base bằng / để giữ segment thư mục; child bắt đầu bằng / sẽ thay path base ngay cả khi base có dấu / cuối."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.uri.-ctor?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "/apiorders",
+          "/api/orders",
+          "/orders"
+        ],
+        "en": [
+          "/apiorders",
+          "/api/orders",
+          "/orders"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "version-compare-numeric-components",
+    "content": {
+      "title": "So sánh phiên bản dạng số",
+      "topic": "csharp",
+      "subtopic": "version compare numeric components",
+      "tags": [
+        "csharp",
+        "version"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Version so 1.10 với 1.2 theo số hay từ điển?",
+      "englishPrompt": "Does Version compare 1.10 and 1.2 numerically or lexicographically?",
+      "context": "Công cụ kiểm tra phiên bản dùng major và minor dạng số.",
+      "code": "Console.Write(new Version(1, 10).CompareTo(new Version(1, 2)) > 0);",
+      "hint": "Kiểm tra giả định dễ sai sau: So version bằng string.Compare.",
+      "nextHint": "Version so sánh component số: major bằng nhau rồi minor 10 lớn hơn 2. So chuỗi không thể thay hợp đồng này.",
+      "followUp": "Version có trực tiếp biểu diễn tiền tố prerelease kiểu 1.2-beta không?",
+      "englishFollowUp": "Does Version directly represent a prerelease label such as 1.2-beta?",
+      "outline": [
+        "True",
+        "Version so sánh component số: major bằng nhau rồi minor 10 lớn hơn 2. So chuỗi không thể thay hợp đồng này."
+      ],
+      "shortAnswer": "True. Version so sánh component số: major bằng nhau rồi minor 10 lớn hơn 2. So chuỗi không thể thay hợp đồng này.",
+      "explanation": "Version so sánh component số: major bằng nhau rồi minor 10 lớn hơn 2. So chuỗi không thể thay hợp đồng này.",
+      "alternative": "Dùng công cụ SemVer phù hợp khi có prerelease như beta; System.Version không biểu diễn đầy đủ SemVer.",
+      "trap": "So version bằng string.Compare.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True",
+        "Version so sánh component số: major bằng nhau rồi minor 10 lớn hơn 2. So chuỗi không thể thay hợp đồng này.",
+        "Tránh ngộ nhận: So version bằng string.Compare.",
+        "Dùng công cụ SemVer phù hợp khi có prerelease như beta; System.Version không biểu diễn đầy đủ SemVer."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.version.compareto?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True",
+          "FormatException",
+          "False"
+        ],
+        "en": [
+          "True",
+          "FormatException",
+          "False"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "parse-decimal-invariant-boundary",
+    "content": {
+      "title": "Đọc số tiền theo giao thức",
+      "topic": "csharp",
+      "subtopic": "parse decimal invariant boundary",
+      "tags": [
+        "csharp",
+        "parse"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "CSV quy định dấu thập phân là chấm, không có phân nhóm. Máy người dùng có culture bất kỳ. Chọn cách đọc 12.50 ổn định.",
+      "englishPrompt": "A CSV protocol uses a decimal point and no grouping. The machine culture varies. How should 12.50 be parsed?",
+      "context": "Bộ nhập hóa đơn cần cùng kết quả trên máy dùng culture khác nhau.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Dùng culture máy chủ thay cho hợp đồng dữ liệu.",
+      "nextHint": "Culture của giao thức phải tường minh ở ranh giới input. Dùng TryParse để báo dữ liệu sai mà không mất kiểm soát; NumberStyles quyết định cú pháp được nhận. AllowDecimalPoint không tự chấp nhận dấu âm hay khoảng trắng.",
+      "followUp": "Nếu giao thức cho phép giá trị âm, flag nào cần được bổ sung?",
+      "englishFollowUp": "Which flag is needed if the protocol permits negative values?",
+      "outline": [
+        "decimal.TryParse với NumberStyles.AllowDecimalPoint và InvariantCulture",
+        "Culture của giao thức phải tường minh ở ranh giới input. Dùng TryParse để báo dữ liệu sai mà không mất kiểm soát; NumberStyles quyết định cú pháp được nhận. AllowDecimalPoint không tự chấp nhận dấu âm hay khoảng trắng."
+      ],
+      "shortAnswer": "decimal.TryParse với NumberStyles.AllowDecimalPoint và InvariantCulture. Culture của giao thức phải tường minh ở ranh giới input. Dùng TryParse để báo dữ liệu sai mà không mất kiểm soát; NumberStyles quyết định cú pháp được nhận. AllowDecimalPoint không tự chấp nhận dấu âm hay khoảng trắng.",
+      "explanation": "Culture của giao thức phải tường minh ở ranh giới input. Dùng TryParse để báo dữ liệu sai mà không mất kiểm soát; NumberStyles quyết định cú pháp được nhận. AllowDecimalPoint không tự chấp nhận dấu âm hay khoảng trắng.",
+      "alternative": "Thêm AllowLeadingSign nếu hợp đồng cho số âm; chỉ thêm flags thật sự được giao thức cho phép.",
+      "trap": "Dùng culture máy chủ thay cho hợp đồng dữ liệu.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: decimal.TryParse với NumberStyles.AllowDecimalPoint và InvariantCulture",
+        "Culture của giao thức phải tường minh ở ranh giới input. Dùng TryParse để báo dữ liệu sai mà không mất kiểm soát; NumberStyles quyết định cú pháp được nhận. AllowDecimalPoint không tự chấp nhận dấu âm hay khoảng trắng.",
+        "Tránh ngộ nhận: Dùng culture máy chủ thay cho hợp đồng dữ liệu.",
+        "Thêm AllowLeadingSign nếu hợp đồng cho số âm; chỉ thêm flags thật sự được giao thức cho phép."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.decimal.tryparse?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "decimal.TryParse với NumberStyles.AllowDecimalPoint và InvariantCulture",
+          "Xóa mọi dấu chấm trước khi parse",
+          "decimal.Parse chỉ dùng CurrentCulture"
+        ],
+        "en": [
+          "decimal.TryParse with NumberStyles.AllowDecimalPoint and InvariantCulture",
+          "Remove every dot before parsing",
+          "decimal.Parse using only CurrentCulture"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "exception-filter-false-next-catch",
+    "content": {
+      "title": "Filter lỗi có điều kiện",
+      "topic": "csharp",
+      "subtopic": "exception filter false next catch",
+      "tags": [
+        "csharp",
+        "exception"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Catch đầu có when trả false. Exception phù hợp cùng kiểu với catch sau. Điều gì xảy ra?",
+      "englishPrompt": "The first catch filter returns false. A later catch matches the same exception type. What happens?",
+      "context": "Dịch vụ bắt lỗi theo điều kiện transient mà vẫn giữ nhánh xử lý lỗi khác.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm filter false với catch xử lý xong exception.",
+      "nextHint": "Filter false khiến catch đó không được chọn; runtime tiếp tục tìm handler. Filter nên quan sát điều kiện và tránh side effect vì nó chạy trong giai đoạn tìm handler.",
+      "followUp": "Nếu chính biểu thức filter ném lỗi, lỗi nào tiếp tục được tìm handler?",
+      "englishFollowUp": "If the filter expression throws, which exception continues handler search?",
+      "outline": [
+        "Tìm tiếp catch sau có thể áp dụng",
+        "Filter false khiến catch đó không được chọn; runtime tiếp tục tìm handler. Filter nên quan sát điều kiện và tránh side effect vì nó chạy trong giai đoạn tìm handler."
+      ],
+      "shortAnswer": "Tìm tiếp catch sau có thể áp dụng. Filter false khiến catch đó không được chọn; runtime tiếp tục tìm handler. Filter nên quan sát điều kiện và tránh side effect vì nó chạy trong giai đoạn tìm handler.",
+      "explanation": "Filter false khiến catch đó không được chọn; runtime tiếp tục tìm handler. Filter nên quan sát điều kiện và tránh side effect vì nó chạy trong giai đoạn tìm handler.",
+      "alternative": "Nếu filter tự ném exception, nó được coi là false và lỗi gốc tiếp tục tìm handler; tránh side effect trong filter.",
+      "trap": "Nhầm filter false với catch xử lý xong exception.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Tìm tiếp catch sau có thể áp dụng",
+        "Filter false khiến catch đó không được chọn; runtime tiếp tục tìm handler. Filter nên quan sát điều kiện và tránh side effect vì nó chạy trong giai đoạn tìm handler.",
+        "Tránh ngộ nhận: Nhầm filter false với catch xử lý xong exception.",
+        "Nếu filter tự ném exception, nó được coi là false và lỗi gốc tiếp tục tìm handler; tránh side effect trong filter."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/exception-handling-statements",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Tìm tiếp catch sau có thể áp dụng",
+          "Exception bị nuốt ngay ở filter",
+          "Khối finally luôn bị bỏ qua"
+        ],
+        "en": [
+          "Search continues for another applicable catch",
+          "The filter immediately swallows the exception",
+          "The finally block is always skipped"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "throw-preserve-original-stack",
+    "content": {
+      "title": "Giữ stack khi phát lại lỗi",
+      "topic": "csharp",
+      "subtopic": "throw preserve original stack",
+      "tags": [
+        "csharp",
+        "throw"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một catch ghi log rồi phải phát lại cùng lỗi để caller xử lý. Cú pháp nào giữ stack gốc tốt nhất trong catch?",
+      "englishPrompt": "A catch logs and must rethrow the same failure to its caller. Which syntax preserves its original stack?",
+      "context": "Boundary ghi log trước khi để middleware xử lý lỗi gốc.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng các cách throw lại có cùng stack.",
+      "nextHint": "throw không kèm biểu thức phát lại exception đang xử lý và giữ thông tin stack ban đầu. throw ex đặt lại phần stack liên quan vị trí throw; tạo exception mới chỉ với Message còn mất kiểu và inner error.",
+      "followUp": "Nếu cần phát lại ngoài catch, ExceptionDispatchInfo giải quyết phần nào?",
+      "englishFollowUp": "How does ExceptionDispatchInfo help rethrow outside the catch?",
+      "outline": [
+        "throw;",
+        "throw không kèm biểu thức phát lại exception đang xử lý và giữ thông tin stack ban đầu. throw ex đặt lại phần stack liên quan vị trí throw; tạo exception mới chỉ với Message còn mất kiểu và inner error."
+      ],
+      "shortAnswer": "throw;. throw không kèm biểu thức phát lại exception đang xử lý và giữ thông tin stack ban đầu. throw ex đặt lại phần stack liên quan vị trí throw; tạo exception mới chỉ với Message còn mất kiểu và inner error.",
+      "explanation": "throw không kèm biểu thức phát lại exception đang xử lý và giữ thông tin stack ban đầu. throw ex đặt lại phần stack liên quan vị trí throw; tạo exception mới chỉ với Message còn mất kiểu và inner error.",
+      "alternative": "Dùng ExceptionDispatchInfo.Capture rồi Throw nếu phải phát lại ngoài catch; đừng chỉ lưu Message làm mất kiểu và nguyên nhân.",
+      "trap": "Cho rằng các cách throw lại có cùng stack.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: throw;",
+        "throw không kèm biểu thức phát lại exception đang xử lý và giữ thông tin stack ban đầu. throw ex đặt lại phần stack liên quan vị trí throw; tạo exception mới chỉ với Message còn mất kiểu và inner error.",
+        "Tránh ngộ nhận: Cho rằng các cách throw lại có cùng stack.",
+        "Dùng ExceptionDispatchInfo.Capture rồi Throw nếu phải phát lại ngoài catch; đừng chỉ lưu Message làm mất kiểu và nguyên nhân."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/exception-handling-statements",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "throw;",
+          "throw ex;",
+          "throw new Exception(ex.Message);"
+        ],
+        "en": [
+          "throw;",
+          "throw ex;",
+          "throw new Exception(ex.Message);"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "span-escape-local-stackalloc",
+    "content": {
+      "title": "Không trả span của stack local",
+      "topic": "csharp",
+      "subtopic": "span escape local stackalloc",
+      "tags": [
+        "csharp",
+        "span"
+      ],
+      "format": "quiz",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hàm muốn trả Span<int> trỏ vào stackalloc local cho caller dùng sau khi hàm kết thúc. Cách nào hợp lệ về vòng đời?",
+      "englishPrompt": "A method wants to return Span<int> over local stackalloc storage for use after return. Which approach respects lifetime?",
+      "context": "Hàm phân tích buffer muốn trả vùng dữ liệu cho caller dùng sau return.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng KeepAlive kéo dài lifetime stack frame.",
+      "nextHint": "Compiler ngăn span thoát khỏi lifetime của bộ nhớ stack local. Mảng được quản lý có lifetime phù hợp cho caller; Span là ref struct và không thể box để kéo dài lifetime.",
+      "followUp": "Nếu caller cung cấp Span đích, hợp đồng dung lượng và số phần tử ghi cần nói gì?",
+      "englishFollowUp": "If the caller supplies a destination Span, what capacity and written-count contract is needed?",
+      "outline": [
+        "Trả mảng được cấp phát và để caller tạo Span khi dùng",
+        "Compiler ngăn span thoát khỏi lifetime của bộ nhớ stack local. Mảng được quản lý có lifetime phù hợp cho caller; Span là ref struct và không thể box để kéo dài lifetime."
+      ],
+      "shortAnswer": "Trả mảng được cấp phát và để caller tạo Span khi dùng. Compiler ngăn span thoát khỏi lifetime của bộ nhớ stack local. Mảng được quản lý có lifetime phù hợp cho caller; Span là ref struct và không thể box để kéo dài lifetime.",
+      "explanation": "Compiler ngăn span thoát khỏi lifetime của bộ nhớ stack local. Mảng được quản lý có lifetime phù hợp cho caller; Span là ref struct và không thể box để kéo dài lifetime.",
+      "alternative": "Cho caller cung cấp Span đích và trả số mục ghi khi muốn tránh cấp phát; kiểm tra đủ dung lượng trước khi ghi.",
+      "trap": "Cho rằng KeepAlive kéo dài lifetime stack frame.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Trả mảng được cấp phát và để caller tạo Span khi dùng",
+        "Compiler ngăn span thoát khỏi lifetime của bộ nhớ stack local. Mảng được quản lý có lifetime phù hợp cho caller; Span là ref struct và không thể box để kéo dài lifetime.",
+        "Tránh ngộ nhận: Cho rằng KeepAlive kéo dài lifetime stack frame.",
+        "Cho caller cung cấp Span đích và trả số mục ghi khi muốn tránh cấp phát; kiểm tra đủ dung lượng trước khi ghi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/ref-struct",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Thêm GC.KeepAlive cho local stackalloc",
+          "Trả mảng được cấp phát và để caller tạo Span khi dùng",
+          "Ép Span thành object để giữ stack sống"
+        ],
+        "en": [
+          "Add GC.KeepAlive for local stackalloc",
+          "Return an allocated array and let the caller create a Span when needed",
+          "Box the Span to keep the stack alive"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "string-create-ordinal-token",
+    "content": {
+      "title": "So mã token không theo ngôn ngữ",
+      "topic": "csharp",
+      "subtopic": "string create ordinal token",
+      "tags": [
+        "csharp",
+        "string"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Token nội bộ phân biệt hoa thường và cần kết quả độc lập culture. Comparer nào thể hiện đúng hợp đồng?",
+      "englishPrompt": "Internal tokens are case-sensitive and must compare independently of culture. Which comparer expresses the contract?",
+      "context": "Registry nội bộ dùng token kỹ thuật không mang quy tắc ngôn ngữ.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Coi InvariantCulture và Ordinal là cùng thuật toán.",
+      "nextHint": "Ordinal so theo giá trị mã UTF-16, không dùng luật ngôn ngữ và không bỏ qua case. InvariantCulture vẫn là so sánh ngôn ngữ, không đồng nghĩa Ordinal.",
+      "followUp": "Nếu giao thức quy định không phân biệt hoa thường thì đổi comparer nào?",
+      "englishFollowUp": "Which comparer should replace it for a case-insensitive protocol?",
+      "outline": [
+        "StringComparer.Ordinal",
+        "Ordinal so theo giá trị mã UTF-16, không dùng luật ngôn ngữ và không bỏ qua case. InvariantCulture vẫn là so sánh ngôn ngữ, không đồng nghĩa Ordinal."
+      ],
+      "shortAnswer": "StringComparer.Ordinal. Ordinal so theo giá trị mã UTF-16, không dùng luật ngôn ngữ và không bỏ qua case. InvariantCulture vẫn là so sánh ngôn ngữ, không đồng nghĩa Ordinal.",
+      "explanation": "Ordinal so theo giá trị mã UTF-16, không dùng luật ngôn ngữ và không bỏ qua case. InvariantCulture vẫn là so sánh ngôn ngữ, không đồng nghĩa Ordinal.",
+      "alternative": "Dùng OrdinalIgnoreCase nếu giao thức quy định bỏ qua case; không chọn culture comparer cho token kỹ thuật chỉ vì nó tên invariant.",
+      "trap": "Coi InvariantCulture và Ordinal là cùng thuật toán.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: StringComparer.Ordinal",
+        "Ordinal so theo giá trị mã UTF-16, không dùng luật ngôn ngữ và không bỏ qua case. InvariantCulture vẫn là so sánh ngôn ngữ, không đồng nghĩa Ordinal.",
+        "Tránh ngộ nhận: Coi InvariantCulture và Ordinal là cùng thuật toán.",
+        "Dùng OrdinalIgnoreCase nếu giao thức quy định bỏ qua case; không chọn culture comparer cho token kỹ thuật chỉ vì nó tên invariant."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/base-types/best-practices-strings",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "StringComparer.InvariantCultureIgnoreCase",
+          "StringComparer.Ordinal",
+          "StringComparer.CurrentCultureIgnoreCase"
+        ],
+        "en": [
+          "StringComparer.InvariantCultureIgnoreCase",
+          "StringComparer.Ordinal",
+          "StringComparer.CurrentCultureIgnoreCase"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "collection-capacity-versus-count",
+    "content": {
+      "title": "Cấp trước dung lượng",
+      "topic": "csharp",
+      "subtopic": "collection capacity versus count",
+      "tags": [
+        "csharp",
+        "collection"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "new List<int>(100) vừa được tạo. Cách diễn giải nào đúng?",
+      "englishPrompt": "A new List<int>(100) has just been created. Which interpretation is correct?",
+      "context": "Job biết trước số dòng gần đúng để giảm số lần tăng buffer.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Đồng nhất capacity với số mục.",
+      "nextHint": "Constructor capacity đặt dung lượng lưu trữ ban đầu, không tạo phần tử logic. Count chỉ tăng khi thêm phần tử; chỉ số 0 vẫn chưa hợp lệ ngay sau constructor.",
+      "followUp": "Khi nào cấp trước capacity có ích và vì sao không nên lấy capacity trực tiếp từ input không giới hạn?",
+      "englishFollowUp": "When is preallocation useful, and why should an unbounded input not directly determine capacity?",
+      "outline": [
+        "Count là 0; capacity ít nhất 100",
+        "Constructor capacity đặt dung lượng lưu trữ ban đầu, không tạo phần tử logic. Count chỉ tăng khi thêm phần tử; chỉ số 0 vẫn chưa hợp lệ ngay sau constructor."
+      ],
+      "shortAnswer": "Count là 0; capacity ít nhất 100. Constructor capacity đặt dung lượng lưu trữ ban đầu, không tạo phần tử logic. Count chỉ tăng khi thêm phần tử; chỉ số 0 vẫn chưa hợp lệ ngay sau constructor.",
+      "explanation": "Constructor capacity đặt dung lượng lưu trữ ban đầu, không tạo phần tử logic. Count chỉ tăng khi thêm phần tử; chỉ số 0 vẫn chưa hợp lệ ngay sau constructor.",
+      "alternative": "Giới hạn capacity từ input trước cấp phát; preallocation tối ưu storage nhưng không tạo phần tử để index ngay.",
+      "trap": "Đồng nhất capacity với số mục.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Count là 0; capacity ít nhất 100",
+        "Constructor capacity đặt dung lượng lưu trữ ban đầu, không tạo phần tử logic. Count chỉ tăng khi thêm phần tử; chỉ số 0 vẫn chưa hợp lệ ngay sau constructor.",
+        "Tránh ngộ nhận: Đồng nhất capacity với số mục.",
+        "Giới hạn capacity từ input trước cấp phát; preallocation tối ưu storage nhưng không tạo phần tử để index ngay."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1.-ctor?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Count là 0; capacity ít nhất 100",
+          "Count là 100 gồm một trăm số 0",
+          "Không thể Add trước khi đặt Count"
+        ],
+        "en": [
+          "Count is zero; capacity is at least one hundred",
+          "Count is one hundred containing one hundred zeroes",
+          "Add is invalid until Count is assigned"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-orderby-replaces-primary",
+    "content": {
+      "title": "OrderBy thứ hai thay khóa chính",
+      "topic": "linq",
+      "subtopic": "linq orderby replaces primary",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai OrderBy liên tiếp cho mã nào đứng đầu?",
+      "englishPrompt": "Which code comes first after two OrderBy calls?",
+      "context": "Bảng xếp hạng cần nhóm trước rồi xếp thứ hạng trong nhóm.",
+      "code": "var a = new[] { (Code: \"A\", Group: 1, Rank: 2), (Code: \"B\", Group: 2, Rank: 1) }; Console.Write(a.OrderBy(x => x.Group).OrderBy(x => x.Rank).First().Code);",
+      "hint": "Kiểm tra giả định dễ sai sau: Coi mọi OrderBy nối sau là ThenBy.",
+      "nextHint": "OrderBy thứ hai tạo thứ tự chính mới theo Rank. Muốn Group vẫn là khóa chính phải dùng ThenBy cho Rank.",
+      "followUp": "Nếu Rank bằng nhau, tính stable giữ lại thứ tự nguồn nào?",
+      "englishFollowUp": "If Rank ties, which incoming order does stability preserve?",
+      "outline": [
+        "B",
+        "OrderBy thứ hai tạo thứ tự chính mới theo Rank. Muốn Group vẫn là khóa chính phải dùng ThenBy cho Rank."
+      ],
+      "shortAnswer": "B. OrderBy thứ hai tạo thứ tự chính mới theo Rank. Muốn Group vẫn là khóa chính phải dùng ThenBy cho Rank.",
+      "explanation": "OrderBy thứ hai tạo thứ tự chính mới theo Rank. Muốn Group vẫn là khóa chính phải dùng ThenBy cho Rank.",
+      "alternative": "Dùng OrderBy(Group).ThenBy(Rank) để giữ Group là khóa chính; OrderBy thứ hai là thứ tự chính mới.",
+      "trap": "Coi mọi OrderBy nối sau là ThenBy.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: B",
+        "OrderBy thứ hai tạo thứ tự chính mới theo Rank. Muốn Group vẫn là khóa chính phải dùng ThenBy cho Rank.",
+        "Tránh ngộ nhận: Coi mọi OrderBy nối sau là ThenBy.",
+        "Dùng OrderBy(Group).ThenBy(Rank) để giữ Group là khóa chính; OrderBy thứ hai là thứ tự chính mới."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.orderby?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "B",
+          "A",
+          "InvalidOperationException"
+        ],
+        "en": [
+          "B",
+          "A",
+          "InvalidOperationException"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-cast-invalid-item",
+    "content": {
+      "title": "Cast không chuyển chuỗi số",
+      "topic": "linq",
+      "subtopic": "linq cast invalid item",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Cast<int> trên object[] có chuỗi \"2\" sẽ xảy ra gì khi ToArray?",
+      "englishPrompt": "What happens when ToArray enumerates Cast<int> over an object array containing \"2\"?",
+      "context": "Dữ liệu bảng tính gồm số nguyên boxed và chuỗi số từ ô khác kiểu.",
+      "code": "object[] a = [1, \"2\"]; try { _ = a.Cast<int>().ToArray(); Console.Write(\"ok\"); } catch (InvalidCastException) { Console.Write(\"invalid\"); }",
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm cast với chuyển đổi giá trị theo nội dung.",
+      "nextHint": "Cast thực hiện cast kiểu cho từng phần tử, không parse chuỗi số. Enumeration gặp string gây InvalidCastException.",
+      "followUp": "Nếu dùng OfType<int> thì dữ liệu sai được báo hay bị bỏ?",
+      "englishFollowUp": "Would OfType<int> report or skip the incompatible item?",
+      "outline": [
+        "invalid",
+        "Cast thực hiện cast kiểu cho từng phần tử, không parse chuỗi số. Enumeration gặp string gây InvalidCastException."
+      ],
+      "shortAnswer": "invalid. Cast thực hiện cast kiểu cho từng phần tử, không parse chuỗi số. Enumeration gặp string gây InvalidCastException.",
+      "explanation": "Cast thực hiện cast kiểu cho từng phần tử, không parse chuỗi số. Enumeration gặp string gây InvalidCastException.",
+      "alternative": "Nếu dữ liệu sai phải được báo, parse và validate từng ô; OfType âm thầm bỏ mục không tương thích thay vì báo lỗi.",
+      "trap": "Nhầm cast với chuyển đổi giá trị theo nội dung.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: invalid",
+        "Cast thực hiện cast kiểu cho từng phần tử, không parse chuỗi số. Enumeration gặp string gây InvalidCastException.",
+        "Tránh ngộ nhận: Nhầm cast với chuyển đổi giá trị theo nội dung.",
+        "Nếu dữ liệu sai phải được báo, parse và validate từng ô; OfType âm thầm bỏ mục không tương thích thay vì báo lỗi."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.cast?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "invalid",
+          "Lỗi biên dịch: object[] không thể dùng Cast<int>",
+          "ok"
+        ],
+        "en": [
+          "invalid",
+          "Compilation error: object[] cannot use Cast<int>",
+          "ok"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-count-predicate-values",
+    "content": {
+      "title": "Đếm phần tử thỏa điều kiện",
+      "topic": "linq",
+      "subtopic": "linq count predicate values",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Count(predicate) trả số phần tử nào?",
+      "englishPrompt": "Which entries are counted by Count(predicate)?",
+      "context": "Báo cáo cần số ô bị đánh dấu bằng số 0.",
+      "code": "Console.Write(new[] { 0, 2, 0, 3 }.Count(x => x == 0));",
+      "hint": "Kiểm tra giả định dễ sai sau: Lẫn đếm mục với tính tổng.",
+      "nextHint": "Count với predicate chỉ tăng cho phần tử khớp, không cộng giá trị phần tử và không trả chỉ số cuối.",
+      "followUp": "Nếu chỉ cần biết có số 0, Any khác Count > 0 về khả năng dừng thế nào?",
+      "englishFollowUp": "If only existence matters, how does Any differ from Count > 0 in early termination?",
+      "outline": [
+        "2",
+        "Count với predicate chỉ tăng cho phần tử khớp, không cộng giá trị phần tử và không trả chỉ số cuối."
+      ],
+      "shortAnswer": "2. Count với predicate chỉ tăng cho phần tử khớp, không cộng giá trị phần tử và không trả chỉ số cuối.",
+      "explanation": "Count với predicate chỉ tăng cho phần tử khớp, không cộng giá trị phần tử và không trả chỉ số cuối.",
+      "alternative": "Dùng Any(x => x == 0) khi chỉ cần tồn tại vì nó dừng ở match đầu; Count cần kết quả số lượng đầy đủ.",
+      "trap": "Lẫn đếm mục với tính tổng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2",
+        "Count với predicate chỉ tăng cho phần tử khớp, không cộng giá trị phần tử và không trả chỉ số cuối.",
+        "Tránh ngộ nhận: Lẫn đếm mục với tính tổng.",
+        "Dùng Any(x => x == 0) khi chỉ cần tồn tại vì nó dừng ở match đầu; Count cần kết quả số lượng đầy đủ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.count?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "5",
+          "4",
+          "2"
+        ],
+        "en": [
+          "5",
+          "4",
+          "2"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-last-explicit-default",
+    "content": {
+      "title": "Default tường minh cho LastOrDefault",
+      "topic": "linq",
+      "subtopic": "linq last explicit default",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Nguồn rỗng và default được truyền là -1. Kết quả nào xuất hiện?",
+      "englishPrompt": "The source is empty and an explicit default of minus one is supplied. What is returned?",
+      "context": "Bộ đọc dùng -1 để biểu thị chưa có mã trong một bước trung gian.",
+      "code": "Console.Write(Array.Empty<int>().LastOrDefault(-1));",
+      "hint": "Kiểm tra giả định dễ sai sau: Giả định mọi OrDefault đều chỉ trả default(T).",
+      "nextHint": "Overload này dùng defaultValue do caller chọn khi không có phần tử. Nó không bắt buộc trả default(int).",
+      "followUp": "Nếu -1 là dữ liệu hợp lệ, làm sao tránh nhầm fallback với phần tử thật?",
+      "englishFollowUp": "If minus one is valid data, how would you distinguish the fallback from a real item?",
+      "outline": [
+        "-1",
+        "Overload này dùng defaultValue do caller chọn khi không có phần tử. Nó không bắt buộc trả default(int)."
+      ],
+      "shortAnswer": "-1. Overload này dùng defaultValue do caller chọn khi không có phần tử. Nó không bắt buộc trả default(int).",
+      "explanation": "Overload này dùng defaultValue do caller chọn khi không có phần tử. Nó không bắt buộc trả default(int).",
+      "alternative": "Dùng nullable projection hoặc một cặp found/value nếu -1 cũng là mã hợp lệ; sentinel chỉ an toàn khi ngoài miền dữ liệu.",
+      "trap": "Giả định mọi OrDefault đều chỉ trả default(T).",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: -1",
+        "Overload này dùng defaultValue do caller chọn khi không có phần tử. Nó không bắt buộc trả default(int).",
+        "Tránh ngộ nhận: Giả định mọi OrDefault đều chỉ trả default(T).",
+        "Dùng nullable projection hoặc một cặp found/value nếu -1 cũng là mã hợp lệ; sentinel chỉ an toàn khi ngoài miền dữ liệu."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.lastordefault?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "0",
+          "InvalidOperationException",
+          "-1"
+        ],
+        "en": [
+          "0",
+          "InvalidOperationException",
+          "-1"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-elementat-from-end",
+    "content": {
+      "title": "Lấy mục tính từ cuối",
+      "topic": "linq",
+      "subtopic": "linq elementat from end",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "ElementAt với Index ^2 trả mã nào?",
+      "englishPrompt": "Which code does ElementAt with index ^2 return?",
+      "context": "Màn hình cần lấy mục áp chót từ một chuỗi có thứ tự.",
+      "code": "string[] codes = [\"A\", \"B\", \"C\"]; Console.Write(codes.ElementAt(^2));",
+      "hint": "Kiểm tra giả định dễ sai sau: Đọc ^2 là mục thứ hai từ đầu hoặc chỉ số 2 từ đầu.",
+      "nextHint": "Index từ cuối bắt đầu với ^1 là mục cuối. Vì vậy ^2 là mục đứng ngay trước C, tức B. ^0 là vị trí sau cuối và không phải một phần tử hợp lệ.",
+      "followUp": "Nếu index vượt số mục, ElementAtOrDefault khác ElementAt thế nào?",
+      "englishFollowUp": "How does ElementAtOrDefault differ from ElementAt for an out-of-range index?",
+      "outline": [
+        "B",
+        "Index từ cuối bắt đầu với ^1 là mục cuối. Vì vậy ^2 là mục đứng ngay trước C, tức B. ^0 là vị trí sau cuối và không phải một phần tử hợp lệ."
+      ],
+      "shortAnswer": "B. Index từ cuối bắt đầu với ^1 là mục cuối. Vì vậy ^2 là mục đứng ngay trước C, tức B. ^0 là vị trí sau cuối và không phải một phần tử hợp lệ.",
+      "explanation": "Index từ cuối bắt đầu với ^1 là mục cuối. Vì vậy ^2 là mục đứng ngay trước C, tức B. ^0 là vị trí sau cuối và không phải một phần tử hợp lệ.",
+      "alternative": "Dùng ElementAtOrDefault khi hợp đồng cho phép thiếu mục; xử lý default riêng nếu default cũng là giá trị dữ liệu hợp lệ.",
+      "trap": "Đọc ^2 là mục thứ hai từ đầu hoặc chỉ số 2 từ đầu.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: B",
+        "Index từ cuối bắt đầu với ^1 là mục cuối. Vì vậy ^2 là mục đứng ngay trước C, tức B. ^0 là vị trí sau cuối và không phải một phần tử hợp lệ.",
+        "Tránh ngộ nhận: Đọc ^2 là mục thứ hai từ đầu hoặc chỉ số 2 từ đầu.",
+        "Dùng ElementAtOrDefault khi hợp đồng cho phép thiếu mục; xử lý default riêng nếu default cũng là giá trị dữ liệu hợp lệ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.elementat?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "A",
+          "C",
+          "B"
+        ],
+        "en": [
+          "A",
+          "C",
+          "B"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-intersect-distinct-output",
+    "content": {
+      "title": "Giao hai tập có lặp",
+      "topic": "linq",
+      "subtopic": "linq intersect distinct output",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Intersect có lặp lại phần tử 2 theo số lần xuất hiện không?",
+      "englishPrompt": "Does Intersect repeat two according to its source frequency?",
+      "context": "Đối soát cần danh sách mã có mặt ở cả hai nguồn, không lặp.",
+      "code": "Console.Write(string.Join(\",\", new[] { 2, 2, 3 }.Intersect(new[] { 2, 2 })));",
+      "hint": "Kiểm tra giả định dễ sai sau: Áp quy tắc join cho phép toán tập hợp.",
+      "nextHint": "Intersect là phép giao tập, mỗi giá trị được xuất tối đa một lần theo comparer, không phải join nhiều-nhiều.",
+      "followUp": "Nếu phải giữ multiplicity nhỏ nhất giữa hai nguồn thì cần đếm gì?",
+      "englishFollowUp": "What counts are needed to preserve the minimum multiplicity from both inputs?",
+      "outline": [
+        "2",
+        "Intersect là phép giao tập, mỗi giá trị được xuất tối đa một lần theo comparer, không phải join nhiều-nhiều."
+      ],
+      "shortAnswer": "2. Intersect là phép giao tập, mỗi giá trị được xuất tối đa một lần theo comparer, không phải join nhiều-nhiều.",
+      "explanation": "Intersect là phép giao tập, mỗi giá trị được xuất tối đa một lần theo comparer, không phải join nhiều-nhiều.",
+      "alternative": "Nếu cần giao đa tập, đếm tần suất từng nguồn và xuất min của hai tần suất; Intersect chỉ cho một mục mỗi giá trị.",
+      "trap": "Áp quy tắc join cho phép toán tập hợp.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 2",
+        "Intersect là phép giao tập, mỗi giá trị được xuất tối đa một lần theo comparer, không phải join nhiều-nhiều.",
+        "Tránh ngộ nhận: Áp quy tắc join cho phép toán tập hợp.",
+        "Nếu cần giao đa tập, đếm tần suất từng nguồn và xuất min của hai tần suất; Intersect chỉ cho một mục mỗi giá trị."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.intersect?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "2",
+          "2,2",
+          "2,2,3"
+        ],
+        "en": [
+          "2",
+          "2,2",
+          "2,2,3"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-reverse-enumerable-copy",
+    "content": {
+      "title": "Reverse đọc bao nhiêu phần tử trước kết quả đầu?",
+      "topic": "linq",
+      "subtopic": "Deferred buffering",
+      "tags": [
+        "LINQ",
+        "Reverse",
+        "buffering"
+      ],
+      "format": "predict",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Lần MoveNext đầu tiên lấy được một phần tử ở cuối. Bộ đếm đã đọc bao nhiêu phần tử nguồn?",
+      "englishPrompt": "The first MoveNext yields one item from the end. How many source items have already been read?",
+      "context": "Một bộ đọc log chỉ dùng IEnumerator.MoveNext để lấy kết quả đầu của Reverse; quá trình đọc nguồn có tác dụng tăng bộ đếm.",
+      "code": "int read = 0;\nvar query = Enumerable.Range(1, 3).Select(x => { read++; return x; }).Reverse();\nusing var iterator = query.GetEnumerator();\niterator.MoveNext();\nConsole.Write(read);",
+      "hint": "Phân biệt thời điểm tạo query với lúc lấy phần tử đầu.",
+      "nextHint": "Để trả phần tử cuối của nguồn này trước, ReverseIterator tạo buffer khi bắt đầu duyệt.",
+      "followUp": "Nếu nguồn sinh vô hạn và không bao giờ kết thúc, lần MoveNext này có trả được phần tử nào không? Vì sao?",
+      "englishFollowUp": "If the source is infinite and never completes, can this first MoveNext yield an item, and why?",
+      "outline": [
+        "Ghi nhận read bằng 0 trước khi duyệt.",
+        "Giải thích buffer toàn bộ nguồn khi MoveNext bắt đầu.",
+        "Đối chiếu read bằng 3 trước kết quả đầu."
+      ],
+      "shortAnswer": "3. Lần MoveNext đầu của Reverse đọc hết nguồn vào buffer trước khi trả phần tử cuối.",
+      "explanation": "Truy vấn được thực thi trì hoãn. Khi MoveNext bắt đầu, ReverseIterator của .NET 10 gọi ToArray trên nguồn, nên cả ba lần Select chạy trước khi có kết quả đầu. Trì hoãn thực thi không bảo đảm xử lý từng phần tử theo kiểu streaming.",
+      "alternative": "Nếu dữ liệu đã nằm trong mảng và chỉ cần đọc ngược, có thể duyệt chỉ số từ Length-1 về 0 để tránh một buffer sao chép khác.",
+      "trap": "Nghĩ rằng mới lấy một kết quả thì nguồn cũng chỉ bị đọc một phần tử.",
+      "rubric": [
+        "Phân biệt tạo query với thực thi khi duyệt.",
+        "Dự đoán đúng read bằng 3.",
+        "Giải thích Reverse cần buffer nguồn trước kết quả đầu.",
+        "Nhận ra nguồn không kết thúc sẽ không có kết quả đầu theo cách này."
+      ],
+      "source": "https://github.com/dotnet/runtime/blob/v10.0.0/src/libraries/System.Linq/src/System/Linq/Reverse.cs",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "1",
+          "0",
+          "3"
+        ],
+        "en": [
+          "1",
+          "0",
+          "3"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "linq-task-fromresult-is-complete",
+    "content": {
+      "title": "Task đã hoàn tất đồng bộ",
+      "topic": "linq",
+      "subtopic": "linq task fromresult is complete",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "predict",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Task.FromResult có cần đợi lịch thread pool để hoàn tất không? Log là gì?",
+      "englishPrompt": "Must Task.FromResult wait for thread-pool scheduling before completion? What is logged?",
+      "context": "Một provider có nhánh cache-hit đã biết ngay kết quả.",
+      "code": "Task<int> t = Task.FromResult(7); Console.Write($\"{t.IsCompletedSuccessfully}:{await t}\");",
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng mọi await luôn đổi thread.",
+      "nextHint": "FromResult tạo Task đã hoàn tất thành công với kết quả cho sẵn. Await task đó không bắt buộc yield sang thread khác.",
+      "followUp": "Vì sao một API trả Task chưa đủ chứng minh có I/O bất đồng bộ thật?",
+      "englishFollowUp": "Why does returning Task alone not prove an API performs actual asynchronous I/O?",
+      "outline": [
+        "True:7",
+        "FromResult tạo Task đã hoàn tất thành công với kết quả cho sẵn. Await task đó không bắt buộc yield sang thread khác."
+      ],
+      "shortAnswer": "True:7. FromResult tạo Task đã hoàn tất thành công với kết quả cho sẵn. Await task đó không bắt buộc yield sang thread khác.",
+      "explanation": "FromResult tạo Task đã hoàn tất thành công với kết quả cho sẵn. Await task đó không bắt buộc yield sang thread khác.",
+      "alternative": "Trả FromResult cho kết quả có sẵn; dùng I/O async thật cho cache-miss, không thêm Task.Run chỉ để tạo vẻ bất đồng bộ.",
+      "trap": "Cho rằng mọi await luôn đổi thread.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: True:7",
+        "FromResult tạo Task đã hoàn tất thành công với kết quả cho sẵn. Await task đó không bắt buộc yield sang thread khác.",
+        "Tránh ngộ nhận: Cho rằng mọi await luôn đổi thread.",
+        "Trả FromResult cho kết quả có sẵn; dùng I/O async thật cho cache-miss, không thêm Task.Run chỉ để tạo vẻ bất đồng bộ."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task.fromresult?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "True:7",
+          "False:7",
+          "True:0"
+        ],
+        "en": [
+          "True:7",
+          "False:7",
+          "True:0"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "linq-trygetnonenumeratedcount-stream",
+    "content": {
+      "title": "Đếm không duyệt stream",
+      "topic": "linq",
+      "subtopic": "linq trygetnonenumeratedcount stream",
+      "tags": [
+        "linq",
+        "linq"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một IEnumerable custom không công bố Count chứa dữ liệu đọc một lần. TryGetNonEnumeratedCount trả false. Nên kết luận gì?",
+      "englishPrompt": "A custom one-shot IEnumerable exposes no count and TryGetNonEnumeratedCount returns false. What does this establish?",
+      "context": "Nguồn đọc một lần không hỗ trợ lấy tổng mà không duyệt dữ liệu.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Dùng out count bằng 0 mà bỏ qua bool.",
+      "nextHint": "False nghĩa là API không tìm được count rẻ từ kiểu nguồn, không phải số phần tử bằng 0. Không dùng out count để suy ra nguồn rỗng khi bool là false.",
+      "followUp": "Nếu cần hiển thị tổng cho nguồn chỉ đọc một lần, phải lựa chọn buffer hay thay hợp đồng thế nào?",
+      "englishFollowUp": "For a one-shot source, how would you choose between buffering and changing the total-count contract?",
+      "outline": [
+        "Không xác định được count theo cách không enumerate; chưa kết luận rỗng",
+        "False nghĩa là API không tìm được count rẻ từ kiểu nguồn, không phải số phần tử bằng 0. Không dùng out count để suy ra nguồn rỗng khi bool là false."
+      ],
+      "shortAnswer": "Không xác định được count theo cách không enumerate; chưa kết luận rỗng. False nghĩa là API không tìm được count rẻ từ kiểu nguồn, không phải số phần tử bằng 0. Không dùng out count để suy ra nguồn rỗng khi bool là false.",
+      "explanation": "False nghĩa là API không tìm được count rẻ từ kiểu nguồn, không phải số phần tử bằng 0. Không dùng out count để suy ra nguồn rỗng khi bool là false.",
+      "alternative": "Buffer một lần nếu bắt buộc có tổng trước khi xuất; nếu không, thay UI thành không biết tổng để giữ streaming.",
+      "trap": "Dùng out count bằng 0 mà bỏ qua bool.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Không xác định được count theo cách không enumerate; chưa kết luận rỗng",
+        "False nghĩa là API không tìm được count rẻ từ kiểu nguồn, không phải số phần tử bằng 0. Không dùng out count để suy ra nguồn rỗng khi bool là false.",
+        "Tránh ngộ nhận: Dùng out count bằng 0 mà bỏ qua bool.",
+        "Buffer một lần nếu bắt buộc có tổng trước khi xuất; nếu không, thay UI thành không biết tổng để giữ streaming."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.linq.enumerable.trygetnonenumeratedcount?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Nguồn chắc chắn rỗng",
+          "Nguồn đã bị enumerate hết",
+          "Không xác định được count theo cách không enumerate; chưa kết luận rỗng"
+        ],
+        "en": [
+          "The source is definitely empty",
+          "The source has been fully enumerated",
+          "A count was not obtained without enumeration; emptiness is unknown"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "async-progress-context-construction",
+    "content": {
+      "title": "Progress giữ context lúc tạo",
+      "topic": "linq",
+      "subtopic": "async progress context construction",
+      "tags": [
+        "linq",
+        "async"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Desktop UI cần cập nhật thanh tiến độ qua Progress<int>. Nên tạo đối tượng ở đâu để callback dùng UI SynchronizationContext hiện tại?",
+      "englishPrompt": "A desktop UI uses Progress<int> for progress updates. Where should it be constructed to capture the current UI SynchronizationContext?",
+      "context": "Ứng dụng desktop báo tiến độ từ worker về UI.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng context được lấy mỗi lần Report.",
+      "nextHint": "Progress<T> chụp SynchronizationContext hiện tại tại thời điểm xây dựng. Nếu không có context thì callback dùng thread pool; Report không tự tìm lại UI thread.",
+      "followUp": "Vì sao không nên giả định Report chạy callback xong trước khi trả về?",
+      "englishFollowUp": "Why should Report not be assumed to finish the callback before returning?",
+      "outline": [
+        "Trên UI thread khi context UI đã được thiết lập",
+        "Progress<T> chụp SynchronizationContext hiện tại tại thời điểm xây dựng. Nếu không có context thì callback dùng thread pool; Report không tự tìm lại UI thread."
+      ],
+      "shortAnswer": "Trên UI thread khi context UI đã được thiết lập. Progress<T> chụp SynchronizationContext hiện tại tại thời điểm xây dựng. Nếu không có context thì callback dùng thread pool; Report không tự tìm lại UI thread.",
+      "explanation": "Progress<T> chụp SynchronizationContext hiện tại tại thời điểm xây dựng. Nếu không có context thì callback dùng thread pool; Report không tự tìm lại UI thread.",
+      "alternative": "Tạo Progress trên UI context và tránh giả định callback đã hoàn tất khi Report trả về; dispatch có thể diễn ra sau.",
+      "trap": "Cho rằng context được lấy mỗi lần Report.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Trên UI thread khi context UI đã được thiết lập",
+        "Progress<T> chụp SynchronizationContext hiện tại tại thời điểm xây dựng. Nếu không có context thì callback dùng thread pool; Report không tự tìm lại UI thread.",
+        "Tránh ngộ nhận: Cho rằng context được lấy mỗi lần Report.",
+        "Tạo Progress trên UI context và tránh giả định callback đã hoàn tất khi Report trả về; dispatch có thể diễn ra sau."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.progress-1?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Ở static initializer trước khi có UI context",
+          "Trong Task.Run sau khi đã rời UI context",
+          "Trên UI thread khi context UI đã được thiết lập"
+        ],
+        "en": [
+          "In a static initializer before a UI context exists",
+          "Inside Task.Run after leaving the UI context",
+          "On the UI thread after its UI context is established"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "async-valuetask-single-consumption",
+    "content": {
+      "title": "Không cache ValueTask để await lại",
+      "topic": "linq",
+      "subtopic": "async valuetask single consumption",
+      "tags": [
+        "linq",
+        "async"
+      ],
+      "format": "quiz",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "API công bố ValueTask<int> và có thể dùng IValueTaskSource tái sử dụng. Consumer cần chia sẻ kết quả cho nhiều await độc lập. Cách nào phù hợp?",
+      "englishPrompt": "An API returns ValueTask<int> and may use a reusable IValueTaskSource. Multiple independent consumers need the same result. What should the caller do?",
+      "context": "Một adapter cần chia sẻ một kết quả cho nhiều consumer độc lập.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Suy hợp đồng nhiều await của Task sang mọi ValueTask.",
+      "nextHint": "Consumer không được giả định ValueTask luôn hỗ trợ nhiều lần consume. Chuyển một lần sang Task cho nhu cầu nhiều consumer; chi phí chuyển đổi phụ thuộc backing implementation.",
+      "followUp": "Nếu chỉ có một consumer await ngay, vì sao đổi sang Task luôn có thể làm mất lợi ích cấp phát?",
+      "englishFollowUp": "Why can always converting to Task lose the allocation benefit for a single immediate consumer?",
+      "outline": [
+        "Gọi AsTask một lần rồi chia sẻ Task đó",
+        "Consumer không được giả định ValueTask luôn hỗ trợ nhiều lần consume. Chuyển một lần sang Task cho nhu cầu nhiều consumer; chi phí chuyển đổi phụ thuộc backing implementation."
+      ],
+      "shortAnswer": "Gọi AsTask một lần rồi chia sẻ Task đó. Consumer không được giả định ValueTask luôn hỗ trợ nhiều lần consume. Chuyển một lần sang Task cho nhu cầu nhiều consumer; chi phí chuyển đổi phụ thuộc backing implementation.",
+      "explanation": "Consumer không được giả định ValueTask luôn hỗ trợ nhiều lần consume. Chuyển một lần sang Task cho nhu cầu nhiều consumer; chi phí chuyển đổi phụ thuộc backing implementation.",
+      "alternative": "Giữ một ValueTask cho một lần consume ngay; chỉ AsTask một lần khi cần chia sẻ nhiều await để không vi phạm backing source.",
+      "trap": "Suy hợp đồng nhiều await của Task sang mọi ValueTask.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Gọi AsTask một lần rồi chia sẻ Task đó",
+        "Consumer không được giả định ValueTask luôn hỗ trợ nhiều lần consume. Chuyển một lần sang Task cho nhu cầu nhiều consumer; chi phí chuyển đổi phụ thuộc backing implementation.",
+        "Tránh ngộ nhận: Suy hợp đồng nhiều await của Task sang mọi ValueTask.",
+        "Giữ một ValueTask cho một lần consume ngay; chỉ AsTask một lần khi cần chia sẻ nhiều await để không vi phạm backing source."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.valuetask-1?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Cache ValueTask rồi await tùy ý nhiều lần",
+          "Gọi AsTask lặp lại trên cùng ValueTask cho mỗi consumer",
+          "Gọi AsTask một lần rồi chia sẻ Task đó"
+        ],
+        "en": [
+          "Cache the ValueTask and await it arbitrarily often",
+          "Call AsTask repeatedly on the same ValueTask per consumer",
+          "Call AsTask once and share that Task"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "async-cancelafter-timer-not-block",
+    "content": {
+      "title": "Hẹn hủy không chặn caller",
+      "topic": "linq",
+      "subtopic": "async cancelafter timer not block",
+      "tags": [
+        "linq",
+        "async"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Worker muốn yêu cầu hủy sau 2 giây nhưng phải tiếp tục chạy ngay. CancelAfter(2000) làm gì?",
+      "englishPrompt": "A worker should request cancellation in two seconds while continuing immediately. What does CancelAfter(2000) do?",
+      "context": "Worker có thời hạn riêng nhưng vẫn phải truyền token vào các thao tác I/O.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm hẹn yêu cầu hủy với lệnh sleep hoặc kill thread.",
+      "nextHint": "CancelAfter lên lịch cancellation cho CancellationTokenSource. Các thao tác cần hợp tác quan sát token; nó không cưỡng bức dừng code, và không đợi tới hạn trước khi trả.",
+      "followUp": "Nếu worker hoàn tất sớm, ai chịu trách nhiệm dispose nguồn hủy?",
+      "englishFollowUp": "If work completes early, who should dispose the cancellation source?",
+      "outline": [
+        "Lên lịch yêu cầu hủy; không block 2 giây",
+        "CancelAfter lên lịch cancellation cho CancellationTokenSource. Các thao tác cần hợp tác quan sát token; nó không cưỡng bức dừng code, và không đợi tới hạn trước khi trả."
+      ],
+      "shortAnswer": "Lên lịch yêu cầu hủy; không block 2 giây. CancelAfter lên lịch cancellation cho CancellationTokenSource. Các thao tác cần hợp tác quan sát token; nó không cưỡng bức dừng code, và không đợi tới hạn trước khi trả.",
+      "explanation": "CancelAfter lên lịch cancellation cho CancellationTokenSource. Các thao tác cần hợp tác quan sát token; nó không cưỡng bức dừng code, và không đợi tới hạn trước khi trả.",
+      "alternative": "Bên sở hữu CancellationTokenSource dispose nó khi worker kết thúc; code phải quan sát token vì CancelAfter không cưỡng bức dừng.",
+      "trap": "Nhầm hẹn yêu cầu hủy với lệnh sleep hoặc kill thread.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Lên lịch yêu cầu hủy; không block 2 giây",
+        "CancelAfter lên lịch cancellation cho CancellationTokenSource. Các thao tác cần hợp tác quan sát token; nó không cưỡng bức dừng code, và không đợi tới hạn trước khi trả.",
+        "Tránh ngộ nhận: Nhầm hẹn yêu cầu hủy với lệnh sleep hoặc kill thread.",
+        "Bên sở hữu CancellationTokenSource dispose nó khi worker kết thúc; code phải quan sát token vì CancelAfter không cưỡng bức dừng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtokensource.cancelafter?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lên lịch yêu cầu hủy; không block 2 giây",
+          "Dừng cưỡng bức mọi thread dùng token",
+          "Block caller đúng 2 giây"
+        ],
+        "en": [
+          "Schedules a cancellation request without blocking for two seconds",
+          "Forcibly terminates every thread using the token",
+          "Blocks the caller for exactly two seconds"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "oop-contravariant-action-consumer",
+    "content": {
+      "title": "Consumer nhận kiểu tổng quát",
+      "topic": "oop",
+      "subtopic": "oop contravariant action consumer",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Action<Animal> đã xử lý được mọi Animal. Có thể gán cho Action<Dog> khi Dog kế thừa Animal không?",
+      "englishPrompt": "An Action<Animal> handles every Animal. Can it be assigned to Action<Dog> when Dog derives from Animal?",
+      "context": "Một bộ xử lý chung cho Animal được tái sử dụng khi chỉ có Dog.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Đảo chiều consumer variance.",
+      "nextHint": "Consumer xử lý mọi Animal cũng xử lý được Dog, nên chuyển Action<Animal> sang Action<Dog> là an toàn. Variance conversion này áp dụng reference type; nó không tự áp dụng cho List<T>.",
+      "followUp": "Vì sao Action<Dog> không an toàn để thay cho Action<Animal>?",
+      "englishFollowUp": "Why is the reverse assignment unsafe?",
+      "outline": [
+        "Có, Action<in T> contravariant cho reference type",
+        "Consumer xử lý mọi Animal cũng xử lý được Dog, nên chuyển Action<Animal> sang Action<Dog> là an toàn. Variance conversion này áp dụng reference type; nó không tự áp dụng cho List<T>."
+      ],
+      "shortAnswer": "Có, Action<in T> contravariant cho reference type. Consumer xử lý mọi Animal cũng xử lý được Dog, nên chuyển Action<Animal> sang Action<Dog> là an toàn. Variance conversion này áp dụng reference type; nó không tự áp dụng cho List<T>.",
+      "explanation": "Consumer xử lý mọi Animal cũng xử lý được Dog, nên chuyển Action<Animal> sang Action<Dog> là an toàn. Variance conversion này áp dụng reference type; nó không tự áp dụng cho List<T>.",
+      "alternative": "Không gán Action<Dog> thành Action<Animal>: caller có thể truyền Cat mà handler Dog không nhận được.",
+      "trap": "Đảo chiều consumer variance.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Có, Action<in T> contravariant cho reference type",
+        "Consumer xử lý mọi Animal cũng xử lý được Dog, nên chuyển Action<Animal> sang Action<Dog> là an toàn. Variance conversion này áp dụng reference type; nó không tự áp dụng cho List<T>.",
+        "Tránh ngộ nhận: Đảo chiều consumer variance.",
+        "Không gán Action<Dog> thành Action<Animal>: caller có thể truyền Cat mà handler Dog không nhận được."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/covariance-contravariance/variance-in-delegates",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, Action<in T> contravariant cho reference type",
+          "Không, delegate luôn invariant",
+          "Chỉ được nếu ép Dog sang object trước"
+        ],
+        "en": [
+          "Yes, Action<in T> is contravariant for reference types",
+          "No, delegates are always invariant",
+          "Only after casting Dog to object"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "oop-interface-default-not-class-member",
+    "content": {
+      "title": "Default interface member",
+      "topic": "oop",
+      "subtopic": "oop interface default not class member",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "ILogger có default method Flush(). ConsoleLogger chỉ khai báo class implements ILogger, không khai báo Flush. Cách gọi nào hợp lệ?",
+      "englishPrompt": "ILogger provides a default Flush method. ConsoleLogger implements ILogger but declares no Flush method. Which call is valid?",
+      "context": "Thư viện thêm hành vi mặc định vào interface cho implementation cũ.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Coi default interface method như method được thừa kế từ base class.",
+      "nextHint": "Default interface implementation được truy cập qua interface; class không tự kế thừa nó như một class member. Điều này giữ tách biệt interface dispatch với member lookup trên class.",
+      "followUp": "Nếu class tự thêm public Flush cùng chữ ký, điều gì thay đổi khi dispatch qua interface?",
+      "englishFollowUp": "What changes if the class adds its own public Flush with that signature?",
+      "outline": [
+        "Gọi Flush qua biến kiểu ILogger",
+        "Default interface implementation được truy cập qua interface; class không tự kế thừa nó như một class member. Điều này giữ tách biệt interface dispatch với member lookup trên class."
+      ],
+      "shortAnswer": "Gọi Flush qua biến kiểu ILogger. Default interface implementation được truy cập qua interface; class không tự kế thừa nó như một class member. Điều này giữ tách biệt interface dispatch với member lookup trên class.",
+      "explanation": "Default interface implementation được truy cập qua interface; class không tự kế thừa nó như một class member. Điều này giữ tách biệt interface dispatch với member lookup trên class.",
+      "alternative": "Cast hoặc giữ reference dưới interface để dùng implementation mặc định; class có thể khai báo public method phù hợp để tự triển khai hành vi đó.",
+      "trap": "Coi default interface method như method được thừa kế từ base class.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Gọi Flush qua biến kiểu ILogger",
+        "Default interface implementation được truy cập qua interface; class không tự kế thừa nó như một class member. Điều này giữ tách biệt interface dispatch với member lookup trên class.",
+        "Tránh ngộ nhận: Coi default interface method như method được thừa kế từ base class.",
+        "Cast hoặc giữ reference dưới interface để dùng implementation mặc định; class có thể khai báo public method phù hợp để tự triển khai hành vi đó."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/interface",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi Flush qua biến kiểu ILogger",
+          "Default method tự trở thành public member của class",
+          "Luôn gọi new ConsoleLogger().Flush() trực tiếp"
+        ],
+        "en": [
+          "Call Flush through an ILogger reference",
+          "The default method becomes a public class member automatically",
+          "Always call new ConsoleLogger().Flush() directly"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "oop-privateprotected-access-boundary",
+    "content": {
+      "title": "Truy cập trong họ và assembly",
+      "topic": "oop",
+      "subtopic": "oop privateprotected access boundary",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Base và DerivedA cùng assembly; DerivedB ở assembly khác. Member private protected của Base truy cập được từ lớp con nào?",
+      "englishPrompt": "Base and DerivedA share an assembly; DerivedB belongs to another assembly. Which derived class can access a private protected member?",
+      "context": "Thư viện muốn extension point chỉ cho các lớp con do cùng assembly quản lý.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Đọc private protected như protected internal.",
+      "nextHint": "private protected yêu cầu đồng thời quan hệ kế thừa phù hợp và cùng assembly. protected internal dùng hợp của hai miền thay vì giao; cần phân biệt rõ.",
+      "followUp": "Nếu đổi thành protected internal, class không kế thừa nhưng cùng assembly có truy cập được không?",
+      "englishFollowUp": "With protected internal, can an unrelated class in the same assembly access the member?",
+      "outline": [
+        "DerivedA, trong giới hạn truy cập protected",
+        "private protected yêu cầu đồng thời quan hệ kế thừa phù hợp và cùng assembly. protected internal dùng hợp của hai miền thay vì giao; cần phân biệt rõ."
+      ],
+      "shortAnswer": "DerivedA, trong giới hạn truy cập protected. private protected yêu cầu đồng thời quan hệ kế thừa phù hợp và cùng assembly. protected internal dùng hợp của hai miền thay vì giao; cần phân biệt rõ.",
+      "explanation": "private protected yêu cầu đồng thời quan hệ kế thừa phù hợp và cùng assembly. protected internal dùng hợp của hai miền thay vì giao; cần phân biệt rõ.",
+      "alternative": "Dùng protected internal khi cần cùng assembly HOẶC lớp con ngoài assembly; private protected là lựa chọn giao hai miền.",
+      "trap": "Đọc private protected như protected internal.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: DerivedA, trong giới hạn truy cập protected",
+        "private protected yêu cầu đồng thời quan hệ kế thừa phù hợp và cùng assembly. protected internal dùng hợp của hai miền thay vì giao; cần phân biệt rõ.",
+        "Tránh ngộ nhận: Đọc private protected như protected internal.",
+        "Dùng protected internal khi cần cùng assembly HOẶC lớp con ngoài assembly; private protected là lựa chọn giao hai miền."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/private-protected",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "oop-strategy-explicit-switch-ceiling",
+    "content": {
+      "title": "Chưa cần class cho từng lựa chọn",
+      "topic": "oop",
+      "subtopic": "oop strategy explicit switch ceiling",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Chỉ có hai thuật toán định dạng thuần, không trạng thái, được chọn bằng enum nội bộ ổn định. Khi nào một switch expression hợp lý hơn tạo factory và interface?",
+      "englishPrompt": "There are two pure stateless formatting algorithms selected by a stable internal enum. When is a switch expression preferable to a factory and interface?",
+      "context": "Module nội bộ chỉ có hai cách format không trạng thái và tập lựa chọn đóng.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Áp pattern theo tên thay vì nhu cầu thay đổi.",
+      "nextHint": "Switch ngắn thể hiện đầy đủ tập lựa chọn đóng và vẫn phải báo enum ngoài miền. Thêm Strategy khi biến thể có dependency, trạng thái hoặc cần mở rộng riêng; không tạo tầng factory nếu không có nhu cầu.",
+      "followUp": "Nếu đối tác cần đăng ký formatter mới mà không sửa module lõi, ranh giới nào nên đổi?",
+      "englishFollowUp": "What boundary changes if partners must register new formatters without modifying the core?",
+      "outline": [
+        "Khi không có yêu cầu mở rộng plugin hoặc thay thế độc lập",
+        "Switch ngắn thể hiện đầy đủ tập lựa chọn đóng và vẫn phải báo enum ngoài miền. Thêm Strategy khi biến thể có dependency, trạng thái hoặc cần mở rộng riêng; không tạo tầng factory nếu không có nhu cầu."
+      ],
+      "shortAnswer": "Khi không có yêu cầu mở rộng plugin hoặc thay thế độc lập. Switch ngắn thể hiện đầy đủ tập lựa chọn đóng và vẫn phải báo enum ngoài miền. Thêm Strategy khi biến thể có dependency, trạng thái hoặc cần mở rộng riêng; không tạo tầng factory nếu không có nhu cầu.",
+      "explanation": "Switch ngắn thể hiện đầy đủ tập lựa chọn đóng và vẫn phải báo enum ngoài miền. Thêm Strategy khi biến thể có dependency, trạng thái hoặc cần mở rộng riêng; không tạo tầng factory nếu không có nhu cầu.",
+      "alternative": "Thêm interface khi formatter có dependency hoặc plugin riêng; switch hiện tại vẫn phải có nhánh báo enum ngoài miền.",
+      "trap": "Áp pattern theo tên thay vì nhu cầu thay đổi.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Khi không có yêu cầu mở rộng plugin hoặc thay thế độc lập",
+        "Switch ngắn thể hiện đầy đủ tập lựa chọn đóng và vẫn phải báo enum ngoài miền. Thêm Strategy khi biến thể có dependency, trạng thái hoặc cần mở rộng riêng; không tạo tầng factory nếu không có nhu cầu.",
+        "Tránh ngộ nhận: Áp pattern theo tên thay vì nhu cầu thay đổi.",
+        "Thêm interface khi formatter có dependency hoặc plugin riêng; switch hiện tại vẫn phải có nhánh báo enum ngoài miền."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "oop-interface-segregate-read-export",
+    "content": {
+      "title": "Quyền đọc trong hợp đồng nhỏ",
+      "topic": "oop",
+      "subtopic": "oop interface segregate read export",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Exporter chỉ đọc bản ghi. IRepository hiện gộp Read, Delete và Reset. Muốn exporter chỉ phụ thuộc hành vi nó dùng, nên truyền hợp đồng nào?",
+      "englishPrompt": "An exporter only reads records. IRepository combines Read, Delete, and Reset. Which contract should the exporter depend on?",
+      "context": "Exporter chỉ đọc dữ liệu qua repository đã có nhiều thao tác quản trị.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm thu hẹp hợp đồng với cơ chế bảo mật toàn hệ thống.",
+      "nextHint": "Một hợp đồng đọc hẹp làm rõ nhu cầu của exporter và giảm phụ thuộc vào thao tác ghi không liên quan. Nó không tự thay authorization runtime; dữ liệu nhạy cảm vẫn cần kiểm tra quyền.",
+      "followUp": "Nếu cùng object còn được giữ dưới IRepository ở nơi khác, interface đọc có tự cấm mọi Delete trong tiến trình không?",
+      "englishFollowUp": "If the same object is held elsewhere as IRepository, does a read interface forbid all Delete calls in the process?",
+      "outline": [
+        "Một interface đọc nhỏ, implementation có thể dùng chung repository hiện có",
+        "Một hợp đồng đọc hẹp làm rõ nhu cầu của exporter và giảm phụ thuộc vào thao tác ghi không liên quan. Nó không tự thay authorization runtime; dữ liệu nhạy cảm vẫn cần kiểm tra quyền."
+      ],
+      "shortAnswer": "Một interface đọc nhỏ, implementation có thể dùng chung repository hiện có. Một hợp đồng đọc hẹp làm rõ nhu cầu của exporter và giảm phụ thuộc vào thao tác ghi không liên quan. Nó không tự thay authorization runtime; dữ liệu nhạy cảm vẫn cần kiểm tra quyền.",
+      "explanation": "Một hợp đồng đọc hẹp làm rõ nhu cầu của exporter và giảm phụ thuộc vào thao tác ghi không liên quan. Nó không tự thay authorization runtime; dữ liệu nhạy cảm vẫn cần kiểm tra quyền.",
+      "alternative": "Giữ implementation hiện tại và thêm interface đọc nhỏ; vẫn thực hiện authorization vì cùng object có thể còn reference ghi ở nơi khác.",
+      "trap": "Nhầm thu hẹp hợp đồng với cơ chế bảo mật toàn hệ thống.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Một interface đọc nhỏ, implementation có thể dùng chung repository hiện có",
+        "Một hợp đồng đọc hẹp làm rõ nhu cầu của exporter và giảm phụ thuộc vào thao tác ghi không liên quan. Nó không tự thay authorization runtime; dữ liệu nhạy cảm vẫn cần kiểm tra quyền.",
+        "Tránh ngộ nhận: Nhầm thu hẹp hợp đồng với cơ chế bảo mật toàn hệ thống.",
+        "Giữ implementation hiện tại và thêm interface đọc nhỏ; vẫn thực hiện authorization vì cùng object có thể còn reference ghi ở nơi khác."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/interfaces",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "oop-is-pattern-safe-downcast",
+    "content": {
+      "title": "Kiểm tra kiểu trước downcast",
+      "topic": "oop",
+      "subtopic": "oop is pattern safe downcast",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Danh sách Animal có cả Dog và Cat. Chỉ Dog có Fetch(). Cách nào gọi Fetch cho Dog mà không dùng exception như luồng bình thường?",
+      "englishPrompt": "An Animal list contains Dog and Cat. Only Dog has Fetch(). How should Dog entries be handled without using exceptions as normal control flow?",
+      "context": "Mã tích hợp cần gọi hành vi Dog đặc thù trong tập Animal hỗn hợp.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Dùng tên class dạng chuỗi làm hợp đồng kiểu.",
+      "nextHint": "Type pattern kiểm tra tương thích và gán biến cùng lúc, bỏ qua null. Nếu nghiệp vụ thực sự áp dụng cho mọi Animal, nên đưa hành vi vào hợp đồng thay vì liên tục downcast.",
+      "followUp": "Khi nào thêm method virtual vào Animal phù hợp hơn một loạt type pattern?",
+      "englishFollowUp": "When is adding a virtual method to Animal preferable to a chain of type patterns?",
+      "outline": [
+        "Dùng if (animal is Dog dog) rồi dog.Fetch()",
+        "Type pattern kiểm tra tương thích và gán biến cùng lúc, bỏ qua null. Nếu nghiệp vụ thực sự áp dụng cho mọi Animal, nên đưa hành vi vào hợp đồng thay vì liên tục downcast."
+      ],
+      "shortAnswer": "Dùng if (animal is Dog dog) rồi dog.Fetch(). Type pattern kiểm tra tương thích và gán biến cùng lúc, bỏ qua null. Nếu nghiệp vụ thực sự áp dụng cho mọi Animal, nên đưa hành vi vào hợp đồng thay vì liên tục downcast.",
+      "explanation": "Type pattern kiểm tra tương thích và gán biến cùng lúc, bỏ qua null. Nếu nghiệp vụ thực sự áp dụng cho mọi Animal, nên đưa hành vi vào hợp đồng thay vì liên tục downcast.",
+      "alternative": "Đưa hành vi vào hợp đồng chung nếu mọi Animal đều phải thực hiện; chỉ pattern khi thao tác thực sự đặc thù cho subtype.",
+      "trap": "Dùng tên class dạng chuỗi làm hợp đồng kiểu.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Dùng if (animal is Dog dog) rồi dog.Fetch()",
+        "Type pattern kiểm tra tương thích và gán biến cùng lúc, bỏ qua null. Nếu nghiệp vụ thực sự áp dụng cho mọi Animal, nên đưa hành vi vào hợp đồng thay vì liên tục downcast.",
+        "Tránh ngộ nhận: Dùng tên class dạng chuỗi làm hợp đồng kiểu.",
+        "Đưa hành vi vào hợp đồng chung nếu mọi Animal đều phải thực hiện; chỉ pattern khi thao tác thực sự đặc thù cho subtype."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/patterns",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "oop-generic-static-state-isolation",
+    "content": {
+      "title": "Static riêng cho kiểu generic đóng",
+      "topic": "oop",
+      "subtopic": "oop generic static state isolation",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Cache<T> có static Count. Cache<int>.Count được đặt 3, Cache<string>.Count chưa gán. Hai kiểu đóng chia sẻ Count hay không?",
+      "englishPrompt": "Cache<T> has a static Count field. Cache<int>.Count is set to three and Cache<string>.Count is untouched. Do these closed types share Count?",
+      "context": "Cache generic cần làm rõ counter nào thuộc từng loại dữ liệu.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Đồng nhất code sharing với chia sẻ static field.",
+      "nextHint": "Các kiểu đóng Cache<int> và Cache<string> có static field riêng, nên Count của string vẫn là 0. Điều này khác static ở một class không generic được mọi caller dùng chung. Không suy từ chia sẻ machine code sang chia sẻ static state.",
+      "followUp": "Nếu mọi T cần cùng một bộ đếm toàn hệ thống, nên chuyển field sang kiểu nào?",
+      "englishFollowUp": "Where should the field live if every T must share one global counter?",
+      "outline": [
+        "Không; mỗi kiểu đóng có bộ static field riêng",
+        "Các kiểu đóng Cache<int> và Cache<string> có static field riêng, nên Count của string vẫn là 0. Điều này khác static ở một class không generic được mọi caller dùng chung. Không suy từ chia sẻ machine code sang chia sẻ static state."
+      ],
+      "shortAnswer": "Không; mỗi kiểu đóng có bộ static field riêng. Các kiểu đóng Cache<int> và Cache<string> có static field riêng, nên Count của string vẫn là 0. Điều này khác static ở một class không generic được mọi caller dùng chung. Không suy từ chia sẻ machine code sang chia sẻ static state.",
+      "explanation": "Các kiểu đóng Cache<int> và Cache<string> có static field riêng, nên Count của string vẫn là 0. Điều này khác static ở một class không generic được mọi caller dùng chung. Không suy từ chia sẻ machine code sang chia sẻ static state.",
+      "alternative": "Chuyển counter sang một class không generic nếu mọi T phải chia sẻ cùng số đếm; static của Cache<T> tách theo kiểu đóng.",
+      "trap": "Đồng nhất code sharing với chia sẻ static field.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Không; mỗi kiểu đóng có bộ static field riêng",
+        "Các kiểu đóng Cache<int> và Cache<string> có static field riêng, nên Count của string vẫn là 0. Điều này khác static ở một class không generic được mọi caller dùng chung. Không suy từ chia sẻ machine code sang chia sẻ static state.",
+        "Tránh ngộ nhận: Đồng nhất code sharing với chia sẻ static field.",
+        "Chuyển counter sang một class không generic nếu mọi T phải chia sẻ cùng số đếm; static của Cache<T> tách theo kiểu đóng."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/static-classes-and-static-class-members",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "oop-equality-hashset-mutable-key",
+    "content": {
+      "title": "Khóa thay đổi trong HashSet",
+      "topic": "oop",
+      "subtopic": "oop equality hashset mutable key",
+      "tags": [
+        "oop",
+        "oop"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Một object có GetHashCode theo Code được thêm vào HashSet rồi Code bị sửa. Vì sao Contains cùng reference có thể false?",
+      "englishPrompt": "An object whose hash uses Code is inserted into a HashSet and then Code changes. Why can Contains on the same reference return false?",
+      "context": "Bộ loại trùng dùng object có identity hiện được phép thay đổi.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Cho rằng cùng reference bảo đảm Contains luôn tìm thấy.",
+      "nextHint": "HashSet dựa vào hash để chọn vùng tra cứu trước equality. Thành viên tham gia equality/hash phải ổn định khi đang là key. Có thể dùng immutable key hoặc xóa trước khi sửa và thêm lại sau, với hash cũ vẫn còn dùng được lúc xóa.",
+      "followUp": "Nếu đã sửa Code trước khi xóa, vì sao Remove cũng có thể thất bại?",
+      "englishFollowUp": "Why can Remove also fail if Code has already changed?",
+      "outline": [
+        "Tra cứu dùng hash mới trong khi mục đang ở bucket của hash cũ",
+        "HashSet dựa vào hash để chọn vùng tra cứu trước equality. Thành viên tham gia equality/hash phải ổn định khi đang là key. Có thể dùng immutable key hoặc xóa trước khi sửa và thêm lại sau, với hash cũ vẫn còn dùng được lúc xóa."
+      ],
+      "shortAnswer": "Tra cứu dùng hash mới trong khi mục đang ở bucket của hash cũ. HashSet dựa vào hash để chọn vùng tra cứu trước equality. Thành viên tham gia equality/hash phải ổn định khi đang là key. Có thể dùng immutable key hoặc xóa trước khi sửa và thêm lại sau, với hash cũ vẫn còn dùng được lúc xóa.",
+      "explanation": "HashSet dựa vào hash để chọn vùng tra cứu trước equality. Thành viên tham gia equality/hash phải ổn định khi đang là key. Có thể dùng immutable key hoặc xóa trước khi sửa và thêm lại sau, với hash cũ vẫn còn dùng được lúc xóa.",
+      "alternative": "Ưu tiên immutable key; nếu phải sửa, Remove trước mutation rồi Add lại sau, vì Remove sau mutation cũng có thể tìm sai bucket.",
+      "trap": "Cho rằng cùng reference bảo đảm Contains luôn tìm thấy.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Tra cứu dùng hash mới trong khi mục đang ở bucket của hash cũ",
+        "HashSet dựa vào hash để chọn vùng tra cứu trước equality. Thành viên tham gia equality/hash phải ổn định khi đang là key. Có thể dùng immutable key hoặc xóa trước khi sửa và thêm lại sau, với hash cũ vẫn còn dùng được lúc xóa.",
+        "Tránh ngộ nhận: Cho rằng cùng reference bảo đảm Contains luôn tìm thấy.",
+        "Ưu tiên immutable key; nếu phải sửa, Remove trước mutation rồi Add lại sau, vì Remove sau mutation cũng có thể tìm sai bucket."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.object.gethashcode?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "algo-dijkstra-negative-edge",
+    "content": {
+      "title": "Trọng số âm phá giả định",
+      "topic": "algorithms",
+      "subtopic": "algo dijkstra negative edge",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "design",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Đồ thị có cạnh âm nhưng không có chu trình âm. Có thể chốt khoảng cách bằng Dijkstra chuẩn khi đỉnh được lấy ra lần đầu không?",
+      "englishPrompt": "A graph has a negative edge but no negative cycle. May standard Dijkstra permanently finalize a vertex on first extraction?",
+      "context": "Bộ tìm đường phải chọn thuật toán đúng với miền trọng số dữ liệu.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Chỉ kiểm tra chu trình âm rồi mặc định Dijkstra đúng.",
+      "nextHint": "Chứng minh chốt khoảng cách của Dijkstra cần trọng số không âm. Một đường đi qua cạnh âm về sau có thể giảm khoảng cách của đỉnh đã chốt. Không có chu trình âm chỉ bảo đảm bài toán có khoảng cách hữu hạn cho các đỉnh liên quan.",
+      "followUp": "Nếu mọi cạnh đều bằng 1, BFS đơn giản hóa bài toán thế nào?",
+      "englishFollowUp": "If all edges have weight one, how does BFS simplify the problem?",
+      "outline": [
+        "Không; cần thuật toán hỗ trợ cạnh âm như Bellman-Ford",
+        "Chứng minh chốt khoảng cách của Dijkstra cần trọng số không âm. Một đường đi qua cạnh âm về sau có thể giảm khoảng cách của đỉnh đã chốt. Không có chu trình âm chỉ bảo đảm bài toán có khoảng cách hữu hạn cho các đỉnh liên quan."
+      ],
+      "shortAnswer": "Không; cần thuật toán hỗ trợ cạnh âm như Bellman-Ford. Chứng minh chốt khoảng cách của Dijkstra cần trọng số không âm. Một đường đi qua cạnh âm về sau có thể giảm khoảng cách của đỉnh đã chốt. Không có chu trình âm chỉ bảo đảm bài toán có khoảng cách hữu hạn cho các đỉnh liên quan.",
+      "explanation": "Chứng minh chốt khoảng cách của Dijkstra cần trọng số không âm. Một đường đi qua cạnh âm về sau có thể giảm khoảng cách của đỉnh đã chốt. Không có chu trình âm chỉ bảo đảm bài toán có khoảng cách hữu hạn cho các đỉnh liên quan.",
+      "alternative": "Dùng BFS khi mọi cạnh có trọng số 1; dùng Bellman-Ford khi cạnh âm cần được hỗ trợ và kiểm tra chu trình âm liên quan.",
+      "trap": "Chỉ kiểm tra chu trình âm rồi mặc định Dijkstra đúng.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Không; cần thuật toán hỗ trợ cạnh âm như Bellman-Ford",
+        "Chứng minh chốt khoảng cách của Dijkstra cần trọng số không âm. Một đường đi qua cạnh âm về sau có thể giảm khoảng cách của đỉnh đã chốt. Không có chu trình âm chỉ bảo đảm bài toán có khoảng cách hữu hạn cho các đỉnh liên quan.",
+        "Tránh ngộ nhận: Chỉ kiểm tra chu trình âm rồi mặc định Dijkstra đúng.",
+        "Dùng BFS khi mọi cạnh có trọng số 1; dùng Bellman-Ford khi cạnh âm cần được hỗ trợ và kiểm tra chu trình âm liên quan."
+      ],
+      "source": "https://cp-algorithms.com/graph/dijkstra.html",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "algo-interval-halfopen-touch",
+    "content": {
+      "title": "Gộp lịch nửa mở",
+      "topic": "algorithms",
+      "subtopic": "algo interval halfopen touch",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Hai cuộc hẹn [09:00,10:00) và [10:00,11:00) có chồng lấn thời gian không? Quy ước này ảnh hưởng phép so sánh nào?",
+      "englishPrompt": "Do appointments [09:00,10:00) and [10:00,11:00) overlap? Which comparison follows from this convention?",
+      "context": "Bộ đặt lịch cho phép cuộc hẹn tiếp theo bắt đầu đúng lúc cuộc trước kết thúc.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Nhầm chạm biên, chồng lấn và chính sách gộp.",
+      "nextHint": "Khoảng nửa mở không chứa điểm kết thúc, nên hai cuộc hẹn chạm biên vẫn không trùng thời gian. Khi sort theo start, kiểm tra strict < cho overlap; chính sách gộp các khoảng kề nhau là lựa chọn khác phải nói riêng.",
+      "followUp": "Nếu lịch cho phép thời gian đệm 15 phút sau mỗi hẹn, phép kiểm cần đổi thế nào?",
+      "englishFollowUp": "How would a mandatory fifteen-minute buffer change the comparison?",
+      "outline": [
+        "Không; chồng lấn khi next.Start < current.End",
+        "Khoảng nửa mở không chứa điểm kết thúc, nên hai cuộc hẹn chạm biên vẫn không trùng thời gian. Khi sort theo start, kiểm tra strict < cho overlap; chính sách gộp các khoảng kề nhau là lựa chọn khác phải nói riêng."
+      ],
+      "shortAnswer": "Không; chồng lấn khi next.Start < current.End. Khoảng nửa mở không chứa điểm kết thúc, nên hai cuộc hẹn chạm biên vẫn không trùng thời gian. Khi sort theo start, kiểm tra strict < cho overlap; chính sách gộp các khoảng kề nhau là lựa chọn khác phải nói riêng.",
+      "explanation": "Khoảng nửa mở không chứa điểm kết thúc, nên hai cuộc hẹn chạm biên vẫn không trùng thời gian. Khi sort theo start, kiểm tra strict < cho overlap; chính sách gộp các khoảng kề nhau là lựa chọn khác phải nói riêng.",
+      "alternative": "Cộng thời gian đệm vào End trước khi so Start mới nếu cần dọn phòng; chạm biên không còn đủ khi hợp đồng có buffer.",
+      "trap": "Nhầm chạm biên, chồng lấn và chính sách gộp.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Không; chồng lấn khi next.Start < current.End",
+        "Khoảng nửa mở không chứa điểm kết thúc, nên hai cuộc hẹn chạm biên vẫn không trùng thời gian. Khi sort theo start, kiểm tra strict < cho overlap; chính sách gộp các khoảng kề nhau là lựa chọn khác phải nói riêng.",
+        "Tránh ngộ nhận: Nhầm chạm biên, chồng lấn và chính sách gộp.",
+        "Cộng thời gian đệm vào End trước khi so Start mới nếu cần dọn phòng; chạm biên không còn đủ khi hợp đồng có buffer."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operators#range-operator-",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "algo-reservoir-one-pass-uniform",
+    "content": {
+      "title": "Lấy mẫu một mục từ stream",
+      "topic": "algorithms",
+      "subtopic": "algo reservoir one pass uniform",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "design",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Stream có n mục nhưng chưa biết n và không muốn giữ toàn bộ. Ở mục thứ i (đếm từ 1), thay mẫu hiện tại với xác suất nào để mọi mục có cơ hội bằng nhau?",
+      "englishPrompt": "A stream length is unknown and storing all entries is undesirable. At the i-th item, counting from one, what replacement probability yields a uniform one-item sample?",
+      "context": "Job lấy một bản ghi ngẫu nhiên từ log lớn mà chưa biết tổng số dòng.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Dùng xác suất 1/2 khiến mục cuối được ưu tiên.",
+      "nextHint": "Mục i được chọn với xác suất 1/i và sống qua các bước sau với tích i/n, cho xác suất cuối 1/n. Bộ nhớ O(1), một lượt O(n); nguồn ngẫu nhiên phải chọn nguyên đều để tránh lệch.",
+      "followUp": "Test ngẫu nhiên lặp nhiều lần chứng minh tuyệt đối tính đều hay chỉ phát hiện lệch lớn?",
+      "englishFollowUp": "Can repeated randomized tests prove exact uniformity or only detect substantial bias?",
+      "outline": [
+        "1/i",
+        "Mục i được chọn với xác suất 1/i và sống qua các bước sau với tích i/n, cho xác suất cuối 1/n. Bộ nhớ O(1), một lượt O(n); nguồn ngẫu nhiên phải chọn nguyên đều để tránh lệch."
+      ],
+      "shortAnswer": "1/i. Mục i được chọn với xác suất 1/i và sống qua các bước sau với tích i/n, cho xác suất cuối 1/n. Bộ nhớ O(1), một lượt O(n); nguồn ngẫu nhiên phải chọn nguyên đều để tránh lệch.",
+      "explanation": "Mục i được chọn với xác suất 1/i và sống qua các bước sau với tích i/n, cho xác suất cuối 1/n. Bộ nhớ O(1), một lượt O(n); nguồn ngẫu nhiên phải chọn nguyên đều để tránh lệch.",
+      "alternative": "Giữ chứng minh xác suất cùng test thống kê phát hiện lệch lớn; test ngẫu nhiên hữu hạn không chứng minh tuyệt đối tính đều.",
+      "trap": "Dùng xác suất 1/2 khiến mục cuối được ưu tiên.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: 1/i",
+        "Mục i được chọn với xác suất 1/i và sống qua các bước sau với tích i/n, cho xác suất cuối 1/n. Bộ nhớ O(1), một lượt O(n); nguồn ngẫu nhiên phải chọn nguyên đều để tránh lệch.",
+        "Tránh ngộ nhận: Dùng xác suất 1/2 khiến mục cuối được ưu tiên.",
+        "Giữ chứng minh xác suất cùng test thống kê phát hiện lệch lớn; test ngẫu nhiên hữu hạn không chứng minh tuyệt đối tính đều."
+      ],
+      "source": "https://www.cs.umd.edu/~samir/498/vitter.pdf",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "algo-dedup-sort-versus-hash",
+    "content": {
+      "title": "Loại trùng dưới giới hạn bộ nhớ",
+      "topic": "algorithms",
+      "subtopic": "algo dedup sort versus hash",
+      "tags": [
+        "algorithms",
+        "algo"
+      ],
+      "format": "design",
+      "difficulty": "easy",
+      "level": "junior",
+      "minutes": 6,
+      "technology": ".NET 10",
+      "prompt": "Có mảng int trong bộ nhớ, được phép đổi thứ tự và không muốn cấu trúc phụ O(n). Phương án đơn giản nào để loại trùng?",
+      "englishPrompt": "An int array is already in memory, reordering is permitted, and an O(n) auxiliary structure is undesirable. What simple approach removes duplicates?",
+      "context": "Bộ nhớ bị giới hạn nhưng mảng đầu vào có thể được sắp lại.",
+      "code": null,
+      "hint": "Kiểm tra giả định dễ sai sau: Gọi phương án sort là luôn O(1) bộ nhớ phụ.",
+      "nextHint": "Sau sort, các giá trị bằng nhau nằm kề nhau; một read index và write index giữ mỗi giá trị đầu tiên. Sort thường O(n log n), compact O(n). Bộ nhớ phụ phụ thuộc sort được dùng; không được gọi mọi sort là O(1).",
+      "followUp": "Nếu cần giữ thứ tự xuất hiện ban đầu, trade-off bộ nhớ và thời gian thay đổi thế nào?",
+      "englishFollowUp": "How do time and space choices change if original encounter order must be preserved?",
+      "outline": [
+        "Sort rồi compact các giá trị kề nhau bằng hai chỉ số",
+        "Sau sort, các giá trị bằng nhau nằm kề nhau; một read index và write index giữ mỗi giá trị đầu tiên. Sort thường O(n log n), compact O(n). Bộ nhớ phụ phụ thuộc sort được dùng; không được gọi mọi sort là O(1)."
+      ],
+      "shortAnswer": "Sort rồi compact các giá trị kề nhau bằng hai chỉ số. Sau sort, các giá trị bằng nhau nằm kề nhau; một read index và write index giữ mỗi giá trị đầu tiên. Sort thường O(n log n), compact O(n). Bộ nhớ phụ phụ thuộc sort được dùng; không được gọi mọi sort là O(1).",
+      "explanation": "Sau sort, các giá trị bằng nhau nằm kề nhau; một read index và write index giữ mỗi giá trị đầu tiên. Sort thường O(n log n), compact O(n). Bộ nhớ phụ phụ thuộc sort được dùng; không được gọi mọi sort là O(1).",
+      "alternative": "Nếu phải giữ thứ tự nguồn và đủ bộ nhớ, duyệt theo input với HashSet đã thấy và chỉ xuất lần đầu của mỗi giá trị.",
+      "trap": "Gọi phương án sort là luôn O(1) bộ nhớ phụ.",
+      "rubric": [
+        "Nêu đúng kết quả hoặc quyết định: Sort rồi compact các giá trị kề nhau bằng hai chỉ số",
+        "Sau sort, các giá trị bằng nhau nằm kề nhau; một read index và write index giữ mỗi giá trị đầu tiên. Sort thường O(n log n), compact O(n). Bộ nhớ phụ phụ thuộc sort được dùng; không được gọi mọi sort là O(1).",
+        "Tránh ngộ nhận: Gọi phương án sort là luôn O(1) bộ nhớ phụ.",
+        "Nếu phải giữ thứ tự nguồn và đủ bộ nhớ, duyệt theo input với HashSet đã thấy và chỉ xuất lần đầu của mỗi giá trị."
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.array.sort?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  }
+]

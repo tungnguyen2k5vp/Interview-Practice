@@ -31,7 +31,7 @@ export async function checkLabs({page,client,peer,send,screenshots}) {
     console.log('PASS live GitHub repository list and selected source lines')
   }
   await page.getByRole('button',{name:'Code review',exact:true}).click()
-  const fixtures=(await Promise.all(['code-reviews','code-reviews-batch-02'].map(async name=>JSON.parse(await readFile(resolve(root,'server/Content/'+name+'.json'),'utf8'))))).flat()
+  const fixtures=(await Promise.all(['code-reviews','code-reviews-batch-02','code-reviews-batch-03-v4'].map(async name=>JSON.parse(await readFile(resolve(root,'server/Content/'+name+'.json'),'utf8'))))).flat()
   const list=await send(client,'/labs/reviews');assert.equal(list.length,fixtures.length);assert.equal(new Set(list.map(c=>c.slug)).size,fixtures.length)
   for(const f of fixtures){
     const q=await send(client,'/labs/reviews/'+f.slug+'/'+f.version)
@@ -64,7 +64,7 @@ export async function checkLabs({page,client,peer,send,screenshots}) {
   }
   await page.getByRole('button',{name:'Debugging Lab',exact:true}).click()
   await page.getByRole('link',{name:'Mở editor',exact:true}).first().waitFor()
-  assert.equal(await page.getByRole('link',{name:'Mở editor',exact:true}).count(),7)
+  assert.equal(await page.getByRole('link',{name:'Mở editor',exact:true}).count(),30)
   await page.getByRole('link',{name:'Middleware chọn nhầm nhánh API'}).click()
   await page.getByRole('heading',{name:'Tái hiện lỗi'}).waitFor()
   await page.locator('.cm-editor').waitFor()

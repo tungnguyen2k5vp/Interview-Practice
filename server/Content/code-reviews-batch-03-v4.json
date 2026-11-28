@@ -1,0 +1,377 @@
+[
+  {
+    "slug": "review-profile-privilege-field",
+    "version": 1,
+    "title": "Cập nhật hồ sơ không cấp quyền",
+    "file": "ProfileEndpoint.cs",
+    "context": "Đoạn trích trong endpoint chỉ dành cho người đã đăng nhập sửa tên hiển thị. user là entity của chính người đó. input có DisplayName và IsAdmin do client gửi. Quyền quản trị chỉ được thay qua quy trình quản trị riêng.",
+    "diff": [
+      " user.DisplayName = input.DisplayName;",
+      "+user.IsAdmin = input.IsAdmin;",
+      " await db.SaveChangesAsync(ct);"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "critical",
+    "cause": "Thêm ánh xạ trường quyền do client điều khiển vào luồng chỉ sửa hồ sơ, cho phép tự nâng quyền.",
+    "otherCause": "SaveChangesAsync luôn đặt IsAdmin=true bất kể giá trị entity.",
+    "repair": "Bỏ trường IsAdmin khỏi input DTO của profile và không ánh xạ nó trong write path này.",
+    "otherRepair": "Chỉ ẩn checkbox IsAdmin trong giao diện, giữ API như cũ.",
+    "check": "Gửi payload đổi DisplayName kèm IsAdmin=true bằng client trực tiếp; đọc lại DB và xác nhận DisplayName đổi nhưng IsAdmin không đổi."
+  },
+  {
+    "slug": "review-login-external-return",
+    "version": 1,
+    "title": "Đích trở về của form đăng nhập",
+    "file": "LoginController.cs",
+    "context": "Đoạn trích trong MVC controller sau khi SignIn thành công. returnUrl đến từ query string, hợp đồng chỉ cho phép quay lại đường dẫn nội bộ.",
+    "diff": [
+      "-return LocalRedirect(returnUrl);",
+      "+return Redirect(returnUrl);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Redirect chấp nhận đích ngoài ứng dụng mà không kiểm tra local, mở đường điều hướng người vừa đăng nhập sang site giả.",
+    "otherCause": "Redirect luôn sao chép cookie đăng nhập của domain hiện tại sang domain đích.",
+    "repair": "Giữ LocalRedirect hoặc kiểm tra IsLocalUrl rồi dùng fallback nội bộ khi không hợp lệ.",
+    "otherRepair": "Chỉ kiểm tra returnUrl chứa chuỗi tên công ty.",
+    "check": "Thử URL nội bộ /orders và URL HTTPS ở domain khác; URL ngoài phải bị từ chối hoặc chuyển fallback, không chuyển đến domain đó."
+  },
+  {
+    "slug": "review-upload-storage-key",
+    "version": 1,
+    "title": "Không dùng tên client làm đường dẫn file",
+    "file": "UploadEndpoint.cs",
+    "context": "Đoạn trích C# của upload endpoint. uploadRoot là thư mục lưu do server cấu hình; file là IFormFile không tin cậy. Mỗi upload phải được lưu riêng, không ghi đè dữ liệu khác.",
+    "diff": [
+      "-var target = Path.Combine(uploadRoot, Path.GetRandomFileName());",
+      "+var target = Path.Combine(uploadRoot, file.FileName);",
+      " await using var output = File.Create(target);",
+      " await file.CopyToAsync(output, ct);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "critical",
+    "cause": "Tên client có thể chứa đường dẫn hoặc trùng file đã có; Path.Combine không biến nó thành storage key an toàn.",
+    "otherCause": "CopyToAsync tự lấy tên từ file nên giá trị target hoàn toàn không có tác dụng.",
+    "repair": "Tạo storage key ngẫu nhiên phía server, lưu tên gốc như metadata đã xử lý và giữ file ngoài vùng thực thi công khai.",
+    "otherRepair": "Thay mọi khoảng trắng trong FileName bằng dấu gạch dưới rồi giữ nguyên phần còn lại.",
+    "check": "Tải hai file cùng tên và tên có thành phần đường dẫn; xác nhận tạo hai object độc lập và mọi đích nằm trong vùng lưu cho phép."
+  },
+  {
+    "slug": "review-cors-credentials-wildcard",
+    "version": 1,
+    "title": "CORS credential cần origin cụ thể",
+    "file": "Program.cs",
+    "context": "Đoạn trích cấu hình ASP.NET Core. Chỉ dashboard https://staff.example cần gọi API cùng cookie. Đây là CORS policy được áp dụng thực tế, không có policy khác ghi đè.",
+    "diff": [
+      " builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>",
+      "-    policy.WithOrigins(\"https://staff.example\").AllowCredentials()));",
+      "+    policy.AllowAnyOrigin().AllowCredentials()));"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "Wildcard origin kết hợp credentials là cấu hình CORS không hợp lệ; nó không đáp ứng hợp đồng chỉ cho dashboard đã xác định.",
+    "otherCause": "AllowCredentials khiến cookie tự được gửi dù client không chọn chế độ credentials.",
+    "repair": "Giữ WithOrigins với origin cụ thể và chỉ bật credentials cho luồng thực sự cần.",
+    "otherRepair": "Bỏ authentication vì CORS đã có AllowCredentials.",
+    "check": "Khởi động cấu hình và gửi preflight từ staff.example cùng một origin lạ; policy chỉ chấp nhận origin cụ thể và không dùng wildcard với credentials."
+  },
+  {
+    "slug": "review-production-stack-body",
+    "version": 1,
+    "title": "Stack trace không phải phản hồi public",
+    "file": "ErrorBoundary.cs",
+    "context": "Đoạn trích trong production exception handler. ex có thể chứa thông tin kết nối nội bộ; response chưa bắt đầu. Hệ thống có log nội bộ và TraceIdentifier.",
+    "diff": [
+      " context.Response.StatusCode = 500;",
+      "-await context.Response.WriteAsync(\"Internal error. Reference: \" + context.TraceIdentifier);",
+      "+await context.Response.WriteAsync(ex.ToString());"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "Exception detail và stack trace có thể lộ cấu hình hoặc bí mật cho client production.",
+    "otherCause": "Status 500 tự động mã hóa nội dung body nên client không đọc được.",
+    "repair": "Trả thông báo an toàn cùng correlation ID, ghi chi tiết đã lọc vào log có quyền truy cập.",
+    "otherRepair": "Đổi status thành 200 để body không xuất hiện trong công cụ theo dõi lỗi.",
+    "check": "Gây lỗi có chuỗi sentinel giả lập bí mật; body không chứa sentinel hoặc stack trace và support có thể tra bằng correlation ID."
+  },
+  {
+    "slug": "review-response-stream-lifetime",
+    "version": 1,
+    "title": "Stream còn cần response sống",
+    "file": "DownloadProxy.cs",
+    "context": "Đoạn trích trong async MVC action trả file lớn. client là HttpClient do app quản lý. ResponseHeadersRead không buffer hết nội dung; File(stream,...) sẽ đọc stream sau khi action trả.",
+    "diff": [
+      "-var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct);",
+      "+using var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct);",
+      " response.EnsureSuccessStatusCode();",
+      " var stream = await response.Content.ReadAsStreamAsync(ct);",
+      " return File(stream, \"application/octet-stream\");"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "using dispose response khi action rời scope, trong khi result còn cần đọc content stream; quyền sở hữu tài nguyên bị kết thúc quá sớm.",
+    "otherCause": "ResponseHeadersRead tự bảo đảm toàn bộ file đã nằm trong byte array trước khi action trả.",
+    "repair": "Giữ response sống tới khi copy stream xong rồi dispose; hoặc dùng result có hợp đồng sở hữu và cleanup response/stream sau gửi.",
+    "otherRepair": "Bỏ mọi Dispose ở toàn ứng dụng để stream luôn còn sống.",
+    "check": "Dùng content stream lớn có theo dõi Dispose; kiểm tra action trả rồi result vẫn đọc đủ bytes và response chỉ dispose sau khi gửi hoặc hủy."
+  },
+  {
+    "slug": "review-semaphore-release-without-lease",
+    "version": 1,
+    "title": "Không trả permit chưa lấy được",
+    "file": "PreviewGate.cs",
+    "context": "Đoạn trích trong async method. gate có giới hạn tối đa 1 và đang hết permit. WaitAsync(0,ct) có thể trả false; RenderAsync chỉ được gọi khi thực sự lấy được permit.",
+    "diff": [
+      "-if (!await gate.WaitAsync(0, ct)) return false;",
+      "+await gate.WaitAsync(0, ct);",
+      " try",
+      " {",
+      "     await RenderAsync(ct);",
+      "     return true;",
+      " }",
+      " finally { gate.Release(); }"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Bỏ kết quả bool cho phép render dù không có permit; finally còn Release khi chưa acquire, có thể phá giới hạn hoặc ném SemaphoreFullException.",
+    "otherCause": "WaitAsync với timeout 0 luôn chờ đến khi có permit nên bỏ bool không ảnh hưởng.",
+    "repair": "Kiểm tra bool trước khi vào try/finally chỉ dành cho lease đã acquire; trả false khi không lấy được.",
+    "otherRepair": "Giữ nguyên nhưng tăng maxCount để Release không ném lỗi.",
+    "check": "Giữ permit bằng một caller khác, gọi preview với timeout 0; xác nhận không render, trả false và count không bị tăng bởi caller bị từ chối."
+  },
+  {
+    "slug": "review-offset-lost-in-storage",
+    "version": 1,
+    "title": "Giữ thời điểm thay vì mặt đồng hồ",
+    "file": "MeetingTimestamp.cs",
+    "context": "Đoạn trích C#. incoming là DateTimeOffset từ lịch đối tác. schema lưu cột ScheduledUtc có quy ước UTC; consumer về sau coi giá trị đó là UTC.",
+    "diff": [
+      "-row.ScheduledUtc = incoming.UtcDateTime;",
+      "+row.ScheduledUtc = incoming.DateTime;",
+      " await db.SaveChangesAsync(ct);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "DateTime lấy mặt đồng hồ gốc và có Kind Unspecified, không chuyển instant sang UTC; hệ thống sau có thể hiểu lệch giờ.",
+    "otherCause": "DateTimeOffset.DateTime luôn tự chuyển sang múi giờ của database.",
+    "repair": "Giữ UtcDateTime theo schema hoặc lưu DateTimeOffset nếu cần cả offset; công bố hợp đồng múi giờ.",
+    "otherRepair": "Gắn DateTimeKind.Utc lên incoming.DateTime mà không chuyển giá trị giờ.",
+    "check": "Cho incoming=2026-11-27T09:00:00+07:00; giá trị UTC phải là 02:00:00 cùng ngày và đọc lại biểu diễn cùng instant."
+  },
+  {
+    "slug": "review-dictionary-mutable-key",
+    "version": 1,
+    "title": "Không sửa identity của key đã chèn",
+    "file": "CustomerIndex.cs",
+    "context": "Đoạn trích C#. CustomerKey là class mutable; Equals và GetHashCode đều dựa vào Code. byCustomer là Dictionary<CustomerKey,string> dùng comparer mặc định. Code ban đầu là A.",
+    "diff": [
+      " byCustomer.Add(key, \"priority\");",
+      "+key.Code = \"B\";",
+      " return byCustomer.TryGetValue(key, out var value);"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "Đổi Code làm thay hash/equality của key đã nằm trong dictionary, vi phạm hợp đồng ổn định key và có thể khiến lookup thất bại.",
+    "otherCause": "Dictionary lưu riêng giá trị Code và tự rehash mọi entry sau mỗi lần field đổi.",
+    "repair": "Dùng key bất biến, hoặc remove bằng identity cũ trước rồi chèn key mới theo quy tắc ứng dụng.",
+    "otherRepair": "Gọi TryGetValue hai lần liên tiếp để dictionary tự xây lại bucket.",
+    "check": "Chèn key A, thay Code thành B và đối chiếu với thiết kế dùng key bất biến; kiểm tra lookup và không giữ entry mồ côi."
+  },
+  {
+    "slug": "review-approval-all-empty",
+    "version": 1,
+    "title": "Tất cả duyệt nhưng chưa có người duyệt",
+    "file": "ApprovalRule.cs",
+    "context": "Đoạn trích C#. approvals là List<Approval> trong bộ nhớ. Hợp đồng yêu cầu có ít nhất một phê duyệt và tất cả phê duyệt phải được chấp thuận; danh sách có thể rỗng.",
+    "diff": [
+      "-return approvals.Count > 0 && approvals.All(a => a.Accepted);",
+      "+return approvals.All(a => a.Accepted);"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "All trên tập rỗng trả true nên bỏ kiểm tra tồn tại có thể thông qua hồ sơ chưa có người duyệt.",
+    "otherCause": "All trên tập rỗng ném InvalidOperationException nên chỉ cần thêm catch.",
+    "repair": "Giữ điều kiện có ít nhất một phần tử và kiểm tra All; dùng cùng snapshot khi cần xử lý concurrent changes.",
+    "otherRepair": "Đổi All thành Any(a => a.Accepted), bỏ yêu cầu mọi người đều duyệt.",
+    "check": "Kiểm tra bốn trường hợp: rỗng=false, một accepted=true, một rejected=false, một accepted cùng một rejected=false."
+  },
+  {
+    "slug": "review-list-shallow-edit",
+    "version": 1,
+    "title": "Bản nháp không được sửa dòng gốc",
+    "file": "InvoiceDraft.cs",
+    "context": "Đoạn trích C#. lines là List<Line>; Line là class mutable có Amount. Tạo preview phải thay Amount trong bản nháp mà không đổi Amount của input.",
+    "diff": [
+      "-var draft = lines.Select(x => new Line { Amount = x.Amount }).ToList();",
+      "+var draft = lines.ToList();",
+      " draft[0].Amount = 0m;",
+      " return draft;"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "ToList tạo list mới nhưng giữ tham chiếu tới cùng Line, nên sửa Amount của phần tử cũng sửa đối tượng input.",
+    "otherCause": "ToList luôn trả cùng List instance nên mọi thay đổi Count cũng làm đổi input.",
+    "repair": "Sao chép từng Line theo trường cần cho bản nháp hoặc dùng model bất biến và tạo phần tử mới.",
+    "otherRepair": "Chỉ đổi tên biến draft thành copy để cho thấy nó là bản sao.",
+    "check": "Input có một Line Amount=25; sau preview assert input vẫn 25, draft là 0 và hai Line instance khác nhau."
+  },
+  {
+    "slug": "review-remove-during-enumeration",
+    "version": 1,
+    "title": "Xóa khỏi List trong foreach",
+    "file": "ExpiredSessions.cs",
+    "context": "Đoạn trích C#. sessions là List<Session> thông thường trong bộ nhớ, không có thread khác sửa. Cần xóa mọi phần tử Expired và giữ thứ tự các phần tử còn lại.",
+    "diff": [
+      "-sessions.RemoveAll(s => s.Expired);",
+      "+foreach (var session in sessions)",
+      "+    if (session.Expired) sessions.Remove(session);"
+    ],
+    "lines": [
+      1,
+      2
+    ],
+    "severity": "major",
+    "cause": "Remove thay đổi collection trong khi enumerator của foreach còn chạy, khiến lần MoveNext sau phát hiện version đổi và ném lỗi.",
+    "otherCause": "foreach tự tạo deep copy của List nên Remove chỉ ảnh hưởng bản sao tạm.",
+    "repair": "Giữ RemoveAll hoặc duyệt theo chỉ số từ cuối với quy tắc xóa đúng.",
+    "otherRepair": "Thêm ToString cho session trước Remove để làm mới enumerator.",
+    "check": "Cho list gồm hết hạn, còn hạn, hết hạn; xác nhận xóa đủ hai phần tử, không ném lỗi và phần tử còn lại giữ thứ tự."
+  },
+  {
+    "slug": "review-top-without-order",
+    "version": 1,
+    "title": "Ba hóa đơn mới nhất cần ORDER BY",
+    "file": "LatestInvoices.sql",
+    "context": "Đoạn trích T-SQL. Invoices.Id là duy nhất, IssuedAt có thể trùng. API phải trả ba hóa đơn mới nhất theo IssuedAt rồi Id giảm dần, giữ thứ tự đó trong response.",
+    "diff": [
+      " SELECT TOP (3) Id, IssuedAt",
+      "-FROM dbo.Invoices ORDER BY IssuedAt DESC, Id DESC;",
+      "+FROM dbo.Invoices;"
+    ],
+    "lines": [
+      2
+    ],
+    "severity": "major",
+    "cause": "TOP không có ORDER BY không xác định ba hàng mới nhất theo hợp đồng; thứ tự hiện thấy do plan không phải bảo đảm.",
+    "otherCause": "TOP mặc định sort theo cột đầu tiên trong SELECT giảm dần.",
+    "repair": "Khôi phục ORDER BY IssuedAt DESC, Id DESC để chọn và sắp kết quả xác định.",
+    "otherRepair": "Chỉ tạo clustered index theo Id rồi dựa vào thứ tự vật lý.",
+    "check": "Tạo ít nhất năm hóa đơn với ngày chèn khác ngày phát hành và hai IssuedAt bằng nhau; assert đúng ba ID theo cả hai khóa."
+  },
+  {
+    "slug": "review-count-empty-left-join",
+    "version": 1,
+    "title": "Đếm lần đặt chỗ thực có",
+    "file": "RoomBookings.sql",
+    "context": "Đoạn trích T-SQL. Rooms.Id và Bookings.Id là PK không null. Báo cáo phải giữ phòng không có booking với tổng bằng 0; một booking thuộc một phòng.",
+    "diff": [
+      "-SELECT r.Id, COUNT(b.Id) AS BookingCount",
+      "+SELECT r.Id, COUNT(*) AS BookingCount",
+      " FROM dbo.Rooms AS r",
+      " LEFT JOIN dbo.Bookings AS b ON b.RoomId = r.Id",
+      " GROUP BY r.Id;"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "LEFT JOIN tạo một hàng mở rộng null cho phòng không có booking; COUNT(*) đếm hàng đó thành 1.",
+    "otherCause": "COUNT(*) tự loại mọi hàng có bất kỳ cột null nên phòng trống biến mất.",
+    "repair": "Đếm b.Id không null hoặc aggregate Bookings trước rồi join với Rooms, giữ phòng trống bằng 0.",
+    "otherRepair": "Chuyển LEFT JOIN sang INNER JOIN để loại hàng null và bỏ phòng trống.",
+    "check": "Có một phòng trống và một phòng hai booking; kết quả phải chứa cả hai với count tương ứng 0 và 2."
+  },
+  {
+    "slug": "review-sql-widen-before-product",
+    "version": 1,
+    "title": "Nhân int trước khi ép bigint",
+    "file": "ShipmentVolume.sql",
+    "context": "Đoạn trích T-SQL. Quantity và UnitVolume đều int dương; dữ liệu hợp lệ có Quantity=50000 và UnitVolume=50000. TotalVolume cần bigint và không được lỗi với dữ liệu này.",
+    "diff": [
+      "-SELECT CAST(Quantity AS bigint) * UnitVolume AS TotalVolume",
+      "+SELECT CAST(Quantity * UnitVolume AS bigint) AS TotalVolume",
+      " FROM dbo.ShipmentLines;"
+    ],
+    "lines": [
+      1
+    ],
+    "severity": "major",
+    "cause": "Phép nhân hai int được tính trước CAST và có thể overflow trước khi kết quả được chuyển sang bigint.",
+    "otherCause": "CAST ngoài biểu thức luôn làm SQL Server tính mọi toán hạng bên trong bằng bigint trước.",
+    "repair": "Ép ít nhất một toán hạng sang bigint trước phép nhân và kiểm tra miền tích còn trong bigint.",
+    "otherRepair": "Giữ phép nhân int rồi ép kết quả sang decimal sau khi lỗi xảy ra.",
+    "check": "Với 50000 nhân 50000 phải trả 2500000000, không ném overflow; thêm ca nhỏ để kiểm tra không đổi giá trị."
+  },
+  {
+    "slug": "review-ci-write-all",
+    "version": 1,
+    "title": "Token test bị mở quyền ghi",
+    "file": "ci.yml",
+    "context": "Đoạn trích GitHub Actions ở cấp job test. Job chỉ checkout source và chạy dotnet test, không tạo issue/release hay push. permissions không được bước khác ghi đè.",
+    "diff": [
+      " test:",
+      "   runs-on: ubuntu-latest",
+      "-  permissions:",
+      "-    contents: read",
+      "+  permissions: write-all",
+      "   steps:",
+      "     - uses: actions/checkout@v4",
+      "     - run: dotnet test"
+    ],
+    "lines": [
+      3
+    ],
+    "severity": "major",
+    "cause": "Job test nhận quyền ghi rộng không cần cho nhiệm vụ, tăng tác động nếu một bước hoặc dependency bị chiếm quyền.",
+    "otherCause": "permissions chỉ thay nhãn hiển thị và không ảnh hưởng GITHUB_TOKEN.",
+    "repair": "Giữ contents: read cho job này và cấp quyền ghi chỉ tại job thực sự cần.",
+    "otherRepair": "Giữ write-all nhưng đổi tên job thành read-only-test.",
+    "check": "Review effective token permissions của test job; kiểm tra chỉ quyền đọc cần thiết và release job nếu có không làm mở quyền job test."
+  },
+  {
+    "slug": "review-build-secret-env",
+    "version": 1,
+    "title": "Token package không phải ENV trong image",
+    "file": "Dockerfile",
+    "context": "Đoạn trích trong build stage cần tải package private. TOKEN là bí mật. Tác vụ download-packages ghi package cache nhưng không có nhu cầu lưu token trong image; runtime nhận bí mật riêng.",
+    "diff": [
+      "-RUN --mount=type=secret,id=feed_token download-packages --token-file /run/secrets/feed_token",
+      "+ARG TOKEN",
+      "+ENV FEED_TOKEN=$TOKEN",
+      "+RUN download-packages --token-env FEED_TOKEN"
+    ],
+    "lines": [
+      1,
+      2,
+      3
+    ],
+    "severity": "critical",
+    "cause": "Chuyển bí mật sang ARG/ENV có thể giữ token trong image/config/metadata thay vì giới hạn ở secret mount cho bước build.",
+    "otherCause": "ARG và ENV luôn được Docker mã hóa bằng key riêng của người build.",
+    "repair": "Dùng secret mount ở đúng bước cần, bảo đảm command không log hoặc copy token vào output/layer.",
+    "otherRepair": "Thêm RUN unset FEED_TOKEN ở layer sau để bảo đảm lịch sử image không còn token.",
+    "check": "Build bằng token sentinel giả, kiểm tra image config/history/output không có sentinel và package vẫn restore thành công; không dùng token thật trong kiểm tra."
+  }
+]

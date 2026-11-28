@@ -1,0 +1,2192 @@
+[
+  {
+    "slug": "ef-backing-field-invariant",
+    "content": {
+      "title": "Lưu giá trị qua field riêng",
+      "topic": "efcore",
+      "subtopic": "Lưu giá trị qua field riêng",
+      "tags": [
+        "Lưu giá trị qua field riêng",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Domain giữ trường _validatedUrl và chỉ cho đổi URL qua phương thức kiểm tra. EF cần materialize giá trị mà không yêu cầu public setter. Cơ chế nào ánh xạ được field này?",
+      "englishPrompt": "A domain type stores _validatedUrl and permits URL changes only through a validating method. EF must materialize the value without a public setter. Which mapping supports this?",
+      "context": "Lớp domain không mở public setter chỉ để phục vụ công cụ lưu trữ dữ liệu.",
+      "code": null,
+      "hint": "Public API và persistence access không phải cùng hợp đồng.",
+      "nextHint": "HasField và access mode mô tả đường truy cập EF.",
+      "followUp": "Làm sao kiểm thử việc materialize không tạo entity vi phạm invariant?",
+      "englishFollowUp": "How would you test that materialization does not produce an invalid entity?",
+      "outline": [
+        "Chọn backing field",
+        "Giữ API domain",
+        "Chọn access mode rõ ràng",
+        "Kiểm tra invariant sau materialize"
+      ],
+      "shortAnswer": "Backing-field mapping và property access mode phù hợp. Backing fields cho phép cấu hình đường truy cập dữ liệu riêng với API domain. Cần chọn access mode có chủ đích để hiểu khi setter hoặc field được dùng.",
+      "explanation": "Backing fields cho phép cấu hình đường truy cập dữ liệu riêng với API domain. Cần chọn access mode có chủ đích để hiểu khi setter hoặc field được dùng. HasField và access mode mô tả đường truy cập EF. Chọn PreferFieldDuringConstruction nếu cần field khi materialize và property ở các giai đoạn khác phù hợp model. Dù chọn mode nào, kiểm invariant sau tải dữ liệu; mapping field không tự validate dữ liệu database đã sai.",
+      "alternative": "Chọn PreferFieldDuringConstruction nếu cần field khi materialize và property ở các giai đoạn khác phù hợp model. Dù chọn mode nào, kiểm invariant sau tải dữ liệu; mapping field không tự validate dữ liệu database đã sai.",
+      "trap": "Cho rằng: Bắt buộc public setter cho mọi property EF.",
+      "rubric": [
+        "Chọn backing field",
+        "Giữ API domain",
+        "Chọn access mode rõ ràng",
+        "Kiểm tra invariant sau materialize"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/backing-field",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đánh dấu field NotMapped nhưng vẫn mong EF tự lưu nó",
+          "Backing-field mapping và property access mode phù hợp",
+          "Bắt buộc public setter cho mọi property EF"
+        ],
+        "en": [
+          "Mark the field NotMapped but expect EF to persist it automatically",
+          "Backing-field mapping with an appropriate property access mode",
+          "Require a public setter for every EF property"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-savepoint-mars-limit",
+    "content": {
+      "title": "Savepoint khi bật MARS",
+      "topic": "efcore",
+      "subtopic": "Savepoint khi bật MARS",
+      "tags": [
+        "Savepoint khi bật MARS",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. SQL Server connection bật MultipleActiveResultSets. EF SaveChanges chạy trong transaction đang có. Có thể dựa vào auto-savepoint để chắc chắn transaction trở về trạng thái trước save khi lỗi không?",
+      "englishPrompt": "Explain your choice and its limits. A SQL Server connection enables MultipleActiveResultSets. EF SaveChanges runs inside an existing transaction. Can automatic savepoints guarantee restoration to the pre-save state after an error?",
+      "context": "Một transaction có thể chứa nhiều lần SaveChanges và luồng lỗi phải có trạng thái phục hồi được xác định.",
+      "code": null,
+      "hint": "Transaction có sẵn không đủ để bảo đảm savepoint.",
+      "nextHint": "Tùy chọn connection có thể thay đổi cơ chế phục hồi lỗi.",
+      "followUp": "Nếu tắt MARS thì savepoint hỗ trợ sửa lỗi concurrency và thử lại ra sao?",
+      "englishFollowUp": "How can savepoints help retry a corrected concurrency failure when MARS is disabled?",
+      "outline": [
+        "Nêu không có auto-savepoint",
+        "Gắn giới hạn với MARS",
+        "Không hứa transaction còn dùng được",
+        "Có chính sách rollback"
+      ],
+      "shortAnswer": "Không, EF không tạo savepoint khi MARS bật. Savepoint của EF trên SQL Server không tương thích MARS; sau lỗi transaction có thể ở trạng thái không xác định. Phải có chính sách rollback và thử lại phù hợp.",
+      "explanation": "Savepoint của EF trên SQL Server không tương thích MARS; sau lỗi transaction có thể ở trạng thái không xác định. Phải có chính sách rollback và thử lại phù hợp. Tùy chọn connection có thể thay đổi cơ chế phục hồi lỗi. Nếu không cần MARS, tắt nó để EF có thể dùng savepoint trong transaction đang mở. Nếu vẫn cần MARS, thiết kế rollback toàn đơn vị sau lỗi thay vì tiếp tục dựa vào một savepoint chưa được tạo.",
+      "alternative": "Nếu không cần MARS, tắt nó để EF có thể dùng savepoint trong transaction đang mở. Nếu vẫn cần MARS, thiết kế rollback toàn đơn vị sau lỗi thay vì tiếp tục dựa vào một savepoint chưa được tạo.",
+      "trap": "Cho rằng: Có, MARS luôn bắt buộc savepoint.",
+      "rubric": [
+        "Nêu không có auto-savepoint",
+        "Gắn giới hạn với MARS",
+        "Không hứa transaction còn dùng được",
+        "Có chính sách rollback"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/transactions",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-execution-strategy-unit",
+    "content": {
+      "title": "Retry transaction nhiều lần Save",
+      "topic": "efcore",
+      "subtopic": "Retry transaction nhiều lần Save",
+      "tags": [
+        "Retry transaction nhiều lần Save",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. EF dùng SQL Server retry execution strategy. Use case cần explicit transaction gồm hai SaveChanges. Vì sao phải thực thi toàn đơn vị qua execution strategy thay vì chỉ BeginTransaction trực tiếp?",
+      "englishPrompt": "Explain your choice and its limits. EF uses a SQL Server retry execution strategy. A use case needs an explicit transaction with two SaveChanges calls. Why execute the whole unit through the strategy rather than call BeginTransaction directly?",
+      "context": "Use case ghi nhiều bước phải retry như một đơn vị và có thể được gọi lại khi mất kết nối ngắn hạn.",
+      "code": null,
+      "hint": "Retry từng lệnh có thể phá ranh giới nghiệp vụ.",
+      "nextHint": "Đơn vị replay cần bao trùm Begin, các save và Commit.",
+      "followUp": "Nếu mất kết nối lúc commit thì kiểm chứng kết quả thế nào trước khi tạo đơn lần nữa?",
+      "englishFollowUp": "If the connection drops during commit, how would you verify success before creating the order again?",
+      "outline": [
+        "Replay toàn transaction",
+        "Dùng execution strategy đúng phạm vi",
+        "Chỉ retry transient phù hợp",
+        "Xử lý commit mơ hồ và hiệu ứng ngoài DB"
+      ],
+      "shortAnswer": "Strategy cần replay cả transaction như một đơn vị khi lỗi transient. Transaction do người dùng mở phải phối hợp với CreateExecutionStrategy và delegate chứa toàn bộ thao tác. Những hiệu ứng bên ngoài và commit mơ hồ cần thiết kế idempotency riêng.",
+      "explanation": "Transaction do người dùng mở phải phối hợp với CreateExecutionStrategy và delegate chứa toàn bộ thao tác. Những hiệu ứng bên ngoài và commit mơ hồ cần thiết kế idempotency riêng. Đơn vị replay cần bao trùm Begin, các save và Commit. Dùng khóa nghiệp vụ hoặc operation-id để kiểm chứng commit khi kết quả không rõ. Đưa thông báo ngoài DB sang cơ chế có bảo vệ lặp; transaction SQL không rollback được SMS hay HTTP side effect đã phát ra.",
+      "alternative": "Dùng khóa nghiệp vụ hoặc operation-id để kiểm chứng commit khi kết quả không rõ. Đưa thông báo ngoài DB sang cơ chế có bảo vệ lặp; transaction SQL không rollback được SMS hay HTTP side effect đã phát ra.",
+      "trap": "Cho rằng: Strategy chỉ retry được lần SELECT đầu.",
+      "rubric": [
+        "Replay toàn transaction",
+        "Dùng execution strategy đúng phạm vi",
+        "Chỉ retry transient phù hợp",
+        "Xử lý commit mơ hồ và hiệu ứng ngoài DB"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/miscellaneous/connection-resiliency",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-cross-context-transaction",
+    "content": {
+      "title": "Hai context một transaction",
+      "topic": "efcore",
+      "subtopic": "Hai context một transaction",
+      "tags": [
+        "Hai context một transaction",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Hai relational DbContext phải ghi atomically vào cùng SQL Server database. Khi chia sẻ transaction cục bộ, chúng phải chia sẻ tài nguyên nền nào?",
+      "englishPrompt": "Two relational DbContexts must write atomically to the same SQL Server database. Which underlying resources must they share for one local transaction?",
+      "context": "Hai context phục vụ hai model riêng nhưng use case hiện tại cần một commit database chung.",
+      "code": null,
+      "hint": "Cấu hình kết nối và instance kết nối là hai thứ khác nhau.",
+      "nextHint": "Transaction cục bộ gắn với connection cụ thể.",
+      "followUp": "Ai nên dispose connection khi cả hai context cùng dùng nó?",
+      "englishFollowUp": "Who should dispose the connection when both contexts share it?",
+      "outline": [
+        "Nêu cùng DbConnection",
+        "Nêu cùng DbTransaction",
+        "Enlist UseTransaction",
+        "Chỉ định ownership và commit"
+      ],
+      "shortAnswer": "Cùng DbConnection và DbTransaction, context thứ hai enlist bằng UseTransaction. Chia sẻ connection string không chia sẻ transaction đang mở. Cần quản lý ownership, thứ tự thao tác và commit hoặc rollback ở một nơi rõ ràng.",
+      "explanation": "Chia sẻ connection string không chia sẻ transaction đang mở. Cần quản lý ownership, thứ tự thao tác và commit hoặc rollback ở một nơi rõ ràng. Transaction cục bộ gắn với connection cụ thể. Nếu có thể, gộp các thay đổi vào một context cho đơn vị này để giảm ownership phức tạp. Nếu giữ hai context, bên điều phối sở hữu connection/transaction và không dùng song song trên cùng connection khi provider không hỗ trợ.",
+      "alternative": "Nếu có thể, gộp các thay đổi vào một context cho đơn vị này để giảm ownership phức tạp. Nếu giữ hai context, bên điều phối sở hữu connection/transaction và không dùng song song trên cùng connection khi provider không hỗ trợ.",
+      "trap": "Cho rằng: Chỉ cùng connection string là tự cùng transaction.",
+      "rubric": [
+        "Nêu cùng DbConnection",
+        "Nêu cùng DbTransaction",
+        "Enlist UseTransaction",
+        "Chỉ định ownership và commit"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/transactions",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ cùng connection string là tự cùng transaction",
+          "Cùng DbConnection và DbTransaction, context thứ hai enlist bằng UseTransaction",
+          "Chỉ cùng tên class DbContext"
+        ],
+        "en": [
+          "The same connection string automatically means one transaction",
+          "The same DbConnection and DbTransaction, with the second context enlisted via UseTransaction",
+          "Only the same DbContext class name"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-value-comparer-mutable",
+    "content": {
+      "title": "Theo dõi danh sách được convert",
+      "topic": "efcore",
+      "subtopic": "Theo dõi danh sách được convert",
+      "tags": [
+        "Theo dõi danh sách được convert",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Một List<string> được value-convert thành JSON trong một cột. Code sửa nội dung list tại chỗ; cần snapshot độc lập và equality theo phần tử để phát hiện đúng. Cấu hình nào bổ sung cho converter?",
+      "englishPrompt": "Explain your choice and its limits. A List<string> is value-converted to JSON in one column. Code mutates the list in place; detection needs an independent snapshot and element equality. Which configuration complements the converter?",
+      "context": "Một property lưu JSON có dữ liệu mutable; giá trị cũ phải còn tồn tại để tracker so với giá trị hiện tại.",
+      "code": null,
+      "hint": "Một snapshot cùng tham chiếu sẽ thấy chính nội dung đã sửa.",
+      "nextHint": "Cần sao chép giá trị và so sánh nội dung thay vì chỉ reference.",
+      "followUp": "Với list chứa object mutable lồng nhau, shallow copy còn thiếu gì?",
+      "englishFollowUp": "What is missing from a shallow copy when the list contains nested mutable objects?",
+      "outline": [
+        "Tách converter và comparer",
+        "So sánh nội dung",
+        "Snapshot copy độc lập",
+        "Giữ hash nhất quán equality"
+      ],
+      "shortAnswer": "ValueComparer với equality, hash và snapshot copy phù hợp. Converter giải quyết dạng lưu, không tự định nghĩa toàn bộ cách so sánh hay snapshot kiểu mutable. Comparer phải nhất quán giữa equality và hash.",
+      "explanation": "Converter giải quyết dạng lưu, không tự định nghĩa toàn bộ cách so sánh hay snapshot kiểu mutable. Comparer phải nhất quán giữa equality và hash. Cần sao chép giá trị và so sánh nội dung thay vì chỉ reference. Dùng giá trị immutable và thay cả instance có thể đơn giản hóa tracking. Với object mutable lồng nhau, shallow copy của list chưa bảo vệ phần tử; snapshot phải có độ sâu tương ứng với equality được chọn.",
+      "alternative": "Dùng giá trị immutable và thay cả instance có thể đơn giản hóa tracking. Với object mutable lồng nhau, shallow copy của list chưa bảo vệ phần tử; snapshot phải có độ sâu tương ứng với equality được chọn.",
+      "trap": "Cho rằng: Chỉ override ToString của list.",
+      "rubric": [
+        "Tách converter và comparer",
+        "So sánh nội dung",
+        "Snapshot copy độc lập",
+        "Giữ hash nhất quán equality"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/value-comparers",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-decimal-precision-contract",
+    "content": {
+      "title": "Giá có bốn chữ số lẻ",
+      "topic": "efcore",
+      "subtopic": "Giá có bốn chữ số lẻ",
+      "tags": [
+        "Giá có bốn chữ số lẻ",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Nghiệp vụ cần lưu giá tới bốn chữ số thập phân và giới hạn tổng 18 chữ số trên SQL Server. Cấu hình property decimal nào diễn tả hợp đồng schema?",
+      "englishPrompt": "Prices need four fractional digits and at most 18 total digits on SQL Server. Which decimal property configuration expresses that schema contract?",
+      "context": "Giá sản phẩm là số chính xác theo nghiệp vụ, không phải đại lượng đo gần đúng.",
+      "code": null,
+      "hint": "Phân biệt tổng chữ số với chữ số lẻ.",
+      "nextHint": "Tham số thứ nhất là precision, thứ hai là scale.",
+      "followUp": "Nếu cần 15 chữ số phần nguyên và bốn chữ số lẻ thì precision 18 còn đủ không?",
+      "englishFollowUp": "Is precision 18 enough for 15 integer digits and four fractional digits?",
+      "outline": [
+        "Chọn 18,4",
+        "Giải thích precision",
+        "Giải thích scale",
+        "Giữ validation ở boundary"
+      ],
+      "shortAnswer": "HasPrecision(18, 4). Precision là tổng chữ số và scale là chữ số sau dấu thập phân. Cấu hình schema không thay việc validate giá trị đầu vào trước khi gửi xuống DB.",
+      "explanation": "Precision là tổng chữ số và scale là chữ số sau dấu thập phân. Cấu hình schema không thay việc validate giá trị đầu vào trước khi gửi xuống DB. Tham số thứ nhất là precision, thứ hai là scale. Validate số chữ số và quy tắc làm tròn ở boundary rồi dùng decimal(18,4) ở schema. Nếu cần 15 chữ số phần nguyên cùng bốn chữ số lẻ, phải tăng precision lên ít nhất 19 thay vì chỉ tăng scale.",
+      "alternative": "Validate số chữ số và quy tắc làm tròn ở boundary rồi dùng decimal(18,4) ở schema. Nếu cần 15 chữ số phần nguyên cùng bốn chữ số lẻ, phải tăng precision lên ít nhất 19 thay vì chỉ tăng scale.",
+      "trap": "Cho rằng: HasMaxLength(18) trên decimal.",
+      "rubric": [
+        "Chọn 18,4",
+        "Giải thích precision",
+        "Giải thích scale",
+        "Giữ validation ở boundary"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/entity-properties",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "HasMaxLength(18) trên decimal",
+          "HasPrecision(18, 4)",
+          "Dùng float vì tự bảo đảm chính xác bốn chữ số lẻ"
+        ],
+        "en": [
+          "HasMaxLength(18) on decimal",
+          "HasPrecision(18, 4)",
+          "Use float because it guarantees exactly four decimal places"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-tph-discriminator",
+    "content": {
+      "title": "Phân biệt loại trong một bảng",
+      "topic": "efcore",
+      "subtopic": "Phân biệt loại trong một bảng",
+      "tags": [
+        "Phân biệt loại trong một bảng",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Model dùng table-per-hierarchy cho Payment, CardPayment và CashPayment. Cơ chế nào xác định loại CLR của một dòng khi truy vấn?",
+      "englishPrompt": "The model uses table-per-hierarchy for Payment, CardPayment, and CashPayment. What determines the CLR subtype for a row during queries?",
+      "context": "Ứng dụng cần materialize đúng subtype thanh toán từ bảng dùng chung.",
+      "code": null,
+      "hint": "Một bảng chứa dữ liệu của nhiều loại.",
+      "nextHint": "Discriminator lưu dấu loại, không dựa vào thứ tự vật lý.",
+      "followUp": "Nếu dữ liệu có discriminator chưa được mapping thì chiến lược rollout phải kiểm tra gì?",
+      "englishFollowUp": "What should a rollout verify when data may contain an unmapped discriminator?",
+      "outline": [
+        "Nêu TPH một bảng",
+        "Nêu discriminator",
+        "Phân biệt loại và thứ tự dòng",
+        "Nhận diện cột riêng subtype"
+      ],
+      "shortAnswer": "Discriminator được cấu hình trong bảng chung. TPH dùng discriminator để phân biệt các loại trong cùng bảng. Những cột chỉ dành cho một subtype thường cần cho phép NULL ở dòng loại khác.",
+      "explanation": "TPH dùng discriminator để phân biệt các loại trong cùng bảng. Những cột chỉ dành cho một subtype thường cần cho phép NULL ở dòng loại khác. Discriminator lưu dấu loại, không dựa vào thứ tự vật lý. Có thể dùng TPT hoặc TPC khi yêu cầu schema và workload phù hợp, nhưng chúng có chi phí join hoặc trùng cột khác nhau. Với TPH, kiểm dữ liệu discriminator mới/cũ khi rollout; không giả định mọi giá trị ngoài mapping đều đọc được an toàn.",
+      "alternative": "Có thể dùng TPT hoặc TPC khi yêu cầu schema và workload phù hợp, nhưng chúng có chi phí join hoặc trùng cột khác nhau. Với TPH, kiểm dữ liệu discriminator mới/cũ khi rollout; không giả định mọi giá trị ngoài mapping đều đọc được an toàn.",
+      "trap": "Cho rằng: Kiểm tra cột đầu tiên khác NULL để EF luôn tự suy ra subtype.",
+      "rubric": [
+        "Nêu TPH một bảng",
+        "Nêu discriminator",
+        "Phân biệt loại và thứ tự dòng",
+        "Nhận diện cột riêng subtype"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/inheritance",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Discriminator được cấu hình trong bảng chung",
+          "Kiểm tra cột đầu tiên khác NULL để EF luôn tự suy ra subtype",
+          "Tên DbSet quyết định subtype mà không cần discriminator"
+        ],
+        "en": [
+          "A configured discriminator in the shared table",
+          "Inspect the first non-NULL column so EF always infers the subtype",
+          "The DbSet name determines the subtype without a discriminator"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-use-seeding-idempotency",
+    "content": {
+      "title": "Dữ liệu ban đầu chạy nhiều lần",
+      "topic": "efcore",
+      "subtopic": "Dữ liệu ban đầu chạy nhiều lần",
+      "tags": [
+        "Dữ liệu ban đầu chạy nhiều lần",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "EF Core 10 UseSeeding/UseAsyncSeeding có thể được gọi dù không có migration mới. Để không thêm trùng nhóm quyền mặc định, callback nên làm gì?",
+      "englishPrompt": "EF Core 10 UseSeeding/UseAsyncSeeding may run even when no migration is applied. How should the callback avoid duplicate default roles?",
+      "context": "Quy trình khởi tạo quyền mặc định có thể chạy lại trong deploy và tooling, không chỉ lần tạo DB đầu.",
+      "code": null,
+      "hint": "Chạy không có migration mới vẫn có thể seed.",
+      "nextHint": "Dùng khóa ổn định để nhận diện bản ghi đã có.",
+      "followUp": "Vì sao vẫn nên triển khai cả callback sync khi tooling dùng đường sync?",
+      "englishFollowUp": "Why should the synchronous callback also be implemented when tooling uses the synchronous path?",
+      "outline": [
+        "Nêu có thể gọi lại",
+        "Kiểm tra khóa ổn định",
+        "Chỉ thêm thiếu",
+        "Không phá dữ liệu người dùng"
+      ],
+      "shortAnswer": "Kiểm tra khóa nghiệp vụ đã tồn tại rồi chỉ thêm phần thiếu. Seeding cần idempotent; migration locking hỗ trợ phối hợp nhưng không thay logic không tạo bản sao. Dữ liệu người dùng không nên bị xóa để seed lại.",
+      "explanation": "Seeding cần idempotent; migration locking hỗ trợ phối hợp nhưng không thay logic không tạo bản sao. Dữ liệu người dùng không nên bị xóa để seed lại. Dùng khóa ổn định để nhận diện bản ghi đã có. Dùng khóa ổn định, constraint duy nhất và logic thêm phần thiếu. Với dữ liệu người dùng có thể sửa, xác định rõ field nào seed được sở hữu; không ghi đè hàng loạt mỗi lần chạy để cố đạt trạng thái mẫu.",
+      "alternative": "Dùng khóa ổn định, constraint duy nhất và logic thêm phần thiếu. Với dữ liệu người dùng có thể sửa, xác định rõ field nào seed được sở hữu; không ghi đè hàng loạt mỗi lần chạy để cố đạt trạng thái mẫu.",
+      "trap": "Cho rằng: Giả định callback chỉ chạy đúng một lần.",
+      "rubric": [
+        "Nêu có thể gọi lại",
+        "Kiểm tra khóa ổn định",
+        "Chỉ thêm thiếu",
+        "Không phá dữ liệu người dùng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/data-seeding",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Kiểm tra khóa nghiệp vụ đã tồn tại rồi chỉ thêm phần thiếu",
+          "Giả định callback chỉ chạy đúng một lần",
+          "Xóa mọi nhóm quyền của người dùng rồi thêm lại"
+        ],
+        "en": [
+          "Check existing business keys and insert only missing data",
+          "Assume the callback runs exactly once",
+          "Delete all user roles and recreate them"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-migration-bundle-deploy",
+    "content": {
+      "title": "Áp schema không có SDK ở đích",
+      "topic": "efcore",
+      "subtopic": "Áp schema không có SDK ở đích",
+      "tags": [
+        "Áp schema không có SDK ở đích",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Pipeline cần áp migration trên máy triển khai không cài .NET SDK hay source. Muốn artifact có thể thực thi, với runtime phù hợp hoặc self-contained. EF cung cấp lựa chọn nào?",
+      "englishPrompt": "A pipeline must apply migrations on a target without the .NET SDK or source. It needs an executable artifact with a suitable runtime or self-contained deployment. Which EF option fits?",
+      "context": "Pipeline tạo artifact trước, còn môi trường đích chỉ nhận artifact và cấu hình đã duyệt.",
+      "code": null,
+      "hint": "Snapshot là metadata, không phải lệnh deploy độc lập.",
+      "nextHint": "Bundle tạo artifact cho quy trình triển khai đã kiểm soát.",
+      "followUp": "Nếu hai phiên bản ứng dụng chạy đồng thời thì review schema cần kiểm tra tương thích gì?",
+      "englishFollowUp": "What compatibility should schema review check during an overlapping application rollout?",
+      "outline": [
+        "Chọn migration bundle",
+        "Phân biệt runtime và SDK",
+        "Không dùng EnsureCreated thay migration",
+        "Review và kiểm soát kết nối đích"
+      ],
+      "shortAnswer": "Migration bundle được tạo từ pipeline. Bundle đóng gói công cụ áp migration. Vẫn cần review migration, cấu hình kết nối đúng, quyền phù hợp và kế hoạch phục hồi.",
+      "explanation": "Bundle đóng gói công cụ áp migration. Vẫn cần review migration, cấu hình kết nối đúng, quyền phù hợp và kế hoạch phục hồi. Bundle tạo artifact cho quy trình triển khai đã kiểm soát. Nếu cần DBA duyệt chính xác SQL, tạo script migration để review rồi triển khai theo quy trình kiểm soát. Bundle thuận tiện thực thi nhưng không tự thay thế review SQL, kiểm quyền đích và kế hoạch phục hồi.",
+      "alternative": "Nếu cần DBA duyệt chính xác SQL, tạo script migration để review rồi triển khai theo quy trình kiểm soát. Bundle thuận tiện thực thi nhưng không tự thay thế review SQL, kiểm quyền đích và kế hoạch phục hồi.",
+      "trap": "Cho rằng: Chép model snapshot rồi coi đó là artifact áp schema độc lập.",
+      "rubric": [
+        "Chọn migration bundle",
+        "Phân biệt runtime và SDK",
+        "Không dùng EnsureCreated thay migration",
+        "Review và kiểm soát kết nối đích"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Migration bundle được tạo từ pipeline",
+          "Gọi EnsureCreated để áp mọi migration",
+          "Chép model snapshot rồi coi đó là artifact áp schema độc lập"
+        ],
+        "en": [
+          "A migration bundle produced by the pipeline",
+          "Use EnsureCreated to apply all migrations",
+          "Copy the model snapshot and treat it as a standalone schema deployment artifact"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-ensurecreated-not-upgrade",
+    "content": {
+      "title": "Database test có schema cũ",
+      "topic": "efcore",
+      "subtopic": "Database test có schema cũ",
+      "tags": [
+        "Database test có schema cũ",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một database đã được EnsureCreated tạo từ model cũ. Model thêm cột. Gọi EnsureCreated lần nữa có nâng schema hiện có theo model mới không?",
+      "englishPrompt": "A database was created by EnsureCreated from an old model. The model gains a column. Does another EnsureCreated call upgrade the existing schema?",
+      "context": "DB thử nghiệm đang có bảng và dữ liệu từ phiên bản model trước; không được giả định nó là DB trống.",
+      "code": null,
+      "hint": "Tạo ban đầu và nâng cấp là hai nhiệm vụ khác nhau.",
+      "nextHint": "Chọn migrations khi cần tiến hóa schema có dữ liệu.",
+      "followUp": "Chuyển một DB EnsureCreated sang quản lý migrations cần tránh giả định gì về history table?",
+      "englishFollowUp": "What history-table assumption must be avoided when moving an EnsureCreated database to migrations?",
+      "outline": [
+        "Nêu không tự nâng schema",
+        "Phân biệt khởi tạo và migration",
+        "Không đề nghị xóa dữ liệu thật",
+        "Nhận diện không có migration history tự tạo"
+      ],
+      "shortAnswer": "Không, EnsureCreated không phải cơ chế nâng cấp schema bằng migration. EnsureCreated phục vụ khởi tạo schema đơn giản; không cập nhật schema có sẵn như migrations. Với DB test dùng một lần có thể tạo mới, nhưng không xóa dữ liệu thật.",
+      "explanation": "EnsureCreated phục vụ khởi tạo schema đơn giản; không cập nhật schema có sẵn như migrations. Với DB test dùng một lần có thể tạo mới, nhưng không xóa dữ liệu thật. Chọn migrations khi cần tiến hóa schema có dữ liệu. Với DB test hoàn toàn dùng một lần, tạo DB mới từ model có thể phù hợp. Với DB cần nâng cấp và bảo toàn dữ liệu, quản lý migrations từ đầu; chuyển từ EnsureCreated phải lập kế hoạch history/schema thay vì chạy Migrate mù.",
+      "alternative": "Với DB test hoàn toàn dùng một lần, tạo DB mới từ model có thể phù hợp. Với DB cần nâng cấp và bảo toàn dữ liệu, quản lý migrations từ đầu; chuyển từ EnsureCreated phải lập kế hoạch history/schema thay vì chạy Migrate mù.",
+      "trap": "Cho rằng: Có, nó tự diff và áp migration.",
+      "rubric": [
+        "Nêu không tự nâng schema",
+        "Phân biệt khởi tạo và migration",
+        "Không đề nghị xóa dữ liệu thật",
+        "Nhận diện không có migration history tự tạo"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/ensure-created",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, EnsureCreated tự thêm cột nhưng không đổi dữ liệu cũ",
+          "Có, nó tự diff và áp migration",
+          "Không, EnsureCreated không phải cơ chế nâng cấp schema bằng migration"
+        ],
+        "en": [
+          "Yes, EnsureCreated automatically adds columns while preserving old data",
+          "Yes, it automatically diffs and applies migrations",
+          "No, EnsureCreated is not a migration-based schema upgrade mechanism"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-pooled-context-tenant-state",
+    "content": {
+      "title": "Tenant state trong context pool",
+      "topic": "efcore",
+      "subtopic": "Tenant state trong context pool",
+      "tags": [
+        "Tenant state trong context pool",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Context pooling tái sử dụng instance giữa request. OnConfiguring chỉ chạy lúc instance ban đầu được cấu hình. Vì sao không nên lấy TenantId thay đổi theo request chỉ trong OnConfiguring?",
+      "englishPrompt": "Explain your choice and its limits. Context pooling reuses instances across requests, and OnConfiguring runs on initial instance configuration. Why should request-varying TenantId not be acquired only there?",
+      "context": "Pool nhỏ có thể cấp lại chính instance context cho request của tenant khác ngay sau đó.",
+      "code": null,
+      "hint": "Instance context không còn tương ứng một request mới.",
+      "nextHint": "Phân biệt trạng thái nội bộ EF được reset và field tự thêm.",
+      "followUp": "Bạn viết test hai tenant luân phiên thế nào để phát hiện rò rỉ state?",
+      "englishFollowUp": "How would an alternating two-tenant test reveal leaked state?",
+      "outline": [
+        "Nêu tái dùng instance",
+        "Nêu OnConfiguring không mỗi request",
+        "Reset hoặc gán tenant mỗi lease",
+        "Test cô lập tenant"
+      ],
+      "shortAnswer": "Tenant state có thể bị giữ từ lần dùng trước; cần gán theo từng lease một cách an toàn. Pooling thay đổi vòng đời instance; trạng thái do ứng dụng giữ cần được thiết lập lại đúng mỗi lần nhận context. Không dựa vào mặc định reset của EF cho field riêng.",
+      "explanation": "Pooling thay đổi vòng đời instance; trạng thái do ứng dụng giữ cần được thiết lập lại đúng mỗi lần nhận context. Không dựa vào mặc định reset của EF cho field riêng. Phân biệt trạng thái nội bộ EF được reset và field tự thêm. Một scoped factory có thể gán TenantId đã xác thực mỗi lần thuê context và kiểm trạng thái khi trả. Nếu chưa có bằng chứng pooling mang lợi ích, context scoped thông thường giảm việc quản lý state tùy biến giữa các lease.",
+      "alternative": "Một scoped factory có thể gán TenantId đã xác thực mỗi lần thuê context và kiểm trạng thái khi trả. Nếu chưa có bằng chứng pooling mang lợi ích, context scoped thông thường giảm việc quản lý state tùy biến giữa các lease.",
+      "trap": "Cho rằng: Pooling tự biến TenantId thành parameter mới cho mọi request.",
+      "rubric": [
+        "Nêu tái dùng instance",
+        "Nêu OnConfiguring không mỗi request",
+        "Reset hoặc gán tenant mỗi lease",
+        "Test cô lập tenant"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/performance/advanced-performance-topics",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-query-tag-diagnostics",
+    "content": {
+      "title": "Tìm query trong log SQL",
+      "topic": "efcore",
+      "subtopic": "Tìm query trong log SQL",
+      "tags": [
+        "Tìm query trong log SQL",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một endpoint LINQ khó nhận diện giữa nhiều SQL tương tự trong log. Muốn gắn nhãn cố định vào SQL để chẩn đoán mà không thay kết quả. Tính năng nào phù hợp?",
+      "englishPrompt": "An endpoint's LINQ query is hard to identify among similar logged SQL. A stable diagnostic label should appear in SQL without changing results. Which feature fits?",
+      "context": "Nhóm vận hành cần từ SQL log tìm lại đoạn LINQ tương ứng trong code khi điều tra latency.",
+      "code": null,
+      "hint": "Tên biến cục bộ không đi theo SQL sinh ra.",
+      "nextHint": "Một comment cố định giúp đối chiếu log và code.",
+      "followUp": "Vì sao không đưa email khách vào tag để tiện debug?",
+      "englishFollowUp": "Why should customer email not be put in the tag for debugging?",
+      "outline": [
+        "Chọn TagWith",
+        "Nêu comment SQL",
+        "Dùng nhãn ổn định",
+        "Không đưa dữ liệu nhạy cảm"
+      ],
+      "shortAnswer": "TagWith với nhãn cố định không chứa dữ liệu nhạy cảm. Query tag xuất thành comment SQL để tương quan. Tag không phải parameter và không nên chứa bí mật hay chuỗi biến thiên vô hạn.",
+      "explanation": "Query tag xuất thành comment SQL để tương quan. Tag không phải parameter và không nên chứa bí mật hay chuỗi biến thiên vô hạn. Một comment cố định giúp đối chiếu log và code. TagWithCallSite có thể thêm vị trí file và dòng để truy nguồn trong môi trường phù hợp. Chỉ dùng nhãn chẩn đoán không nhạy cảm; query tag không phải parameter nên không biến nó thành kho dữ liệu người dùng.",
+      "alternative": "TagWithCallSite có thể thêm vị trí file và dòng để truy nguồn trong môi trường phù hợp. Chỉ dùng nhãn chẩn đoán không nhạy cảm; query tag không phải parameter nên không biến nó thành kho dữ liệu người dùng.",
+      "trap": "Cho rằng: Đổi tên biến IQueryable vì EF luôn đưa tên biến vào SQL comment.",
+      "rubric": [
+        "Chọn TagWith",
+        "Nêu comment SQL",
+        "Dùng nhãn ổn định",
+        "Không đưa dữ liệu nhạy cảm"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/tags",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gắn user input khác nhau vào SQL comment mỗi lần",
+          "Đổi tên biến IQueryable vì EF luôn đưa tên biến vào SQL comment",
+          "TagWith với nhãn cố định không chứa dữ liệu nhạy cảm"
+        ],
+        "en": [
+          "Insert different user input into a SQL comment every time",
+          "Rename the IQueryable variable because EF always puts variable names in SQL comments",
+          "TagWith using a stable label without sensitive data"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-stream-memory-bound",
+    "content": {
+      "title": "Xuất dữ liệu vượt RAM",
+      "topic": "efcore",
+      "subtopic": "Xuất dữ liệu vượt RAM",
+      "tags": [
+        "Xuất dữ liệu vượt RAM",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Job xuất hàng triệu bản ghi chỉ cần xử lý tuần tự từng dòng. ToListAsync giữ cả tập trong bộ nhớ. Hướng nào giảm buffering phía ứng dụng, dù vẫn phải xem provider có buffering nội bộ không?",
+      "englishPrompt": "An export processes millions of records sequentially. ToListAsync retains the entire set. Which approach reduces application-side buffering, while still checking for provider-internal buffering?",
+      "context": "File xuất được ghi tuần tự ra đích; ứng dụng không cần truy cập ngẫu nhiên toàn bộ tập kết quả.",
+      "code": null,
+      "hint": "Thay container không xóa chi phí giữ toàn bộ dòng.",
+      "nextHint": "Streaming cần consumer đọc và giải phóng tài nguyên đúng cách.",
+      "followUp": "Nếu consumer chậm thì connection còn mở gây đánh đổi gì?",
+      "englishFollowUp": "What tradeoff arises when a slow consumer keeps the connection open?",
+      "outline": [
+        "Chọn async streaming",
+        "Không giữ list toàn tập",
+        "Nêu buffering nội bộ có thể có",
+        "Quản lý context và connection lifetime"
+      ],
+      "shortAnswer": "Duyệt bất đồng bộ qua AsAsyncEnumerable thay vì tạo list toàn bộ. Streaming tránh giữ toàn bộ kết quả ở list ứng dụng. Execution strategy retry và split query có thể gây buffering nội bộ nên phải đo và đóng context đúng vòng đời.",
+      "explanation": "Streaming tránh giữ toàn bộ kết quả ở list ứng dụng. Execution strategy retry và split query có thể gây buffering nội bộ nên phải đo và đóng context đúng vòng đời. Streaming cần consumer đọc và giải phóng tài nguyên đúng cách. Nếu consumer chậm và giữ connection quá lâu, có thể xuất theo batch có cursor ổn định hoặc staging job. Batching giảm thời gian giữ tài nguyên mỗi lượt nhưng cần giải quyết tính nhất quán khi dữ liệu thay đổi giữa các batch.",
+      "alternative": "Nếu consumer chậm và giữ connection quá lâu, có thể xuất theo batch có cursor ổn định hoặc staging job. Batching giảm thời gian giữ tài nguyên mỗi lượt nhưng cần giải quyết tính nhất quán khi dữ liệu thay đổi giữa các batch.",
+      "trap": "Cho rằng: Gọi ToArrayAsync để không dùng RAM.",
+      "rubric": [
+        "Chọn async streaming",
+        "Không giữ list toàn tập",
+        "Nêu buffering nội bộ có thể có",
+        "Quản lý context và connection lifetime"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/performance/efficient-querying",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Duyệt bất đồng bộ qua AsAsyncEnumerable thay vì tạo list toàn bộ",
+          "Gọi ToArrayAsync để không dùng RAM",
+          "Thêm Include mọi navigation trước ToListAsync"
+        ],
+        "en": [
+          "Iterate through AsAsyncEnumerable rather than materialize the whole list",
+          "Use ToArrayAsync to avoid memory use",
+          "Include every navigation before ToListAsync"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-execute-delete-immediate",
+    "content": {
+      "title": "Xóa theo predicate không Save",
+      "topic": "efcore",
+      "subtopic": "Xóa theo predicate không Save",
+      "tags": [
+        "Xóa theo predicate không Save",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "EF Core 10 gọi ExecuteDeleteAsync trên tập log cũ. Không có tracked log nào. Có cần SaveChanges để lệnh xóa này thực sự chạy không?",
+      "englishPrompt": "EF Core 10 calls ExecuteDeleteAsync for old logs, with no logs tracked. Must SaveChanges be called for this delete to execute?",
+      "context": "Job retention chỉ cần số dòng đã xóa, không cần materialize từng log vào tracker.",
+      "code": null,
+      "hint": "Phân biệt API bulk với RemoveRange.",
+      "nextHint": "SaveChanges không điều khiển lúc bulk command đã chạy.",
+      "followUp": "Nếu xóa log và ghi audit phải cùng thành công thì bổ sung ranh giới nào?",
+      "englishFollowUp": "What boundary is needed if deleting logs and writing an audit must succeed together?",
+      "outline": [
+        "Nêu thực thi ngay",
+        "Không cần SaveChanges",
+        "Nêu bỏ qua tracker",
+        "Transaction rõ ràng cho nhiều thao tác"
+      ],
+      "shortAnswer": "Không, ExecuteDelete thực thi trực tiếp khi được await. ExecuteDelete bỏ qua change tracker và chạy ngay. Nhiều lệnh bulk độc lập không tự trở thành một đơn vị atomic nếu không có transaction bao ngoài.",
+      "explanation": "ExecuteDelete bỏ qua change tracker và chạy ngay. Nhiều lệnh bulk độc lập không tự trở thành một đơn vị atomic nếu không có transaction bao ngoài. SaveChanges không điều khiển lúc bulk command đã chạy. Nếu audit và delete phải atomic, bao chúng trong explicit transaction phù hợp. RemoveRange cùng SaveChanges có semantics tracking khác và có thể cần khi logic phụ thuộc từng entity, với chi phí tải và lệnh ghi cần cân nhắc.",
+      "alternative": "Nếu audit và delete phải atomic, bao chúng trong explicit transaction phù hợp. RemoveRange cùng SaveChanges có semantics tracking khác và có thể cần khi logic phụ thuộc từng entity, với chi phí tải và lệnh ghi cần cân nhắc.",
+      "trap": "Cho rằng: Có, nó chỉ đánh dấu Deleted trong tracker.",
+      "rubric": [
+        "Nêu thực thi ngay",
+        "Không cần SaveChanges",
+        "Nêu bỏ qua tracker",
+        "Transaction rõ ràng cho nhiều thao tác"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, ExecuteDelete thực thi trực tiếp khi được await",
+          "Có, nó thêm pending migration",
+          "Có, nó chỉ đánh dấu Deleted trong tracker"
+        ],
+        "en": [
+          "No, ExecuteDelete executes directly when awaited",
+          "Yes, it adds a pending migration",
+          "Yes, it only marks tracked entries Deleted"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "ef-bulk-concurrency-rowcount",
+    "content": {
+      "title": "Bulk update có token thủ công",
+      "topic": "efcore",
+      "subtopic": "Bulk update có token thủ công",
+      "tags": [
+        "Bulk update có token thủ công",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "ExecuteUpdate sửa một document theo Id và expected Version. Muốn phát hiện phiên bản đã đổi, predicate đã có token. Cần kiểm tra kết quả nào?",
+      "englishPrompt": "ExecuteUpdate modifies a document by Id and expected Version. The predicate includes the token. Which result must be checked to detect that the version changed?",
+      "context": "Đường cập nhật set-based không có original values được tracker giữ như luồng SaveChanges.",
+      "code": null,
+      "hint": "Lệnh set-based không có snapshot gốc trong tracker.",
+      "nextHint": "Kết quả 0 là tín hiệu cần phân loại, không luôn là một nguyên nhân duy nhất.",
+      "followUp": "Bạn tăng token mới trong cùng lệnh và phân biệt not-found thế nào?",
+      "englishFollowUp": "How would you advance the token in the same command and distinguish not-found?",
+      "outline": [
+        "Token trong predicate",
+        "Kiểm tra affected count",
+        "Không mong exception tự động",
+        "Phân biệt conflict và not-found theo hợp đồng"
+      ],
+      "shortAnswer": "Số dòng bị tác động; 0 là không khớp điều kiện, cần xử lý riêng. Bulk API không tự dùng concurrency mechanism của SaveChanges; token trong predicate và affected count tạo kiểm tra thủ công. 0 còn có thể là Id không tồn tại, tùy hợp đồng API.",
+      "explanation": "Bulk API không tự dùng concurrency mechanism của SaveChanges; token trong predicate và affected count tạo kiểm tra thủ công. 0 còn có thể là Id không tồn tại, tùy hợp đồng API. Kết quả 0 là tín hiệu cần phân loại, không luôn là một nguyên nhân duy nhất. Đưa Id và expected token vào predicate, cập nhật token mới trong cùng lệnh rồi kiểm affected count. Có thể dùng SaveChanges với entity tracked nếu muốn cơ chế concurrency tự động và chấp nhận chi phí đọc/tracking.",
+      "alternative": "Đưa Id và expected token vào predicate, cập nhật token mới trong cùng lệnh rồi kiểm affected count. Có thể dùng SaveChanges với entity tracked nếu muốn cơ chế concurrency tự động và chấp nhận chi phí đọc/tracking.",
+      "trap": "Cho rằng: Chờ DbUpdateConcurrencyException luôn tự phát sinh như SaveChanges.",
+      "rubric": [
+        "Token trong predicate",
+        "Kiểm tra affected count",
+        "Không mong exception tự động",
+        "Phân biệt conflict và not-found theo hợp đồng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Số entity hiện đang tracked",
+          "Số dòng bị tác động; 0 là không khớp điều kiện, cần xử lý riêng",
+          "Chờ DbUpdateConcurrencyException luôn tự phát sinh như SaveChanges"
+        ],
+        "en": [
+          "The number of currently tracked entities",
+          "Affected-row count; zero means no match and needs explicit handling",
+          "Always wait for the same automatic DbUpdateConcurrencyException as SaveChanges"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-model-cache-schema-tenant",
+    "content": {
+      "title": "Tenant làm đổi model",
+      "topic": "efcore",
+      "subtopic": "Tenant làm đổi model",
+      "tags": [
+        "Tenant làm đổi model",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Ứng dụng dùng một DbContext type nhưng OnModelCreating chọn schema theo tenant. Model cache mặc định theo context type có rủi ro gì?",
+      "englishPrompt": "Explain your choice and its limits. One DbContext type selects a tenant-specific schema in OnModelCreating. What risk does the default model cache keyed by context type create?",
+      "context": "Schema mapping thay đổi theo tenant là biến thể model, khác với chỉ thay giá trị predicate.",
+      "code": null,
+      "hint": "Giá trị lọc và cấu trúc mapping là hai cấp khác nhau.",
+      "nextHint": "Cache key phải phản ánh biến thể model nếu dùng biến thể đó.",
+      "followUp": "Vì sao tenant-id discriminator trong một schema thường không đòi model riêng?",
+      "englishFollowUp": "Why does a tenant-id discriminator in one schema generally not require a separate model?",
+      "outline": [
+        "Nhận diện model thay đổi",
+        "Nêu cache theo context type",
+        "Không parameter hóa identifier",
+        "Chọn cache key hoặc kiến trúc có hỗ trợ"
+      ],
+      "shortAnswer": "Model tenant đầu có thể được tái dùng sai; cần chiến lược model cache phù hợp hoặc thiết kế khác. Dữ liệu tenant thay đổi model khác với query filter nhận giá trị tenant. Cần xem hỗ trợ mô hình đa tenant và giới hạn trước khi chọn schema-per-tenant.",
+      "explanation": "Dữ liệu tenant thay đổi model khác với query filter nhận giá trị tenant. Cần xem hỗ trợ mô hình đa tenant và giới hạn trước khi chọn schema-per-tenant. Cache key phải phản ánh biến thể model nếu dùng biến thể đó. Nếu tenant chỉ phân biệt dữ liệu trong cùng schema, dùng discriminator và filter theo context state để giữ chung model. Schema-per-tenant cần xem giới hạn hỗ trợ và model caching; sửa connection string đơn thuần không sửa cached mapping.",
+      "alternative": "Nếu tenant chỉ phân biệt dữ liệu trong cùng schema, dùng discriminator và filter theo context state để giữ chung model. Schema-per-tenant cần xem giới hạn hỗ trợ và model caching; sửa connection string đơn thuần không sửa cached mapping.",
+      "trap": "Cho rằng: EF mặc định cache riêng theo mọi field của context.",
+      "rubric": [
+        "Nhận diện model thay đổi",
+        "Nêu cache theo context type",
+        "Không parameter hóa identifier",
+        "Chọn cache key hoặc kiến trúc có hỗ trợ"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/dynamic-model",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-spatial-client-distance",
+    "content": {
+      "title": "Khoảng cách địa lý tính ở client",
+      "topic": "efcore",
+      "subtopic": "Khoảng cách địa lý tính ở client",
+      "tags": [
+        "Khoảng cách địa lý tính ở client",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Ứng dụng dùng NetTopologySuite cho tọa độ kinh vĩ độ, SRID 4326. Sau khi materialize, gọi Distance trên object. Có thể mặc định coi kết quả là mét như phép tính geography phía SQL Server không?",
+      "englishPrompt": "Explain your choice and its limits. An app uses NetTopologySuite for longitude and latitude coordinates with SRID 4326. After materialization it calls Distance on the objects. Can it assume meters as with SQL Server geography distance?",
+      "context": "Dashboard hiển thị khoảng cách địa lý nên đơn vị phải đúng, không chỉ số trông có vẻ hợp lý.",
+      "code": null,
+      "hint": "Vị trí thực thi có thể thay đổi đơn vị kết quả.",
+      "nextHint": "SRID trên object không tự thực hiện phép chiếu tọa độ.",
+      "followUp": "Bạn kiểm thử một khoảng cách đã biết thế nào để bắt lỗi đơn vị?",
+      "englishFollowUp": "How would a known-distance case catch a unit mismatch?",
+      "outline": [
+        "Phân biệt client và server",
+        "Nêu planar NTS",
+        "Không suy mét từ SRID",
+        "Chọn geography server hoặc phép chiếu phù hợp"
+      ],
+      "shortAnswer": "Không, phép tính NTS client coi tọa độ phẳng và không dùng SRID để chuyển đơn vị. NTS client không tự biến khoảng cách tọa độ địa lý thành mét. Cần tính phía DB có semantics phù hợp hoặc project tọa độ trước khi tính client.",
+      "explanation": "NTS client không tự biến khoảng cách tọa độ địa lý thành mét. Cần tính phía DB có semantics phù hợp hoặc project tọa độ trước khi tính client. SRID trên object không tự thực hiện phép chiếu tọa độ. Giữ phép tính geography ở SQL Server hoặc project sang hệ tọa độ phẳng phù hợp vùng dữ liệu trước khi dùng NTS client. Test với khoảng cách chuẩn để bắt lỗi đơn vị; không nhân một hệ số tùy ý cho mọi vị trí.",
+      "alternative": "Giữ phép tính geography ở SQL Server hoặc project sang hệ tọa độ phẳng phù hợp vùng dữ liệu trước khi dùng NTS client. Test với khoảng cách chuẩn để bắt lỗi đơn vị; không nhân một hệ số tùy ý cho mọi vị trí.",
+      "trap": "Cho rằng: Có, SRID 4326 tự đổi mọi phép tính client sang mét.",
+      "rubric": [
+        "Phân biệt client và server",
+        "Nêu planar NTS",
+        "Không suy mét từ SRID",
+        "Chọn geography server hoặc phép chiếu phù hợp"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/spatial",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-map-db-function",
+    "content": {
+      "title": "Dùng hàm SQL trong LINQ",
+      "topic": "efcore",
+      "subtopic": "Dùng hàm SQL trong LINQ",
+      "tags": [
+        "Dùng hàm SQL trong LINQ",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Database có scalar function dbo.ActiveOrderCount(customerId). Muốn LINQ gọi hàm đó trong SQL thay vì tải đơn về đếm ở C#. Cơ chế mapping nào phù hợp?",
+      "englishPrompt": "The database has dbo.ActiveOrderCount(customerId), a scalar function. LINQ should invoke it in SQL rather than load orders for C# counting. Which mapping fits?",
+      "context": "Hàm SQL đã có contract tên/schema, tham số và kiểu trả về; LINQ cần dùng đúng contract đó.",
+      "code": null,
+      "hint": "Cần hợp đồng dịch giữa method và hàm SQL.",
+      "nextHint": "Tên, schema, tham số và loại trả về phải khớp.",
+      "followUp": "Nếu hàm xuất hiện trên mỗi dòng của truy vấn lớn thì cần đo chi phí gì?",
+      "englishFollowUp": "What cost should be measured if the function is invoked for every row in a large query?",
+      "outline": [
+        "Chọn HasDbFunction",
+        "Khớp schema và signature",
+        "Giữ tính toán phía SQL",
+        "Đo chi phí thực thi hàm theo tập"
+      ],
+      "shortAnswer": "HasDbFunction ánh xạ phương thức CLR tới hàm SQL. Mapping hàm database cho EF biểu diễn call trong SQL. Thân method CLR không phải cách tự sinh bản dịch SQL bất kỳ.",
+      "explanation": "Mapping hàm database cho EF biểu diễn call trong SQL. Thân method CLR không phải cách tự sinh bản dịch SQL bất kỳ. Tên, schema, tham số và loại trả về phải khớp. Nếu hiệu năng hàm theo từng dòng kém, đánh giá viết lại truy vấn set-based hoặc aggregate trực tiếp. HasDbFunction giải quyết khả năng dịch, không bảo đảm hàm SQL rẻ hay query plan tốt.",
+      "alternative": "Nếu hiệu năng hàm theo từng dòng kém, đánh giá viết lại truy vấn set-based hoặc aggregate trực tiếp. HasDbFunction giải quyết khả năng dịch, không bảo đảm hàm SQL rẻ hay query plan tốt.",
+      "trap": "Cho rằng: Dùng ValueConverter cho CustomerId để thay mọi call bằng hàm SQL.",
+      "rubric": [
+        "Chọn HasDbFunction",
+        "Khớp schema và signature",
+        "Giữ tính toán phía SQL",
+        "Đo chi phí thực thi hàm theo tập"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/user-defined-function-mapping",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ đặt cùng tên method CLR và hàm SQL là tự có bản dịch",
+          "HasDbFunction ánh xạ phương thức CLR tới hàm SQL",
+          "Dùng ValueConverter cho CustomerId để thay mọi call bằng hàm SQL"
+        ],
+        "en": [
+          "Giving the CLR method and SQL function identical names automatically provides translation",
+          "HasDbFunction maps a CLR method to the SQL function",
+          "Use a ValueConverter on CustomerId to replace every call with the SQL function"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-collation-query-index",
+    "content": {
+      "title": "Ép collation từng query",
+      "topic": "efcore",
+      "subtopic": "Ép collation từng query",
+      "tags": [
+        "Ép collation từng query",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Cột Name và index dùng một collation. Một LINQ query gọi EF.Functions.Collate với collation khác để so sánh. Vì sao cần xem execution plan trước khi dùng rộng?",
+      "englishPrompt": "Name and its index use one collation. A LINQ query calls EF.Functions.Collate with a different collation for comparison. Why inspect the execution plan before broad adoption?",
+      "context": "Chức năng tìm tên có yêu cầu so sánh chữ hoa/thường khác mặc định cột đã đánh index.",
+      "code": null,
+      "hint": "Semantics so sánh và khả năng dùng index liên quan nhau.",
+      "nextHint": "Thiết kế collation ở cột thường ổn định hơn sửa mọi query.",
+      "followUp": "Nếu cần cả tìm kiếm phân biệt hoa thường và không phân biệt, bạn đánh giá lựa chọn schema nào?",
+      "englishFollowUp": "Which schema options would you evaluate when both case-sensitive and case-insensitive searches are required?",
+      "outline": [
+        "Nêu đổi semantics",
+        "Nêu khả năng mất index phù hợp",
+        "Kiểm tra plan",
+        "Cân nhắc cấu hình cột thay query-wide workaround"
+      ],
+      "shortAnswer": "Collation khác trong query có thể ngăn dùng index theo cách mong đợi. Collation ảnh hưởng semantics so sánh và index thường kế thừa collation của cột; ép khác ở query có thể làm kế hoạch kém hiệu quả.",
+      "explanation": "Collation ảnh hưởng semantics so sánh và index thường kế thừa collation của cột; ép khác ở query có thể làm kế hoạch kém hiệu quả. Thiết kế collation ở cột thường ổn định hơn sửa mọi query. Nếu semantics phổ biến là một collation cố định, cấu hình ở cột cùng index phù hợp thường rõ hơn ép ở mọi query. Nếu cần nhiều semantics, thiết kế cột/index chuyên dụng và đo workload thay vì chuyển mọi tên qua ToLower.",
+      "alternative": "Nếu semantics phổ biến là một collation cố định, cấu hình ở cột cùng index phù hợp thường rõ hơn ép ở mọi query. Nếu cần nhiều semantics, thiết kế cột/index chuyên dụng và đo workload thay vì chuyển mọi tên qua ToLower.",
+      "trap": "Cho rằng: Collate luôn tạo index mới tự động.",
+      "rubric": [
+        "Nêu đổi semantics",
+        "Nêu khả năng mất index phù hợp",
+        "Kiểm tra plan",
+        "Cân nhắc cấu hình cột thay query-wide workaround"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/miscellaneous/collations-and-case-sensitivity",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Collate chỉ đổi cách hiển thị, không đổi so sánh",
+          "Collate luôn tạo index mới tự động",
+          "Collation khác trong query có thể ngăn dùng index theo cách mong đợi"
+        ],
+        "en": [
+          "Collate changes display only, never comparison",
+          "Collate always creates a new index automatically",
+          "A different query collation may prevent expected index use"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-dto-contains-entity-tracking",
+    "content": {
+      "title": "DTO vẫn chứa entity",
+      "topic": "efcore",
+      "subtopic": "DTO vẫn chứa entity",
+      "tags": [
+        "DTO vẫn chứa entity",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Với QueryTrackingBehavior.TrackAll mặc định, Query Select tạo một DTO gồm scalar Total và nguyên object Customer từ DbSet, không dùng AsNoTracking. Customer có bị tracking dù kết quả ngoài cùng là DTO không?",
+      "englishPrompt": "With default QueryTrackingBehavior.TrackAll, A Select query creates a DTO with scalar Total and the actual Customer entity from a DbSet, without AsNoTracking. Is Customer tracked even though the outer result is a DTO?",
+      "context": "DTO của endpoint đọc vẫn giữ reference tới Customer thật được materialize bởi EF.",
+      "code": null,
+      "hint": "Đọc cấu trúc bên trong DTO thay vì chỉ tên kiểu.",
+      "nextHint": "Object Customer vẫn là entity, không phải bản sao scalar.",
+      "followUp": "Muốn DTO hoàn toàn chỉ đọc và không giữ entity, bạn thay projection thế nào?",
+      "englishFollowUp": "How would the projection change for a read-only DTO that contains no entity objects?",
+      "outline": [
+        "Nêu entity được tracking",
+        "Phân biệt DTO và nội dung",
+        "Phân biệt scalar-only projection",
+        "Đề xuất AsNoTracking hoặc DTO scalar khi phù hợp"
+      ],
+      "shortAnswer": "Có, entity nằm trong projection vẫn có thể được tracking. Kiểu ngoài cùng không quyết định tất cả; EF có thể tracking entity materialized trong projection. Projection chỉ chứa scalar thì không tạo entity để tracking.",
+      "explanation": "Kiểu ngoài cùng không quyết định tất cả; EF có thể tracking entity materialized trong projection. Projection chỉ chứa scalar thì không tạo entity để tracking. Object Customer vẫn là entity, không phải bản sao scalar. Nếu chỉ cần dữ liệu hiển thị, project từng scalar sang DTO để không materialize entity đó. AsNoTracking phù hợp khi vẫn cần object entity nhưng không cần cập nhật; phải chọn dựa trên cách dùng dữ liệu sau query.",
+      "alternative": "Nếu chỉ cần dữ liệu hiển thị, project từng scalar sang DTO để không materialize entity đó. AsNoTracking phù hợp khi vẫn cần object entity nhưng không cần cập nhật; phải chọn dựa trên cách dùng dữ liệu sau query.",
+      "trap": "Cho rằng: Không, mọi DTO tự tắt tracking toàn query.",
+      "rubric": [
+        "Nêu entity được tracking",
+        "Phân biệt DTO và nội dung",
+        "Phân biệt scalar-only projection",
+        "Đề xuất AsNoTracking hoặc DTO scalar khi phù hợp"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/tracking",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Entity tự được clone thành object detached khi bọc trong DTO",
+          "Có, entity nằm trong projection vẫn có thể được tracking",
+          "Không, mọi DTO tự tắt tracking toàn query"
+        ],
+        "en": [
+          "The entity is automatically cloned into a detached object when wrapped in a DTO",
+          "Yes, entities contained in a projection can still be tracked",
+          "No, every DTO disables tracking for the entire query"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-fake-time-timer",
+    "content": {
+      "title": "Test job hẹn giờ không chờ thật",
+      "topic": "testing",
+      "subtopic": "Test job hẹn giờ không chờ thật",
+      "tags": [
+        "Test job hẹn giờ không chờ thật",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Job dùng TimeProvider tạo timer sau mười phút. Test cần kích hoạt nhanh và ổn định, không Thread.Sleep. Công cụ nào phù hợp?",
+      "englishPrompt": "A job uses TimeProvider to create a timer due in ten minutes. A test must trigger it quickly and deterministically without Thread.Sleep. Which tool fits?",
+      "context": "Job chỉ được gửi nhắc việc sau một khoảng hẹn giờ, còn suite CI phải chạy nhanh và lặp lại được.",
+      "code": null,
+      "hint": "Đồng hồ test chỉ ảnh hưởng dependency được truyền vào.",
+      "nextHint": "Advance kích hoạt timer gắn với cùng time provider.",
+      "followUp": "Nếu code còn Task.Delay không truyền provider thì test có kiểm soát được đoạn đó không?",
+      "englishFollowUp": "Can the test control a Task.Delay path that does not use the provider?",
+      "outline": [
+        "Chọn fake provider",
+        "Advance thời gian ảo",
+        "Timer phải được tạo từ cùng fake provider",
+        "Nêu giới hạn với đường không dùng provider"
+      ],
+      "shortAnswer": "FakeTimeProvider rồi Advance thời gian ảo. FakeTimeProvider điều khiển thời gian cho code thực sự dùng abstraction này; không tự điều khiển Task.Delay dùng đồng hồ hệ thống ở đường khác.",
+      "explanation": "FakeTimeProvider điều khiển thời gian cho code thực sự dùng abstraction này; không tự điều khiển Task.Delay dùng đồng hồ hệ thống ở đường khác. Advance kích hoạt timer gắn với cùng time provider. Nếu code còn dùng đồng hồ hoặc Delay khác không qua provider, đưa cùng abstraction vào đường đó trước khi mong thời gian ảo điều khiển nó. Test chỉ nên assert timer callback sau khi tiến thời gian tới điều kiện hợp đồng.",
+      "alternative": "Nếu code còn dùng đồng hồ hoặc Delay khác không qua provider, đưa cùng abstraction vào đường đó trước khi mong thời gian ảo điều khiển nó. Test chỉ nên assert timer callback sau khi tiến thời gian tới điều kiện hợp đồng.",
+      "trap": "Chỉ thay giờ đọc hoặc tiến một provider khác rồi mong timer hệ thống cũng chạy theo thời gian ảo.",
+      "rubric": [
+        "Chọn fake provider",
+        "Advance thời gian ảo",
+        "Phân biệt fake giờ đọc với điều khiển timer và dùng đúng provider",
+        "Nêu giới hạn với đường không dùng provider"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/extensions/timeprovider-testing",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Fake chỉ GetUtcNow nhưng vẫn để CreateTimer dùng timer hệ thống",
+          "Tạo timer từ TimeProvider.System rồi Advance một FakeTimeProvider khác",
+          "FakeTimeProvider rồi Advance thời gian ảo"
+        ],
+        "en": [
+          "Fake only GetUtcNow while CreateTimer still uses system timers",
+          "Create the timer with TimeProvider.System, then advance a separate FakeTimeProvider",
+          "FakeTimeProvider followed by advancing virtual time"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-parallel-static-state",
+    "content": {
+      "title": "Test chạy song song đổi state chung",
+      "topic": "testing",
+      "subtopic": "Test chạy song song đổi state chung",
+      "tags": [
+        "Test chạy song song đổi state chung",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Hai test class xUnit cùng thay một biến static cấu hình và thỉnh thoảng thất bại khi chạy toàn suite. Giải pháp bền vững ưu tiên là gì?",
+      "englishPrompt": "Two xUnit test classes mutate the same static configuration and occasionally fail in the full suite. What is the preferred durable fix?",
+      "context": "Chạy từng test riêng đều pass nhưng cả suite thỉnh thoảng ghi đè cấu hình của nhau.",
+      "code": null,
+      "hint": "Thất bại chỉ khi chạy chung gợi ý can nhiễu.",
+      "nextHint": "Thứ tự hay tốc độ máy không phải cơ chế đồng bộ.",
+      "followUp": "Khi bắt buộc dùng tài nguyên process-wide thì collection xUnit nên cấu hình ra sao?",
+      "englishFollowUp": "How should xUnit collections be configured for an unavoidable process-wide resource?",
+      "outline": [
+        "Nhận diện shared mutable state",
+        "Cô lập cấu hình",
+        "Không dùng sleep làm đồng bộ",
+        "Giới hạn serialize nếu cần"
+      ],
+      "shortAnswer": "Loại state mutable dùng chung, truyền cấu hình riêng từng test. Các collection test có thể chạy song song. Cô lập state giải quyết nguyên nhân; chỉ serialize khi tài nguyên thật không thể cô lập và ghi rõ phạm vi.",
+      "explanation": "Các collection test có thể chạy song song. Cô lập state giải quyết nguyên nhân; chỉ serialize khi tài nguyên thật không thể cô lập và ghi rõ phạm vi. Thứ tự hay tốc độ máy không phải cơ chế đồng bộ. Khi không thể cô lập một tài nguyên process-wide, gom các test liên quan vào collection không chạy đồng thời và khôi phục state sau test. Serialize cả suite là biện pháp rộng, làm chậm CI và có thể che coupling chưa giải quyết.",
+      "alternative": "Khi không thể cô lập một tài nguyên process-wide, gom các test liên quan vào collection không chạy đồng thời và khôi phục state sau test. Serialize cả suite là biện pháp rộng, làm chậm CI và có thể che coupling chưa giải quyết.",
+      "trap": "Cho rằng: Thêm Sleep ngẫu nhiên để tránh trùng lúc.",
+      "rubric": [
+        "Nhận diện shared mutable state",
+        "Cô lập cấu hình",
+        "Không dùng sleep làm đồng bộ",
+        "Giới hạn serialize nếu cần"
+      ],
+      "source": "https://xunit.net/docs/running-tests-in-parallel",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Assert lại nhiều lần đến khi pass",
+          "Loại state mutable dùng chung, truyền cấu hình riêng từng test",
+          "Thêm Sleep ngẫu nhiên để tránh trùng lúc"
+        ],
+        "en": [
+          "Repeat assertions until they pass",
+          "Remove shared mutable state and give each test its own configuration",
+          "Add random sleeps to avoid overlap"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-double-outgoing-handler",
+    "content": {
+      "title": "Kiểm request HTTP đi ra",
+      "topic": "testing",
+      "subtopic": "Kiểm request HTTP đi ra",
+      "tags": [
+        "Kiểm request HTTP đi ra",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Service gọi một partner qua HttpClient. Unit test cần kiểm method, URL, body và trả response định trước, không mở network. Nên thay boundary nào?",
+      "englishPrompt": "A service calls a partner using HttpClient. A unit test must inspect method, URL, and body and return a canned response without networking. Which boundary should be replaced?",
+      "context": "Unit test cần kiểm request do service tạo nhưng không được phụ thuộc mạng hoặc server đối tác.",
+      "code": null,
+      "hint": "Chọn boundary chặn trước network thật.",
+      "nextHint": "Giữ code xây request của service là code thật.",
+      "followUp": "Làm sao test kiểm Authorization mà không ghi token thật vào log?",
+      "englishFollowUp": "How can the test inspect Authorization without logging a real token?",
+      "outline": [
+        "Thay handler boundary",
+        "Kiểm method URL body",
+        "Không dùng network",
+        "Dùng credential giả và xử lý tài nguyên response"
+      ],
+      "shortAnswer": "HttpMessageHandler được inject vào HttpClient. HttpClient gửi request qua handler pipeline; test handler có thể quan sát HttpRequestMessage và trả HttpResponseMessage có chủ đích.",
+      "explanation": "HttpClient gửi request qua handler pipeline; test handler có thể quan sát HttpRequestMessage và trả HttpResponseMessage có chủ đích. Giữ code xây request của service là code thật. Giữ thêm integration test với HTTP server kiểm soát được nếu cần kiểm serialization và transport thực. Handler fake kiểm hợp đồng request trong process nhưng không chứng minh DNS, TLS hay hoạt động của partner thật.",
+      "alternative": "Giữ thêm integration test với HTTP server kiểm soát được nếu cần kiểm serialization và transport thực. Handler fake kiểm hợp đồng request trong process nhưng không chứng minh DNS, TLS hay hoạt động của partner thật.",
+      "trap": "Cho rằng: Bắt subclass HttpClient để override mọi method nonvirtual.",
+      "rubric": [
+        "Thay handler boundary",
+        "Kiểm method URL body",
+        "Không dùng network",
+        "Dùng credential giả và xử lý tài nguyên response"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient.-ctor?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "HttpMessageHandler được inject vào HttpClient",
+          "Mock riêng factory nhưng trả HttpClient dùng handler mạng thật",
+          "Bắt subclass HttpClient để override mọi method nonvirtual"
+        ],
+        "en": [
+          "An HttpMessageHandler injected into HttpClient",
+          "Mock only the factory while returning an HttpClient with a real network handler",
+          "Subclass HttpClient to override every nonvirtual method"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-authenticated-forbidden",
+    "content": {
+      "title": "Tách 401 khỏi 403 trong test",
+      "topic": "testing",
+      "subtopic": "Tách 401 khỏi 403 trong test",
+      "tags": [
+        "Tách 401 khỏi 403 trong test",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Endpoint yêu cầu quyền Approve. Test đăng nhập giả thành công nhưng identity không có quyền đó. Để kiểm authorization, phải giữ gì là thật trong pipeline?",
+      "englishPrompt": "An endpoint requires Approve permission. A test authenticates a fake identity successfully but omits that permission. What must remain real to test authorization?",
+      "context": "Đề cần phân biệt đã xác thực nhưng thiếu quyền với trường hợp chưa có identity hợp lệ.",
+      "code": null,
+      "hint": "Đề muốn kiểm quyết định sau khi identity đã có.",
+      "nextHint": "Không mock chính thành phần đang cần kiểm chứng.",
+      "followUp": "Bạn thêm một identity có đúng quyền để chứng minh đường allow thế nào?",
+      "englishFollowUp": "How would you add an identity with the required permission to verify the allow path?",
+      "outline": [
+        "Identity thiếu quyền",
+        "Giữ policy thật",
+        "Đi qua endpoint pipeline",
+        "Kiểm denied và allow có đối chứng"
+      ],
+      "shortAnswer": "Authorization policy và endpoint thật; chỉ thay authentication scheme test. Test auth handler cấp identity có kiểm soát, còn policy thật quyết định từ chối. Phải tắt redirect khi cần quan sát status trực tiếp.",
+      "explanation": "Test auth handler cấp identity có kiểm soát, còn policy thật quyết định từ chối. Phải tắt redirect khi cần quan sát status trực tiếp. Không mock chính thành phần đang cần kiểm chứng. Thêm đối chứng có đúng permission và một request anonymous để kiểm các nhánh khác. Bộ test dùng auth double không chứng minh JWT signature/issuer/audience; các yếu tố đó cần đường test handler thật riêng.",
+      "alternative": "Thêm đối chứng có đúng permission và một request anonymous để kiểm các nhánh khác. Bộ test dùng auth double không chứng minh JWT signature/issuer/audience; các yếu tố đó cần đường test handler thật riêng.",
+      "trap": "Cho rằng: Thay authorization service để luôn allow.",
+      "rubric": [
+        "Identity thiếu quyền",
+        "Giữ policy thật",
+        "Đi qua endpoint pipeline",
+        "Kiểm denied và allow có đối chứng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gọi trực tiếp handler và bỏ middleware",
+          "Thay authorization service để luôn allow",
+          "Authorization policy và endpoint thật; chỉ thay authentication scheme test"
+        ],
+        "en": [
+          "Call the handler directly and bypass middleware",
+          "Replace authorization with an always-allow service",
+          "The real policy and endpoint, replacing only authentication with a test scheme"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-antiforgery-roundtrip",
+    "content": {
+      "title": "Test form có chống giả mạo",
+      "topic": "testing",
+      "subtopic": "Test form có chống giả mạo",
+      "tags": [
+        "Test form có chống giả mạo",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Integration test POST form hợp lệ bị từ chối do antiforgery. Muốn kiểm luồng người dùng thực tế mà không tắt bảo vệ, test cần chuẩn bị gì?",
+      "englishPrompt": "An integration test's otherwise valid form POST is rejected by antiforgery. To exercise the real user flow without disabling protection, what should it prepare?",
+      "context": "Form POST được bảo vệ như trong môi trường thật; client test phải giữ đúng phiên qua hai request.",
+      "code": null,
+      "hint": "Một token rời cookie tương ứng chưa đủ.",
+      "nextHint": "Dùng cùng client giữ cookie từ GET đến POST.",
+      "followUp": "Bạn kiểm trường hợp token thuộc phiên khác để bắt lỗi gì?",
+      "englishFollowUp": "What defect would a token-from-another-session test detect?",
+      "outline": [
+        "GET lấy token",
+        "Giữ cookie cùng phiên",
+        "POST token đúng field",
+        "Giữ bảo vệ trong app"
+      ],
+      "shortAnswer": "GET form rồi gửi token cùng cookie tương ứng trong POST. Antiforgery dùng dữ liệu token và cookie liên quan; test phải giữ phiên và trích token từ form giống luồng trình duyệt.",
+      "explanation": "Antiforgery dùng dữ liệu token và cookie liên quan; test phải giữ phiên và trích token từ form giống luồng trình duyệt. Dùng cùng client giữ cookie từ GET đến POST. Có thể dùng helper trích token/cookie để giảm lặp setup nhưng không tắt antiforgery. Thêm test token sai phiên hoặc thiếu token để chứng minh đường từ chối; token và cookie đúng phải có đối chứng chấp nhận.",
+      "alternative": "Có thể dùng helper trích token/cookie để giảm lặp setup nhưng không tắt antiforgery. Thêm test token sai phiên hoặc thiếu token để chứng minh đường từ chối; token và cookie đúng phải có đối chứng chấp nhận.",
+      "trap": "Cho rằng: Chỉ gửi cookie từ GET mà bỏ request token.",
+      "rubric": [
+        "GET lấy token",
+        "Giữ cookie cùng phiên",
+        "POST token đúng field",
+        "Giữ bảo vệ trong app"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "GET form rồi gửi token cùng cookie tương ứng trong POST",
+          "Chỉ gửi request token qua một client không giữ cookie tương ứng",
+          "Chỉ gửi cookie từ GET mà bỏ request token"
+        ],
+        "en": [
+          "GET the form, then POST its token with the matching cookie",
+          "Send only the request token using a client without the matching cookie",
+          "Send only the GET cookie without the request token"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-cookie-client-isolation",
+    "content": {
+      "title": "Không rò đăng nhập giữa hai user test",
+      "topic": "testing",
+      "subtopic": "Không rò đăng nhập giữa hai user test",
+      "tags": [
+        "Không rò đăng nhập giữa hai user",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Một integration test dùng client đăng nhập A rồi tái dùng cookie container cho B. Muốn xác minh hai người dùng cô lập, nên tạo client state thế nào?",
+      "englishPrompt": "An integration test logs in as A and then reuses the cookie container for B. How should client state be arranged to verify user isolation?",
+      "context": "Hai user trong cùng test có phiên đăng nhập riêng và phải được kiểm quyền sở hữu chéo.",
+      "code": null,
+      "hint": "Identity không nằm trong tên biến test.",
+      "nextHint": "Mỗi phiên cần bộ cookie riêng trong luồng thử này.",
+      "followUp": "Bạn kiểm A không đọc được tài nguyên B bằng request nào?",
+      "englishFollowUp": "Which request would verify that A cannot read B's resource?",
+      "outline": [
+        "Phiên riêng",
+        "Cookie riêng",
+        "Không chia sẻ client mutable",
+        "Kiểm cross-user access có chủ đích"
+      ],
+      "shortAnswer": "Client hoặc cookie container riêng cho mỗi phiên người dùng. Cookie là state phía client. Cô lập phiên là điều kiện để test quyền truy cập chéo có ý nghĩa, không chỉ tạo hai biến trỏ cùng client.",
+      "explanation": "Cookie là state phía client. Cô lập phiên là điều kiện để test quyền truy cập chéo có ý nghĩa, không chỉ tạo hai biến trỏ cùng client. Mỗi phiên cần bộ cookie riêng trong luồng thử này. Nếu dùng bearer token không có cookie auth, gửi token riêng theo từng request thay vì sửa DefaultRequestHeaders của client dùng chung khi chạy song song. Dù cơ chế nào, tránh shared mutable identity state giữa hai user.",
+      "alternative": "Nếu dùng bearer token không có cookie auth, gửi token riêng theo từng request thay vì sửa DefaultRequestHeaders của client dùng chung khi chạy song song. Dù cơ chế nào, tránh shared mutable identity state giữa hai user.",
+      "trap": "Cho rằng: Dùng chung cookie container, chỉ xóa Authorization header giữa hai user.",
+      "rubric": [
+        "Phiên riêng",
+        "Cookie riêng",
+        "Không chia sẻ client mutable",
+        "Kiểm cross-user access có chủ đích"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dùng chung cookie container, chỉ xóa Authorization header giữa hai user",
+          "Dùng hai biến HttpClient cùng trỏ một instance đăng nhập",
+          "Client hoặc cookie container riêng cho mỗi phiên người dùng"
+        ],
+        "en": [
+          "Share the cookie container and clear only the Authorization header between users",
+          "Use two HttpClient variables pointing to one signed-in instance",
+          "Separate clients or cookie containers for each user session"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-eventual-not-sleep",
+    "content": {
+      "title": "Chờ kết quả worker có deadline",
+      "topic": "testing",
+      "subtopic": "Chờ kết quả worker có deadline",
+      "tags": [
+        "Chờ kết quả worker có deadline",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Integration test gửi job rồi chờ trạng thái hoàn tất trong tối đa hai giây. Worker xử lý bất đồng bộ, độ trễ dao động. Chọn chiến lược nào tránh fixed sleep và không treo vô hạn?",
+      "englishPrompt": "An integration test submits a job and waits up to two seconds for completion. Worker latency varies. Which strategy avoids fixed sleep and unbounded waiting?",
+      "context": "Request nhận job nhanh còn worker hoàn tất sau đó; độ trễ dao động trong giới hạn chấp nhận của test.",
+      "code": null,
+      "hint": "Chờ một điều kiện khác chờ một số mili giây cố định.",
+      "nextHint": "Một deadline và trạng thái cuối giúp lỗi có thể điều tra.",
+      "followUp": "Nếu operation không idempotent thì vì sao không lặp POST trong polling?",
+      "englishFollowUp": "Why must a non-idempotent POST not be repeated as part of polling?",
+      "outline": [
+        "Poll trạng thái",
+        "Giới hạn deadline",
+        "Không lặp side-effect command",
+        "Ghi chẩn đoán trạng thái cuối"
+      ],
+      "shortAnswer": "Poll điều kiện với deadline, khoảng chờ ngắn và chẩn đoán khi hết hạn. Hệ thống eventual cần kiểm trạng thái cuối trong giới hạn đã nêu. Retry chỉ áp phép quan sát an toàn; không gửi lại command mỗi vòng để tránh tạo thêm job.",
+      "explanation": "Hệ thống eventual cần kiểm trạng thái cuối trong giới hạn đã nêu. Retry chỉ áp phép quan sát an toàn; không gửi lại command mỗi vòng để tránh tạo thêm job. Một deadline và trạng thái cuối giúp lỗi có thể điều tra. Có thể chờ một tín hiệu completion kiểm soát được trong test để giảm polling, nhưng vẫn giữ deadline. Nếu kiểm endpoint trạng thái như client thật, chỉ lặp phép đọc và ghi trạng thái cuối khi timeout để lỗi không bị mơ hồ.",
+      "alternative": "Có thể chờ một tín hiệu completion kiểm soát được trong test để giảm polling, nhưng vẫn giữ deadline. Nếu kiểm endpoint trạng thái như client thật, chỉ lặp phép đọc và ghi trạng thái cuối khi timeout để lỗi không bị mơ hồ.",
+      "trap": "Nhầm chờ đủ một khoảng cố định với chờ điều kiện, hoặc quên giới hạn đường chờ completion.",
+      "rubric": [
+        "Poll trạng thái",
+        "Giới hạn deadline",
+        "Không lặp side-effect command",
+        "Ghi chẩn đoán trạng thái cuối"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/async-request-reply",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Await tín hiệu completion nhưng không đặt timeout hoặc cancellation",
+          "Sleep cố định hai giây rồi assert trạng thái đúng một lần",
+          "Poll điều kiện với deadline, khoảng chờ ngắn và chẩn đoán khi hết hạn"
+        ],
+        "en": [
+          "Await a completion signal without timeout or cancellation",
+          "Sleep for a fixed two seconds, then assert the status once",
+          "Poll the condition with a deadline, short delays, and timeout diagnostics"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-concurrency-barrier",
+    "content": {
+      "title": "Tái hiện race có chủ đích",
+      "topic": "testing",
+      "subtopic": "Tái hiện race có chủ đích",
+      "tags": [
+        "Tái hiện race có chủ đích",
+        ".NET 10"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": ".NET 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Hai request tranh một suất cuối. Test hiện dùng Sleep để hy vọng chúng cùng đọc trước khi ghi. Cách dàn lịch nào giúp tái hiện race có kiểm soát hơn?",
+      "englishPrompt": "Explain your choice and its limits. Two requests compete for the last seat. The test sleeps hoping both read before either writes. What scheduling approach reproduces the race more deliberately?",
+      "context": "Test phải tạo đúng interleaving cạnh tranh tài nguyên chứ không chờ máy chạy tình cờ đúng nhịp.",
+      "code": null,
+      "hint": "Race phụ thuộc thứ tự bước, không chỉ độ dài chờ.",
+      "nextHint": "Dàn lịch hai nhánh ở điểm đọc rồi cùng cho tiến tiếp.",
+      "followUp": "Bạn assert gì ngoài số response thành công để bảo vệ tồn kho?",
+      "englishFollowUp": "What should be asserted beyond successful response count to protect inventory?",
+      "outline": [
+        "Điều khiển interleaving",
+        "Giới hạn chờ gate",
+        "Cleanup khi lỗi",
+        "Assert invariant cuối và kết quả hai nhánh"
+      ],
+      "shortAnswer": "Dùng gate hoặc barrier ở boundary đã chọn, với timeout và cleanup. Đồng bộ tại điểm quan sát xác định cho phép tạo interleaving mục tiêu. Test vẫn cần kiểm invariant sau cùng và không giữ gate vô hạn khi một nhánh lỗi.",
+      "explanation": "Đồng bộ tại điểm quan sát xác định cho phép tạo interleaving mục tiêu. Test vẫn cần kiểm invariant sau cùng và không giữ gate vô hạn khi một nhánh lỗi. Dàn lịch hai nhánh ở điểm đọc rồi cùng cho tiến tiếp. Nếu không thể cài gate ở boundary phù hợp, giữ stress test riêng như kiểm bổ trợ và ghi seed/timeline. Nó không thay một regression test có lịch bước xác định; mọi gate cần timeout/cancellation để nhánh lỗi không treo suite.",
+      "alternative": "Nếu không thể cài gate ở boundary phù hợp, giữ stress test riêng như kiểm bổ trợ và ghi seed/timeline. Nó không thay một regression test có lịch bước xác định; mọi gate cần timeout/cancellation để nhánh lỗi không treo suite.",
+      "trap": "Cho rằng: Tăng Sleep đến một phút.",
+      "rubric": [
+        "Điều khiển interleaving",
+        "Giới hạn chờ gate",
+        "Cleanup khi lỗi",
+        "Assert invariant cuối và kết quả hai nhánh"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/standard/threading/barrier",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "test-mock-interaction-boundary",
+    "content": {
+      "title": "Không mock từng bước nội bộ",
+      "topic": "testing",
+      "subtopic": "Không mock từng bước nội bộ",
+      "tags": [
+        "Không mock từng bước nội bộ",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Dịch vụ phải không gửi email khi đơn hàng bị từ chối. Test nên kiểm interaction ở đâu để tránh ràng buộc vào mọi lời gọi helper?",
+      "englishPrompt": "A service must send no email when an order is rejected. Where should an interaction assertion focus without coupling to every helper call?",
+      "context": "Use case vừa trả trạng thái xử lý vừa có thể gọi dịch vụ email; test cần chứng minh yêu cầu không gửi khi đơn bị từ chối.",
+      "code": null,
+      "hint": "Không phải mọi mock verification đều có cùng giá trị.",
+      "nextHint": "Đề yêu cầu cấm một side effect quan sát được.",
+      "followUp": "Với email thành công, kiểm recipient và nội dung nghiệp vụ nào thay vì object reference?",
+      "englishFollowUp": "For a successful email, which recipient and business-content checks matter more than object reference identity?",
+      "outline": [
+        "Chọn boundary email",
+        "Assert không gửi",
+        "Không kiểm helper riêng",
+        "Liên hệ side effect với hợp đồng"
+      ],
+      "shortAnswer": "Boundary gửi email: không có lần gửi nào cho đơn bị từ chối. Interaction có ý nghĩa khi bản thân side effect là hợp đồng cần bảo vệ. Không cần mô tả lại toàn bộ cách triển khai nội bộ.",
+      "explanation": "Interaction có ý nghĩa khi bản thân side effect là hợp đồng cần bảo vệ. Không cần mô tả lại toàn bộ cách triển khai nội bộ. Đề yêu cầu cấm một side effect quan sát được. Với kết quả thuần không có side effect, ưu tiên assert output/state thay vì interaction. Với email, assert recipient và dữ liệu nghiệp vụ cần thiết, không khóa vào object reference hay cách service chia helper.",
+      "alternative": "Với kết quả thuần không có side effect, ưu tiên assert output/state thay vì interaction. Với email, assert recipient và dữ liệu nghiệp vụ cần thiết, không khóa vào object reference hay cách service chia helper.",
+      "trap": "Chỉ kiểm output hoặc setup mock điều kiện mà không chứng minh side effect bên ngoài thực sự vắng mặt.",
+      "rubric": [
+        "Chọn boundary email",
+        "Assert không gửi",
+        "Không kiểm helper riêng",
+        "Liên hệ side effect với hợp đồng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Boundary gửi email: không có lần gửi nào cho đơn bị từ chối",
+          "Chỉ assert kết quả Rejected trả về mà không quan sát việc gửi",
+          "Mock kiểm tra điều kiện trả false rồi suy ra không cần kiểm boundary gửi"
+        ],
+        "en": [
+          "At the email boundary: no send occurs for the rejected order",
+          "Only assert the returned Rejected result without observing sends",
+          "Mock eligibility to return false and infer that the send boundary needs no check"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-culture-fixed-parse",
+    "content": {
+      "title": "Lỗi chỉ trên CI khác locale",
+      "topic": "testing",
+      "subtopic": "Lỗi chỉ trên CI khác locale",
+      "tags": [
+        "Lỗi chỉ trên CI khác locale",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Test định dạng tiền kỳ vọng dấu chấm nhưng code dùng CurrentCulture. CI dùng locale khác. Nếu hợp đồng là định dạng invariant, sửa thế nào cho đúng?",
+      "englishPrompt": "A money-formatting test expects a dot, but code uses CurrentCulture. CI uses another locale. If the contract requires invariant formatting, what is the correct fix?",
+      "context": "Định dạng tiền trong payload máy đọc phải ổn định giữa máy dev và CI, không theo locale của hệ điều hành.",
+      "code": null,
+      "hint": "Phân biệt yêu cầu invariant với UI phải localized.",
+      "nextHint": "Không sửa môi trường để che hợp đồng chưa được hiện thực.",
+      "followUp": "Nếu hợp đồng chuyển thành hiển thị theo user thì expected data thay đổi thế nào?",
+      "englishFollowUp": "How should expected data change if formatting becomes user-localized?",
+      "outline": [
+        "Nêu invariant contract",
+        "Chỉ định culture trong code",
+        "Test locale đối chứng",
+        "Không phụ thuộc cấu hình máy"
+      ],
+      "shortAnswer": "Dùng InvariantCulture rõ ràng trong code và test cả locale đối chứng. Nếu định dạng là hợp đồng invariant thì implementation phải nói rõ culture. Test locale khác giúp phát hiện việc vô tình dùng ambient state.",
+      "explanation": "Nếu định dạng là hợp đồng invariant thì implementation phải nói rõ culture. Test locale khác giúp phát hiện việc vô tình dùng ambient state. Không sửa môi trường để che hợp đồng chưa được hiện thực. Nếu UI cần bản địa hóa theo user, truyền culture được chọn rõ ràng và kiểm bảng kết quả theo culture đó. Không dùng một expected invariant cho hợp đồng localized; yêu cầu sản phẩm quyết định oracle.",
+      "alternative": "Nếu UI cần bản địa hóa theo user, truyền culture được chọn rõ ràng và kiểm bảng kết quả theo culture đó. Không dùng một expected invariant cho hợp đồng localized; yêu cầu sản phẩm quyết định oracle.",
+      "trap": "Cho rằng: Chỉ đổi locale máy CI để che sự phụ thuộc.",
+      "rubric": [
+        "Nêu invariant contract",
+        "Chỉ định culture trong code",
+        "Test locale đối chứng",
+        "Không phụ thuộc cấu hình máy"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.globalization.cultureinfo.invariantculture?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dùng InvariantCulture rõ ràng trong code và test cả locale đối chứng",
+          "Chấp nhận mọi chuỗi tiền kể cả rỗng",
+          "Chỉ đổi locale máy CI để che sự phụ thuộc"
+        ],
+        "en": [
+          "Use InvariantCulture explicitly and test a contrasting locale",
+          "Accept every money string including empty",
+          "Only change CI locale to hide the dependency"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-generated-input-oracle",
+    "content": {
+      "title": "Dữ liệu ngẫu nhiên tái hiện được",
+      "topic": "testing",
+      "subtopic": "Dữ liệu ngẫu nhiên tái hiện được",
+      "tags": [
+        "Dữ liệu ngẫu nhiên tái hiện được",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Test tạo ngẫu nhiên hàng nghìn chuỗi nhưng khi lỗi không lưu seed hay input. Muốn một failure có thể tái hiện, cần ghi gì?",
+      "englishPrompt": "A test generates thousands of random strings but records neither seed nor failing input. What should be retained to reproduce a failure?",
+      "context": "Một lỗi chỉ xuất hiện với chuỗi sinh ngẫu nhiên cần trở thành regression case tái hiện được sau này.",
+      "code": null,
+      "hint": "Một failure cần cả cách tái tạo lẫn lý do sai.",
+      "nextHint": "Dữ liệu lỗi cụ thể hữu ích ngay cả khi generator thay đổi.",
+      "followUp": "Vì sao lưu input lỗi vẫn cần thiết khi đã lưu seed?",
+      "englishFollowUp": "Why retain the failing input even after recording the seed?",
+      "outline": [
+        "Lưu seed",
+        "Lưu input lỗi",
+        "Nêu oracle rõ",
+        "Không coi số lần random là bằng chứng đủ"
+      ],
+      "shortAnswer": "Seed và input lỗi, kèm property hoặc expected behavior được kiểm. Random hóa không tự tạo oracle. Seed và input giúp replay, còn property rõ ràng cho biết vì sao kết quả là sai.",
+      "explanation": "Random hóa không tự tạo oracle. Seed và input giúp replay, còn property rõ ràng cho biết vì sao kết quả là sai. Dữ liệu lỗi cụ thể hữu ích ngay cả khi generator thay đổi. Lưu input lỗi thành case cố định bên cạnh seed và version generator/runtime nếu liên quan. Seed một mình có thể không tái tạo cùng dữ liệu sau khi thuật toán sinh thay đổi; property cần độc lập với cách tạo input.",
+      "alternative": "Lưu input lỗi thành case cố định bên cạnh seed và version generator/runtime nếu liên quan. Seed một mình có thể không tái tạo cùng dữ liệu sau khi thuật toán sinh thay đổi; property cần độc lập với cách tạo input.",
+      "trap": "Cho rằng: Chỉ tổng số lần lặp.",
+      "rubric": [
+        "Lưu seed",
+        "Lưu input lỗi",
+        "Nêu oracle rõ",
+        "Không coi số lần random là bằng chứng đủ"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/api/system.random?view=net-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Seed và input lỗi, kèm property hoặc expected behavior được kiểm",
+          "Chỉ thời gian test chạy",
+          "Chỉ tổng số lần lặp"
+        ],
+        "en": [
+          "The seed and failing input, together with the checked property or expected behavior",
+          "Only the test duration",
+          "Only the iteration count"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "test-cleanup-failed-assert",
+    "content": {
+      "title": "Dọn file dù assert thất bại",
+      "topic": "testing",
+      "subtopic": "Dọn file dù assert thất bại",
+      "tags": [
+        "Dọn file dù assert thất bại",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Test tạo file tạm rồi assert; lệnh xóa nằm ngay sau assert nên khi fail file bị bỏ lại. Cấu trúc nào giữ cleanup chạy?",
+      "englishPrompt": "A test creates a temporary file and deletes it after an assertion. A failed assertion leaves the file behind. Which structure ensures cleanup runs?",
+      "context": "File tạm do test sở hữu không được tồn tại sau một lần assert thất bại và làm ảnh hưởng lượt sau.",
+      "code": null,
+      "hint": "Assert thất bại cũng là đường thoát bằng exception.",
+      "nextHint": "Đặt việc thu hồi ở finally hoặc Dispose phù hợp.",
+      "followUp": "Nếu cleanup cũng lỗi thì làm sao giữ chẩn đoán lỗi ban đầu?",
+      "englishFollowUp": "How can the original failure remain diagnosable if cleanup also fails?",
+      "outline": [
+        "Đưa cleanup vào finally hoặc Dispose",
+        "Ownership tài nguyên rõ",
+        "Không nuốt assertion",
+        "Giữ chẩn đoán khi cleanup lỗi"
+      ],
+      "shortAnswer": "try/finally hoặc disposable fixture sở hữu file. Cleanup thuộc vòng đời tài nguyên và phải độc lập kết quả assert. Không nuốt lỗi kiểm tra vì sẽ làm mất tín hiệu regression.",
+      "explanation": "Cleanup thuộc vòng đời tài nguyên và phải độc lập kết quả assert. Không nuốt lỗi kiểm tra vì sẽ làm mất tín hiệu regression. Đặt việc thu hồi ở finally hoặc Dispose phù hợp. Dùng thư mục riêng cho mỗi test để giảm can nhiễu, rồi dispose fixture hoặc finally dọn phạm vi đó. Nếu cleanup lỗi, giữ cả chẩn đoán cleanup và failure ban đầu; không đổi assertion thành pass để tránh file rác.",
+      "alternative": "Dùng thư mục riêng cho mỗi test để giảm can nhiễu, rồi dispose fixture hoặc finally dọn phạm vi đó. Nếu cleanup lỗi, giữ cả chẩn đoán cleanup và failure ban đầu; không đổi assertion thành pass để tránh file rác.",
+      "trap": "Cho rằng: Chỉ catch IOException, để assertion exception bỏ qua cleanup.",
+      "rubric": [
+        "Đưa cleanup vào finally hoặc Dispose",
+        "Ownership tài nguyên rõ",
+        "Không nuốt assertion",
+        "Giữ chẩn đoán khi cleanup lỗi"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/exception-handling-statements",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Nuốt mọi exception để luôn đi đến cuối",
+          "try/finally hoặc disposable fixture sở hữu file",
+          "Chỉ catch IOException, để assertion exception bỏ qua cleanup"
+        ],
+        "en": [
+          "Swallow every exception to reach the end",
+          "try/finally or a disposable fixture owning the file",
+          "Catch only IOException so assertion exceptions bypass cleanup"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "test-expected-independent-oracle",
+    "content": {
+      "title": "Test tính lại cùng công thức sai",
+      "topic": "testing",
+      "subtopic": "Test tính lại cùng công thức sai",
+      "tags": [
+        "Test tính lại cùng công thức sai",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Test expected bằng cách copy nguyên công thức của implementation rồi so sánh. Cả hai cùng nhân phí sai nên test pass. Nên xây expected theo cách nào?",
+      "englishPrompt": "A test copies the implementation's formula to compute its expected value. Both multiply a fee incorrectly and the test passes. How should the oracle be built?",
+      "context": "Test cần kiểm đúng quy tắc giá đã thống nhất với nghiệp vụ, không chỉ sự nhất quán của hai bản sao code.",
+      "code": null,
+      "hint": "Một bản sao thuật toán dễ sao chép cả lỗi.",
+      "nextHint": "Đối chiếu với ví dụ nhỏ đã được xác nhận từ hợp đồng.",
+      "followUp": "Bạn chọn case nào để phân biệt cộng phí trước và sau giảm giá?",
+      "englishFollowUp": "Which case distinguishes applying a fee before versus after a discount?",
+      "outline": [
+        "Expected độc lập",
+        "Gắn quy tắc nghiệp vụ",
+        "Có ví dụ số cụ thể",
+        "Không gọi SUT để tự xác nhận"
+      ],
+      "shortAnswer": "Ví dụ nghiệp vụ tính tay độc lập hoặc bảng kết quả được xác nhận. Oracle độc lập giúp phát hiện cùng một lỗi logic không bị nhân đôi vào expected. Bộ mẫu cần kèm quy tắc làm tròn và các khoản phí liên quan.",
+      "explanation": "Oracle độc lập giúp phát hiện cùng một lỗi logic không bị nhân đôi vào expected. Bộ mẫu cần kèm quy tắc làm tròn và các khoản phí liên quan. Đối chiếu với ví dụ nhỏ đã được xác nhận từ hợp đồng. Có thể bổ sung property như bảo toàn tổng hoặc đơn điệu khi contract cho phép, cùng các ví dụ số tính tay. Một property không phân biệt được hai công thức đang tranh luận vẫn cần case oracle cụ thể để bắt mutation đó.",
+      "alternative": "Có thể bổ sung property như bảo toàn tổng hoặc đơn điệu khi contract cho phép, cùng các ví dụ số tính tay. Một property không phân biệt được hai công thức đang tranh luận vẫn cần case oracle cụ thể để bắt mutation đó.",
+      "trap": "Cho rằng: Gọi chính method đang test để tạo expected.",
+      "rubric": [
+        "Expected độc lập",
+        "Gắn quy tắc nghiệp vụ",
+        "Có ví dụ số cụ thể",
+        "Không gọi SUT để tự xác nhận"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ assert không ném exception",
+          "Gọi chính method đang test để tạo expected",
+          "Ví dụ nghiệp vụ tính tay độc lập hoặc bảng kết quả được xác nhận"
+        ],
+        "en": [
+          "Assert only that no exception is thrown",
+          "Call the tested method to produce expected",
+          "Independently hand-calculated business examples or an approved result table"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-http-response-schema",
+    "content": {
+      "title": "200 nhưng payload sai hợp đồng",
+      "topic": "testing",
+      "subtopic": "200 nhưng payload sai hợp đồng",
+      "tags": [
+        "200 nhưng payload sai hợp đồng",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Integration test GET /orders chỉ kiểm 200. Sau refactor, trường total bị đổi tên và mobile lỗi. Kiểm nào cần thêm để bắt regression hợp đồng JSON?",
+      "englishPrompt": "A GET /orders integration test checks only 200. A refactor renames total and breaks mobile. Which assertion should catch the JSON contract regression?",
+      "context": "Client mobile phụ thuộc tên và kiểu trường JSON chứ không chỉ HTTP status thành công.",
+      "code": null,
+      "hint": "Body có nội dung không có nghĩa đúng schema.",
+      "nextHint": "Assert vào các trường mà client phụ thuộc.",
+      "followUp": "Nếu response thêm một trường optional thì test có nên fail không và vì sao?",
+      "englishFollowUp": "Should the test fail when an optional field is added, and why?",
+      "outline": [
+        "Kiểm field bắt buộc",
+        "Kiểm type",
+        "Kiểm giá trị ý nghĩa",
+        "Không phụ thuộc whitespace hay property order"
+      ],
+      "shortAnswer": "Kiểm tên trường, kiểu dữ liệu và giá trị nghiệp vụ cần thiết của payload. Status chỉ là một phần hợp đồng. Kiểm các trường cần thiết theo cấu trúc giúp phát hiện lỗi mà không khóa vào whitespace hay thứ tự property không có ý nghĩa.",
+      "explanation": "Status chỉ là một phần hợp đồng. Kiểm các trường cần thiết theo cấu trúc giúp phát hiện lỗi mà không khóa vào whitespace hay thứ tự property không có ý nghĩa. Assert vào các trường mà client phụ thuộc. Nếu contract cho phép mở rộng, chấp nhận trường optional mới nhưng vẫn kiểm các trường bắt buộc và dữ liệu của chúng. Snapshot toàn bộ chuỗi JSON dễ fail vì thay đổi không ảnh hưởng client; assert có cấu trúc tập trung hơn.",
+      "alternative": "Nếu contract cho phép mở rộng, chấp nhận trường optional mới nhưng vẫn kiểm các trường bắt buộc và dữ liệu của chúng. Snapshot toàn bộ chuỗi JSON dễ fail vì thay đổi không ảnh hưởng client; assert có cấu trúc tập trung hơn.",
+      "trap": "Cho rằng: Chỉ kiểm Content-Type application/json.",
+      "rubric": [
+        "Kiểm field bắt buộc",
+        "Kiểm type",
+        "Kiểm giá trị ý nghĩa",
+        "Không phụ thuộc whitespace hay property order"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ kiểm Content-Type application/json",
+          "So sánh thứ tự mọi property JSON dù hợp đồng không yêu cầu",
+          "Kiểm tên trường, kiểu dữ liệu và giá trị nghiệp vụ cần thiết của payload"
+        ],
+        "en": [
+          "Only verify Content-Type application/json",
+          "Compare every JSON property order even though the contract does not require it",
+          "Check required field names, types, and business values in the payload"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "test-real-auth-scope-limit",
+    "content": {
+      "title": "Giới hạn của auth handler giả",
+      "topic": "testing",
+      "subtopic": "Giới hạn của auth handler giả",
+      "tags": [
+        "Giới hạn của auth handler giả",
+        ".NET 10"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 7,
+      "technology": ".NET 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Integration suite thay JWT authentication bằng handler luôn cấp identity test. Nó có chứng minh chữ ký, issuer và audience của token thật được kiểm đúng không?",
+      "englishPrompt": "Explain your choice and its limits. An integration suite replaces JWT authentication with a handler that supplies test identities. Does it prove real token signature, issuer, and audience validation?",
+      "context": "Bộ test nhanh đã cô lập policy logic bằng identity giả, nên phạm vi bằng chứng cần được ghi rõ.",
+      "code": null,
+      "hint": "Một double không thực thi thành phần nó thay thế.",
+      "nextHint": "Test policy và test token validation trả lời hai câu hỏi khác nhau.",
+      "followUp": "Bạn chọn token sai audience nhưng chữ ký hợp lệ để phân biệt lỗi nào?",
+      "englishFollowUp": "What defect does a validly signed token with the wrong audience isolate?",
+      "outline": [
+        "Nêu JWT bị thay",
+        "Không suy bằng chứng quá phạm vi",
+        "Test chữ ký issuer audience riêng",
+        "Có token invalid đối chứng"
+      ],
+      "shortAnswer": "Không, cần kiểm riêng đường JWT thật với token phù hợp và không hợp lệ. Handler giả phục vụ test authorization và flow nhưng bỏ qua bộ kiểm JWT thật. Phạm vi bằng chứng phải phản ánh boundary bị thay thế.",
+      "explanation": "Handler giả phục vụ test authorization và flow nhưng bỏ qua bộ kiểm JWT thật. Phạm vi bằng chứng phải phản ánh boundary bị thay thế. Test policy và test token validation trả lời hai câu hỏi khác nhau. Thêm test dùng token ký bằng khóa test được trust có chủ đích, rồi biến đổi issuer, audience và expiry từng yếu tố. Tránh dùng token sản xuất; giữ policy test giả để chẩn đoán lỗi authorization độc lập với lỗi validation token.",
+      "alternative": "Thêm test dùng token ký bằng khóa test được trust có chủ đích, rồi biến đổi issuer, audience và expiry từng yếu tố. Tránh dùng token sản xuất; giữ policy test giả để chẩn đoán lỗi authorization độc lập với lỗi validation token.",
+      "trap": "Cho rằng: Có, mọi auth handler dùng cùng validation mặc định.",
+      "rubric": [
+        "Nêu JWT bị thay",
+        "Không suy bằng chứng quá phạm vi",
+        "Test chữ ký issuer audience riêng",
+        "Có token invalid đối chứng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-10.0",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "test-sql-migration-upgrade-path",
+    "content": {
+      "title": "Test migration từ schema trước",
+      "topic": "testing",
+      "subtopic": "Test migration từ schema trước",
+      "tags": [
+        "Test migration từ schema trước",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "CI tạo DB mới bằng migration đầu đến cuối đều pass. Muốn phát hiện lỗi nâng dữ liệu thật từ phiên bản ngay trước release, cần thêm kịch bản nào?",
+      "englishPrompt": "CI successfully creates a fresh database using all migrations. What scenario detects data-upgrade defects from the version immediately before the release?",
+      "context": "Đường nâng cấp cần bảo toàn dữ liệu của release trước, không chỉ tạo thành công một DB rỗng.",
+      "code": null,
+      "hint": "Một DB mới không chứa dữ liệu cũ có nguy cơ bị mất.",
+      "nextHint": "Chuẩn bị phiên bản trước tạo đúng điểm bắt đầu của phép nâng cấp.",
+      "followUp": "Nếu migration đổi kiểu cột, cần dữ liệu biên nào trước khi chạy?",
+      "englishFollowUp": "Which boundary data should be seeded before a column-type migration?",
+      "outline": [
+        "Bắt đầu schema cũ",
+        "Seed dữ liệu đại diện",
+        "Áp đúng migration mới",
+        "Assert bảo toàn và hợp đồng schema"
+      ],
+      "shortAnswer": "Tạo schema bản trước, seed dữ liệu đại diện, áp migration mới rồi kiểm bảo toàn. Fresh install không thay kiểm đường nâng cấp có dữ liệu cũ. Dataset cần dữ liệu biên liên quan thay đổi schema và assert sau nâng cấp.",
+      "explanation": "Fresh install không thay kiểm đường nâng cấp có dữ liệu cũ. Dataset cần dữ liệu biên liên quan thay đổi schema và assert sau nâng cấp. Chuẩn bị phiên bản trước tạo đúng điểm bắt đầu của phép nâng cấp. Giữ cả fresh-install và upgrade-path test vì chúng phát hiện hai nhóm lỗi khác nhau. Với đổi kiểu, seed giá trị lớn, NULL và dữ liệu biên hợp đồng cũ; xác minh kết quả cụ thể sau migration, không chỉ exit code.",
+      "alternative": "Giữ cả fresh-install và upgrade-path test vì chúng phát hiện hai nhóm lỗi khác nhau. Với đổi kiểu, seed giá trị lớn, NULL và dữ liệu biên hợp đồng cũ; xác minh kết quả cụ thể sau migration, không chỉ exit code.",
+      "trap": "Cho rằng: Chỉ kiểm file migration có tên đúng.",
+      "rubric": [
+        "Bắt đầu schema cũ",
+        "Seed dữ liệu đại diện",
+        "Áp đúng migration mới",
+        "Assert bảo toàn và hợp đồng schema"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dùng EnsureCreated bản mới rồi kết luận upgrade an toàn",
+          "Chỉ kiểm file migration có tên đúng",
+          "Tạo schema bản trước, seed dữ liệu đại diện, áp migration mới rồi kiểm bảo toàn"
+        ],
+        "en": [
+          "Use EnsureCreated for the latest model and declare upgrades safe",
+          "Only check the migration filename",
+          "Create the previous schema, seed representative data, apply the new migration, and verify preservation"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "oop-authorized-write-precondition",
+    "content": {
+      "title": "Quyền sửa thay đổi trước khi ghi",
+      "topic": "oop",
+      "subtopic": "Quyền sửa thay đổi trước khi ghi",
+      "tags": [
+        "Quyền sửa thay đổi trước khi ghi",
+        ".NET 10"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 7,
+      "technology": ".NET 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Note chỉ cho owner hiện tại sửa. A được phép khi đọc; trước lúc A ghi, OwnerId đã chuyển sang B. Hợp đồng yêu cầu quyền vẫn đúng tại thời điểm ghi. Làm sao không dùng kết quả kiểm quyền đã cũ?",
+      "englishPrompt": "Explain your choice and its limits. Only a note's current owner may edit it. A is authorized when reading, but OwnerId changes to B before A writes. The contract requires authorization to hold at write time. How can a stale permission check be prevented from authorizing the write?",
+      "context": "Quyền sửa chỉ dựa vào OwnerId hiện tại của note; chủ sở hữu có thể đổi trong lúc một request đang xử lý.",
+      "code": null,
+      "hint": "Tách thời điểm kiểm tra khỏi thời điểm side effect.",
+      "nextHint": "Một lần kiểm thêm vẫn có khoảng race nếu điều kiện không được bảo vệ cùng phép ghi.",
+      "followUp": "Nếu ownership được quản lý ở service khác, vì sao transaction database cục bộ chưa đủ?",
+      "englishFollowUp": "Why is a local database transaction insufficient when ownership is managed by another service?",
+      "outline": [
+        "Nhận diện check-use race",
+        "Gắn owner hoặc version với write",
+        "Kiểm số dòng hoặc conflict",
+        "Không retry bằng quyền đã cũ"
+      ],
+      "shortAnswer": "Gắn precondition OwnerId/Version vào lệnh ghi và xử lý khi không khớp. Kiểm quyền dựa trên trạng thái mutable có thể cũ trước lúc ghi. Conditional write phải ràng buộc trạng thái ủy quyền đã được chấp nhận; không khớp thì dừng và đánh giá lại theo hợp đồng.",
+      "explanation": "Kiểm quyền dựa trên trạng thái mutable có thể cũ trước lúc ghi. Conditional write phải ràng buộc trạng thái ủy quyền đã được chấp nhận; không khớp thì dừng và đánh giá lại theo hợp đồng. Một lần kiểm thêm vẫn có khoảng race nếu điều kiện không được bảo vệ cùng phép ghi. Ghi có điều kiện theo actor và version đã đọc, rồi kiểm số dòng bị tác động. Khi không khớp, tải lại theo quyền hiện tại và trả lỗi phù hợp; không tự retry với owner mới vì lần kiểm quyền cũ không còn chứng minh quyền sửa.",
+      "alternative": "Ghi có điều kiện theo actor và version đã đọc, rồi kiểm số dòng bị tác động. Khi không khớp, tải lại theo quyền hiện tại và trả lỗi phù hợp; không tự retry với owner mới vì lần kiểm quyền cũ không còn chứng minh quyền sửa.",
+      "trap": "Cho rằng: Kiểm OwnerId trước UPDATE rồi ghi chỉ theo Id, không có ranh giới atomic.",
+      "rubric": [
+        "Nhận diện check-use race",
+        "Gắn owner hoặc version với write",
+        "Kiểm số dòng hoặc conflict",
+        "Không retry bằng quyền đã cũ"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/concurrency",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "oop-domain-vs-input-validation",
+    "content": {
+      "title": "DTO hợp lệ nhưng domain từ chối",
+      "topic": "oop",
+      "subtopic": "DTO hợp lệ nhưng domain từ chối",
+      "tags": [
+        "DTO hợp lệ nhưng domain từ chối",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "DTO chuyển tiền đã đúng kiểu, trường bắt buộc và số dương. Tài khoản hiện bị khóa. Vì sao domain vẫn phải kiểm tra trước khi chuyển?",
+      "englishPrompt": "A transfer DTO has valid types, required fields, and a positive amount. The account is currently locked. Why must the domain still validate before transferring?",
+      "context": "Cùng use case chuyển tiền có thể được gọi qua HTTP hoặc từ một worker nội bộ.",
+      "code": null,
+      "hint": "Một giá trị hợp lệ vẫn có thể không được phép ở trạng thái này.",
+      "nextHint": "Domain cần bảo vệ hành vi chứ không chỉ cấu trúc request.",
+      "followUp": "Nếu có worker gọi trực tiếp use case không qua HTTP thì invariant cần đặt ở đâu?",
+      "englishFollowUp": "Where must the invariant live when a worker invokes the use case without HTTP?",
+      "outline": [
+        "Phân biệt shape và invariant",
+        "Kiểm trạng thái khóa",
+        "Áp dụng mọi đường gọi",
+        "Không coi DTO validation là đủ"
+      ],
+      "shortAnswer": "Input validation không chứng minh invariant theo trạng thái domain. Boundary validation kiểm hình dạng đầu vào; invariant bảo vệ thao tác theo trạng thái hiện tại và phải áp dụng cho mọi đường gọi use case.",
+      "explanation": "Boundary validation kiểm hình dạng đầu vào; invariant bảo vệ thao tác theo trạng thái hiện tại và phải áp dụng cho mọi đường gọi use case. Domain cần bảo vệ hành vi chứ không chỉ cấu trúc request. Giữ kiểm hình dạng và lỗi thông báo thân thiện ở boundary, còn invariant theo trạng thái nằm ở domain hoặc use case phù hợp. Với quy tắc phụ thuộc cập nhật đồng thời, thêm concurrency/transaction enforcement; validation trên object riêng lẻ chưa đủ.",
+      "alternative": "Giữ kiểm hình dạng và lỗi thông báo thân thiện ở boundary, còn invariant theo trạng thái nằm ở domain hoặc use case phù hợp. Với quy tắc phụ thuộc cập nhật đồng thời, thêm concurrency/transaction enforcement; validation trên object riêng lẻ chưa đủ.",
+      "trap": "Cho rằng: DTO hợp lệ thì mọi hành vi nghiệp vụ phải được phép.",
+      "rubric": [
+        "Phân biệt shape và invariant",
+        "Kiểm trạng thái khóa",
+        "Áp dụng mọi đường gọi",
+        "Không coi DTO validation là đủ"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-model-layer-validations",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Chỉ database type kiểm tra được trạng thái khóa",
+          "DTO hợp lệ thì mọi hành vi nghiệp vụ phải được phép",
+          "Input validation không chứng minh invariant theo trạng thái domain"
+        ],
+        "en": [
+          "Only a database type can check the locked state",
+          "A valid DTO means every business action must be permitted",
+          "Input validation does not prove state-dependent domain invariants"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "oop-aggregate-transaction-boundary",
+    "content": {
+      "title": "Chọn ranh giới aggregate",
+      "topic": "oop",
+      "subtopic": "Chọn ranh giới aggregate",
+      "tags": [
+        "Chọn ranh giới aggregate",
+        ".NET 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": ".NET 10",
+      "prompt": "Order phải giữ tổng tiền khớp các line sau mỗi command. Product catalog có vòng đời và cập nhật riêng. Nên ưu tiên tiêu chí nào khi chọn aggregate boundary?",
+      "englishPrompt": "An Order must keep its total consistent with its lines after every command. The product catalog has an independent lifecycle. What should primarily guide the aggregate boundary?",
+      "context": "Order và các line phải thống nhất sau mỗi thao tác nghiệp vụ, trong khi catalog được đội khác cập nhật.",
+      "code": null,
+      "hint": "Quan hệ dữ liệu và nhu cầu atomic không đồng nhất.",
+      "nextHint": "Order và line có invariant chung; catalog không nhất thiết cùng vòng đời.",
+      "followUp": "Nếu giá catalog thay đổi thì đơn đã chốt nên dùng snapshot giá hay đọc lại giá mới?",
+      "englishFollowUp": "Should a finalized order keep a price snapshot or reread the latest catalog price?",
+      "outline": [
+        "Nêu invariant chung",
+        "Chọn ranh giới transaction",
+        "Không gom theo FK đơn thuần",
+        "Cân nhắc tranh chấp và vòng đời"
+      ],
+      "shortAnswer": "Nhóm dữ liệu cần nhất quán transaction quanh invariant, không gom mọi navigation. Aggregate là ranh giới nhất quán domain; quan hệ tham chiếu giữa dữ liệu không tự buộc cùng aggregate. Ranh giới lớn quá làm tăng tranh chấp.",
+      "explanation": "Aggregate là ranh giới nhất quán domain; quan hệ tham chiếu giữa dữ liệu không tự buộc cùng aggregate. Ranh giới lớn quá làm tăng tranh chấp. Order và line có invariant chung; catalog không nhất thiết cùng vòng đời. Tham chiếu Product bằng identity và giữ snapshot giá đã chốt khi hợp đồng đơn cần lịch sử ổn định. Không gom cả catalog vào aggregate Order chỉ vì có navigation; ranh giới lớn làm tăng tranh chấp và coupling vòng đời.",
+      "alternative": "Tham chiếu Product bằng identity và giữ snapshot giá đã chốt khi hợp đồng đơn cần lịch sử ổn định. Không gom cả catalog vào aggregate Order chỉ vì có navigation; ranh giới lớn làm tăng tranh chấp và coupling vòng đời.",
+      "trap": "Cho rằng: Gom mọi bảng có foreign key vào cùng aggregate.",
+      "rubric": [
+        "Nêu invariant chung",
+        "Chọn ranh giới transaction",
+        "Không gom theo FK đơn thuần",
+        "Cân nhắc tranh chấp và vòng đời"
+      ],
+      "source": "https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/microservice-domain-model",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Mỗi cột luôn là một aggregate riêng",
+          "Gom mọi bảng có foreign key vào cùng aggregate",
+          "Nhóm dữ liệu cần nhất quán transaction quanh invariant, không gom mọi navigation"
+        ],
+        "en": [
+          "Every column must be its own aggregate",
+          "Put every foreign-key-linked table in one aggregate",
+          "Group data requiring transactional consistency around invariants, rather than every navigation"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "oop-anticorruption-semantics",
+    "content": {
+      "title": "Không để mã đối tác định nghĩa domain",
+      "topic": "oop",
+      "subtopic": "Không để mã đối tác định nghĩa domain",
+      "tags": [
+        "Không để mã đối tác định nghĩa",
+        ".NET 10"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 7,
+      "technology": ".NET 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Partner dùng trạng thái X để chỉ vừa hủy vừa thất bại thanh toán, còn domain phân biệt hai khái niệm. Một adapter chỉ đổi tên method chưa đủ. Lớp nào nên bảo vệ semantics domain?",
+      "englishPrompt": "Explain your choice and its limits. A partner uses status X for both cancellation and payment failure, while the domain distinguishes them. Merely renaming methods in an adapter is insufficient. Which layer should protect domain semantics?",
+      "context": "Thông tin partner cung cấp không đủ phân biệt hai trạng thái có ý nghĩa khác nhau trong domain.",
+      "code": null,
+      "hint": "Đổi cú pháp gọi không giải quyết mất thông tin ngữ nghĩa.",
+      "nextHint": "Nếu X không phân biệt được hai nghĩa thì cần quy tắc bổ sung hoặc làm rõ.",
+      "followUp": "Bạn xử lý trạng thái partner chưa biết thế nào để không âm thầm gán sai?",
+      "englishFollowUp": "How should an unknown partner status be handled without silently misclassifying it?",
+      "outline": [
+        "Bảo vệ semantics domain",
+        "Nhận diện thông tin bị gộp",
+        "Có quy tắc mapping rõ",
+        "Không đoán cho mã chưa biết"
+      ],
+      "shortAnswer": "Anti-corruption layer dịch và xử lý chênh lệch ý nghĩa theo hợp đồng. ACL giữ model ngoài khỏi chi phối model trong; mapping thiếu thông tin phải có quy tắc hoặc trạng thái chưa xác định, không đoán một kết quả chắc chắn.",
+      "explanation": "ACL giữ model ngoài khỏi chi phối model trong; mapping thiếu thông tin phải có quy tắc hoặc trạng thái chưa xác định, không đoán một kết quả chắc chắn. Nếu X không phân biệt được hai nghĩa thì cần quy tắc bổ sung hoặc làm rõ. Nếu mã chưa biết hoặc bị gộp không thể giải nghĩa an toàn, giữ unknown hoặc từ chối theo hợp đồng và yêu cầu bổ sung dữ liệu. Mapping sang trạng thái thành công mặc định làm mất bằng chứng và có thể đổi quyết định nghiệp vụ sai.",
+      "alternative": "Nếu mã chưa biết hoặc bị gộp không thể giải nghĩa an toàn, giữ unknown hoặc từ chối theo hợp đồng và yêu cầu bổ sung dữ liệu. Mapping sang trạng thái thành công mặc định làm mất bằng chứng và có thể đổi quyết định nghiệp vụ sai.",
+      "trap": "Cho rằng: Đưa mã X trực tiếp vào mọi aggregate.",
+      "rubric": [
+        "Bảo vệ semantics domain",
+        "Nhận diện thông tin bị gộp",
+        "Có quy tắc mapping rõ",
+        "Không đoán cho mã chưa biết"
+      ],
+      "source": "https://learn.microsoft.com/en-us/azure/architecture/patterns/anti-corruption-layer",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  }
+]

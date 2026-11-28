@@ -1,6 +1,8 @@
 # 04. .NET Interview Practice
 
-Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 256 câu Việt–Anh, 11 chủ đề, 24 bài C#, 21 bài T-SQL, 23 tình huống code review, 20 đề thiết kế hệ thống, 10 tình huống dự án và 11 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
+Ứng dụng luyện phỏng vấn cá nhân cho lập trình viên .NET, với 500 câu Việt–Anh, 11 chủ đề, 80 bài C# (gồm 30 debugging lab), 60 bài T-SQL, 40 tình huống code review, 30 đề thiết kế hệ thống, 25 tình huống dự án và 25 bộ phỏng vấn. Sau khi đăng ký, mở **Phiên học nhanh**, chọn 5, 10, 15 hoặc 30 phút, rồi nộp câu đầu tiên để bắt đầu lịch ôn cá nhân.
+
+Checkpoint V4 hoàn tất mở rộng nội dung Phase 1–2. Ba mươi interactive lessons, mười mini project và các phần AI/countdown/cá nhân hóa mở rộng là công việc tiếp theo trong [kế hoạch V4](UPGRADE_PLAN_V4.md).
 
 ## Học và theo dõi tiến độ
 
@@ -16,7 +18,7 @@
 
 ## Chạy local
 
-Trong **Phỏng vấn thực hành**, người học chọn repository GitHub công khai hoặc ZIP tối đa 2 MiB. Chọn tối đa 12 tệp để tạo câu hỏi dẫn tới dòng mã cụ thể. Phần phân tích chạy theo quy tắc trên máy chủ trong bộ nhớ. Code Review lưu nhận xét theo tài khoản, tình huống và phiên bản. Debugging Lab có ba starter tái hiện lỗi, test công khai và test riêng khi bật worker.
+Trong **Phỏng vấn thực hành**, người học chọn repository GitHub công khai hoặc ZIP tối đa 2 MiB. Chọn tối đa 12 tệp để tạo câu hỏi dẫn tới dòng mã cụ thể. Phần phân tích chạy theo quy tắc trên máy chủ trong bộ nhớ. Code Review lưu nhận xét theo tài khoản, tình huống và phiên bản. Debugging Lab có 30 starter tái hiện lỗi, test công khai và test riêng khi bật worker.
 
 Cần .NET SDK 10, Node.js 24 và một instance SQL Server. Cấu hình Development mặc định kết nối SQL Server tại localhost bằng Windows Authentication và dùng cơ sở dữ liệu InterviewPractice.
 
@@ -96,7 +98,9 @@ dotnet build server --no-restore
 npm.cmd run test:content --prefix web
 ~~~
 
-test:content kiểm tra câu hỏi, bài vận dụng và bài thực hành theo từng batch. Các ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot. Kết quả của bản V3 nằm trong [CONTENT_QUALITY_REPORT.md](CONTENT_QUALITY_REPORT.md).
+test:content kiểm tra câu hỏi, bài vận dụng và bài thực hành theo từng batch. Các ca thực thi gồm ví dụ, test C#, truy vấn T-SQL và đoạn mã dự đoán kết quả. Thêm `--sources` vào `node web/checks/content.mjs` để xác minh URL nguồn; thêm `--source-manifest docs/content/v4-review-manifest.json` để gồm nguồn của các học liệu V4. Cần SQL Server local và tempdb. Khi thay dataset, tăng phiên bản, đặt IP_REFRESH_PREVIEW=1 và chạy lại để cập nhật snapshot. Kết quả hiện hành nằm trong [CONTENT_QUALITY_REPORT.md](CONTENT_QUALITY_REPORT.md).
+
+`powershell -NoProfile -File web/checks/content-batch.ps1` kiểm tra nhập lại sáu batch V4 từ baseline 256 trên database QA mới, quyền xuất bản, giữ câu trả lời cũ và đo tìm kiếm ở 500/1.000 hàng. Chạy tuần tự các script build .NET để tránh tranh chấp thư mục obj. `--drafts <directory>` của content checker cho phép kiểm học liệu trước khi tích hợp vào seed.
 
 Trên Windows, sau khi build frontend, chạy các lệnh sau từ thư mục dự án. Hai lượt QA dùng Chrome đã cài, cơ sở dữ liệu InterviewPractice_QA, tài khoản thử nghiệm và tiến trình loopback tạm. Lần chạy sau phải bắt đầu sau khi lần trước đã kết thúc.
 

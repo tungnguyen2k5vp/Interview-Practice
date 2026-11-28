@@ -1,0 +1,342 @@
+[
+  {
+    "slug": "aspnet-cookie-csrf-intent",
+    "version": 1,
+    "prompt": "Form đổi email có cookie và thiếu antiforgery token. Có nên lưu chỉ vì cookie giải mã được?",
+    "englishPrompt": "An email-change form has a cookie but no antiforgery token. Should a decryptable cookie alone permit saving?",
+    "choices": [
+      "Không, yêu cầu và xác minh token trước thao tác.",
+      "Có, TLS đã chứng minh ý định."
+    ],
+    "englishChoices": [
+      "No; require and validate the token before the change.",
+      "Yes; TLS proves the intent."
+    ],
+    "correctIndex": 0,
+    "explanation": "Kiểm tra antiforgery token cho thao tác đổi trạng thái; HTTPS không chứng minh request xuất phát từ trang đáng tin. Trình duyệt có thể tự gửi cookie nên việc đăng nhập vẫn thành công với request do trang khác tạo. Token phải được phát và xác minh theo cơ chế antiforgery của framework, không chỉ thêm hidden field tùy ý.",
+    "englishExplanation": "No; require and validate the token before the change."
+  },
+  {
+    "slug": "aspnet-samesite-none-secure",
+    "version": 1,
+    "prompt": "Cookie cross-site có SameSite=None nhưng thiếu Secure. Cấu hình nào cần sửa?",
+    "englishPrompt": "A cross-site cookie has SameSite=None but no Secure attribute. What needs fixing?",
+    "choices": [
+      "Xóa HTTPS để cookie đi được.",
+      "Thêm Secure và sử dụng HTTPS."
+    ],
+    "englishChoices": [
+      "Remove HTTPS to deliver it.",
+      "Add Secure and use HTTPS."
+    ],
+    "correctIndex": 1,
+    "explanation": "Đặt Secure và phục vụ qua HTTPS; None không có nghĩa là bỏ các bảo vệ còn lại. Trình duyệt hiện đại yêu cầu cookie None được đánh dấu Secure. Việc này chỉ điều chỉnh điều kiện gửi cookie; chính sách chặn third-party cookie của trình duyệt vẫn có thể ảnh hưởng luồng.",
+    "englishExplanation": "Add Secure and use HTTPS."
+  },
+  {
+    "slug": "aspnet-local-return-url",
+    "version": 1,
+    "prompt": "returnUrl là https://other.example/login. Nếu chỉ cho redirect nội bộ, lựa chọn nào đúng?",
+    "englishPrompt": "returnUrl is https://other.example/login. If redirects must stay local, which choice is correct?",
+    "choices": [
+      "Từ chối và dùng trang nội bộ dự phòng.",
+      "Cho qua vì URL dùng HTTPS."
+    ],
+    "englishChoices": [
+      "Reject it and use a local fallback page.",
+      "Allow it because the URL uses HTTPS."
+    ],
+    "correctIndex": 0,
+    "explanation": "Chỉ chấp nhận URL local bằng helper framework và có đích dự phòng an toàn. Return URL là đầu vào không tin cậy dù đi qua màn hình đăng nhập thật. Dùng IsLocalUrl hoặc LocalRedirect theo hợp đồng; tránh kiểm tra kiểu chuỗi chứa tên miền vì không xác nhận đúng authority.",
+    "englishExplanation": "Reject it and use a local fallback page."
+  },
+  {
+    "slug": "aspnet-user-secrets-not-encrypted",
+    "version": 1,
+    "prompt": "Một developer có quyền đọc profile người dùng. User Secrets có bảo đảm người đó không đọc được key không?",
+    "englishPrompt": "A developer can read the user profile. Does User Secrets guarantee that they cannot read a key?",
+    "choices": [
+      "Có, tên Secret Manager bảo đảm mã hóa.",
+      "Không, giá trị không được mã hóa bởi công cụ."
+    ],
+    "englishChoices": [
+      "Yes; the Secret Manager name guarantees encryption.",
+      "No; the tool does not encrypt the values."
+    ],
+    "correctIndex": 1,
+    "explanation": "Secret Manager dành cho phát triển và không mã hóa giá trị; production cần nơi quản lý bí mật được kiểm soát truy cập. Công cụ giúp tránh đưa bí mật vào repository, không tạo kho bí mật an toàn trước người có quyền đọc profile. Cấp bí mật theo môi trường, quyền tối thiểu và không in chúng vào log khi chẩn đoán cấu hình.",
+    "englishExplanation": "No; the tool does not encrypt the values."
+  },
+  {
+    "slug": "aspnet-safe-production-errors",
+    "version": 1,
+    "prompt": "Client cần báo mã lỗi cho hỗ trợ. Dữ liệu nào nên gửi?",
+    "englishPrompt": "A client must report an error to support. What should be returned?",
+    "choices": [
+      "Mã tương quan và thông báo an toàn.",
+      "Toàn bộ connection string để dễ tra."
+    ],
+    "englishChoices": [
+      "A correlation ID and a safe message.",
+      "The complete connection string for lookup."
+    ],
+    "correctIndex": 0,
+    "explanation": "Trả lỗi tổng quát có mã tương quan; giữ chi tiết đã lọc trong log có kiểm soát truy cập. Thông báo cho client cần đủ để xử lý hợp đồng, không cần stack trace hay bí mật hạ tầng. Dùng exception handler tập trung và tắt Developer Exception Page ở production. Kiểm tra log cũng không chứa connection string hoặc token.",
+    "englishExplanation": "A correlation ID and a safe message."
+  },
+  {
+    "slug": "aspnet-background-httpcontext-copy",
+    "version": 1,
+    "prompt": "Worker cần correlation ID sau khi request kết thúc. Nên enqueue gì?",
+    "englishPrompt": "A worker needs a correlation ID after the request ends. What should be queued?",
+    "choices": [
+      "Tham chiếu HttpContext để đọc sau.",
+      "Giá trị ID đã sao chép trong payload."
+    ],
+    "englishChoices": [
+      "A reference to HttpContext for later reading.",
+      "The copied ID value in the payload."
+    ],
+    "correctIndex": 1,
+    "explanation": "Không giữ HttpContext sau request; chụp dữ liệu tối thiểu cần thiết vào thông điệp độc lập. HttpContext thuộc request và không thread-safe. Worker cần job ID, owner ID đã xác minh và payload có hợp đồng rõ; vẫn kiểm tra quyền phù hợp tại lúc thực thi nếu trạng thái quyền có thể thay đổi.",
+    "englishExplanation": "The copied ID value in the payload."
+  },
+  {
+    "slug": "aspnet-outputcache-authenticated-default",
+    "version": 1,
+    "prompt": "GET công khai trả 200 nhưng có Set-Cookie. Mặc định có lưu output cache không?",
+    "englishPrompt": "A public GET returns 200 but sets a cookie. Is it stored by the default output-cache policy?",
+    "choices": [
+      "Không, response đặt cookie bị loại.",
+      "Có, status 200 luôn đủ."
+    ],
+    "englishChoices": [
+      "No; responses that set cookies are excluded.",
+      "Yes; status 200 is always sufficient."
+    ],
+    "correctIndex": 0,
+    "explanation": "Không; mặc định không cache phản hồi cho request đã xác thực. Status 200 và GET chưa đủ: policy mặc định cũng loại request đã xác thực và phản hồi đặt cookie. Nếu tùy chỉnh cache dữ liệu riêng, phải thiết kế key và quyền cẩn thận; không vô hiệu hóa bảo vệ chỉ để tăng hit rate.",
+    "englishExplanation": "No; responses that set cookies are excluded."
+  },
+  {
+    "slug": "aspnet-remote-validation-write-boundary",
+    "version": 1,
+    "prompt": "Hai trình duyệt đều vừa được báo email còn trống. Điều gì quyết định chỉ một bản ghi được lưu?",
+    "englishPrompt": "Two browsers were just told an email is available. What ensures only one row is saved?",
+    "choices": [
+      "Kết quả Remote đã cache trong browser.",
+      "Constraint duy nhất tại bước ghi và xử lý lỗi."
+    ],
+    "englishChoices": [
+      "The Remote result cached in the browser.",
+      "A unique constraint at write time and conflict handling."
+    ],
+    "correctIndex": 1,
+    "explanation": "Kiểm tra phía server khi lưu và ràng buộc duy nhất ở DB; kiểm tra UI chỉ hỗ trợ trải nghiệm. Client có thể bỏ JavaScript và dữ liệu có thể thay đổi giữa kiểm tra với submit. Remote không tự thực hiện server-side validation khi form được gửi. Xử lý vi phạm uniqueness thành lỗi an toàn thay vì để hai request cùng lọt.",
+    "englishExplanation": "A unique constraint at write time and conflict handling."
+  },
+  {
+    "slug": "aspnet-claim-value-allowlist",
+    "version": 1,
+    "prompt": "Policy cho Region=VN hoặc SG, principal có Region=SG. Điều kiện này đạt không?",
+    "englishPrompt": "A policy permits Region=VN or SG and the principal has Region=SG. Is this condition met?",
+    "choices": [
+      "Có, SG nằm trong tập được phép.",
+      "Không, phải có đồng thời VN và SG."
+    ],
+    "englishChoices": [
+      "Yes; SG is one of the permitted values.",
+      "No; both VN and SG are required."
+    ],
+    "correctIndex": 0,
+    "explanation": "Không; policy yêu cầu cả loại claim và một giá trị được cho phép. Phân biệt RequireClaim chỉ với tên và RequireClaim với tập giá trị. Claims chỉ có ý nghĩa sau khi được xác thực từ nguồn tin cậy; không lấy header Department của client thay cho principal.",
+    "englishExplanation": "Yes; SG is one of the permitted values."
+  },
+  {
+    "slug": "aspnet-configuration-provider-precedence",
+    "version": 1,
+    "prompt": "A có Search:Timeout nhưng B không có key này. B có xóa giá trị của A không?",
+    "englishPrompt": "A has Search:Timeout but B lacks that key. Does B remove A's value?",
+    "choices": [
+      "Có, B thay thế toàn bộ cấu hình A.",
+      "Không, key không bị ghi đè vẫn lấy từ A."
+    ],
+    "englishChoices": [
+      "Yes; B replaces all of A.",
+      "No; the unoverridden key remains available from A."
+    ],
+    "correctIndex": 1,
+    "explanation": "Provider B, vì provider thêm sau ghi đè key trùng của provider trước. Cấu hình được hợp nhất theo key, không phải chọn nguyên một file. Khi giá trị production sai, kiểm tra thứ tự provider và tên key thực tế trước khi sửa file; không log bí mật để chẩn đoán.",
+    "englishExplanation": "No; the unoverridden key remains available from A."
+  },
+  {
+    "slug": "aspnet-timeout-cooperative-signal",
+    "version": 1,
+    "prompt": "Thư viện downstream bỏ qua token. Timeout ngoài có chắc dừng I/O đó tức thì không?",
+    "englishPrompt": "A downstream library ignores the token. Does the outer timeout guarantee immediate termination of that I/O?",
+    "choices": [
+      "Không, cancellation mang tính hợp tác.",
+      "Có, mọi timeout cưỡng bức kill thread."
+    ],
+    "englishChoices": [
+      "No; cancellation is cooperative.",
+      "Yes; every timeout forcibly kills the thread."
+    ],
+    "correctIndex": 0,
+    "explanation": "Không; RequestAborted được báo hủy, handler phải truyền và quan sát token phù hợp. Middleware không tự gọi Abort. Thao tác không hợp tác có thể tiếp tục và thậm chí tạo response. Timeout cũng không đảo ngược giao dịch đã commit; vì vậy cần hợp đồng retry và kiểm tra trạng thái cho thao tác ghi.",
+    "englishExplanation": "No; cancellation is cooperative."
+  },
+  {
+    "slug": "aspnet-jwt-expired-token",
+    "version": 1,
+    "prompt": "Đồng bộ đồng hồ đúng nhưng token đã hết hạn một ngày. Cách nào phù hợp?",
+    "englishPrompt": "Clocks are synchronized but the token expired a day ago. Which response is appropriate?",
+    "choices": [
+      "Đổi exp trong payload rồi giữ chữ ký cũ.",
+      "Challenge và yêu cầu token mới qua luồng hợp lệ."
+    ],
+    "englishChoices": [
+      "Edit exp in the payload while retaining the old signature.",
+      "Challenge and obtain a new token through the legitimate flow."
+    ],
+    "correctIndex": 1,
+    "explanation": "Không; lifetime validation thất bại nên trả authentication challenge, thường là 401 cho Bearer. Chữ ký xác nhận toàn vẹn chứ không làm token có giá trị vô thời hạn. Client cần luồng lấy access token mới theo identity provider; API không tự gia hạn chỉ bằng cách bỏ qua exp.",
+    "englishExplanation": "Challenge and obtain a new token through the legitimate flow."
+  },
+  {
+    "slug": "aspnet-accepted-job-status",
+    "version": 1,
+    "prompt": "Poll job trả failed sau 202 trước đó. Hai phản hồi này có mâu thuẫn không?",
+    "englishPrompt": "Polling returns failed after an earlier 202. Are these responses contradictory?",
+    "choices": [
+      "Không, acceptance không bảo đảm kết quả xử lý.",
+      "Có, 202 đã cam kết thành công cuối cùng."
+    ],
+    "englishChoices": [
+      "No; acceptance does not guarantee processing success.",
+      "Yes; 202 promised eventual success."
+    ],
+    "correctIndex": 0,
+    "explanation": "Không; 202 chỉ cho biết đã nhận để xử lý, chưa bảo đảm xử lý thành công. Trả job ID và đường dẫn đọc trạng thái theo hợp đồng. Phân biệt queued, running, succeeded và failed; chỉ cho tải file khi hoàn tất. Job có thể thất bại sau response nên client cần trạng thái cuối.",
+    "englishExplanation": "No; acceptance does not guarantee processing success."
+  },
+  {
+    "slug": "aspnet-anonymous-metadata-bypass",
+    "version": 1,
+    "prompt": "Một action debug vô tình được gắn AllowAnonymous. Thêm fallback require-auth có chắc chặn không?",
+    "englishPrompt": "A debug action accidentally has AllowAnonymous. Will a require-auth fallback necessarily block it?",
+    "choices": [
+      "Có, fallback luôn thắng AllowAnonymous.",
+      "Không, phải bỏ metadata public sai."
+    ],
+    "englishChoices": [
+      "Yes; fallback always overrides AllowAnonymous.",
+      "No; the incorrect public metadata must be removed."
+    ],
+    "correctIndex": 1,
+    "explanation": "Không; AllowAnonymous khiến authorization middleware không thực thi lỗi phân quyền cho endpoint đó. Metadata được kết hợp khi chọn endpoint, không phải quyền luôn tăng theo cấp lớp. Dùng public health response tối thiểu; kiểm tra không lộ thông tin hạ tầng hoặc dữ liệu riêng qua action này.",
+    "englishExplanation": "No; the incorrect public metadata must be removed."
+  },
+  {
+    "slug": "aspnet-avatar-fetch-destination",
+    "version": 1,
+    "prompt": "URL được phép trả redirect sang địa chỉ nội bộ. Client tải ảnh có nên tự theo không?",
+    "englishPrompt": "An allowed URL redirects to an internal address. Should the image fetcher follow it automatically?",
+    "choices": [
+      "Không, phải kiểm soát đích redirect theo cùng chính sách.",
+      "Có, URL ban đầu hợp lệ là đủ."
+    ],
+    "englishChoices": [
+      "No; redirect destinations must obey the same policy.",
+      "Yes; validation of the initial URL is sufficient."
+    ],
+    "correctIndex": 0,
+    "explanation": "Không; cần giới hạn đích được phép và kiểm soát egress, bao gồm xử lý redirect và phân giải tên. Một URI hợp lệ vẫn có thể chỉ đến loopback, mạng private hoặc metadata service. Ưu tiên allowlist đích khi nghiệp vụ cho phép và không theo redirect tự do vượt ranh giới. Giới hạn dung lượng và timeout để tránh cạn tài nguyên.",
+    "englishExplanation": "No; redirect destinations must obey the same policy."
+  },
+  {
+    "slug": "systems-rset-boundary",
+    "version": 1,
+    "prompt": "Key reservation chỉ được tạo khi chưa tồn tại và sống 20 giây. Chọn đặc tính nào?",
+    "englishPrompt": "A reservation key must be created only when absent and live for 20 seconds. Which combination fits?",
+    "choices": [
+      "SET vô điều kiện rồi hy vọng cleanup sau.",
+      "SET với NX và EX 20 cùng lệnh."
+    ],
+    "englishChoices": [
+      "Unconditional SET followed by hoped-for cleanup.",
+      "SET with NX and EX 20 in one command."
+    ],
+    "correctIndex": 1,
+    "explanation": "Key có thể không có thời hạn; dùng SET với EX hoặc PX trong cùng lệnh khi tạo. TTL là một phần yêu cầu lưu key, không phải cleanup tùy chọn sau đó. Gộp expiration vào SET loại cửa sổ lỗi giữa hai lệnh; vẫn phải xử lý lỗi mạng và kết quả lệnh. Đây không phải bảo đảm transaction giữa Redis và DB.",
+    "englishExplanation": "SET with NX and EX 20 in one command."
+  },
+  {
+    "slug": "systems-rttl-boundary",
+    "version": 1,
+    "prompt": "Dashboard đếm TTL=-1 là cache miss. Sai ở đâu?",
+    "englishPrompt": "A dashboard counts TTL=-1 as a cache miss. What is wrong?",
+    "choices": [
+      "Key vẫn tồn tại, chỉ không có expiration.",
+      "-1 luôn là key đã hết hạn."
+    ],
+    "englishChoices": [
+      "The key still exists; it merely lacks expiration.",
+      "-1 always means an expired key."
+    ],
+    "correctIndex": 0,
+    "explanation": "A tồn tại nhưng không có expiration; B không tồn tại. Không gộp mọi số âm thành đã hết hạn. A cần kiểm tra write path hoặc chủ ý lưu bền; B có thể đã hết hạn, bị xóa hoặc chưa từng có. TTL không xác định nguyên nhân lịch sử khiến key vắng.",
+    "englishExplanation": "The key still exists; it merely lacks expiration."
+  },
+  {
+    "slug": "systems-rpersist-boundary",
+    "version": 1,
+    "prompt": "Máy mất điện ngay sau write nhưng trước kỳ fsync. Có thể mất write đó không?",
+    "englishPrompt": "Power fails just after a write but before the next fsync. Can that write be lost?",
+    "choices": [
+      "Không, nhận OK nghĩa luôn đã fsync.",
+      "Có, everysec cho phép cửa sổ mất dữ liệu."
+    ],
+    "englishChoices": [
+      "No; OK always means fsync has completed.",
+      "Yes; everysec permits a data-loss window."
+    ],
+    "correctIndex": 1,
+    "explanation": "Không cam kết zero loss; có cửa sổ dữ liệu chưa fsync, thường được mô tả khoảng một giây. AOF giảm rủi ro nhưng độ bền phụ thuộc fsync và hệ thống lưu trữ. Chốt RPO/RTO theo nghiệp vụ, thử phục hồi thực tế và giữ dữ liệu quan trọng ở nguồn có mức bền phù hợp. Replica cũng không thay thế backup.",
+    "englishExplanation": "Yes; everysec permits a data-loss window."
+  },
+  {
+    "slug": "systems-rpipe-boundary",
+    "version": 1,
+    "prompt": "Một lệnh pipeline lỗi. Có thể mặc định mọi lệnh trước đã rollback không?",
+    "englishPrompt": "One pipelined command fails. Can you assume earlier commands were rolled back?",
+    "choices": [
+      "Không, pipeline không cung cấp rollback.",
+      "Có, mọi pipeline là một transaction SQL."
+    ],
+    "englishChoices": [
+      "No; pipelining does not provide rollback.",
+      "Yes; every pipeline is a SQL transaction."
+    ],
+    "correctIndex": 0,
+    "explanation": "Gửi nhiều lệnh trước khi chờ replies giúp giảm chi phí round trip; pipeline không tự tạo transaction nghiệp vụ. Chọn batch hữu hạn để không tích replies quá lớn. Vẫn quan sát lỗi từng lệnh và xác định retry khi mất kết nối. Nếu lệnh sau cần kết quả lệnh trước, không thể chỉ pipeline mù toàn chuỗi.",
+    "englishExplanation": "No; pipelining does not provide rollback."
+  },
+  {
+    "slug": "systems-rpub-boundary",
+    "version": 1,
+    "prompt": "Thông báo cập nhật UI có thể bỏ lỡ vì UI sẽ tải lại dữ liệu. Pub/Sub có thể hợp không?",
+    "englishPrompt": "A UI update signal may be missed because the UI reloads authoritative data. Can Pub/Sub fit?",
+    "choices": [
+      "Không, Pub/Sub luôn bảo đảm lưu mọi thông báo.",
+      "Có, nếu bỏ lỡ tín hiệu được chấp nhận rõ."
+    ],
+    "englishChoices": [
+      "No; Pub/Sub always guarantees storing every message.",
+      "Yes, when missed signals are explicitly acceptable."
+    ],
+    "correctIndex": 1,
+    "explanation": "Không; Pub/Sub có ngữ nghĩa at-most-once, thông điệp bỏ lỡ không được replay. Nếu công việc cần tồn tại khi consumer offline, chọn cơ chế lưu message và theo dõi xử lý như stream hoặc broker phù hợp. Sau đó vẫn thiết kế deduplication và retry theo bảo đảm thực tế, không suy thành exactly-once.",
+    "englishExplanation": "Yes, when missed signals are explicitly acceptable."
+  }
+]

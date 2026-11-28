@@ -1,0 +1,2192 @@
+[
+  {
+    "slug": "sql-listagg-null-gap",
+    "content": {
+      "title": "Danh sách người nhận thiếu tên",
+      "topic": "sql",
+      "subtopic": "Danh sách người nhận thiếu tên",
+      "tags": [
+        "Danh sách người nhận thiếu tên",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Bản xuất ghép tên bằng STRING_AGG, không thay NULL bằng chuỗi rỗng. Một nhóm có tên An, NULL, Bình. Dấu phân cách xử lý mục NULL thế nào?",
+      "englishPrompt": "An export uses STRING_AGG without replacing NULL. A group contains An, NULL, and Bình. How is the separator handled for the NULL item?",
+      "context": "Bộ phận vận hành cần danh sách người nhận trên một ô CSV; dữ liệu tên chưa được nhập đủ.",
+      "code": null,
+      "hint": "Phân biệt thiếu giá trị với chuỗi rỗng.",
+      "nextHint": "Dấu phân cách được chèn giữa các giá trị thực sự được ghép.",
+      "followUp": "Nếu đầu vào trùng tên thì danh sách có tự loại trùng không?",
+      "englishFollowUp": "Does the list automatically remove repeated names?",
+      "outline": [
+        "Nêu NULL bị bỏ",
+        "Nêu không có dấu dành riêng cho NULL",
+        "Phân biệt chuỗi rỗng",
+        "Nêu thay thế NULL nếu cần vị trí"
+      ],
+      "shortAnswer": "Bỏ mục NULL và không thêm dấu riêng cho mục đó. STRING_AGG bỏ giá trị NULL; muốn hiển thị chỗ thiếu phải thay NULL trước khi ghép.",
+      "explanation": "STRING_AGG bỏ giá trị NULL; muốn hiển thị chỗ thiếu phải thay NULL trước khi ghép. Dấu phân cách được chèn giữa các giá trị thực sự được ghép. Nếu báo cáo cần giữ chỗ cho tên thiếu, thay NULL bằng nhãn như “chưa nhập” trước khi ghép. Chuỗi rỗng là một giá trị khác NULL nên phải quyết định riêng cách hiển thị.",
+      "alternative": "Nếu báo cáo cần giữ chỗ cho tên thiếu, thay NULL bằng nhãn như “chưa nhập” trước khi ghép. Chuỗi rỗng là một giá trị khác NULL nên phải quyết định riêng cách hiển thị.",
+      "trap": "Cho rằng: Giữ một mục rỗng cùng hai dấu liên tiếp.",
+      "rubric": [
+        "Nêu NULL bị bỏ",
+        "Nêu không có dấu dành riêng cho NULL",
+        "Phân biệt chuỗi rỗng",
+        "Nêu thay thế NULL nếu cần vị trí"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/string-agg-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Bỏ mục NULL và không thêm dấu riêng cho mục đó",
+          "Giữ một mục rỗng cùng hai dấu liên tiếp",
+          "Trả NULL cho toàn nhóm"
+        ],
+        "en": [
+          "Skip NULL without adding its own separator",
+          "Keep an empty slot with two adjacent separators",
+          "Return NULL for the whole group"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-listagg-ordered",
+    "content": {
+      "title": "Thứ tự nhãn trên báo cáo",
+      "topic": "sql",
+      "subtopic": "Thứ tự nhãn trên báo cáo",
+      "tags": [
+        "Thứ tự nhãn trên báo cáo",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Báo cáo cần ghép nhãn theo Position tăng dần, Position duy nhất trong từng nhóm. ORDER BY bên ngoài chỉ sắp xếp các nhóm. Cần đặt thứ tự ghép ở đâu?",
+      "englishPrompt": "A report must concatenate labels by ascending Position, unique within each group. The outer ORDER BY sorts groups only. Where should the concatenation order be specified?",
+      "context": "Mỗi nhóm nhãn có Position do người biên tập quản lý; người đọc cần cùng thứ tự ở mọi lần xuất.",
+      "code": null,
+      "hint": "Tách thứ tự trong nhóm và giữa các nhóm.",
+      "nextHint": "Thứ tự vật lý không phải hợp đồng của phép ghép.",
+      "followUp": "Nếu hai nhãn cùng Position thì cần thêm khóa nào?",
+      "englishFollowUp": "What extra key is needed when two labels share a Position?",
+      "outline": [
+        "Chọn WITHIN GROUP",
+        "Phân biệt ORDER BY ngoài",
+        "Không dựa thứ tự INSERT",
+        "Nhận diện cần khóa phụ khi hòa"
+      ],
+      "shortAnswer": "WITHIN GROUP (ORDER BY Position). WITHIN GROUP xác định thứ tự các giá trị đi vào chuỗi tổng hợp; thứ tự kết quả nhóm là vấn đề riêng.",
+      "explanation": "WITHIN GROUP xác định thứ tự các giá trị đi vào chuỗi tổng hợp; thứ tự kết quả nhóm là vấn đề riêng. Thứ tự vật lý không phải hợp đồng của phép ghép. Nếu Position không duy nhất, thêm khóa ổn định trong WITHIN GROUP. Việc sắp các nhóm để hiển thị vẫn cần ORDER BY của truy vấn ngoài; hai thứ tự phục vụ hai mục tiêu khác nhau.",
+      "alternative": "Nếu Position không duy nhất, thêm khóa ổn định trong WITHIN GROUP. Việc sắp các nhóm để hiển thị vẫn cần ORDER BY của truy vấn ngoài; hai thứ tự phục vụ hai mục tiêu khác nhau.",
+      "trap": "Cho rằng: Chỉ ORDER BY GroupId ở truy vấn ngoài.",
+      "rubric": [
+        "Chọn WITHIN GROUP",
+        "Phân biệt ORDER BY ngoài",
+        "Không dựa thứ tự INSERT",
+        "Nhận diện cần khóa phụ khi hòa"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/string-agg-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Dựa vào thứ tự INSERT",
+          "WITHIN GROUP (ORDER BY Position)",
+          "Chỉ ORDER BY GroupId ở truy vấn ngoài"
+        ],
+        "en": [
+          "Rely on insertion order",
+          "WITHIN GROUP (ORDER BY Position)",
+          "Only ORDER BY GroupId in the outer query"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-import-tryconvert",
+    "content": {
+      "title": "Cách ly dòng số tiền lỗi",
+      "topic": "sql",
+      "subtopic": "Cách ly dòng số tiền lỗi",
+      "tags": [
+        "Cách ly dòng số tiền lỗi",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Cột CSV có các chuỗi số tiền và một giá trị abc. Muốn chuyển từng dòng sang decimal và đánh dấu giá trị chuyển đổi thất bại thay vì hủy cả truy vấn. Chọn cơ chế nào?",
+      "englishPrompt": "A CSV column contains monetary strings and one abc value. Each row should become decimal or be marked as a failed conversion without aborting the query. Which mechanism fits?",
+      "context": "Một dòng CSV lỗi không được làm mất khả năng kiểm tra các dòng còn lại của lô nhập.",
+      "code": null,
+      "hint": "Số 0 là dữ liệu hợp lệ, không phải tín hiệu lỗi.",
+      "nextHint": "Giữ chuỗi gốc và trạng thái chuyển đổi riêng.",
+      "followUp": "Nếu chuỗi nguồn đã là NULL thì phân biệt thế nào với abc?",
+      "englishFollowUp": "How would you distinguish an originally NULL string from abc?",
+      "outline": [
+        "Chọn TRY_CONVERT",
+        "Giữ giá trị gốc",
+        "Không đồng nhất lỗi với 0",
+        "Phân biệt NULL đầu vào và NULL do lỗi"
+      ],
+      "shortAnswer": "TRY_CONVERT sang decimal và kiểm tra kết quả NULL. TRY_CONVERT trả NULL khi chuyển đổi được phép nhưng không thực hiện được; cần giữ dữ liệu gốc để phân biệt thiếu đầu vào với lỗi.",
+      "explanation": "TRY_CONVERT trả NULL khi chuyển đổi được phép nhưng không thực hiện được; cần giữ dữ liệu gốc để phân biệt thiếu đầu vào với lỗi. Giữ chuỗi gốc và trạng thái chuyển đổi riêng. Có thể nhập chuỗi gốc vào staging cùng mã lỗi rồi chỉ chuyển các dòng hợp lệ sang bảng đích. Cách này giữ bằng chứng để sửa dữ liệu, thay vì biến mọi lỗi thành số 0 hợp lệ giả.",
+      "alternative": "Có thể nhập chuỗi gốc vào staging cùng mã lỗi rồi chỉ chuyển các dòng hợp lệ sang bảng đích. Cách này giữ bằng chứng để sửa dữ liệu, thay vì biến mọi lỗi thành số 0 hợp lệ giả.",
+      "trap": "Cho rằng: CAST toàn bộ rồi bỏ qua lỗi trong WHERE.",
+      "rubric": [
+        "Chọn TRY_CONVERT",
+        "Giữ giá trị gốc",
+        "Không đồng nhất lỗi với 0",
+        "Phân biệt NULL đầu vào và NULL do lỗi"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/try-convert-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "TRY_CONVERT sang decimal và kiểm tra kết quả NULL",
+          "CAST toàn bộ rồi bỏ qua lỗi trong WHERE",
+          "Loại ký tự chữ rồi ép kiểu, không lưu trạng thái lỗi"
+        ],
+        "en": [
+          "TRY_CONVERT to decimal and inspect NULL",
+          "CAST everything and ignore errors in WHERE",
+          "Remove letters and cast without retaining failure status"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-running-peer-frame",
+    "content": {
+      "title": "Tổng lũy kế khi trùng giờ",
+      "topic": "sql",
+      "subtopic": "Tổng lũy kế khi trùng giờ",
+      "tags": [
+        "Tổng lũy kế khi trùng giờ",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Hai khoản thu cùng thời điểm cần xuất thành hai bước lũy kế, theo thứ tự Id duy nhất. Với SUM OVER, nên khai báo frame và thứ tự thế nào?",
+      "englishPrompt": "Explain your choice and its limits. Two receipts share a timestamp but must form two running-total steps in unique Id order. How should SUM OVER specify its order and frame?",
+      "context": "Sổ quỹ hiển thị số dư sau từng giao dịch; hai giao dịch cùng giờ vẫn phải là hai bước riêng.",
+      "code": null,
+      "hint": "Có hai vấn đề: dòng hòa và phạm vi cộng.",
+      "nextHint": "Một khóa phụ giải quyết hòa; ROWS diễn tả frame theo dòng.",
+      "followUp": "Muốn mỗi dòng chỉ cộng ba giao dịch gần nhất thì frame đổi ra sao?",
+      "englishFollowUp": "How would the frame change to total only the latest three transactions?",
+      "outline": [
+        "Dùng ROWS",
+        "Thêm Id làm khóa phụ",
+        "Giải thích peer của RANGE",
+        "Giữ PARTITION theo đối tượng nếu có"
+      ],
+      "shortAnswer": "ORDER BY thời điểm, Id và ROWS UNBOUNDED PRECEDING. ROWS cùng khóa sắp xếp duy nhất xác định từng bước; RANGE theo thời điểm có thể gom các peer vào cùng frame.",
+      "explanation": "ROWS cùng khóa sắp xếp duy nhất xác định từng bước; RANGE theo thời điểm có thể gom các peer vào cùng frame. Một khóa phụ giải quyết hòa; ROWS diễn tả frame theo dòng. Nếu nghiệp vụ cần tổng tính chung cho mọi giao dịch cùng thời điểm thì RANGE theo thời điểm có thể phù hợp. Với ba dòng gần nhất, dùng ROWS BETWEEN 2 PRECEDING AND CURRENT ROW cùng thứ tự xác định.",
+      "alternative": "Nếu nghiệp vụ cần tổng tính chung cho mọi giao dịch cùng thời điểm thì RANGE theo thời điểm có thể phù hợp. Với ba dòng gần nhất, dùng ROWS BETWEEN 2 PRECEDING AND CURRENT ROW cùng thứ tự xác định.",
+      "trap": "Cho rằng: Chỉ ORDER BY thời điểm và giữ RANGE mặc định.",
+      "rubric": [
+        "Dùng ROWS",
+        "Thêm Id làm khóa phụ",
+        "Giải thích peer của RANGE",
+        "Giữ PARTITION theo đối tượng nếu có"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-window-filter-stage",
+    "content": {
+      "title": "Lọc top hóa đơn theo nhóm",
+      "topic": "sql",
+      "subtopic": "Lọc top hóa đơn theo nhóm",
+      "tags": [
+        "Lọc top hóa đơn theo nhóm",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Một truy vấn tính ROW_NUMBER theo từng cửa hàng. Muốn giữ rn=1 nhưng WHERE cùng SELECT không nhận alias rn. Nên cấu trúc truy vấn thế nào?",
+      "englishPrompt": "Explain your choice and its limits. A query computes ROW_NUMBER per store. It needs rn=1, but WHERE in that SELECT cannot use the rn alias. How should the query be structured?",
+      "context": "Báo cáo cần đúng một hóa đơn đại diện cho mỗi cửa hàng trước khi ứng dụng nhận dữ liệu.",
+      "code": null,
+      "hint": "Một alias chưa tồn tại ở bước WHERE.",
+      "nextHint": "Thêm một lớp truy vấn, không đổi ý nghĩa phép xếp hạng.",
+      "followUp": "Sau khi chọn rn=1, ORDER BY trong OVER có bảo đảm thứ tự toàn bộ kết quả không?",
+      "englishFollowUp": "After selecting rn=1, does the OVER ordering guarantee the final output order?",
+      "outline": [
+        "Tạo lớp truy vấn",
+        "Lọc rn ở ngoài",
+        "Không dùng DISTINCT thay xếp hạng",
+        "Phân biệt thứ tự cửa sổ và đầu ra"
+      ],
+      "shortAnswer": "Tính rn trong derived table hoặc CTE rồi lọc ở ngoài. Kết quả hàm cửa sổ cần được tạo trước khi lớp truy vấn ngoài dùng nó làm điều kiện.",
+      "explanation": "Kết quả hàm cửa sổ cần được tạo trước khi lớp truy vấn ngoài dùng nó làm điều kiện. Thêm một lớp truy vấn, không đổi ý nghĩa phép xếp hạng. Có thể dùng derived table thay CTE; cả hai tạo lớp truy vấn cho predicate dùng kết quả cửa sổ. Không dùng HAVING như lối tắt vì đó là lọc nhóm, không phải giai đoạn lọc kết quả ROW_NUMBER.",
+      "alternative": "Có thể dùng derived table thay CTE; cả hai tạo lớp truy vấn cho predicate dùng kết quả cửa sổ. Không dùng HAVING như lối tắt vì đó là lọc nhóm, không phải giai đoạn lọc kết quả ROW_NUMBER.",
+      "trap": "Cho rằng: Đổi WHERE thành HAVING rn=1 không GROUP BY.",
+      "rubric": [
+        "Tạo lớp truy vấn",
+        "Lọc rn ở ngoài",
+        "Không dùng DISTINCT thay xếp hạng",
+        "Phân biệt thứ tự cửa sổ và đầu ra"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-openjson-child-array",
+    "content": {
+      "title": "Nhập các dòng hàng JSON",
+      "topic": "sql",
+      "subtopic": "Nhập các dòng hàng JSON",
+      "tags": [
+        "Nhập các dòng hàng JSON",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một request gửi mảng JSON các dòng có sku và qty. Trong SQL Server 2022 compatibility 160, cơ chế nào biến mỗi phần tử thành một dòng với cột định kiểu?",
+      "englishPrompt": "A request sends a JSON array of objects with sku and qty. On SQL Server 2022 compatibility 160, what turns each element into a row with typed columns?",
+      "context": "Đường nhập nhận JSON đúng cú pháp nhưng từng phần tử vẫn có thể thiếu qty hoặc sai kiểu.",
+      "code": null,
+      "hint": "Cần một rowset, không chỉ một giá trị scalar.",
+      "nextHint": "WITH chọn kiểu SQL và đường dẫn cho từng cột.",
+      "followUp": "Nếu qty thiếu thì bạn kiểm tra ràng buộc nhập ở đâu?",
+      "englishFollowUp": "Where would you validate a missing qty?",
+      "outline": [
+        "Chọn OPENJSON",
+        "Khai báo WITH",
+        "Không tách theo dấu phẩy",
+        "Đề cập kiểm tra kiểu và trường bắt buộc"
+      ],
+      "shortAnswer": "OPENJSON với WITH khai báo cột và đường dẫn. OPENJSON là hàm trả bảng và WITH mô tả ánh xạ cột; dấu phẩy trong chuỗi khiến cách tách văn bản không đáng tin.",
+      "explanation": "OPENJSON là hàm trả bảng và WITH mô tả ánh xạ cột; dấu phẩy trong chuỗi khiến cách tách văn bản không đáng tin. WITH chọn kiểu SQL và đường dẫn cho từng cột. Nếu quy tắc lỗi cần trả chi tiết theo từng phần tử, validate cấu trúc ở ứng dụng trước rồi truyền dữ liệu đã định kiểu. Với OPENJSON, kiểm các cột bắt buộc sau khi trích; JSON hợp lệ không chứng minh dữ liệu nghiệp vụ hợp lệ.",
+      "alternative": "Nếu quy tắc lỗi cần trả chi tiết theo từng phần tử, validate cấu trúc ở ứng dụng trước rồi truyền dữ liệu đã định kiểu. Với OPENJSON, kiểm các cột bắt buộc sau khi trích; JSON hợp lệ không chứng minh dữ liệu nghiệp vụ hợp lệ.",
+      "trap": "Cho rằng: JSON_VALUE trả toàn bộ mảng thành nhiều dòng.",
+      "rubric": [
+        "Chọn OPENJSON",
+        "Khai báo WITH",
+        "Không tách theo dấu phẩy",
+        "Đề cập kiểm tra kiểu và trường bắt buộc"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/openjson-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "JSON_VALUE trả toàn bộ mảng thành nhiều dòng",
+          "OPENJSON với WITH khai báo cột và đường dẫn",
+          "JSON_QUERY với WITH vì mọi hàm JSON đều trả rowset"
+        ],
+        "en": [
+          "JSON_VALUE returns the whole array as multiple rows",
+          "OPENJSON with a WITH column and path schema",
+          "JSON_QUERY with WITH because every JSON function returns a rowset"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-output-generated-ids",
+    "content": {
+      "title": "Ghép ID cho nhiều bản ghi mới",
+      "topic": "sql",
+      "subtopic": "Ghép ID cho nhiều bản ghi mới",
+      "tags": [
+        "Ghép ID cho nhiều bản ghi mới",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một lệnh INSERT thêm nhiều phiếu. Ứng dụng cần nhận tất cả Id sinh ra. Cơ chế nào trả các Id của tập dòng vừa chèn?",
+      "englishPrompt": "One INSERT creates several tickets. The application needs all generated Id values. Which mechanism returns the identifiers for the inserted row set?",
+      "context": "Màn hình tạo nhiều phiếu trong một lần gửi và phải hiển thị các mã đã được database cấp.",
+      "code": null,
+      "hint": "Một giá trị scalar không đại diện cả tập chèn.",
+      "nextHint": "OUTPUT cung cấp rowset, nhưng không cam kết thứ tự tương ứng.",
+      "followUp": "Nếu transaction rollback sau khi nhận OUTPUT thì có được báo tạo thành công không?",
+      "englishFollowUp": "If the transaction rolls back after OUTPUT is received, may creation be reported as successful?",
+      "outline": [
+        "Dùng OUTPUT INSERTED",
+        "Nhận đủ tập Id",
+        "Không suy từ MAX",
+        "Không phụ thuộc thứ tự OUTPUT"
+      ],
+      "shortAnswer": "OUTPUT INSERTED.Id. OUTPUT trả dữ liệu từng dòng bị tác động. Không giả định thứ tự OUTPUT khớp thứ tự đầu vào; cần khóa tương quan khi ghép kết quả.",
+      "explanation": "OUTPUT trả dữ liệu từng dòng bị tác động. Không giả định thứ tự OUTPUT khớp thứ tự đầu vào; cần khóa tương quan khi ghép kết quả. OUTPUT cung cấp rowset, nhưng không cam kết thứ tự tương ứng. Nếu cần ghép Id về từng đầu vào, lưu khóa tương quan ổn định cùng dòng mới rồi trả nó với OUTPUT. Chỉ báo thành công sau commit; rowset OUTPUT đã nhận không chứng minh transaction cuối cùng thành công.",
+      "alternative": "Nếu cần ghép Id về từng đầu vào, lưu khóa tương quan ổn định cùng dòng mới rồi trả nó với OUTPUT. Chỉ báo thành công sau commit; rowset OUTPUT đã nhận không chứng minh transaction cuối cùng thành công.",
+      "trap": "Cho rằng: Chỉ SCOPE_IDENTITY cho toàn bộ tập.",
+      "rubric": [
+        "Dùng OUTPUT INSERTED",
+        "Nhận đủ tập Id",
+        "Không suy từ MAX",
+        "Không phụ thuộc thứ tự OUTPUT"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/output-clause-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "OUTPUT INSERTED.Id",
+          "Chỉ SCOPE_IDENTITY cho toàn bộ tập",
+          "SELECT MAX(Id) sau INSERT để suy ra mọi Id"
+        ],
+        "en": [
+          "OUTPUT INSERTED.Id",
+          "Only SCOPE_IDENTITY for the entire set",
+          "SELECT MAX(Id) after INSERT to infer every Id"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-cross-outer-apply",
+    "content": {
+      "title": "Giữ thiết bị chưa có phép đo",
+      "topic": "sql",
+      "subtopic": "Giữ thiết bị chưa có phép đo",
+      "tags": [
+        "Giữ thiết bị chưa có phép đo",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Mỗi thiết bị cần gắn phép đo mới nhất từ truy vấn tương quan TOP 1. Thiết bị chưa có phép đo vẫn phải xuất một dòng. Chọn toán tử nào?",
+      "englishPrompt": "Explain your choice and its limits. Each device needs its latest measurement from a correlated TOP 1 query. Devices with no measurements must still appear. Which operator fits?",
+      "context": "Danh sách thiết bị là nguồn chính của báo cáo; việc chưa gửi phép đo là thông tin cần hiển thị.",
+      "code": null,
+      "hint": "So sánh điều gì xảy ra khi vế phải rỗng.",
+      "nextHint": "CROSS APPLY chỉ giữ dòng có kết quả phía phải.",
+      "followUp": "TOP 1 cần thêm điều kiện gì để chọn ổn định khi cùng thời điểm?",
+      "englishFollowUp": "What does TOP 1 need for deterministic selection when timestamps tie?",
+      "outline": [
+        "Chọn OUTER APPLY",
+        "Giữ thiết bị không đo",
+        "Nêu cột phải NULL",
+        "Yêu cầu ORDER BY xác định"
+      ],
+      "shortAnswer": "OUTER APPLY. OUTER APPLY giữ dòng phía trái ngay cả khi truy vấn phía phải trả rỗng, với cột phải là NULL.",
+      "explanation": "OUTER APPLY giữ dòng phía trái ngay cả khi truy vấn phía phải trả rỗng, với cột phải là NULL. CROSS APPLY chỉ giữ dòng có kết quả phía phải. Nếu màn hình chỉ muốn thiết bị đã có phép đo, CROSS APPLY diễn tả yêu cầu đó. Dù chọn dạng nào, TOP 1 phải có ORDER BY thời điểm và khóa phụ để chọn ổn định khi thời gian trùng.",
+      "alternative": "Nếu màn hình chỉ muốn thiết bị đã có phép đo, CROSS APPLY diễn tả yêu cầu đó. Dù chọn dạng nào, TOP 1 phải có ORDER BY thời điểm và khóa phụ để chọn ổn định khi thời gian trùng.",
+      "trap": "Cho rằng: CROSS APPLY.",
+      "rubric": [
+        "Chọn OUTER APPLY",
+        "Giữ thiết bị không đo",
+        "Nêu cột phải NULL",
+        "Yêu cầu ORDER BY xác định"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/from-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-except-null-equality",
+    "content": {
+      "title": "So sánh hai bản chụp",
+      "topic": "sql",
+      "subtopic": "So sánh hai bản chụp",
+      "tags": [
+        "So sánh hai bản chụp",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Hai bản chụp có thể chứa NULL ở mã phân loại. Cần tập dòng duy nhất chỉ có ở bản A, với NULL được coi bằng NULL khi so sánh tập. Toán tử nào diễn tả trực tiếp?",
+      "englishPrompt": "Two snapshots may contain NULL classification codes. The result needs distinct rows present only in A, treating NULL as equal to NULL for set comparison. Which operator expresses this directly?",
+      "context": "Mỗi bản chụp có một cột Code có thể NULL; đối soát cần tập mã chỉ có ở A và bỏ các lần lặp.",
+      "code": null,
+      "hint": "Đề yêu cầu hiệu hai tập chứ không nối tập.",
+      "nextHint": "Đọc riêng quy tắc NULL của toán tử tập.",
+      "followUp": "Nếu phải giữ số lần lặp còn dư thì EXCEPT có đáp ứng không?",
+      "englishFollowUp": "Does EXCEPT preserve surplus duplicate counts?",
+      "outline": [
+        "Chọn EXCEPT",
+        "Nêu loại trùng",
+        "Nêu quy tắc NULL của tập",
+        "Không hứa giữ số lần lặp"
+      ],
+      "shortAnswer": "EXCEPT. EXCEPT loại dòng có ở phía phải và loại trùng; trong so sánh DISTINCT của toán tử tập, hai NULL được coi bằng nhau.",
+      "explanation": "EXCEPT loại dòng có ở phía phải và loại trùng; trong so sánh DISTINCT của toán tử tập, hai NULL được coi bằng nhau. Đọc riêng quy tắc NULL của toán tử tập. Nếu số lần lặp là dữ liệu nghiệp vụ, nhóm từng phía rồi so sánh số lượng thay vì dùng EXCEPT trực tiếp. EXCEPT phù hợp hiệu hai tập duy nhất, không phải phép trừ đa tập có giữ bội số.",
+      "alternative": "Nếu số lần lặp là dữ liệu nghiệp vụ, nhóm từng phía rồi so sánh số lượng thay vì dùng EXCEPT trực tiếp. EXCEPT phù hợp hiệu hai tập duy nhất, không phải phép trừ đa tập có giữ bội số.",
+      "trap": "Cho rằng NOT IN hoặc NOT EXISTS chỉ dùng = tự có quy tắc NULL như toán tử tập.",
+      "rubric": [
+        "Chọn EXCEPT",
+        "Nêu loại trùng",
+        "Nêu quy tắc NULL của tập",
+        "Không hứa giữ số lần lặp"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/set-operators-except-and-intersect-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "NOT EXISTS dùng phép = cho mã, không xử lý NULL riêng",
+          "NOT IN trực tiếp trên cột mã có thể chứa NULL",
+          "EXCEPT"
+        ],
+        "en": [
+          "NOT EXISTS using equality on codes without separate NULL handling",
+          "NOT IN directly over the nullable code column",
+          "EXCEPT"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-top-with-ties",
+    "content": {
+      "title": "Đồng hạng ở ngưỡng thưởng",
+      "topic": "sql",
+      "subtopic": "Đồng hạng ở ngưỡng thưởng",
+      "tags": [
+        "Đồng hạng ở ngưỡng thưởng",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Bảng xếp hạng thưởng cho ba vị trí đầu theo Score giảm dần và tất cả người hòa điểm ở vị trí thứ ba. Mệnh đề TOP nào thể hiện đúng ngưỡng?",
+      "englishPrompt": "A leaderboard rewards the top three positions by descending Score plus everyone tied on the third score. Which TOP clause expresses that cutoff?",
+      "context": "Chính sách thưởng coi những người cùng điểm tại ngưỡng cuối là đồng hạng.",
+      "code": null,
+      "hint": "Đề cần giữ hòa theo Score, không theo toàn bộ dòng.",
+      "nextHint": "WITH TIES so sánh tất cả biểu thức ORDER BY.",
+      "followUp": "Bạn sắp xếp ổn định trong mỗi nhóm điểm mà vẫn giữ ngưỡng hòa bằng cách nào?",
+      "englishFollowUp": "How can you order tied names deterministically without changing the score cutoff?",
+      "outline": [
+        "Chọn WITH TIES",
+        "Sắp xếp Score giảm",
+        "Chấp nhận hơn ba dòng",
+        "Không thêm Id vào tiêu chí xác định hòa"
+      ],
+      "shortAnswer": "TOP (3) WITH TIES, ORDER BY Score DESC. WITH TIES có thể trả hơn ba dòng khi hòa theo các biểu thức ORDER BY. Thêm Id vào ORDER BY này sẽ phá nhóm hòa điểm.",
+      "explanation": "WITH TIES có thể trả hơn ba dòng khi hòa theo các biểu thức ORDER BY. Thêm Id vào ORDER BY này sẽ phá nhóm hòa điểm. WITH TIES so sánh tất cả biểu thức ORDER BY. Có thể xác định tập được thưởng bằng TOP WITH TIES chỉ theo Score, rồi sắp lại tập đó bằng Score và Id ở query ngoài. Cách này giữ ngưỡng hòa điểm và vẫn có thứ tự trình bày xác định.",
+      "alternative": "Có thể xác định tập được thưởng bằng TOP WITH TIES chỉ theo Score, rồi sắp lại tập đó bằng Score và Id ở query ngoài. Cách này giữ ngưỡng hòa điểm và vẫn có thứ tự trình bày xác định.",
+      "trap": "Cho rằng: TOP (3) không WITH TIES.",
+      "rubric": [
+        "Chọn WITH TIES",
+        "Sắp xếp Score giảm",
+        "Chấp nhận hơn ba dòng",
+        "Không thêm Id vào tiêu chí xác định hòa"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/top-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "TOP (3) WITH TIES, ORDER BY Score DESC",
+          "TOP (3) không WITH TIES",
+          "TOP (3) PERCENT"
+        ],
+        "en": [
+          "TOP (3) WITH TIES, ORDER BY Score DESC",
+          "TOP (3) without WITH TIES",
+          "TOP (3) PERCENT"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-iso-date-import",
+    "content": {
+      "title": "Ngày nhập không phụ thuộc ngôn ngữ",
+      "topic": "sql",
+      "subtopic": "Ngày nhập không phụ thuộc ngôn ngữ",
+      "tags": [
+        "Ngày nhập không phụ thuộc ngôn ngữ",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "File đối tác dùng ngày dd/mm/yyyy như 03/04/2026. Cần chuyển nhất quán dù session đặt ngôn ngữ khác nhau. Chọn cách nào?",
+      "englishPrompt": "A partner file uses dd/mm/yyyy dates such as 03/04/2026. Conversion must be consistent across session languages. Which approach fits?",
+      "context": "File ngày tháng do đối tác cung cấp có hợp đồng dd/mm/yyyy; ứng dụng được triển khai ở nhiều locale.",
+      "code": null,
+      "hint": "Cả ngày và tháng đều nhỏ hơn 13 nên chuỗi này mơ hồ.",
+      "nextHint": "Hợp đồng định dạng phải được nêu rõ trong phép chuyển.",
+      "followUp": "Nếu dữ liệu chuyển sang ISO yyyyMMdd thì style nào phù hợp?",
+      "englishFollowUp": "Which style fits if the source changes to ISO yyyyMMdd?",
+      "outline": [
+        "Chọn style 103",
+        "Nêu thứ tự ngày tháng",
+        "Không phụ thuộc ngôn ngữ session",
+        "Xử lý ngày không hợp lệ"
+      ],
+      "shortAnswer": "CONVERT date với style 103, kèm kiểm tra dữ liệu lỗi. Style 103 diễn tả dd/mm/yyyy; CAST mặc định có thể phụ thuộc cài đặt session. Giá trị không hợp lệ vẫn cần xử lý riêng.",
+      "explanation": "Style 103 diễn tả dd/mm/yyyy; CAST mặc định có thể phụ thuộc cài đặt session. Giá trị không hợp lệ vẫn cần xử lý riêng. Hợp đồng định dạng phải được nêu rõ trong phép chuyển. Nếu được đổi hợp đồng nguồn, dùng định dạng không mơ hồ như yyyyMMdd với style 112. Với dữ liệu có thể sai, TRY_CONVERT theo style đã thống nhất giúp cách ly lỗi; cần phân biệt NULL nguồn và lỗi chuyển đổi.",
+      "alternative": "Nếu được đổi hợp đồng nguồn, dùng định dạng không mơ hồ như yyyyMMdd với style 112. Với dữ liệu có thể sai, TRY_CONVERT theo style đã thống nhất giúp cách ly lỗi; cần phân biệt NULL nguồn và lỗi chuyển đổi.",
+      "trap": "Cho rằng: Dựa vào CAST không chỉ style hay DATEFORMAT.",
+      "rubric": [
+        "Chọn style 103",
+        "Nêu thứ tự ngày tháng",
+        "Không phụ thuộc ngôn ngữ session",
+        "Xử lý ngày không hợp lệ"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/cast-and-convert-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "CONVERT date với style 103, kèm kiểm tra dữ liệu lỗi",
+          "Đổi sang varchar ngắn hơn rồi CAST mặc định",
+          "Dựa vào CAST không chỉ style hay DATEFORMAT"
+        ],
+        "en": [
+          "CONVERT to date with style 103 and validate malformed data",
+          "Shorten to varchar and use the default CAST",
+          "Rely on CAST without a style or DATEFORMAT"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-like-literal-percent",
+    "content": {
+      "title": "Tìm mã có ký tự phần trăm",
+      "topic": "sql",
+      "subtopic": "Tìm mã có ký tự phần trăm",
+      "tags": [
+        "Tìm mã có ký tự phần trăm",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Người dùng nhập 10% để tìm đúng chuỗi đó ở bất kỳ vị trí nào trong mã. Tham số hóa đã bảo vệ giá trị nhưng % vẫn là wildcard. Cần làm gì với mẫu LIKE?",
+      "englishPrompt": "A user enters 10% to find that exact text anywhere in a code. Parameterization protects values, but % is still a wildcard. What must the LIKE pattern do?",
+      "context": "Bộ tìm kiếm mã hỗ trợ contains theo ký tự người dùng thực sự gõ, gồm cả % và _.",
+      "code": null,
+      "hint": "Phân biệt cú pháp SQL với cú pháp pattern.",
+      "nextHint": "ESCAPE định nghĩa cách biểu diễn phần trăm theo nghĩa đen.",
+      "followUp": "Dấu gạch dưới trong đầu vào cần được xử lý tương tự thế nào?",
+      "englishFollowUp": "How should an underscore in the input be handled?",
+      "outline": [
+        "Tách parameterization và wildcard",
+        "Escape phần trăm",
+        "Escape chính ký tự escape",
+        "Giữ wildcard bao quanh cho contains"
+      ],
+      "shortAnswer": "Escape ký tự mẫu rồi thêm wildcard bao quanh, với ESCAPE tương ứng. Tham số hóa và escape wildcard giải quyết hai vấn đề khác nhau; phải escape cả ký tự escape để không diễn giải sai đầu vào.",
+      "explanation": "Tham số hóa và escape wildcard giải quyết hai vấn đề khác nhau; phải escape cả ký tự escape để không diễn giải sai đầu vào. ESCAPE định nghĩa cách biểu diễn phần trăm theo nghĩa đen. Nếu yêu cầu chỉ là bằng chính xác toàn bộ mã, dùng phép bằng với parameter thay LIKE. Với contains, escape %, _, [ và ký tự escape theo quy tắc đã chọn trước khi thêm wildcard bao quanh.",
+      "alternative": "Nếu yêu cầu chỉ là bằng chính xác toàn bộ mã, dùng phép bằng với parameter thay LIKE. Với contains, escape %, _, [ và ký tự escape theo quy tắc đã chọn trước khi thêm wildcard bao quanh.",
+      "trap": "Cho rằng: Tham số hóa là đủ để % mất nghĩa wildcard.",
+      "rubric": [
+        "Tách parameterization và wildcard",
+        "Escape phần trăm",
+        "Escape chính ký tự escape",
+        "Giữ wildcard bao quanh cho contains"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/language-elements/like-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Escape ký tự mẫu rồi thêm wildcard bao quanh, với ESCAPE tương ứng",
+          "Tham số hóa là đủ để % mất nghĩa wildcard",
+          "Chuyển % sang NULL"
+        ],
+        "en": [
+          "Escape pattern characters, then add surrounding wildcards with a matching ESCAPE",
+          "Parameterization alone makes % literal",
+          "Convert % to NULL"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-null-last-sort",
+    "content": {
+      "title": "Ngày hẹn thiếu xếp cuối",
+      "topic": "sql",
+      "subtopic": "Ngày hẹn thiếu xếp cuối",
+      "tags": [
+        "Ngày hẹn thiếu xếp cuối",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Lịch cần sắp xếp DueAt tăng dần nhưng các dòng NULL ở cuối trên SQL Server. Phương án nào thể hiện rõ quy tắc?",
+      "englishPrompt": "A schedule needs ascending DueAt with NULL rows last on SQL Server. Which option explicitly implements the rule?",
+      "context": "Các công việc chưa được đặt hạn vẫn phải xuất hiện nhưng sau các công việc đã có DueAt.",
+      "code": null,
+      "hint": "Lọc mất dòng không tương đương đổi vị trí.",
+      "nextHint": "Khóa sắp xếp đầu tiên có thể là cờ thiếu dữ liệu.",
+      "followUp": "Nếu nhiều dòng cùng DueAt, dùng khóa phụ nào cho phân trang ổn định?",
+      "englishFollowUp": "Which tiebreaker would make paging stable for equal DueAt values?",
+      "outline": [
+        "Giữ các dòng NULL",
+        "Tạo khóa nhóm bằng CASE",
+        "Sắp DueAt trong nhóm",
+        "Nêu mặc định NULL trước khi ASC"
+      ],
+      "shortAnswer": "ORDER BY CASE WHEN DueAt IS NULL THEN 1 ELSE 0 END, DueAt. SQL Server coi NULL thấp hơn giá trị khác khi sắp xếp; khóa CASE tách nhóm NULL mà vẫn giữ tất cả dòng.",
+      "explanation": "SQL Server coi NULL thấp hơn giá trị khác khi sắp xếp; khóa CASE tách nhóm NULL mà vẫn giữ tất cả dòng. Khóa sắp xếp đầu tiên có thể là cờ thiếu dữ liệu. Có thể tách hai nhóm bằng một cờ sắp xếp rồi giữ DueAt trong từng nhóm. Thêm Id sau DueAt nếu phân trang cần thứ tự duy nhất; đổi ASC thành DESC đơn thuần sẽ làm sai thứ tự ngày đã có.",
+      "alternative": "Có thể tách hai nhóm bằng một cờ sắp xếp rồi giữ DueAt trong từng nhóm. Thêm Id sau DueAt nếu phân trang cần thứ tự duy nhất; đổi ASC thành DESC đơn thuần sẽ làm sai thứ tự ngày đã có.",
+      "trap": "Cho rằng: ORDER BY DueAt ASC tự đặt NULL cuối.",
+      "rubric": [
+        "Giữ các dòng NULL",
+        "Tạo khóa nhóm bằng CASE",
+        "Sắp DueAt trong nhóm",
+        "Nêu mặc định NULL trước khi ASC"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/select-order-by-clause-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "WHERE DueAt IS NOT NULL rồi sắp xếp",
+          "ORDER BY CASE WHEN DueAt IS NULL THEN 1 ELSE 0 END, DueAt",
+          "ORDER BY DueAt ASC tự đặt NULL cuối"
+        ],
+        "en": [
+          "Remove NULL rows before sorting",
+          "ORDER BY CASE WHEN DueAt IS NULL THEN 1 ELSE 0 END, DueAt",
+          "ORDER BY DueAt ASC automatically puts NULL last"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-truncate-rollback",
+    "content": {
+      "title": "Dọn staging có thể hoàn tác",
+      "topic": "sql",
+      "subtopic": "Dọn staging có thể hoàn tác",
+      "tags": [
+        "Dọn staging có thể hoàn tác",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Trong SQL Server 2022 thông thường, staging không bị FK tham chiếu. TRUNCATE TABLE chạy trong explicit transaction chưa commit. ROLLBACK có khôi phục dữ liệu bị truncate không?",
+      "englishPrompt": "On ordinary SQL Server 2022, a staging table has no referencing foreign keys. TRUNCATE TABLE runs inside an uncommitted explicit transaction. Does ROLLBACK restore its data?",
+      "context": "Một bước làm sạch staging được bao trong transaction kiểm tra và có thể phải hủy toàn bộ.",
+      "code": null,
+      "hint": "DDL không có cùng quy tắc transaction ở mọi hệ quản trị.",
+      "nextHint": "Phạm vi câu hỏi chỉ là SQL Server, không phải Synapse.",
+      "followUp": "DELETE trigger có chạy khi TRUNCATE không?",
+      "englishFollowUp": "Does a DELETE trigger execute for TRUNCATE?",
+      "outline": [
+        "Nêu rollback được",
+        "Gắn kết luận với explicit transaction",
+        "Không gọi TRUNCATE là không ghi log",
+        "Giới hạn kết luận cho SQL Server"
+      ],
+      "shortAnswer": "Có, TRUNCATE có thể rollback trong transaction này. TRUNCATE được ghi log cho việc giải phóng trang và có thể rollback trong SQL Server. Không suy diễn từ giới hạn của nền tảng SQL khác.",
+      "explanation": "TRUNCATE được ghi log cho việc giải phóng trang và có thể rollback trong SQL Server. Không suy diễn từ giới hạn của nền tảng SQL khác. Phạm vi câu hỏi chỉ là SQL Server, không phải Synapse. Dùng DELETE nếu cần lọc một phần dòng hoặc cần DELETE trigger. TRUNCATE giải phóng trang và không kích hoạt DELETE trigger; lựa chọn phải xét cả semantics, quyền và các giới hạn tham chiếu của bảng.",
+      "alternative": "Dùng DELETE nếu cần lọc một phần dòng hoặc cần DELETE trigger. TRUNCATE giải phóng trang và không kích hoạt DELETE trigger; lựa chọn phải xét cả semantics, quyền và các giới hạn tham chiếu của bảng.",
+      "trap": "Cho rằng: Không, TRUNCATE luôn tự commit.",
+      "rubric": [
+        "Nêu rollback được",
+        "Gắn kết luận với explicit transaction",
+        "Không gọi TRUNCATE là không ghi log",
+        "Giới hạn kết luận cho SQL Server"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/statements/truncate-table-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, TRUNCATE có thể rollback trong transaction này",
+          "Không, TRUNCATE luôn tự commit",
+          "Chỉ khôi phục nếu bảng không có IDENTITY"
+        ],
+        "en": [
+          "Yes, TRUNCATE can be rolled back in this transaction",
+          "No, TRUNCATE always commits itself",
+          "Only if the table has no IDENTITY"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-identity-trigger-scope",
+    "content": {
+      "title": "ID khi trigger cũng chèn dữ liệu",
+      "topic": "sql",
+      "subtopic": "ID khi trigger cũng chèn dữ liệu",
+      "tags": [
+        "ID khi trigger cũng chèn dữ liệu",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một INSERT tạo Ticket; trigger của nó chèn Audit có IDENTITY riêng. Cần IDENTITY cuối trong scope của INSERT phía gọi, không phải trong trigger. Hàm nào phù hợp?",
+      "englishPrompt": "An INSERT creates a Ticket; its trigger inserts an Audit row with a separate IDENTITY. Which function returns the last identity in the caller's scope rather than the trigger's scope?",
+      "context": "Trigger audit tự sinh mã riêng nên ứng dụng không được nhầm mã audit với mã phiếu mới.",
+      "code": null,
+      "hint": "Trigger tạo thêm scope chứ không tạo session mới.",
+      "nextHint": "So sánh hàm theo hai chiều scope và session.",
+      "followUp": "Nếu INSERT nhiều Ticket thì cơ chế nào lấy đủ tập Id?",
+      "englishFollowUp": "Which mechanism retrieves every Id from a multirow Ticket insert?",
+      "outline": [
+        "Chọn SCOPE_IDENTITY",
+        "Phân biệt scope trigger",
+        "Phân biệt @@IDENTITY",
+        "Không dùng hàm này để lấy cả tập Id"
+      ],
+      "shortAnswer": "SCOPE_IDENTITY(). SCOPE_IDENTITY giới hạn theo scope và session; trigger là scope khác. @@IDENTITY có thể phản ánh ID từ trigger.",
+      "explanation": "SCOPE_IDENTITY giới hạn theo scope và session; trigger là scope khác. @@IDENTITY có thể phản ánh ID từ trigger. So sánh hàm theo hai chiều scope và session. Với INSERT nhiều dòng, OUTPUT INSERTED.Id phù hợp hơn một hàm scalar. SCOPE_IDENTITY chỉ trả giá trị cuối trong scope; không dùng nó để suy ra cả dãy Id hay dựa vào việc Id liên tiếp.",
+      "alternative": "Với INSERT nhiều dòng, OUTPUT INSERTED.Id phù hợp hơn một hàm scalar. SCOPE_IDENTITY chỉ trả giá trị cuối trong scope; không dùng nó để suy ra cả dãy Id hay dựa vào việc Id liên tiếp.",
+      "trap": "Cho rằng: @@IDENTITY.",
+      "rubric": [
+        "Chọn SCOPE_IDENTITY",
+        "Phân biệt scope trigger",
+        "Phân biệt @@IDENTITY",
+        "Không dùng hàm này để lấy cả tập Id"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/functions/scope-identity-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "@@IDENTITY",
+          "IDENT_CURRENT('Audit')",
+          "SCOPE_IDENTITY()"
+        ],
+        "en": [
+          "@@IDENTITY",
+          "IDENT_CURRENT('Audit')",
+          "SCOPE_IDENTITY()"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-sequence-before-insert",
+    "content": {
+      "title": "Đặt mã trước khi lưu",
+      "topic": "sql",
+      "subtopic": "Đặt mã trước khi lưu",
+      "tags": [
+        "Đặt mã trước khi lưu",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Dịch vụ cần lấy một số tăng dần trước khi có dòng INSERT và dùng cùng bộ cấp số ở hai bảng. Có thể bỏ trống số khi giao dịch hủy. Tính năng nào phù hợp?",
+      "englishPrompt": "A service needs an increasing number before any INSERT and shares its allocator across two tables. Gaps after cancellation are acceptable. Which feature fits?",
+      "context": "Hai bảng chứng từ dùng chung một bộ cấp số và chấp nhận số bị bỏ khi người dùng hủy thao tác.",
+      "code": null,
+      "hint": "Cần đối tượng cấp số độc lập một cột.",
+      "nextHint": "Phân biệt số được cấp với dòng đã commit.",
+      "followUp": "Nếu nghiệp vụ yêu cầu số chứng từ tuyệt đối không có khoảng trống thì đánh đổi gì?",
+      "englishFollowUp": "What tradeoffs arise if invoice numbers must have absolutely no gaps?",
+      "outline": [
+        "Chọn SEQUENCE",
+        "Cấp trước INSERT",
+        "Cho phép chia sẻ giữa bảng",
+        "Nêu không bảo đảm không có khoảng trống"
+      ],
+      "shortAnswer": "SEQUENCE và NEXT VALUE FOR. SEQUENCE là đối tượng độc lập bảng và cấp số ngoài phạm vi rollback của giao dịch; không bảo đảm dãy không có khoảng trống.",
+      "explanation": "SEQUENCE là đối tượng độc lập bảng và cấp số ngoài phạm vi rollback của giao dịch; không bảo đảm dãy không có khoảng trống. Phân biệt số được cấp với dòng đã commit. Nếu bắt buộc một dãy nghiệp vụ không có khoảng trống, cần thiết kế cấp số được serialize và gắn với commit, kèm quy trình xử lý hủy. Yêu cầu đó tăng tranh chấp; SEQUENCE không tự đáp ứng nó.",
+      "alternative": "Nếu bắt buộc một dãy nghiệp vụ không có khoảng trống, cần thiết kế cấp số được serialize và gắn với commit, kèm quy trình xử lý hủy. Yêu cầu đó tăng tranh chấp; SEQUENCE không tự đáp ứng nó.",
+      "trap": "Cho rằng: IDENTITY trên một cột chưa INSERT.",
+      "rubric": [
+        "Chọn SEQUENCE",
+        "Cấp trước INSERT",
+        "Cho phép chia sẻ giữa bảng",
+        "Nêu không bảo đảm không có khoảng trống"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/sequence-numbers/sequence-numbers?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "SEQUENCE và NEXT VALUE FOR",
+          "MAX của hai bảng cộng một không khóa",
+          "IDENTITY trên một cột chưa INSERT"
+        ],
+        "en": [
+          "SEQUENCE with NEXT VALUE FOR",
+          "Unlocked MAX across both tables plus one",
+          "IDENTITY on a column before inserting"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-tvp-readonly-input",
+    "content": {
+      "title": "Gửi danh sách mã vào thủ tục",
+      "topic": "sql",
+      "subtopic": "Gửi danh sách mã vào thủ tục",
+      "tags": [
+        "Gửi danh sách mã vào thủ tục",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Ứng dụng truyền 200 cặp ProductId, Quantity vào thủ tục SQL Server. Cần hợp đồng kiểu cột được khai báo tại SQL và truyền tập dòng như một giá trị đầu vào, không phụ thuộc staging ở connection khác. Chọn cơ chế nào?",
+      "englishPrompt": "An application sends 200 ProductId and Quantity pairs to a SQL Server procedure. It needs column types declared in SQL and passes the row set as one input value, without relying on staging on another connection. Which mechanism fits?",
+      "context": "Cấu trúc cặp mã và số lượng phải nhất quán giữa ứng dụng với thủ tục; dữ liệu đầu vào vẫn cần được kiểm tra theo quy tắc nghiệp vụ.",
+      "code": null,
+      "hint": "Cần một tham số mang dữ liệu dạng bảng.",
+      "nextHint": "Kiểu bảng xác định cột, còn giá trị TVP là đầu vào chỉ đọc.",
+      "followUp": "Nếu thủ tục cần sửa tập dữ liệu trung gian thì có thể chép TVP sang đâu?",
+      "englishFollowUp": "Where could the procedure copy the TVP if intermediate rows must be modified?",
+      "outline": [
+        "Chọn TVP",
+        "Nêu user-defined table type",
+        "Nêu READONLY",
+        "Giữ kiểu ProductId và Quantity rõ ràng"
+      ],
+      "shortAnswer": "Table-valued parameter dựa trên user-defined table type. TVP truyền một tập dòng có schema trong một tham số; tham số này là READONLY trong thủ tục.",
+      "explanation": "TVP truyền một tập dòng có schema trong một tham số; tham số này là READONLY trong thủ tục. Kiểu bảng xác định cột, còn giá trị TVP là đầu vào chỉ đọc. Nếu xử lý cần UPDATE hoặc index trung gian, có thể chép TVP vào bảng tạm rồi thao tác trên bản sao. Đánh giá cardinality vì SQL Server không duy trì statistics cho cột TVP; không hứa TVP luôn nhanh nhất.",
+      "alternative": "Nếu xử lý cần UPDATE hoặc index trung gian, có thể chép TVP vào bảng tạm rồi thao tác trên bản sao. Đánh giá cardinality vì SQL Server không duy trì statistics cho cột TVP; không hứa TVP luôn nhanh nhất.",
+      "trap": "Coi JSON tự mang SQL column schema hoặc coi local temp table trên connection khác là tham số tập dòng.",
+      "rubric": [
+        "Chọn TVP",
+        "Nêu user-defined table type",
+        "Nêu READONLY",
+        "Giữ kiểu ProductId và Quantity rõ ràng"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/use-table-valued-parameters-database-engine",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Gửi JSON nvarchar(max) rồi coi schema khai báo ở client được SQL tự kiểm",
+          "Table-valued parameter dựa trên user-defined table type",
+          "Tạo #Stage trên connection khác rồi truyền tên bảng để thủ tục tự đọc"
+        ],
+        "en": [
+          "Send JSON as nvarchar(max) and assume SQL enforces the schema declared by the client",
+          "A table-valued parameter based on a user-defined table type",
+          "Create #Stage on another connection and pass its name for the procedure to read"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-local-temp-session",
+    "content": {
+      "title": "Hai request dùng cùng tên bảng tạm",
+      "topic": "sql",
+      "subtopic": "Hai request dùng cùng tên bảng tạm",
+      "tags": [
+        "Hai request dùng cùng tên bảng tạm",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Hai connection độc lập cùng tạo bảng tạm cục bộ tên #Stage. Bảng không được tạo trong scope thủ tục lồng nhau. Chúng có chia sẻ dữ liệu chỉ vì trùng tên không?",
+      "englishPrompt": "Two independent connections each create a local temporary table named #Stage, outside nested procedure scopes. Do they share data merely because the names match?",
+      "context": "Hai worker dùng connection độc lập để chuẩn bị dữ liệu staging cùng cấu trúc trong cùng thời gian.",
+      "code": null,
+      "hint": "Đọc khác biệt giữa # và ##.",
+      "nextHint": "Tên nhìn thấy giống nhau không có nghĩa cùng đối tượng nội bộ.",
+      "followUp": "Connection pooling ảnh hưởng gì đến việc giữ connection trong một workflow dùng #Stage?",
+      "englishFollowUp": "What does connection pooling imply for holding a connection across a #Stage workflow?",
+      "outline": [
+        "Nêu cô lập theo session",
+        "Phân biệt # và ##",
+        "Không suy từ database mặc định",
+        "Gắn vòng đời với connection"
+      ],
+      "shortAnswer": "Không, bảng tạm cục bộ thuộc session tương ứng. SQL Server phân biệt các bảng tạm cục bộ giữa session. ## là dạng global và có quy tắc vòng đời khác.",
+      "explanation": "SQL Server phân biệt các bảng tạm cục bộ giữa session. ## là dạng global và có quy tắc vòng đời khác. Tên nhìn thấy giống nhau không có nghĩa cùng đối tượng nội bộ. Giữ cùng connection vật lý mở xuyên suốt workflow cần dùng #Stage. Nếu phải chia sẻ tập dữ liệu giữa các connection hoặc lần chạy, dùng bảng staging thường có khóa run-id và cleanup có kiểm soát thay vì giả định bảng tạm cục bộ là dùng chung.",
+      "alternative": "Giữ cùng connection vật lý mở xuyên suốt workflow cần dùng #Stage. Nếu phải chia sẻ tập dữ liệu giữa các connection hoặc lần chạy, dùng bảng staging thường có khóa run-id và cleanup có kiểm soát thay vì giả định bảng tạm cục bộ là dùng chung.",
+      "trap": "Cho rằng: Có, dấu # làm bảng dùng chung toàn server.",
+      "rubric": [
+        "Nêu cô lập theo session",
+        "Phân biệt # và ##",
+        "Không suy từ database mặc định",
+        "Gắn vòng đời với connection"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/statements/create-table-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Có, nếu cùng database mặc định",
+          "Không, bảng tạm cục bộ thuộc session tương ứng",
+          "Có, dấu # làm bảng dùng chung toàn server"
+        ],
+        "en": [
+          "Yes, when the default database matches",
+          "No, local temporary tables belong to their respective sessions",
+          "Yes, # makes the table server-wide"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-cte-not-materialized",
+    "content": {
+      "title": "Tái dùng phép tính nặng",
+      "topic": "sql",
+      "subtopic": "Tái dùng phép tính nặng",
+      "tags": [
+        "Tái dùng phép tính nặng",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Một CTE nặng được tham chiếu hai lần. Nhóm cho rằng CTE bảo đảm tính một lần và lưu kết quả. Nhận định nào đúng?",
+      "englishPrompt": "Explain your choice and its limits. An expensive CTE is referenced twice. The team assumes it guarantees one execution and stored results. Which statement is correct?",
+      "context": "Một báo cáo dùng lại kết quả tính nặng và muốn hiểu tại sao thay cách viết chưa giảm chi phí.",
+      "code": null,
+      "hint": "Phân biệt cấu trúc viết truy vấn và vật lý thực thi.",
+      "nextHint": "Kết quả cần tái dùng có thể lưu rõ ràng trong bảng tạm sau khi đo.",
+      "followUp": "Bảng tạm có chi phí nào khiến không nên thay mọi CTE?",
+      "englishFollowUp": "What costs make temporary tables inappropriate as a replacement for every CTE?",
+      "outline": [
+        "Bác bỏ bảo đảm lưu kết quả",
+        "Nêu optimizer quyết định plan",
+        "Đo trước khi đổi",
+        "Cân nhắc chi phí bảng tạm"
+      ],
+      "shortAnswer": "CTE không bảo đảm materialization; đo plan và cân nhắc bảng tạm. CTE là biểu thức truy vấn có tên, không phải cam kết cache kết quả; optimizer có thể chọn spool nhưng không bắt buộc.",
+      "explanation": "CTE là biểu thức truy vấn có tên, không phải cam kết cache kết quả; optimizer có thể chọn spool nhưng không bắt buộc. Kết quả cần tái dùng có thể lưu rõ ràng trong bảng tạm sau khi đo. Nếu đo cho thấy việc lưu trung gian có lợi, dùng bảng tạm và index phù hợp. Nó thêm chi phí ghi tempdb và quản lý vòng đời, nên không thay mọi CTE chỉ vì được tham chiếu nhiều lần.",
+      "alternative": "Nếu đo cho thấy việc lưu trung gian có lợi, dùng bảng tạm và index phù hợp. Nó thêm chi phí ghi tempdb và quản lý vòng đời, nên không thay mọi CTE chỉ vì được tham chiếu nhiều lần.",
+      "trap": "Cho rằng: CTE luôn tạo bảng tạm vật lý.",
+      "rubric": [
+        "Bác bỏ bảo đảm lưu kết quả",
+        "Nêu optimizer quyết định plan",
+        "Đo trước khi đổi",
+        "Cân nhắc chi phí bảng tạm"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/with-common-table-expression-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-pivot-aggregate-cell",
+    "content": {
+      "title": "Nhiều dòng cho một ô pivot",
+      "topic": "sql",
+      "subtopic": "Nhiều dòng cho một ô pivot",
+      "tags": [
+        "Nhiều dòng cho một ô pivot",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Dữ liệu có hai dòng doanh thu cùng cửa hàng và tháng. Báo cáo PIVOT cần một ô là tổng của cả hai. Phần nào của PIVOT quyết định cách gộp?",
+      "englishPrompt": "Two revenue rows share a store and month. A PIVOT report needs one cell containing their total. Which part determines how those rows combine?",
+      "context": "Báo cáo cửa hàng theo tháng cần gộp nhiều hóa đơn vào cùng một ô doanh thu.",
+      "code": null,
+      "hint": "Một ô cần quy tắc gộp khi có nhiều đầu vào.",
+      "nextHint": "SUM và MAX sẽ thể hiện hai hợp đồng khác nhau.",
+      "followUp": "Nếu vô tình giữ thêm InvoiceId trong nguồn pivot, số dòng đầu ra có thể đổi thế nào?",
+      "englishFollowUp": "How can retaining InvoiceId in the pivot input change the output row count?",
+      "outline": [
+        "Chọn SUM",
+        "Nhận diện khóa nhóm",
+        "Không dùng thứ tự để gộp",
+        "Nêu tác động của cột nguồn dư"
+      ],
+      "shortAnswer": "Hàm tổng hợp SUM áp dụng cho giá trị của ô. PIVOT dùng hàm tổng hợp để gộp các dòng vào từng tổ hợp khóa và giá trị pivot; thứ tự hiển thị không thay cách tính.",
+      "explanation": "PIVOT dùng hàm tổng hợp để gộp các dòng vào từng tổ hợp khóa và giá trị pivot; thứ tự hiển thị không thay cách tính. SUM và MAX sẽ thể hiện hai hợp đồng khác nhau. Conditional aggregation bằng SUM với CASE cũng diễn tả báo cáo cột cố định và có thể dễ đọc hơn. Giới hạn nguồn vào đúng khóa nhóm, tháng và giá trị để cột dư như InvoiceId không vô tình chia nhỏ nhóm.",
+      "alternative": "Conditional aggregation bằng SUM với CASE cũng diễn tả báo cáo cột cố định và có thể dễ đọc hơn. Giới hạn nguồn vào đúng khóa nhóm, tháng và giá trị để cột dư như InvoiceId không vô tình chia nhỏ nhóm.",
+      "trap": "Cho rằng: Thứ tự tháng trong IN.",
+      "rubric": [
+        "Chọn SUM",
+        "Nhận diện khóa nhóm",
+        "Không dùng thứ tự để gộp",
+        "Nêu tác động của cột nguồn dư"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/from-using-pivot-and-unpivot?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Thứ tự tháng trong IN",
+          "ORDER BY ở cuối truy vấn",
+          "Hàm tổng hợp SUM áp dụng cho giá trị của ô"
+        ],
+        "en": [
+          "The month order in IN",
+          "The final ORDER BY",
+          "The SUM aggregate applied to the cell's values"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-covering-include-payload",
+    "content": {
+      "title": "Bớt key lookup trên báo cáo",
+      "topic": "sql",
+      "subtopic": "Bớt key lookup trên báo cáo",
+      "tags": [
+        "Bớt key lookup trên báo cáo",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Truy vấn lọc theo CustomerId và chỉ trả Id, Total. Index đã có key CustomerId, còn Total không cần lọc hay sắp xếp. Cách nào thêm payload mà không làm Total thành search key?",
+      "englishPrompt": "A query filters by CustomerId and returns only Id and Total. The index already keys CustomerId; Total is neither filtered nor sorted. How can it add payload without making Total a search key?",
+      "context": "Id là clustered primary key nên đã có trong leaf của nonclustered index. Cần đánh giá cách bổ sung Total cho query đã nêu.",
+      "code": null,
+      "hint": "Phân biệt search key với cột chỉ dùng để trả về.",
+      "nextHint": "INCLUDE là payload ở leaf của chỉ mục nonclustered.",
+      "followUp": "Nếu Total cập nhật liên tục thì chỉ mục thêm gây đánh đổi gì?",
+      "englishFollowUp": "What tradeoff arises if Total changes frequently?",
+      "outline": [
+        "Chọn INCLUDE",
+        "Giữ CustomerId làm key",
+        "Kiểm tra giảm lookup bằng plan",
+        "Tính chi phí bảo trì khi ghi"
+      ],
+      "shortAnswer": "Thêm Total vào INCLUDE của nonclustered index. Included columns có thể phủ cột đầu ra ở leaf mà không nằm trong key tìm kiếm. Cần kiểm tra plan và chi phí ghi trước khi kết luận lợi ích.",
+      "explanation": "Included columns có thể phủ cột đầu ra ở leaf mà không nằm trong key tìm kiếm. Cần kiểm tra plan và chi phí ghi trước khi kết luận lợi ích. INCLUDE là payload ở leaf của chỉ mục nonclustered. Nếu truy vấn còn phải lọc hoặc sắp xếp theo Total thì cân nhắc Total trong key theo workload. Nếu chỉ trả về, INCLUDE tránh biến nó thành search key; cả hai cách vẫn tăng chi phí ghi khi Total đổi.",
+      "alternative": "Nếu truy vấn còn phải lọc hoặc sắp xếp theo Total thì cân nhắc Total trong key theo workload. Nếu chỉ trả về, INCLUDE tránh biến nó thành search key; cả hai cách vẫn tăng chi phí ghi khi Total đổi.",
+      "trap": "Cho rằng: Đưa Total thành key đứng đầu thay CustomerId.",
+      "rubric": [
+        "Chọn INCLUDE",
+        "Giữ CustomerId làm key",
+        "Kiểm tra giảm lookup bằng plan",
+        "Tính chi phí bảo trì khi ghi"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/indexes/create-indexes-with-included-columns",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đưa Total thành key đứng đầu thay CustomerId",
+          "Thêm Total vào INCLUDE của nonclustered index",
+          "Thêm Total thành key thứ hai trong (CustomerId, Total)"
+        ],
+        "en": [
+          "Make Total the leading key instead of CustomerId",
+          "Add Total as an INCLUDE column in the nonclustered index",
+          "Add Total as the second key in (CustomerId, Total)"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-stats-estimate-skew",
+    "content": {
+      "title": "Ước lượng sai sau đợt nhập",
+      "topic": "sql",
+      "subtopic": "Ước lượng sai sau đợt nhập",
+      "tags": [
+        "Ước lượng sai sau đợt nhập",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Sau khi nhập lượng lớn dữ liệu mới, actual rows lớn hơn estimated rows nhiều. Không có thay đổi logic truy vấn. Bạn kiểm tra gì về statistics trước khi thêm index?",
+      "englishPrompt": "Explain your choice and its limits. After a large data load, actual rows greatly exceed estimated rows. Query logic is unchanged. What should be checked about statistics before adding an index?",
+      "context": "Lô nhập mới làm thay đổi mạnh lượng dữ liệu mà truy vấn báo cáo phải xử lý.",
+      "code": null,
+      "hint": "Index và statistics là hai vai trò khác nhau.",
+      "nextHint": "Đối chiếu thời điểm cập nhật, mẫu dữ liệu và độ lệch phân phối.",
+      "followUp": "Nếu cập nhật statistics vẫn ước lượng sai thì bạn sẽ kiểm tra predicate nào?",
+      "englishFollowUp": "Which predicates would you inspect if updating statistics did not fix the estimate?",
+      "outline": [
+        "Đối chiếu estimated và actual rows",
+        "Kiểm tra độ mới",
+        "Xem skew hoặc sampling",
+        "Không khẳng định UPDATE STATISTICS luôn sửa plan"
+      ],
+      "shortAnswer": "Độ mới và phân phối được mô tả bởi statistics. Optimizer dùng statistics để ước lượng cardinality; dữ liệu thay đổi có thể làm histogram không còn đại diện. Cập nhật phải có đo lường, không phải chữa mọi plan.",
+      "explanation": "Optimizer dùng statistics để ước lượng cardinality; dữ liệu thay đổi có thể làm histogram không còn đại diện. Cập nhật phải có đo lường, không phải chữa mọi plan. Đối chiếu thời điểm cập nhật, mẫu dữ liệu và độ lệch phân phối. Nếu statistics mới vẫn ước lượng sai, xem tương quan giữa cột, biểu thức trong predicate và phân phối giá trị. Một index mới hoặc recompile không phải kết luận đầu tiên khi chưa đối chiếu estimated và actual rows.",
+      "alternative": "Nếu statistics mới vẫn ước lượng sai, xem tương quan giữa cột, biểu thức trong predicate và phân phối giá trị. Một index mới hoặc recompile không phải kết luận đầu tiên khi chưa đối chiếu estimated và actual rows.",
+      "trap": "Cho rằng: Chỉ kiểm mức fragmentation rồi rebuild mọi index.",
+      "rubric": [
+        "Đối chiếu estimated và actual rows",
+        "Kiểm tra độ mới",
+        "Xem skew hoặc sampling",
+        "Không khẳng định UPDATE STATISTICS luôn sửa plan"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/statistics/statistics?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-psp-skewed-tenants",
+    "content": {
+      "title": "Một truy vấn hai nhóm tenant",
+      "topic": "sql",
+      "subtopic": "Một truy vấn hai nhóm tenant",
+      "tags": [
+        "Một truy vấn hai nhóm tenant",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. SQL Server 2022 compatibility 160 có PSP bật. Một predicate bằng trên TenantId có phân phối rất lệch. PSP có thể hỗ trợ bằng cách nào?",
+      "englishPrompt": "Explain your choice and its limits. SQL Server 2022 compatibility 160 has PSP enabled. An equality predicate on TenantId has highly skewed values. How can PSP help an eligible query?",
+      "context": "Cùng endpoint phục vụ tenant rất nhỏ và tenant rất lớn, nên latency phải được xem theo nhóm tham số.",
+      "code": null,
+      "hint": "Một plan có thể không phù hợp cả tenant nhỏ và lớn.",
+      "nextHint": "PSP tạo dispatcher cùng các variant cho truy vấn đủ điều kiện.",
+      "followUp": "Cần so sánh số đo nào trước và sau khi bật tính năng?",
+      "englishFollowUp": "Which measurements should be compared before and after enabling the feature?",
+      "outline": [
+        "Nêu query đủ điều kiện",
+        "Nêu dispatcher và variant",
+        "Gắn cardinality với skew",
+        "Đo hiệu năng thay vì bảo đảm tuyệt đối"
+      ],
+      "shortAnswer": "Duy trì nhiều query variant cho các khoảng cardinality. Parameter Sensitive Plan optimization có thể chọn variant phù hợp với khoảng giá trị; không áp dụng tự động cho mọi dạng truy vấn hay thay thế việc đo.",
+      "explanation": "Parameter Sensitive Plan optimization có thể chọn variant phù hợp với khoảng giá trị; không áp dụng tự động cho mọi dạng truy vấn hay thay thế việc đo. PSP tạo dispatcher cùng các variant cho truy vấn đủ điều kiện. Với query không đủ điều kiện PSP, tiếp tục đo plan và cân nhắc thiết kế predicate, index hoặc chiến lược compile phù hợp. PSP không bảo đảm mọi giá trị đều nhanh hơn và không loại chi phí quản lý nhiều variant.",
+      "alternative": "Với query không đủ điều kiện PSP, tiếp tục đo plan và cân nhắc thiết kế predicate, index hoặc chiến lược compile phù hợp. PSP không bảo đảm mọi giá trị đều nhanh hơn và không loại chi phí quản lý nhiều variant.",
+      "trap": "Cho rằng: Bảo đảm mọi tenant luôn dùng cùng một plan.",
+      "rubric": [
+        "Nêu query đủ điều kiện",
+        "Nêu dispatcher và variant",
+        "Gắn cardinality với skew",
+        "Đo hiệu năng thay vì bảo đảm tuyệt đối"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/performance/parameter-sensitive-plan-optimization?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-query-store-regression",
+    "content": {
+      "title": "Tìm plan trước khi chậm",
+      "topic": "sql",
+      "subtopic": "Tìm plan trước khi chậm",
+      "tags": [
+        "Tìm plan trước khi chậm",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Sau triển khai, cùng truy vấn báo cáo chậm hơn nhưng chưa có baseline execution plan trong file. Query Store đã bật từ tuần trước. Nó cung cấp loại bằng chứng nào?",
+      "englishPrompt": "After deployment, the same report query becomes slower, but no baseline plan file was saved. Query Store was enabled last week. What evidence can it provide?",
+      "context": "Sự cố bắt đầu sau triển khai nhưng hệ thống vẫn cần phục vụ tải trong khi điều tra.",
+      "code": null,
+      "hint": "Cần so sánh trước và sau, không chỉ plan hiện tại.",
+      "nextHint": "Xem plan_id, khoảng thời gian và runtime statistics.",
+      "followUp": "Nếu ép plan cũ thì cần theo dõi gì để phát hiện tác dụng phụ?",
+      "englishFollowUp": "What should be monitored after forcing an old plan?",
+      "outline": [
+        "Dùng lịch sử plan",
+        "So sánh khoảng thời gian",
+        "Xem runtime statistics",
+        "Không coi tổng hợp là log đầy đủ từng request"
+      ],
+      "shortAnswer": "Lịch sử plan và runtime statistics theo khoảng thời gian. Query Store lưu lịch sử truy vấn, plan và số đo để so sánh regression. Không đồng nhất dữ liệu tổng hợp với trace đầy đủ từng request.",
+      "explanation": "Query Store lưu lịch sử truy vấn, plan và số đo để so sánh regression. Không đồng nhất dữ liệu tổng hợp với trace đầy đủ từng request. Xem plan_id, khoảng thời gian và runtime statistics. Có thể tạm force một plan cũ đã biết tốt sau khi xác minh, rồi theo dõi latency, tài nguyên và lỗi force. Đây là biện pháp khống chế có giám sát; dữ liệu mới hoặc query mới có thể làm plan cũ kém phù hợp.",
+      "alternative": "Có thể tạm force một plan cũ đã biết tốt sau khi xác minh, rồi theo dõi latency, tài nguyên và lỗi force. Đây là biện pháp khống chế có giám sát; dữ liệu mới hoặc query mới có thể làm plan cũ kém phù hợp.",
+      "trap": "Nhầm lịch sử plan và số đo tổng hợp của Query Store với trace đầy đủ của từng execution hoặc chỉ plan cache hiện tại.",
+      "rubric": [
+        "Dùng lịch sử plan",
+        "So sánh khoảng thời gian",
+        "Xem runtime statistics",
+        "Không coi tổng hợp là log đầy đủ từng request"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Lịch sử plan và runtime statistics theo khoảng thời gian",
+          "Trace riêng từng lần chạy với mọi parameter và actual row count",
+          "Chỉ plan đang còn trong cache, không có lịch sử sau khi cache bị xóa"
+        ],
+        "en": [
+          "Historical plans and runtime statistics over time intervals",
+          "An individual execution trace with every parameter and actual row count",
+          "Only plans still in cache, with no history after cache eviction"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-rcsi-statement-snapshot",
+    "content": {
+      "title": "Hai lần đọc trong một transaction",
+      "topic": "sql",
+      "subtopic": "Hai lần đọc trong một transaction",
+      "tags": [
+        "Hai lần đọc trong một transaction",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Database bật READ_COMMITTED_SNAPSHOT và session dùng READ COMMITTED. Trong cùng explicit transaction, hai SELECT liên tiếp có bắt buộc thấy cùng bản chụp nếu transaction khác commit ở giữa không?",
+      "englishPrompt": "Explain your choice and its limits. READ_COMMITTED_SNAPSHOT is enabled and the session uses READ COMMITTED. Must two SELECT statements in one explicit transaction see the same snapshot if another transaction commits between them?",
+      "context": "Báo cáo dùng nhiều SELECT trong cùng transaction và các request khác vẫn cập nhật dữ liệu.",
+      "code": null,
+      "hint": "Đơn vị nhất quán có thể là statement hoặc transaction.",
+      "nextHint": "RCSI giữ ngữ nghĩa READ COMMITTED với row versioning.",
+      "followUp": "Nếu quy trình cần hai lần đọc nhất quán thì isolation nào đáng cân nhắc và chi phí gì?",
+      "englishFollowUp": "Which isolation level merits consideration for consistent repeated reads, and at what cost?",
+      "outline": [
+        "Nêu snapshot mỗi statement",
+        "Cho phép thấy commit mới",
+        "Phân biệt SNAPSHOT",
+        "Không coi BEGIN TRAN là cố định ảnh chụp"
+      ],
+      "shortAnswer": "Không, mỗi statement lấy snapshot riêng. RCSI cung cấp nhất quán ở mức statement. SNAPSHOT isolation cung cấp phạm vi khác; explicit transaction không tự biến RCSI thành snapshot toàn transaction.",
+      "explanation": "RCSI cung cấp nhất quán ở mức statement. SNAPSHOT isolation cung cấp phạm vi khác; explicit transaction không tự biến RCSI thành snapshot toàn transaction. RCSI giữ ngữ nghĩa READ COMMITTED với row versioning. Nếu toàn báo cáo cần một ảnh chụp nhất quán, cân nhắc SNAPSHOT khi database cho phép và đánh giá version store cùng update conflict. Nếu chỉ cần từng statement nhất quán thì RCSI có thể đủ và có phạm vi hẹp hơn.",
+      "alternative": "Nếu toàn báo cáo cần một ảnh chụp nhất quán, cân nhắc SNAPSHOT khi database cho phép và đánh giá version store cùng update conflict. Nếu chỉ cần từng statement nhất quán thì RCSI có thể đủ và có phạm vi hẹp hơn.",
+      "trap": "Cho rằng: Có, snapshot cố định từ BEGIN TRAN.",
+      "rubric": [
+        "Nêu snapshot mỗi statement",
+        "Cho phép thấy commit mới",
+        "Phân biệt SNAPSHOT",
+        "Không coi BEGIN TRAN là cố định ảnh chụp"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/statements/set-transaction-isolation-level-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-readpast-queue-caveat",
+    "content": {
+      "title": "Worker bỏ qua hàng bị khóa",
+      "topic": "sql",
+      "subtopic": "Worker bỏ qua hàng bị khóa",
+      "tags": [
+        "Worker bỏ qua hàng bị khóa",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Queue dùng locking READ COMMITTED, RCSI tắt. Worker có READPAST để bỏ qua khóa của worker khác. Có được khẳng định nó bỏ qua cả page lock không?",
+      "englishPrompt": "A queue uses locking READ COMMITTED with RCSI off. A worker uses READPAST to skip another worker's locks. Can it claim that page locks are skipped too?",
+      "context": "Nhiều worker tranh nhận job; hint bỏ qua khóa chỉ là một phần của quy trình nhận việc.",
+      "code": null,
+      "hint": "Xem kỹ cấp khóa được mô tả, không chỉ tên hint.",
+      "nextHint": "Khóa trang có thể chặn dù khóa dòng được bỏ qua.",
+      "followUp": "Bạn ghép chọn job và đánh dấu claimed thế nào để tránh hai worker nhận cùng job?",
+      "englishFollowUp": "How would you combine job selection and marking claimed to prevent duplicate assignment?",
+      "outline": [
+        "Nêu row lock được bỏ",
+        "Nêu page lock không được bỏ",
+        "Phân biệt NOLOCK",
+        "Không coi skip là claim nguyên tử"
+      ],
+      "shortAnswer": "Không, READPAST bỏ row lock nhưng không bỏ page lock. READPAST có giới hạn cấp khóa và isolation; bỏ hàng đang khóa không tự tạo một thao tác claim job nguyên tử.",
+      "explanation": "READPAST có giới hạn cấp khóa và isolation; bỏ hàng đang khóa không tự tạo một thao tác claim job nguyên tử. Khóa trang có thể chặn dù khóa dòng được bỏ qua. Có thể thiết kế thao tác claim nguyên tử và trả job đã claim bằng UPDATE cùng OUTPUT trong transaction thích hợp. Vẫn phải xử lý lease, retry và worker chết; READPAST không tự bảo đảm xử lý job đúng một lần.",
+      "alternative": "Có thể thiết kế thao tác claim nguyên tử và trả job đã claim bằng UPDATE cùng OUTPUT trong transaction thích hợp. Vẫn phải xử lý lease, retry và worker chết; READPAST không tự bảo đảm xử lý job đúng một lần.",
+      "trap": "Cho rằng: Có, READPAST bỏ qua mọi cấp khóa.",
+      "rubric": [
+        "Nêu row lock được bỏ",
+        "Nêu page lock không được bỏ",
+        "Phân biệt NOLOCK",
+        "Không coi skip là claim nguyên tử"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/queries/hints-transact-sql-table",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, READPAST bỏ row lock nhưng không bỏ page lock",
+          "Có, READPAST tương đương NOLOCK",
+          "Có, READPAST bỏ qua mọi cấp khóa"
+        ],
+        "en": [
+          "No, READPAST skips row locks but not page locks",
+          "Yes, READPAST is equivalent to NOLOCK",
+          "Yes, READPAST skips every lock granularity"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-temporal-asof",
+    "content": {
+      "title": "Xem mức giá tại thời điểm cũ",
+      "topic": "sql",
+      "subtopic": "Xem mức giá tại thời điểm cũ",
+      "tags": [
+        "Xem mức giá tại thời điểm cũ",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Bảng Prices là system-versioned temporal. Cần xem trạng thái từng dòng tại một mốc UTC trong quá khứ mà không tự nối current với history. Cú pháp nào phù hợp?",
+      "englishPrompt": "Prices is a system-versioned temporal table. The report needs row states at a past UTC instant without manually joining current and history. Which syntax fits?",
+      "context": "Người hỗ trợ cần tái dựng trạng thái giá đã được lưu tại một mốc kiểm toán trong quá khứ.",
+      "code": null,
+      "hint": "Một dòng có thể hiện đang ở current nhưng đã tồn tại ở mốc cũ.",
+      "nextHint": "Temporal xử lý khoảng hiệu lực thay vì chỉ thời điểm sửa cuối.",
+      "followUp": "System time khác ngày hiệu lực giá theo nghiệp vụ ở điểm nào?",
+      "englishFollowUp": "How does system time differ from a business effective price date?",
+      "outline": [
+        "Chọn AS OF",
+        "Bao gồm current và history",
+        "Dùng mốc UTC nhất quán",
+        "Phân biệt system time và business time"
+      ],
+      "shortAnswer": "FOR SYSTEM_TIME AS OF với mốc cần tra. AS OF kết hợp dữ liệu hiện tại và lịch sử theo khoảng hiệu lực hệ thống. Mốc thời gian cần thống nhất UTC theo quy tắc temporal.",
+      "explanation": "AS OF kết hợp dữ liệu hiện tại và lịch sử theo khoảng hiệu lực hệ thống. Mốc thời gian cần thống nhất UTC theo quy tắc temporal. Temporal xử lý khoảng hiệu lực thay vì chỉ thời điểm sửa cuối. Nếu cần ngày hiệu lực giá theo nghiệp vụ, lưu ValidFrom/ValidTo nghiệp vụ riêng và kiểm quy tắc chồng lấn. System time phản ánh lúc thay đổi được database ghi nhận, không tự thay thế lịch hiệu lực thương mại.",
+      "alternative": "Nếu cần ngày hiệu lực giá theo nghiệp vụ, lưu ValidFrom/ValidTo nghiệp vụ riêng và kiểm quy tắc chồng lấn. System time phản ánh lúc thay đổi được database ghi nhận, không tự thay thế lịch hiệu lực thương mại.",
+      "trap": "Cho rằng: Chỉ WHERE UpdatedAt <= mốc trên bảng current.",
+      "rubric": [
+        "Chọn AS OF",
+        "Bao gồm current và history",
+        "Dùng mốc UTC nhất quán",
+        "Phân biệt system time và business time"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/tables/querying-data-in-a-system-versioned-temporal-table?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đọc history rồi bỏ qua current",
+          "Chỉ WHERE UpdatedAt <= mốc trên bảng current",
+          "FOR SYSTEM_TIME AS OF với mốc cần tra"
+        ],
+        "en": [
+          "Read history and ignore current",
+          "Only WHERE UpdatedAt <= instant on the current table",
+          "FOR SYSTEM_TIME AS OF the required instant"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "sql-role-least-write",
+    "content": {
+      "title": "Quyền cho tài khoản báo cáo",
+      "topic": "sql",
+      "subtopic": "Quyền cho tài khoản báo cáo",
+      "tags": [
+        "Quyền cho tài khoản báo cáo",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Tài khoản báo cáo chỉ cần SELECT trên một schema cụ thể và không được ghi. Nhóm đề xuất db_owner cho dễ chạy. Hướng cấp quyền phù hợp hơn là gì?",
+      "englishPrompt": "A reporting account needs SELECT on one specific schema and must not write. The team suggests db_owner for convenience. What is the better permission approach?",
+      "context": "Báo cáo do một tài khoản ứng dụng riêng chạy, chỉ phục vụ dữ liệu của schema được phép.",
+      "code": null,
+      "hint": "Phạm vi schema hẹp hơn toàn database.",
+      "nextHint": "Cấp quyền cần thiết thay vì quyền sở hữu.",
+      "followUp": "Nếu role khác đã cấp UPDATE thì kiểm tra effective permissions thế nào?",
+      "englishFollowUp": "How would you investigate UPDATE granted through another role?",
+      "outline": [
+        "Từ chối db_owner",
+        "Giới hạn SELECT theo schema",
+        "Nêu role tùy chỉnh",
+        "Kiểm tra quyền kế thừa qua role khác"
+      ],
+      "shortAnswer": "Role tùy chỉnh với SELECT trên schema cần đọc. Fixed roles có phạm vi quyền rộng; role tùy chỉnh giúp giới hạn đúng đối tượng. Quyền DB là lớp kiểm soát thực tế, không dựa vào ý định của code.",
+      "explanation": "Fixed roles có phạm vi quyền rộng; role tùy chỉnh giúp giới hạn đúng đối tượng. Quyền DB là lớp kiểm soát thực tế, không dựa vào ý định của code. Cấp quyền cần thiết thay vì quyền sở hữu. Nếu cần cấp thêm quyền, bổ sung đúng đối tượng hoặc stored procedure thay vì nâng toàn tài khoản lên db_owner. Kiểm effective permissions qua mọi role vì một grant ở role khác có thể làm phạm vi thực tế rộng hơn dự kiến.",
+      "alternative": "Nếu cần cấp thêm quyền, bổ sung đúng đối tượng hoặc stored procedure thay vì nâng toàn tài khoản lên db_owner. Kiểm effective permissions qua mọi role vì một grant ở role khác có thể làm phạm vi thực tế rộng hơn dự kiến.",
+      "trap": "Cho rằng: db_owner vì chỉ ứng dụng quyết định có ghi hay không.",
+      "rubric": [
+        "Từ chối db_owner",
+        "Giới hạn SELECT theo schema",
+        "Nêu role tùy chỉnh",
+        "Kiểm tra quyền kế thừa qua role khác"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/security/authentication-access/database-level-roles?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "db_datareader vì role này mặc định chỉ giới hạn schema cần đọc",
+          "Role tùy chỉnh với SELECT trên schema cần đọc",
+          "db_owner vì chỉ ứng dụng quyết định có ghi hay không"
+        ],
+        "en": [
+          "db_datareader because it automatically restricts access to the required schema",
+          "A custom role with SELECT on the required schema",
+          "db_owner because only application code decides whether to write"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "sql-restore-proof-backup",
+    "content": {
+      "title": "Backup xanh chưa đủ",
+      "topic": "sql",
+      "subtopic": "Backup xanh chưa đủ",
+      "tags": [
+        "Backup xanh chưa đủ",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một job backup hoàn tất mỗi đêm nhưng hệ thống chưa từng phục hồi thử. Để chứng minh dữ liệu và quy trình có thể phục hồi, việc nào mạnh hơn chỉ kiểm tra mã thành công?",
+      "englishPrompt": "A nightly backup job succeeds, but no restore drill has occurred. What provides stronger evidence of recoverability than checking a success code?",
+      "context": "Đội vận hành cần bằng chứng phục hồi được dữ liệu và thời gian phục hồi, không chỉ trạng thái scheduler.",
+      "code": null,
+      "hint": "Backup là đầu vào; restore mới thực hiện mục tiêu phục hồi.",
+      "nextHint": "Môi trường riêng cho phép kiểm tra mà không phá dữ liệu đang dùng.",
+      "followUp": "Bạn ghi thời gian và điểm dữ liệu phục hồi thế nào để đánh giá RTO/RPO?",
+      "englishFollowUp": "How would recovery duration and restored data point be recorded to assess RTO and RPO?",
+      "outline": [
+        "Restore cô lập",
+        "Kiểm chứng dữ liệu sau restore",
+        "Kiểm tra thứ tự backup cần thiết",
+        "Đo thời gian và điểm phục hồi"
+      ],
+      "shortAnswer": "Restore trên môi trường cô lập và kiểm tra dữ liệu cùng chuỗi phục hồi. Phục hồi thực tế kiểm chứng khả năng đọc và áp dụng backup cũng như các bước vận hành. Không chạy diễn tập đè lên database sản xuất.",
+      "explanation": "Phục hồi thực tế kiểm chứng khả năng đọc và áp dụng backup cũng như các bước vận hành. Không chạy diễn tập đè lên database sản xuất. Môi trường riêng cho phép kiểm tra mà không phá dữ liệu đang dùng. Kiểm tính hợp lệ của backup là bước bổ trợ, còn restore cô lập kiểm cả trình tự phục hồi và thao tác vận hành. Ghi thời lượng, điểm dữ liệu đạt được và kết quả đối soát để đánh giá RTO/RPO.",
+      "alternative": "Kiểm tính hợp lệ của backup là bước bổ trợ, còn restore cô lập kiểm cả trình tự phục hồi và thao tác vận hành. Ghi thời lượng, điểm dữ liệu đạt được và kết quả đối soát để đánh giá RTO/RPO.",
+      "trap": "Coi backup metadata hoặc VERIFYONLY là bằng chứng đã kiểm cả quy trình restore, dữ liệu sau phục hồi và thời gian thực hiện.",
+      "rubric": [
+        "Restore cô lập",
+        "Kiểm chứng dữ liệu sau restore",
+        "Kiểm tra thứ tự backup cần thiết",
+        "Đo thời gian và điểm phục hồi"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/backup-restore/restore-and-recovery-overview-sql-server?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Restore trên môi trường cô lập và kiểm tra dữ liệu cùng chuỗi phục hồi",
+          "Chỉ RESTORE VERIFYONLY rồi xem đó là diễn tập phục hồi hoàn chỉnh",
+          "Chỉ xem lịch sử backup và checksum mà không áp dụng chuỗi restore"
+        ],
+        "en": [
+          "Restore in an isolated environment and verify data and the recovery sequence",
+          "Only run RESTORE VERIFYONLY and treat it as a complete recovery drill",
+          "Only inspect backup history and checksums without applying the restore sequence"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-lock-escalation-batch",
+    "content": {
+      "title": "Một lệnh xóa giữ quá nhiều khóa",
+      "topic": "sql",
+      "subtopic": "Một lệnh xóa giữ quá nhiều khóa",
+      "tags": [
+        "Một lệnh xóa giữ quá nhiều khóa",
+        "SQL Server 2022"
+      ],
+      "format": "concept",
+      "difficulty": "hard",
+      "level": "senior",
+      "minutes": 7,
+      "technology": "SQL Server 2022",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. Job dọn dữ liệu xóa hàng trăm nghìn dòng trong một transaction, gây chặn toàn bảng. Vì sao chia lô có commit giữa các lô có thể giúp, và cần giữ đúng điều gì?",
+      "englishPrompt": "Explain your choice and its limits. A cleanup deletes hundreds of thousands of rows in one transaction and blocks the table. Why can committed batches help, and what correctness requirement must be preserved?",
+      "context": "Job dọn dữ liệu có thể chạy lại và phải giảm ảnh hưởng đến giao dịch trực tuyến.",
+      "code": null,
+      "hint": "Số statement không bằng số transaction.",
+      "nextHint": "Thời điểm commit quyết định nhiều khóa được giải phóng khi nào.",
+      "followUp": "Nếu yêu cầu toàn bộ cleanup nguyên tử thì batching thay đổi hợp đồng thế nào?",
+      "englishFollowUp": "How does batching change the contract if the whole cleanup must be atomic?",
+      "outline": [
+        "Giải thích phạm vi giữ khóa",
+        "Commit giữa lô",
+        "Theo dõi tiến lô ổn định",
+        "Nêu đánh đổi nguyên tử toàn bộ"
+      ],
+      "shortAnswer": "Giảm số khóa giữ đồng thời; dùng tiêu chí tiến lô ổn định. Batch commit rút ngắn phạm vi giữ khóa và log; các statement trong cùng transaction vẫn có thể giữ khóa đến cuối. Cần tránh bỏ sót hay xóa lặp không kiểm soát.",
+      "explanation": "Batch commit rút ngắn phạm vi giữ khóa và log; các statement trong cùng transaction vẫn có thể giữ khóa đến cuối. Cần tránh bỏ sót hay xóa lặp không kiểm soát. Thời điểm commit quyết định nhiều khóa được giải phóng khi nào. Nếu nghiệp vụ bắt buộc cleanup nguyên tử toàn bộ, không được tự đổi sang commit từng lô. Có thể đổi cửa sổ chạy hoặc thiết kế retention khác; cần thừa nhận batching thay đổi ranh giới nguyên tử và yêu cầu khôi phục tiến trình.",
+      "alternative": "Nếu nghiệp vụ bắt buộc cleanup nguyên tử toàn bộ, không được tự đổi sang commit từng lô. Có thể đổi cửa sổ chạy hoặc thiết kế retention khác; cần thừa nhận batching thay đổi ranh giới nguyên tử và yêu cầu khôi phục tiến trình.",
+      "trap": "Cho rằng: ROWLOCK bảo đảm không bao giờ escalation.",
+      "rubric": [
+        "Giải thích phạm vi giữ khóa",
+        "Commit giữa lô",
+        "Theo dõi tiến lô ổn định",
+        "Nêu đánh đổi nguyên tử toàn bộ"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/sql-server-transaction-locking-and-row-versioning-guide?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "sql-xact-abort-write-unit",
+    "content": {
+      "title": "Lỗi giữa lần ghi nhiều bước",
+      "topic": "sql",
+      "subtopic": "Lỗi giữa lần ghi nhiều bước",
+      "tags": [
+        "Lỗi giữa lần ghi nhiều bước",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Một transaction ghi hai bảng trong thủ tục; lỗi runtime không được bỏ qua. Nhóm muốn toàn bộ đơn vị ghi bị hủy khi statement lỗi, thay vì tiếp tục với phần còn lại. SET nào hỗ trợ chính sách đó?",
+      "englishPrompt": "A procedure writes two tables in one transaction; runtime errors must not be ignored. The team wants the transaction terminated on a statement error rather than continuing remaining work. Which SET option supports this policy?",
+      "context": "Thủ tục ghi nhiều bước không được báo thành công sau khi chỉ một phần thao tác hợp lệ.",
+      "code": null,
+      "hint": "Không nhầm thông báo row count với điều khiển transaction.",
+      "nextHint": "Chính sách lỗi runtime khác lỗi cú pháp trước khi chạy.",
+      "followUp": "THROW và RAISERROR có tôn trọng XACT_ABORT giống nhau không?",
+      "englishFollowUp": "Do THROW and RAISERROR honor XACT_ABORT in the same way?",
+      "outline": [
+        "Chọn XACT_ABORT ON",
+        "Giới hạn ở runtime error",
+        "Giữ xử lý lỗi có rollback",
+        "Không gán tác dụng này cho NOCOUNT"
+      ],
+      "shortAnswer": "SET XACT_ABORT ON cùng xử lý lỗi và rollback phù hợp. XACT_ABORT ON làm lỗi runtime chấm dứt transaction; lỗi biên dịch không thuộc bảo đảm này. TRY/CATCH vẫn cần giải phóng và truyền lỗi đúng.",
+      "explanation": "XACT_ABORT ON làm lỗi runtime chấm dứt transaction; lỗi biên dịch không thuộc bảo đảm này. TRY/CATCH vẫn cần giải phóng và truyền lỗi đúng. Chính sách lỗi runtime khác lỗi cú pháp trước khi chạy. Kết hợp TRY/CATCH, kiểm trạng thái transaction và rollback trước khi truyền lỗi bằng THROW. THROW tôn trọng XACT_ABORT còn RAISERROR không giống vậy; không coi SET này thay thế toàn bộ xử lý lỗi.",
+      "alternative": "Kết hợp TRY/CATCH, kiểm trạng thái transaction và rollback trước khi truyền lỗi bằng THROW. THROW tôn trọng XACT_ABORT còn RAISERROR không giống vậy; không coi SET này thay thế toàn bộ xử lý lỗi.",
+      "trap": "Cho rằng: SET NOCOUNT ON.",
+      "rubric": [
+        "Chọn XACT_ABORT ON",
+        "Giới hạn ở runtime error",
+        "Giữ xử lý lỗi có rollback",
+        "Không gán tác dụng này cho NOCOUNT"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/t-sql/statements/set-xact-abort-transact-sql?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "SET XACT_ABORT ON cùng xử lý lỗi và rollback phù hợp",
+          "SET NOCOUNT ON",
+          "SET XACT_ABORT OFF để luôn rollback toàn bộ"
+        ],
+        "en": [
+          "SET XACT_ABORT ON with appropriate error handling and rollback",
+          "SET NOCOUNT ON",
+          "SET XACT_ABORT OFF to always roll back everything"
+        ],
+        "correctIndex": 0
+      }
+    }
+  },
+  {
+    "slug": "sql-parameterized-search",
+    "content": {
+      "title": "Tên khách hàng chứa dấu nháy",
+      "topic": "sql",
+      "subtopic": "Tên khách hàng chứa dấu nháy",
+      "tags": [
+        "Tên khách hàng chứa dấu nháy",
+        "SQL Server 2022"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "SQL Server 2022",
+      "prompt": "Tìm khách theo tên chính xác nhận chuỗi từ HTTP. Hệ thống hiện ghép chuỗi vào WHERE. Cách sửa nào giữ dữ liệu đầu vào tách khỏi cú pháp SQL?",
+      "englishPrompt": "An exact customer-name search accepts an HTTP string and concatenates it into WHERE. Which fix separates input data from SQL syntax?",
+      "context": "Tên khách hàng có thể chứa dấu nháy hợp lệ và đầu vào HTTP không được xem là SQL đáng tin cậy.",
+      "code": null,
+      "hint": "Tên có dấu nháy là dữ liệu hợp lệ.",
+      "nextHint": "Một parameter không trở thành một đoạn SQL khi thực thi.",
+      "followUp": "Nếu người dùng chọn tên cột sắp xếp thì vì sao cần allowlist thay vì parameter tên cột?",
+      "englishFollowUp": "Why does a user-selected sort column need an allowlist rather than a value parameter for its name?",
+      "outline": [
+        "Bind parameter có kiểu",
+        "Không ghép dữ liệu vào SQL",
+        "Giữ tên có dấu nháy hợp lệ",
+        "Phân biệt giá trị và identifier"
+      ],
+      "shortAnswer": "Bind giá trị bằng parameter có kiểu, không ghép vào câu SQL. Parameter mang giá trị qua kênh riêng của lệnh. Kiểm tra đầu vào vẫn cần cho hợp đồng nghiệp vụ nhưng không thay thế parameterization.",
+      "explanation": "Parameter mang giá trị qua kênh riêng của lệnh. Kiểm tra đầu vào vẫn cần cho hợp đồng nghiệp vụ nhưng không thay thế parameterization. Một parameter không trở thành một đoạn SQL khi thực thi. Nếu người dùng chọn cột sắp xếp, ánh xạ giá trị lựa chọn qua allowlist identifier cố định; value parameter không thay tên cột. Vẫn dùng parameter cho dữ liệu và validate độ dài, kiểu theo hợp đồng nghiệp vụ.",
+      "alternative": "Nếu người dùng chọn cột sắp xếp, ánh xạ giá trị lựa chọn qua allowlist identifier cố định; value parameter không thay tên cột. Vẫn dùng parameter cho dữ liệu và validate độ dài, kiểu theo hợp đồng nghiệp vụ.",
+      "trap": "Cho rằng: Tự thay dấu nháy đơn bằng hai dấu rồi ghép trực tiếp.",
+      "rubric": [
+        "Bind parameter có kiểu",
+        "Không ghép dữ liệu vào SQL",
+        "Giữ tên có dấu nháy hợp lệ",
+        "Phân biệt giá trị và identifier"
+      ],
+      "source": "https://learn.microsoft.com/en-us/sql/relational-databases/security/sql-injection?view=sql-server-ver16",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "HTML-encode tên trước khi ghép vào WHERE",
+          "Tự thay dấu nháy đơn bằng hai dấu rồi ghép trực tiếp",
+          "Bind giá trị bằng parameter có kiểu, không ghép vào câu SQL"
+        ],
+        "en": [
+          "HTML-encode the name before concatenating it into WHERE",
+          "Manually double quotes and concatenate the value",
+          "Bind the value as a typed parameter rather than concatenating it"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-attach-existing-state",
+    "content": {
+      "title": "Gắn thực thể chỉ để tham chiếu",
+      "topic": "efcore",
+      "subtopic": "Gắn thực thể chỉ để tham chiếu",
+      "tags": [
+        "Gắn thực thể chỉ để tham chiếu",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một Customer có khóa đã sinh hợp lệ được gửi lại từ tầng ngoài. Chỉ cần theo dõi nó như dữ liệu đã tồn tại, không có thay đổi cần ghi. Attach mặc định đặt trạng thái nào?",
+      "englishPrompt": "A Customer with a valid generated key arrives from another layer. It should be tracked as existing with no pending changes. What state does Attach normally assign?",
+      "context": "Thực thể đi qua boundary ứng dụng và context hiện tại cần biết nó biểu diễn một dòng đã có.",
+      "code": null,
+      "hint": "Đề đã nêu rõ khóa sinh đã được đặt.",
+      "nextHint": "Phân biệt Attach với Add và Update.",
+      "followUp": "Một entity con có khóa sinh chưa đặt trong graph được Attach sẽ khác thế nào?",
+      "englishFollowUp": "How can an attached graph child with an unset generated key differ?",
+      "outline": [
+        "Nêu Unchanged",
+        "Gắn điều kiện khóa đã đặt",
+        "Phân biệt Add",
+        "Không khái quát cho khóa chưa đặt"
+      ],
+      "shortAnswer": "Unchanged. Attach cho thực thể có khóa đã đặt là Unchanged trong trường hợp này; khóa chưa đặt trên loại sinh khóa có thể khiến thực thể được coi là mới.",
+      "explanation": "Attach cho thực thể có khóa đã đặt là Unchanged trong trường hợp này; khóa chưa đặt trên loại sinh khóa có thể khiến thực thể được coi là mới. Phân biệt Attach với Add và Update. Nếu cần cập nhật một trường, gán riêng trạng thái thuộc tính hoặc query entity hiện tại rồi sửa trường cho phép. Tránh gọi Add cho object có sẵn chỉ để gắn navigation vì có thể biến nó thành ý định INSERT.",
+      "alternative": "Nếu cần cập nhật một trường, gán riêng trạng thái thuộc tính hoặc query entity hiện tại rồi sửa trường cho phép. Tránh gọi Add cho object có sẵn chỉ để gắn navigation vì có thể biến nó thành ý định INSERT.",
+      "trap": "Cho rằng: Added.",
+      "rubric": [
+        "Nêu Unchanged",
+        "Gắn điều kiện khóa đã đặt",
+        "Phân biệt Add",
+        "Không khái quát cho khóa chưa đặt"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/change-tracking/explicit-tracking",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Added",
+          "Unchanged",
+          "Deleted"
+        ],
+        "en": [
+          "Added",
+          "Unchanged",
+          "Deleted"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-property-only-patch",
+    "content": {
+      "title": "Sửa một trường tránh ghi đè",
+      "topic": "efcore",
+      "subtopic": "Sửa một trường tránh ghi đè",
+      "tags": [
+        "Sửa một trường tránh ghi đè",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "easy",
+      "level": "fresher",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. DTO chỉ cho phép sửa DisplayName và không có Email. Ứng dụng đã kiểm tra quyền sửa. Làm sao cập nhật mà không vô tình ghi Email mặc định từ DTO thiếu trường?",
+      "englishPrompt": "Explain your choice and its limits. A DTO allows only DisplayName and omits Email. Edit authorization has been checked. How can the update avoid overwriting Email with a default from the incomplete DTO?",
+      "context": "Form sửa tên không có quyền sửa email, nên giá trị email vắng mặt không phải yêu cầu xóa.",
+      "code": null,
+      "hint": "Thiếu trường không đồng nghĩa muốn xóa giá trị.",
+      "nextHint": "Giữ entity hiện tại làm nền rồi gán whitelist thuộc tính.",
+      "followUp": "Nếu API cho phép xóa DisplayName bằng null thì biểu diễn absent và null khác nhau ra sao?",
+      "englishFollowUp": "How would an API distinguish absent DisplayName from an explicit null that clears it?",
+      "outline": [
+        "Giữ Email hiện có",
+        "Gán whitelist",
+        "Phân biệt absent và null",
+        "Không Update toàn entity từ DTO thiếu dữ liệu"
+      ],
+      "shortAnswer": "Đọc entity rồi gán riêng DisplayName được phép. Cập nhật theo danh sách trường được phép giữ các trường không gửi. Update graph có thể đánh dấu nhiều thuộc tính và ghi đè dữ liệu không có trong DTO.",
+      "explanation": "Cập nhật theo danh sách trường được phép giữ các trường không gửi. Update graph có thể đánh dấu nhiều thuộc tính và ghi đè dữ liệu không có trong DTO. Giữ entity hiện tại làm nền rồi gán whitelist thuộc tính. Có thể attach stub rồi đánh dấu IsModified cho đúng thuộc tính, nhưng cần quản lý token concurrency và validation rõ ràng. Query rồi gán whitelist đơn giản hơn khi cần trạng thái hiện tại để kiểm invariant.",
+      "alternative": "Có thể attach stub rồi đánh dấu IsModified cho đúng thuộc tính, nhưng cần quản lý token concurrency và validation rõ ràng. Query rồi gán whitelist đơn giản hơn khi cần trạng thái hiện tại để kiểm invariant.",
+      "trap": "Cho rằng: Map DTO thành entity đầy đủ rồi gọi Update toàn entity.",
+      "rubric": [
+        "Giữ Email hiện có",
+        "Gán whitelist",
+        "Phân biệt absent và null",
+        "Không Update toàn entity từ DTO thiếu dữ liệu"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/disconnected-entities",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-detect-direct-mutation",
+    "content": {
+      "title": "Đổi thuộc tính sau khi tải",
+      "topic": "efcore",
+      "subtopic": "Đổi thuộc tính sau khi tải",
+      "tags": [
+        "Đổi thuộc tính sau khi tải",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Với snapshot change tracking mặc định, entity đã được query và tracked. Code gán Name trực tiếp rồi gọi SaveChanges; không tắt AutoDetectChanges. Cần gọi Update thủ công không?",
+      "englishPrompt": "With default snapshot change tracking, a queried entity is tracked. Code assigns Name directly and calls SaveChanges without disabling AutoDetectChanges. Must it call Update manually?",
+      "context": "Use case query và sửa entity trên cùng một context trước khi kết thúc request.",
+      "code": null,
+      "hint": "Đề đã xác định entity đang tracked.",
+      "nextHint": "So sánh giá trị hiện tại với snapshot trước đó.",
+      "followUp": "Khi tắt AutoDetectChanges để tối ưu batch thì trách nhiệm nào chuyển cho code?",
+      "englishFollowUp": "What responsibility moves to application code when AutoDetectChanges is disabled for a batch?",
+      "outline": [
+        "Nêu không cần Update",
+        "Nêu snapshot",
+        "Nêu DetectChanges tự động",
+        "Giới hạn với entity tracked và cấu hình mặc định"
+      ],
+      "shortAnswer": "Không, SaveChanges phát hiện thay đổi theo snapshot. SaveChanges tự gọi DetectChanges trong cấu hình mặc định. Điều này không áp dụng nguyên trạng khi entity không tracked hay cơ chế tự phát hiện bị tắt.",
+      "explanation": "SaveChanges tự gọi DetectChanges trong cấu hình mặc định. Điều này không áp dụng nguyên trạng khi entity không tracked hay cơ chế tự phát hiện bị tắt. So sánh giá trị hiện tại với snapshot trước đó. Nếu profiling chứng minh DetectChanges là nút thắt ở batch lớn, có thể tắt tự phát hiện trong phạm vi nhỏ rồi gọi DetectChanges có chủ đích. Phải khôi phục cấu hình trong finally; không tắt chỉ theo phỏng đoán hiệu năng.",
+      "alternative": "Nếu profiling chứng minh DetectChanges là nút thắt ở batch lớn, có thể tắt tự phát hiện trong phạm vi nhỏ rồi gọi DetectChanges có chủ đích. Phải khôi phục cấu hình trong finally; không tắt chỉ theo phỏng đoán hiệu năng.",
+      "trap": "Cho rằng: Có, mọi gán thuộc tính đều bị bỏ qua nếu thiếu Update.",
+      "rubric": [
+        "Nêu không cần Update",
+        "Nêu snapshot",
+        "Nêu DetectChanges tự động",
+        "Giới hạn với entity tracked và cấu hình mặc định"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/change-tracking/change-detection",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Phải chuyển entity sang Detached để EF so sánh giá trị mới",
+          "Không, SaveChanges phát hiện thay đổi theo snapshot",
+          "Có, mọi gán thuộc tính đều bị bỏ qua nếu thiếu Update"
+        ],
+        "en": [
+          "The entity must become Detached for EF to compare new values",
+          "No, SaveChanges detects the snapshot change",
+          "Yes, every assignment is ignored without Update"
+        ],
+        "correctIndex": 1
+      }
+    }
+  },
+  {
+    "slug": "ef-add-new-graph",
+    "content": {
+      "title": "Thêm phiếu với dòng hàng mới",
+      "topic": "efcore",
+      "subtopic": "Thêm phiếu với dòng hàng mới",
+      "tags": [
+        "Thêm phiếu với dòng hàng mới",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Một Order mới chứa hai OrderLine mới qua navigation đã cấu hình. Tất cả đều chưa có trong context hay database và không tham chiếu entity có sẵn. Add Order rồi SaveChanges có thêm các line không?",
+      "englishPrompt": "A new Order contains two new OrderLine objects through configured navigations. None exist in the context or database, and no existing entity is referenced. Does adding the Order and saving also insert the lines?",
+      "context": "Phiếu mới cùng các dòng mới được tạo trong bộ nhớ và cần lưu đúng quan hệ khóa ngoại.",
+      "code": null,
+      "hint": "Theo dõi graph khác theo dõi một scalar riêng lẻ.",
+      "nextHint": "Đề loại trừ Customer có sẵn để tránh hiểu nhầm Add tất cả là an toàn.",
+      "followUp": "Nếu graph có Customer đã tồn tại thì bạn đặt FK hoặc trạng thái tracking thế nào?",
+      "englishFollowUp": "How would you set a foreign key or tracking state for an existing Customer in the graph?",
+      "outline": [
+        "Nêu thêm cả line",
+        "Dựa vào navigation cấu hình",
+        "Nêu graph hoàn toàn mới",
+        "Phân biệt entity có sẵn"
+      ],
+      "shortAnswer": "Có, Add duyệt graph mới có thể truy cập qua navigation. EF khám phá entity mới có thể truy cập qua navigation và theo dõi để chèn. Phải phân biệt graph hoàn toàn mới với graph trộn entity có sẵn.",
+      "explanation": "EF khám phá entity mới có thể truy cập qua navigation và theo dõi để chèn. Phải phân biệt graph hoàn toàn mới với graph trộn entity có sẵn. Đề loại trừ Customer có sẵn để tránh hiểu nhầm Add tất cả là an toàn. Khi graph có Customer đã tồn tại, đặt FK đã biết hoặc attach Customer đúng trạng thái trước khi Add phần mới. Việc graph hoàn toàn mới được duyệt tự động không có nghĩa mọi graph trộn dữ liệu cũ đều nên Add toàn bộ.",
+      "alternative": "Khi graph có Customer đã tồn tại, đặt FK đã biết hoặc attach Customer đúng trạng thái trước khi Add phần mới. Việc graph hoàn toàn mới được duyệt tự động không có nghĩa mọi graph trộn dữ liệu cũ đều nên Add toàn bộ.",
+      "trap": "Cho rằng: Không, phải Add riêng từng line dù đã liên kết.",
+      "rubric": [
+        "Nêu thêm cả line",
+        "Dựa vào navigation cấu hình",
+        "Nêu graph hoàn toàn mới",
+        "Phân biệt entity có sẵn"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/saving/related-data",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Không, phải Add riêng từng line dù đã liên kết",
+          "Chỉ thêm root vì Add không duyệt navigation collection",
+          "Có, Add duyệt graph mới có thể truy cập qua navigation"
+        ],
+        "en": [
+          "No, each line must always be added separately",
+          "Only insert the root because Add does not traverse collection navigations",
+          "Yes, Add traverses the new graph reachable through navigations"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-fromsql-value-parameter",
+    "content": {
+      "title": "SQL nội suy nhận dữ liệu ngoài",
+      "topic": "efcore",
+      "subtopic": "SQL nội suy nhận dữ liệu ngoài",
+      "tags": [
+        "SQL nội suy nhận dữ liệu ngoài",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "easy",
+      "level": "intern",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "EF Core 10 dùng FromSql với interpolated string trực tiếp chứa giá trị term từ người dùng, không chuyển thành string trước. Giá trị term được gửi như thế nào?",
+      "englishPrompt": "EF Core 10 calls FromSql directly with an interpolated string containing a user-provided term, without first converting it to string. How is term sent?",
+      "context": "Nhóm cần dùng một truy vấn SQL tự viết nhưng vẫn giữ ranh giới giữa dữ liệu người dùng và câu lệnh.",
+      "code": null,
+      "hint": "Kiểu đối số tại chỗ gọi quyết định cách xử lý nội suy.",
+      "nextHint": "Không đồng nhất FromSql và FromSqlRaw với string đã ghép.",
+      "followUp": "Nếu term là tên bảng chứ không phải giá trị thì bảo vệ bằng cách nào?",
+      "englishFollowUp": "How should a table name be protected if term represents an identifier rather than a value?",
+      "outline": [
+        "Nêu parameter",
+        "Giữ interpolated string trực tiếp",
+        "Phân biệt raw string",
+        "Không dùng value parameter cho identifier"
+      ],
+      "shortAnswer": "Như database parameter. Overload FormattableString giữ các giá trị nội suy để tạo parameter. Chuyển sang string rồi dùng raw SQL là một trường hợp khác và cần kiểm tra riêng.",
+      "explanation": "Overload FormattableString giữ các giá trị nội suy để tạo parameter. Chuyển sang string rồi dùng raw SQL là một trường hợp khác và cần kiểm tra riêng. Không đồng nhất FromSql và FromSqlRaw với string đã ghép. Nếu bắt buộc dùng FromSqlRaw, truyền DbParameter rõ ràng thay vì ghép giá trị vào string. Identifier động cần allowlist riêng; khả năng parameter hóa giá trị của FromSql không biến tên bảng hoặc cột thành parameter hợp lệ.",
+      "alternative": "Nếu bắt buộc dùng FromSqlRaw, truyền DbParameter rõ ràng thay vì ghép giá trị vào string. Identifier động cần allowlist riêng; khả năng parameter hóa giá trị của FromSql không biến tên bảng hoặc cột thành parameter hợp lệ.",
+      "trap": "Cho rằng: Luôn ghép nguyên văn vào SQL text.",
+      "rubric": [
+        "Nêu parameter",
+        "Giữ interpolated string trực tiếp",
+        "Phân biệt raw string",
+        "Không dùng value parameter cho identifier"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/sql-queries",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Như tên cột động",
+          "Luôn ghép nguyên văn vào SQL text",
+          "Như database parameter"
+        ],
+        "en": [
+          "As a dynamic column name",
+          "Always pasted verbatim into SQL text",
+          "As a database parameter"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-stored-procedure-compose",
+    "content": {
+      "title": "Lọc sau EXEC trong EF",
+      "topic": "efcore",
+      "subtopic": "Lọc sau EXEC trong EF",
+      "tags": [
+        "Lọc sau EXEC trong EF",
+        "EF Core 10"
+      ],
+      "format": "concept",
+      "difficulty": "medium",
+      "level": "mid",
+      "minutes": 7,
+      "technology": "EF Core 10",
+      "prompt": "Giải thích lựa chọn và giới hạn áp dụng. FromSql gọi EXEC một stored procedure trả Products trên SQL Server. Nhóm nối Where để EF thêm bộ lọc phía SQL. Vì sao cách compose này không hợp lệ và nên xử lý ở đâu?",
+      "englishPrompt": "Explain your choice and its limits. FromSql calls EXEC on a stored procedure returning Products on SQL Server. The team appends Where for EF to add a server-side filter. Why is this composition invalid, and where should filtering occur?",
+      "context": "Stored procedure là hợp đồng database hiện có; màn hình chỉ muốn một phần kết quả của nó.",
+      "code": null,
+      "hint": "FromSql có thể compose khi SQL nguồn là subquery hợp lệ.",
+      "nextHint": "Stored procedure invocation khác SELECT composable.",
+      "followUp": "Nếu procedure trả hàng triệu dòng thì chọn phương án nào để giảm dữ liệu truyền?",
+      "englishFollowUp": "Which approach reduces transfer when the procedure returns millions of rows?",
+      "outline": [
+        "Nêu EXEC không composable",
+        "Đưa predicate vào procedure",
+        "Chỉ client filter khi có giới hạn",
+        "Không gán khả năng compose cho tracking mode"
+      ],
+      "shortAnswer": "EXEC không composable; truyền lọc vào procedure hoặc chuyển sang xử lý client rõ ràng. SQL Server không cho dùng EXEC làm subquery. Client filtering sau AsEnumerable có thể tải nhiều dữ liệu nên phải nêu chi phí và giới hạn.",
+      "explanation": "SQL Server không cho dùng EXEC làm subquery. Client filtering sau AsEnumerable có thể tải nhiều dữ liệu nên phải nêu chi phí và giới hạn. Stored procedure invocation khác SELECT composable. Nếu thay được database API, đưa predicate vào procedure để giảm dữ liệu truyền. Nếu tập kết quả nhỏ và có giới hạn, chuyển sang AsEnumerable rõ ràng rồi lọc client; phải chấp nhận chi phí tải tập trước khi lọc.",
+      "alternative": "Nếu thay được database API, đưa predicate vào procedure để giảm dữ liệu truyền. Nếu tập kết quả nhỏ và có giới hạn, chuyển sang AsEnumerable rõ ràng rồi lọc client; phải chấp nhận chi phí tải tập trước khi lọc.",
+      "trap": "Cho rằng: EF luôn bọc EXEC thành subquery hợp lệ.",
+      "rubric": [
+        "Nêu EXEC không composable",
+        "Đưa predicate vào procedure",
+        "Chỉ client filter khi có giới hạn",
+        "Không gán khả năng compose cho tracking mode"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/querying/sql-queries",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": []
+    }
+  },
+  {
+    "slug": "ef-keyless-report-view",
+    "content": {
+      "title": "Mapping view tổng hợp",
+      "topic": "efcore",
+      "subtopic": "Mapping view tổng hợp",
+      "tags": [
+        "Mapping view tổng hợp",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "View RevenueByMonth không có khóa duy nhất đáng tin cậy và chỉ dùng để đọc báo cáo. Kiểu EF nào biểu diễn đúng mà không giả tạo khóa?",
+      "englishPrompt": "RevenueByMonth has no reliable unique key and is only read for reporting. Which EF type represents it without inventing an entity key?",
+      "context": "Màn hình đọc số tổng hợp không có ý định thêm, sửa hoặc xóa một dòng báo cáo.",
+      "code": null,
+      "hint": "Báo cáo không cần một identity giả.",
+      "nextHint": "HasNoKey mô tả rõ giới hạn read-only của loại này.",
+      "followUp": "Nếu muốn sửa dữ liệu nguồn thì nên thao tác entity nào thay vì view tổng hợp?",
+      "englishFollowUp": "Which entities should be edited instead of the aggregate view when source data must change?",
+      "outline": [
+        "Chọn keyless",
+        "Không tạo khóa giả",
+        "Nêu không tracking để cập nhật",
+        "Tách nguồn ghi khỏi view tổng hợp"
+      ],
+      "shortAnswer": "Keyless entity type với HasNoKey và mapping view. Keyless entity types không được change-tracked để cập nhật và phù hợp nguồn kết quả không có khóa. Không chọn cột không duy nhất chỉ để hết lỗi model.",
+      "explanation": "Keyless entity types không được change-tracked để cập nhật và phù hợp nguồn kết quả không có khóa. Không chọn cột không duy nhất chỉ để hết lỗi model. HasNoKey mô tả rõ giới hạn read-only của loại này. Nếu cần thay dữ liệu, gửi command đến entity bảng nguồn có key và invariant phù hợp. Không ép key giả lên view để dùng Update, vì identity sai có thể gộp nhầm dòng trong các giả định của EF.",
+      "alternative": "Nếu cần thay dữ liệu, gửi command đến entity bảng nguồn có key và invariant phù hợp. Không ép key giả lên view để dùng Update, vì identity sai có thể gộp nhầm dòng trong các giả định của EF.",
+      "trap": "Cho rằng: Regular entity lấy Month làm key dù trùng.",
+      "rubric": [
+        "Chọn keyless",
+        "Không tạo khóa giả",
+        "Nêu không tracking để cập nhật",
+        "Tách nguồn ghi khỏi view tổng hợp"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/keyless-entity-types",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Đánh dấu query AsNoTracking là đủ dù entity không có key",
+          "Regular entity lấy Month làm key dù trùng",
+          "Keyless entity type với HasNoKey và mapping view"
+        ],
+        "en": [
+          "AsNoTracking alone is sufficient even though the entity has no key",
+          "A regular entity using Month as a key despite duplicates",
+          "A keyless entity type with HasNoKey and a view mapping"
+        ],
+        "correctIndex": 2
+      }
+    }
+  },
+  {
+    "slug": "ef-shadow-foreign-key",
+    "content": {
+      "title": "Khóa ngoại không có CLR property",
+      "topic": "efcore",
+      "subtopic": "Khóa ngoại không có CLR property",
+      "tags": [
+        "Khóa ngoại không có CLR property",
+        "EF Core 10"
+      ],
+      "format": "quiz",
+      "difficulty": "medium",
+      "level": "junior",
+      "minutes": 4,
+      "technology": "EF Core 10",
+      "prompt": "Model có navigation Post.Blog nhưng cố ý không khai báo BlogId trong class. EF vẫn cần lưu FK. Nó có thể giữ giá trị này ở đâu?",
+      "englishPrompt": "The model has a Post.Blog navigation but deliberately omits a BlogId CLR property. EF still needs the foreign-key value. Where can it keep that value?",
+      "context": "Model muốn giữ lớp domain gọn trong khi schema database vẫn có khóa ngoại rõ ràng.",
+      "code": null,
+      "hint": "Model EF không bắt buộc đồng nhất từng property với CLR.",
+      "nextHint": "Giá trị tracking không đồng nghĩa có getter public.",
+      "followUp": "Khi entity no-tracking đã rời context thì có đọc shadow value qua object thông thường không?",
+      "englishFollowUp": "Can ordinary object access retrieve a shadow value from a detached no-tracking entity?",
+      "outline": [
+        "Nhận diện shadow property",
+        "Nêu tracker giữ giá trị",
+        "Phân biệt CLR và model",
+        "Nêu EF.Property cho truy vấn"
+      ],
+      "shortAnswer": "Shadow property trong change tracker. Shadow property tồn tại trong model và change tracker dù không có thành viên CLR tương ứng. Có thể truy vấn bằng EF.Property trong LINQ được dịch.",
+      "explanation": "Shadow property tồn tại trong model và change tracker dù không có thành viên CLR tương ứng. Có thể truy vấn bằng EF.Property trong LINQ được dịch. Giá trị tracking không đồng nghĩa có getter public. Có thể khai báo BlogId trong CLR khi cần truyền giá trị qua DTO hoặc làm việc ngoài tracker. Shadow FK giảm member lộ ra nhưng giá trị của nó không có sẵn qua object đã detached như một property CLR bình thường.",
+      "alternative": "Có thể khai báo BlogId trong CLR khi cần truyền giá trị qua DTO hoặc làm việc ngoài tracker. Shadow FK giảm member lộ ra nhưng giá trị của nó không có sẵn qua object đã detached như một property CLR bình thường.",
+      "trap": "Cho rằng: Chỉ trong tên bảng, không có cột FK.",
+      "rubric": [
+        "Nhận diện shadow property",
+        "Nêu tracker giữ giá trị",
+        "Phân biệt CLR và model",
+        "Nêu EF.Property cho truy vấn"
+      ],
+      "source": "https://learn.microsoft.com/en-us/ef/core/modeling/shadow-properties",
+      "checkedOn": "2026-11-27",
+      "prerequisites": [],
+      "related": [],
+      "quiz": {
+        "vi": [
+          "Shadow property trong change tracker",
+          "Giữ FK chỉ trong navigation, không cần scalar property trong EF model",
+          "Chỉ trong tên bảng, không có cột FK"
+        ],
+        "en": [
+          "A shadow property in the change tracker",
+          "Keep the FK only in the navigation, with no scalar property in the EF model",
+          "Only in the table name with no FK column"
+        ],
+        "correctIndex": 0
+      }
+    }
+  }
+]

@@ -1,0 +1,197 @@
+[
+  {
+    "slug": "expense-separation-of-duties",
+    "title": "Chi phí · Không tự duyệt phiếu mình tạo",
+    "brief": "Quản lý có vai trò Approver nhưng cũng là người tạo phiếu hoàn chi phí. Người thay mặt gửi và người hưởng tiền có thể khác nhau.",
+    "prompt": "Bạn biểu diễn actor, beneficiary và quyền duyệt thế nào để role Approver không tự cho phép tự duyệt? Nêu nơi kiểm tra cùng một test có thể chứng minh quy tắc.",
+    "followUp": "Nếu quản lý chuyển vai trò sau khi mở form duyệt nhưng trước khi bấm xác nhận, server nên dựa vào quyền ở thời điểm nào?",
+    "rubric": "Phân biệt creator, submitter, beneficiary và approver; dùng policy theo resource cùng quy tắc tách nhiệm vụ ở write path; xác thực lại dữ kiện cần thiết khi chuyển trạng thái; test người có role nhưng không đủ điều kiện, không chỉ test user vô danh.",
+    "questions": [
+      "resource-authorization",
+      "aspnet-claim-value-allowlist",
+      "optimistic-concurrency"
+    ]
+  },
+  {
+    "slug": "quote-price-freeze",
+    "title": "Báo giá · Giữ giá trong thời hạn",
+    "brief": "Khách nhận báo giá có hạn 48 giờ; bảng giá sản phẩm thay đổi sau một ngày. Nhân viên cần giải thích vì sao đơn tạo từ báo giá vẫn giữ giá cũ.",
+    "prompt": "Bạn lưu phiên bản giá, dòng báo giá và hạn hiệu lực ra sao? Tách thời điểm đọc giá hiện tại khỏi cam kết giá đã phát hành.",
+    "followUp": "Nếu khách sửa số lượng làm thay đổi bậc giá, có tiếp tục dùng nguyên báo giá cũ không và cần lưu bằng chứng nào?",
+    "rubric": "Chốt snapshot giá và điều khoản tại phát hành; xác định thay đổi nào buộc tái báo giá; dùng đồng hồ server để kiểm tra hạn; không dùng cache giá hiện tại như bằng chứng cam kết; nêu test trước/sau hạn và sửa số lượng.",
+    "questions": [
+      "testable-clock",
+      "cache-invalidation",
+      "optimistic-concurrency"
+    ]
+  },
+  {
+    "slug": "localized-public-cache",
+    "title": "Danh mục · Nội dung Việt và Anh qua CDN",
+    "brief": "Một URL danh mục phục vụ tiếng Việt hoặc Anh theo Accept-Language. CDN đang trả ngôn ngữ của người dùng trước cho mọi người.",
+    "prompt": "Bạn thu thập bằng chứng gì để phân biệt lỗi cache key với lỗi chọn ngôn ngữ, rồi sửa hợp đồng HTTP như thế nào?",
+    "followUp": "Nếu response còn chứa giá dành riêng theo nhóm khách, chỉ thêm Vary: Accept-Language đã đủ chưa?",
+    "rubric": "Chụp request/response và cache hit theo từng biến thể; Vary thể hiện chiều ngôn ngữ; phân loại dữ liệu công khai với cá nhân hóa trước khi shared-cache; test đổi thứ tự request Việt/Anh và khách hàng khác nhóm.",
+    "questions": [
+      "http-vary-language",
+      "http-private-browser-cache",
+      "aspnet-outputcache-authenticated-default"
+    ]
+  },
+  {
+    "slug": "restore-identity-collision",
+    "title": "Tài khoản · Khôi phục khi email đã được dùng lại",
+    "brief": "Một tài khoản soft-deleted cần được khôi phục, nhưng email của nó đã cấp cho tài khoản mới. Hệ thống không cho hai tài khoản hoạt động có cùng email theo collation đã chọn.",
+    "prompt": "Bạn đưa ra lựa chọn sản phẩm và thiết kế transaction nào để khôi phục không vi phạm bất biến hoặc lấy nhầm tài khoản mới?",
+    "followUp": "Hai nhân viên cùng xử lý phục hồi và đổi email vào cùng thời điểm; SELECT kiểm tra trước có đủ bảo vệ không?",
+    "rubric": "Giữ ID ổn định, không gộp theo email; chốt quy tắc đổi email hoặc từ chối restore; unique constraint/index phù hợp tập active; xử lý conflict ở write thay vì chỉ pre-check; test đối chiếu cả hai tài khoản và lịch sử.",
+    "questions": [
+      "sql-constraints",
+      "sql-filter-open-subset",
+      "optimistic-concurrency"
+    ]
+  },
+  {
+    "slug": "warehouse-unit-rounding",
+    "title": "Kho · Quy đổi thùng và đơn vị lẻ",
+    "brief": "Nhà cung cấp giao theo thùng 24 chai nhưng cửa hàng bán theo chai. Có sản phẩm khác nhận theo kg và bán đến ba chữ số lẻ.",
+    "prompt": "Bạn chọn đơn vị chuẩn, độ chính xác và nơi làm tròn thế nào để không trộn số thùng với số chai hoặc làm sai tồn?",
+    "followUp": "Khi thay quy cách từ 24 thành 20 chai/thùng, các phiếu cũ phải tái tính theo quy cách mới hay giữ bản nào?",
+    "rubric": "Lưu quantity cùng unit và conversion version có hiệu lực; chốt đơn vị tồn theo sản phẩm; decimal và rounding theo hợp đồng, không round sớm từng bước tùy ý; giữ conversion snapshot cho chứng từ cũ; test cả quy cách đổi và số lẻ.",
+    "questions": [
+      "sql-round-away",
+      "round-to-even",
+      "invariants"
+    ]
+  },
+  {
+    "slug": "renewal-anniversary-rule",
+    "title": "Thuê bao · Ngày 31 không có ở mọi tháng",
+    "brief": "Khách đăng ký ngày 31 tháng Một và gia hạn hàng tháng. Sau tháng Hai, sản phẩm cần quyết định ngày tiếp theo là 28 hay trở lại cuối tháng.",
+    "prompt": "Bạn hỏi và ghi nhận quy tắc lịch thế nào, rồi lưu đủ dữ liệu để không tích lũy lệch ngày khi cộng tháng nhiều lần?",
+    "followUp": "Khách đổi múi giờ khi đang ở ngày sát hạn; ngày hiển thị và instant thu tiền có được tự đổi theo máy khách không?",
+    "rubric": "Tách anchor ngày đăng ký, quy tắc cuối tháng và kỳ thanh toán; không suy từ kết quả lần cộng tháng trước; lưu time zone/instant theo hợp đồng; test năm nhuận, tháng thiếu ngày và đổi múi giờ bằng đồng hồ kiểm soát.",
+    "questions": [
+      "month-end-renewal",
+      "eomonth-offset",
+      "testable-clock"
+    ]
+  },
+  {
+    "slug": "offline-entitlement-window",
+    "title": "Ứng dụng offline · Giới hạn thu hồi giấy phép",
+    "brief": "Ứng dụng thiết bị được hoạt động offline tối đa 24 giờ bằng entitlement đã ký. Quản trị muốn khóa ngay một thiết bị đang mất mạng.",
+    "prompt": "Bạn giải thích giới hạn thực tế và đưa ra hợp đồng thu hồi nào thay vì hứa server có thể cập nhật thiết bị không kết nối?",
+    "followUp": "Nếu thiết bị đổi đồng hồ về quá khứ, mô hình thời hạn và ranh giới tin cậy của bạn cần xem lại điều gì?",
+    "rubric": "Phân biệt thu hồi phía server với quyền đã cấp offline; chốt cửa sổ hiệu lực và yêu cầu reconnect; không xem chữ ký như bằng chứng đồng hồ client đáng tin; trình bày kiểm soát theo nền tảng và rủi ro còn lại, kiểm thử offline quá hạn và key rotation.",
+    "questions": [
+      "aspnet-jwt-expired-token",
+      "aspnet-jwt-decode-vs-verify",
+      "aspnet-cookie-revocation-version"
+    ]
+  },
+  {
+    "slug": "search-case-contract",
+    "title": "Tìm kiếm · Hai môi trường so chuỗi khác nhau",
+    "brief": "Search username đúng ở máy local nhưng trả thêm kết quả khi lên SQL Server. Team đang dùng ToLower trong mọi query để sửa nhanh.",
+    "prompt": "Bạn kiểm tra collation, hợp đồng case sensitivity và execution plan ra sao trước khi sửa?",
+    "followUp": "Nếu chỉ một trường cần case-sensitive còn các trường khác giữ mặc định, bạn cân nhắc collation ở cột hay ở từng query thế nào?",
+    "rubric": "Mô tả equality theo collation của provider; chốt yêu cầu ngôn ngữ trước tối ưu; ưu tiên cấu hình cột/index phù hợp nếu ổn định; kiểm tra kế hoạch khi dùng ToLower hoặc COLLATE riêng; test trên provider production với ký tự có ý nghĩa văn hóa.",
+    "questions": [
+      "ef-provider-test",
+      "index-plan",
+      "ordinal-key-lookup"
+    ]
+  },
+  {
+    "slug": "dashboard-denominator-contract",
+    "title": "Báo cáo · Không có dữ liệu khác đạt 0 phần trăm",
+    "brief": "Dashboard hiển thị tỷ lệ lỗi theo chi nhánh. Một chi nhánh không có giao dịch; chi nhánh khác có mười giao dịch và không có lỗi.",
+    "prompt": "Bạn biểu diễn hai trường hợp khác nhau ở SQL, API và giao diện thế nào để không gọi thiếu dữ liệu là chất lượng hoàn hảo?",
+    "followUp": "Khi người dùng chọn hai chi nhánh, bạn lấy trung bình hai phần trăm hay tính lại trên tổng số giao dịch?",
+    "rubric": "Giữ numerator và denominator cùng cửa sổ lọc; denominator=0 cho trạng thái undefined/no data theo hợp đồng; tính tỷ lệ gộp từ tổng counts thay vì trung bình tỷ lệ không trọng số; test empty, zero-error và nhóm khác kích thước.",
+    "questions": [
+      "sql-nullif-ratio",
+      "sql-count-null",
+      "sql-coalesce-aggregate"
+    ]
+  },
+  {
+    "slug": "invitation-single-use",
+    "title": "Lời mời · Một token chỉ nhận một lần",
+    "brief": "Email mời vào tenant có token một lần và hết hạn sau 24 giờ. Người dùng mở đồng thời ở hai tab; endpoint không được dùng token để vào tenant khác.",
+    "prompt": "Bạn thiết kế dữ liệu token, kiểm tra và thao tác consume nguyên tử ra sao? Phân biệt token dùng một lần với chỉ kiểm tra thời hạn.",
+    "followUp": "Nếu consume đã commit nhưng response mất, tab retry nên thấy trạng thái nào mà không tạo membership lần hai?",
+    "rubric": "Token gắn tenant, email/subject và mục đích; lưu hash thích hợp, không log nguyên token; consume bằng điều kiện chưa dùng/chưa hết hạn và uniqueness membership; phản hồi retry có kiểm chứng trạng thái; test hai tab, sai tenant và exact expiry.",
+    "questions": [
+      "optimistic-concurrency",
+      "sql-constraints",
+      "testable-clock"
+    ]
+  },
+  {
+    "slug": "privacy-deletion-in-backups",
+    "title": "Dữ liệu · Xóa hồ sơ và phục hồi backup",
+    "brief": "Một tenant yêu cầu xóa hồ sơ khách hàng. Team xóa DB hiện tại nhưng bản backup có thể được phục hồi sau đó làm hồ sơ xuất hiện lại.",
+    "prompt": "Bạn lập bản đồ bản sao, retention và quy trình restore thế nào để chính sách xóa được duy trì có bằng chứng?",
+    "followUp": "Nếu audit cần giữ sự kiện xử lý nhưng không cần định danh khách hàng, dữ liệu nào nên được loại hoặc thay bằng mã vô danh?",
+    "rubric": "Phân biệt xóa live data, cache, search, export và backup; chọn retention với người chịu trách nhiệm sản phẩm/pháp lý thay vì tự hứa xóa ngay mọi bản sao; có deletion ledger không chứa dữ liệu dư và áp lại sau restore; diễn tập phục hồi để đối soát.",
+    "questions": [
+      "delivery-dockvolume-boundary",
+      "logs-correlation",
+      "project-star"
+    ]
+  },
+  {
+    "slug": "attachment-scan-stale-result",
+    "title": "Tệp đính kèm · Kết quả scan của phiên bản cũ",
+    "brief": "Nhân viên thay file hợp đồng trong khi scanner đang kiểm tra bản trước. Callback approved của file cũ đến sau khi file mới đã upload.",
+    "prompt": "Bạn gắn quyết định scan vào đối tượng và phiên bản nào để không duyệt nhầm attachment mới?",
+    "followUp": "Nếu file mới có cùng tên và kích thước như file cũ, hai metadata đó có đủ nhận diện cùng nội dung không?",
+    "rubric": "Storage object ID/checksum và version xác định nội dung; cập nhật scan status có điều kiện theo phiên bản; file mới vẫn quarantine cho đến kết quả riêng; không dựa filename/size như identity; test callback trễ và duplicate callback.",
+    "questions": [
+      "aspnet-untrusted-upload-name",
+      "optimistic-concurrency",
+      "resource-authorization"
+    ]
+  },
+  {
+    "slug": "tenant-rollout-cohort",
+    "title": "Tính năng · Một tenant không đổi nhóm liên tục",
+    "brief": "Tính năng mới bật cho 10% tenant, nhưng dùng Random mỗi request khiến cùng tenant thấy hai hành vi khi reload.",
+    "prompt": "Bạn định nghĩa stable cohort và version rollout thế nào để tái hiện một báo cáo lỗi từ tenant cụ thể?",
+    "followUp": "Nếu kill switch cần tắt nhanh trong khi config cache 30 giây, bạn trình bày giới hạn và chọn đường truyền nào?",
+    "rubric": "Gán cohort ổn định theo tenant và rollout salt/version; log quyết định không lộ bí mật; kiểm tra tenant từ principal đáng tin; có cơ chế propagation/last-known-good phù hợp; test qua nhiều replica và tỷ lệ rollout thay đổi.",
+    "questions": [
+      "aspnet-configuration-provider-precedence",
+      "systems-tenantkey-boundary",
+      "testable-clock"
+    ]
+  },
+  {
+    "slug": "legacy-status-translation",
+    "title": "Tích hợp · Không để mã legacy lan khắp domain",
+    "brief": "Đối tác cũ trả status 1, 2 và 9, trong khi domain mới dùng Pending, Active và Cancelled với quy tắc khác. Người dùng hiện phải đọc số 9 để hiểu lỗi.",
+    "prompt": "Bạn đặt lớp dịch contract ở đâu và xử lý mã chưa biết thế nào để không làm sai domain hoặc lộ chi tiết không cần thiết?",
+    "followUp": "Khi đối tác bổ sung status=7 mà chưa báo trước, hệ thống nên fail, giữ pending hay tự coi Active? Nêu tiêu chí chọn.",
+    "rubric": "Adapter chuyển theo bảng có version và contract test; domain giữ thuật ngữ nghiệp vụ; unknown được quan sát và xử lý an toàn theo rủi ro thay vì default Active; lưu raw code có kiểm soát phục vụ đối soát; không viết switch rải ở mọi controller.",
+    "questions": [
+      "arch-dependency-inversion",
+      "arch-pipeline-contract",
+      "systems-strangler-boundary"
+    ]
+  },
+  {
+    "slug": "batch-export-partial-failure",
+    "title": "Báo cáo · Một hàng lỗi không thể biến mất",
+    "brief": "Job xuất 50.000 hóa đơn gặp một dòng dữ liệu không hợp lệ. Đội kinh doanh muốn file đúng và biết có bao nhiêu bản ghi bị ảnh hưởng, không chỉ thấy status “done”.",
+    "prompt": "Bạn chọn fail toàn file hay cho partial result theo hợp đồng nào, và biểu diễn trạng thái, số đếm, lỗi hàng ra sao?",
+    "followUp": "Job chết sau ghi 49.000 dòng vào object tạm. Khi chạy lại, bạn tránh công bố file thiếu hoặc lặp bằng dữ liệu nào?",
+    "rubric": "Chốt atomic/partial contract trước xử lý; phân biệt succeeded/partial/failed cùng expected/written/rejected counts; ghi output tạm rồi publish có điều kiện khi hoàn tất; retry dựa job version và cleanup artifact dở; test hàng lỗi đầu/cuối và crash sát publish.",
+    "questions": [
+      "aspnet-accepted-job-status",
+      "systems-mqack-boundary",
+      "test-assert-business-outcome"
+    ]
+  }
+]

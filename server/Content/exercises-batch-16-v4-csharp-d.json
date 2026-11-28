@@ -1,0 +1,732 @@
+[
+  {
+    "slug": "network-minimum-spanning-cost",
+    "kind": "coding",
+    "title": "Chi phí nối toàn bộ điểm mạng",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "minimum-spanning-tree"
+    ],
+    "minutes": 25,
+    "description": "Đồ thị vô hướng có cạnh [u,v,cost], chi phí không âm. Tìm tổng chi phí nhỏ nhất nối mọi đỉnh. Không thể nối toàn bộ trả -1; 0 hoặc 1 đỉnh có chi phí 0.",
+    "input": "count: số đỉnh; edges: [u,v,cost].",
+    "output": "long chi phí MST hoặc -1.",
+    "constraints": [
+      "0 ≤ count ≤ 200; 0 ≤ e ≤ 2.000; 0 ≤ cost ≤ 10^9; cho phép cạnh song song, self-loop.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "3, [[0,1,5],[1,2,2],[0,2,9]]",
+        "output": "7",
+        "explanation": "Chọn cạnh giá 5 và 2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, []",
+        "output": "0",
+        "explanation": "Không có đỉnh."
+      },
+      {
+        "input": "3, [[0,1,4]]",
+        "output": "-1",
+        "explanation": "Đỉnh 2 không nối được."
+      },
+      {
+        "input": "2, [[0,1,9],[0,1,0]]",
+        "output": "0",
+        "explanation": "Cạnh song song giá 0 được chọn."
+      }
+    ],
+    "starter": "public static long MinimumNetwork(int count, int[][] edges)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long MinimumNetwork(int count, int[][] edges)\n{\n    if (count == 0) return 0; var used = new bool[count]; var best = Enumerable.Repeat(long.MaxValue, count).ToArray(); best[0] = 0; long total = 0; for (int step = 0; step < count; step++) { int v = -1; for (int i = 0; i < count; i++) if (!used[i] && (v == -1 || best[i] < best[v])) v = i; if (best[v] == long.MaxValue) return -1; used[v] = true; total += best[v]; foreach (var edge in edges) { int u = edge[0] == v ? edge[1] : edge[1] == v ? edge[0] : -1; if (u >= 0 && !used[u]) best[u] = Math.Min(best[u], (long)edge[2]); } } return total;\n}",
+    "hint": "Prim giữ chi phí cạnh rẻ nhất nối từng đỉnh chưa chọn với cây hiện tại. Không còn ứng viên hữu hạn trước khi đủ đỉnh nghĩa là không liên thông.",
+    "explanation": "Prim giữ chi phí cạnh rẻ nhất nối từng đỉnh chưa chọn với cây hiện tại. Không còn ứng viên hữu hạn trước khi đủ đỉnh nghĩa là không liên thông.",
+    "complexity": "O(v²+v×e) thời gian với việc quét cạnh mỗi lượt, O(v) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "floodfill-four-neighbor-size",
+    "kind": "coding",
+    "title": "Diện tích vùng bốn hướng",
+    "difficulty": "medium",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "flood-fill"
+    ],
+    "minutes": 25,
+    "description": "Lưới chữ nhật chỉ 0 hoặc 1. Trả số ô 1 kết nối với vị trí (row,column) qua bốn hướng, không tính chéo. Ô đầu là 0 hoặc lưới rỗng trả 0.",
+    "input": "grid: binary matrix; row,column: vị trí bắt đầu 0-based.",
+    "output": "int số ô trong vùng.",
+    "constraints": [
+      "0 ≤ hàng,cột ≤ 200; với lưới không rỗng, vị trí đầu hợp lệ; lưới rỗng dùng 0,0.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,0],[0,1]], 0, 0",
+        "output": "1",
+        "explanation": "Hai ô chéo không kết nối."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 0, 0",
+        "output": "0",
+        "explanation": "Lưới rỗng."
+      },
+      {
+        "input": "[[0]], 0, 0",
+        "output": "0",
+        "explanation": "Ô đầu là 0."
+      },
+      {
+        "input": "[[1,1],[1,0]], 0, 0",
+        "output": "3",
+        "explanation": "Vùng gồm ba ô 1."
+      }
+    ],
+    "starter": "public static int RegionSize(int[][] grid, int row, int column)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int RegionSize(int[][] grid, int row, int column)\n{\n    if (grid.Length == 0 || grid[0].Length == 0 || grid[row][column] == 0) return 0; int rows = grid.Length, cols = grid[0].Length; var seen = new bool[rows,cols]; var queue = new Queue<(int r,int c)>(); queue.Enqueue((row,column)); seen[row,column] = true; int count = 0; int[] dr = [-1,1,0,0], dc = [0,0,-1,1]; while (queue.Count > 0) { var p = queue.Dequeue(); count++; for (int d = 0; d < 4; d++) { int r = p.r+dr[d], c = p.c+dc[d]; if (r >= 0 && r < rows && c >= 0 && c < cols && grid[r][c] == 1 && !seen[r,c]) { seen[r,c] = true; queue.Enqueue((r,c)); } } } return count;\n}",
+    "hint": "BFS chỉ bốn offset cạnh chung, đánh dấu khi enqueue và không sửa grid nguồn. Các ô chéo chỉ được tới nếu có đường bốn hướng thực sự.",
+    "explanation": "BFS chỉ bốn offset cạnh chung, đánh dấu khi enqueue và không sửa grid nguồn. Các ô chéo chỉ được tới nếu có đường bốn hướng thực sự.",
+    "complexity": "O(r×c) thời gian và bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "rpn-integer-expression",
+    "kind": "coding",
+    "title": "Đánh giá biểu thức hậu tố",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "stack",
+      "rpn"
+    ],
+    "minutes": 25,
+    "description": "Tokens là biểu thức RPN hợp lệ gồm số nguyên có dấu và +,-,*,/. Toán tử nhị phân lấy hai toán hạng trước đó. Chia nguyên làm tròn về 0.",
+    "input": "tokens: string[] token không có khoảng trắng thừa.",
+    "output": "long kết quả cuối.",
+    "constraints": [
+      "1 ≤ token count ≤ 1.000; biểu thức hợp lệ, không chia 0; mọi literal và kết quả trung gian trong [-10^9,10^9].",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[\"7\",\"3\",\"-\",\"2\",\"*\"]",
+        "output": "8",
+        "explanation": "(7−3)×2=8."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[\"5\"]",
+        "output": "5",
+        "explanation": "Một literal."
+      },
+      {
+        "input": "[\"-7\",\"3\",\"/\"]",
+        "output": "-2",
+        "explanation": "Chia âm làm tròn về 0 ra -2."
+      },
+      {
+        "input": "[\"0\",\"9\",\"*\"]",
+        "output": "0",
+        "explanation": "Nhân với 0."
+      }
+    ],
+    "starter": "public static long EvaluateRpn(string[] tokens)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long EvaluateRpn(string[] tokens)\n{\n    var stack = new Stack<long>(); foreach (string token in tokens) { if (token != \"+\" && token != \"-\" && token != \"*\" && token != \"/\") { stack.Push(long.Parse(token, System.Globalization.CultureInfo.InvariantCulture)); continue; } long right = stack.Pop(), left = stack.Pop(); stack.Push(token switch { \"+\" => left+right, \"-\" => left-right, \"*\" => left*right, _ => left/right }); } return stack.Pop();\n}",
+    "hint": "Pop đầu tiên là toán hạng phải, pop thứ hai là trái. Với + và * thứ tự không lộ lỗi nhưng - và / bắt buộc đúng thứ tự.",
+    "explanation": "Pop đầu tiên là toán hạng phải, pop thứ hai là trái. Với + và * thứ tự không lộ lỗi nhưng - và / bắt buộc đúng thứ tự.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ stack.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "runlength-expand-zero-runs",
+    "kind": "coding",
+    "title": "Giải nén run có số lượng 0",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "encoding",
+      "run-length"
+    ],
+    "minutes": 25,
+    "description": "Mỗi cặp [value,count] yêu cầu xuất value đúng count lần. Count 0 không thêm phần tử. Ghép các run theo thứ tự đầu vào.",
+    "input": "runs: mảng [value,count].",
+    "output": "int[] sau giải nén.",
+    "constraints": [
+      "0 ≤ số run ≤ 10.000; count ≥ 0; tổng count ≤ 100.000; value trong miền int.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[3,2],[9,0],[-1,1]]",
+        "output": "[3,3,-1]",
+        "explanation": "Run 9×0 không tạo mục."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có run."
+      },
+      {
+        "input": "[[7,0]]",
+        "output": "[]",
+        "explanation": "Tổng output 0."
+      },
+      {
+        "input": "[[1,1],[1,2]]",
+        "output": "[1,1,1]",
+        "explanation": "Giữ đủ ba lần dù run cùng value."
+      }
+    ],
+    "starter": "public static int[] ExpandRuns(int[][] runs)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] ExpandRuns(int[][] runs)\n{\n    var output = new List<int>(); foreach (var run in runs) for (int i = 0; i < run[1]; i++) output.Add(run[0]); return output.ToArray();\n}",
+    "hint": "Vòng lặp có đúng count lần từ 0 tới count−1; tổng độ dài đã bị giới hạn trong constraints để tránh cấp phát vô hạn.",
+    "explanation": "Vòng lặp có đúng count lần từ 0 tới count−1; tổng độ dài đã bị giới hạn trong constraints để tránh cấp phát vô hạn.",
+    "complexity": "O(r+k) thời gian, O(k) bộ nhớ với k là tổng count.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "unix-path-lexical-normalization",
+    "kind": "coding",
+    "title": "Chuẩn hóa path tuyệt đối theo từ vựng",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "path",
+      "stack"
+    ],
+    "minutes": 25,
+    "description": "Chuẩn hóa path Unix tuyệt đối: gộp / lặp, bỏ ., .. loại một segment trước nếu có. Không đi cao hơn root. Không truy cập filesystem hay xử lý symlink.",
+    "input": "path: chuỗi bắt đầu bằng /.",
+    "output": "Path canonical theo quy tắc từ vựng, không có / cuối trừ root.",
+    "constraints": [
+      "1 ≤ Length ≤ 10.000; segment ASCII, không chứa backslash hay ký tự null.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"/a//b/../c/.\"",
+        "output": "\"/a/c\"",
+        "explanation": "Kết quả /a/c."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"/\"",
+        "output": "\"/\"",
+        "explanation": "Root giữ nguyên."
+      },
+      {
+        "input": "\"/../../x\"",
+        "output": "\"/x\"",
+        "explanation": "Không đi cao hơn root."
+      },
+      {
+        "input": "\"/a/.../b\"",
+        "output": "\"/a/.../b\"",
+        "explanation": "... là tên bình thường, không phải .."
+      }
+    ],
+    "starter": "public static string NormalizeUnixPath(string path)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static string NormalizeUnixPath(string path)\n{\n    var parts = new List<string>(); foreach (string part in path.Split('/')) { if (part == \"\" || part == \".\") continue; if (part == \"..\") { if (parts.Count > 0) parts.RemoveAt(parts.Count-1); } else parts.Add(part); } return \"/\" + string.Join(\"/\", parts);\n}",
+    "hint": "Dùng stack segment, bỏ rỗng và ., pop khi .. và stack có dữ liệu. Đây không phải kiểm tra an toàn filesystem có symlink.",
+    "explanation": "Dùng stack segment, bỏ rỗng và ., pop khi .. và stack có dữ liệu. Đây không phải kiểm tra an toàn filesystem có symlink.",
+    "complexity": "O(k) thời gian, O(k) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "canonical-query-preserve-duplicates",
+    "kind": "coding",
+    "title": "Query canonical không làm mất khóa lặp",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "uri",
+      "canonicalization"
+    ],
+    "minutes": 25,
+    "description": "Sort các cặp theo key Ordinal rồi value Ordinal, giữ cặp trùng. Percent-encode từng key/value theo URI data rồi nối key=value bằng &, không có dấu ? đầu. Khoảng trắng dùng %20.",
+    "input": "pairs: string[][], mỗi dòng [key,value].",
+    "output": "string query canonical.",
+    "constraints": [
+      "0 ≤ n ≤ 1.000; mỗi key/value ASCII tối đa 100 ký tự.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[\"b\",\"2\"],[\"a\",\"z\"],[\"a\",\"a\"]]",
+        "output": "\"a=a&a=z&b=2\"",
+        "explanation": "Khóa a có hai value được giữ và sort."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "\"\"",
+        "explanation": "Không có query."
+      },
+      {
+        "input": "[[\"a b\",\"x/y\"]]",
+        "output": "\"a%20b=x%2Fy\"",
+        "explanation": "Encode space và slash trong từng thành phần."
+      },
+      {
+        "input": "[[\"x\",\"\"],[\"x\",\"\"]]",
+        "output": "\"x=&x=\"",
+        "explanation": "Giữ hai cặp giống hệt và value rỗng."
+      }
+    ],
+    "starter": "public static string CanonicalQuery(string[][] pairs)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static string CanonicalQuery(string[][] pairs)\n{\n    return string.Join(\"&\", pairs.OrderBy(p => p[0], StringComparer.Ordinal).ThenBy(p => p[1], StringComparer.Ordinal).Select(p => Uri.EscapeDataString(p[0]) + \"=\" + Uri.EscapeDataString(p[1])));\n}",
+    "hint": "Sort trên chuỗi gốc trước encode, rồi encode từng thành phần riêng để &,= trong dữ liệu không trở thành cấu trúc query. Không dùng dictionary vì key có thể lặp.",
+    "explanation": "Sort trên chuỗi gốc trước encode, rồi encode từng thành phần riêng để &,= trong dữ liệu không trở thành cấu trúc query. Không dùng dictionary vì key có thể lặp.",
+    "complexity": "O(n log n × k) thời gian, O(n×k) bộ nhớ với k là độ dài thành phần.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "sorted-inclusive-range-counts",
+    "kind": "coding",
+    "title": "Đếm phần tử trong nhiều đoạn đóng",
+    "difficulty": "easy",
+    "topic": "algorithms",
+    "tags": [
+      "algorithm",
+      "binary-search"
+    ],
+    "minutes": 25,
+    "description": "sorted không giảm. Với mỗi range [low,high] có low≤high, đếm các phần tử có giá trị nằm trong đoạn đóng, tính cả phần tử lặp.",
+    "input": "sorted: int[] không giảm; ranges: [low,high].",
+    "output": "int[] số lượng theo thứ tự query.",
+    "constraints": [
+      "0 ≤ n,q ≤ 100.000; mọi giá trị trong miền int; low≤high.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2,2,4], [[2,2],[0,4],[5,9]]",
+        "output": "[2,4,0]",
+        "explanation": "Lần lượt 2,4,0."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], [[0,1]]",
+        "output": "[0]",
+        "explanation": "Nguồn rỗng."
+      },
+      {
+        "input": "[1,2], []",
+        "output": "[]",
+        "explanation": "Không có query."
+      },
+      {
+        "input": "[-3,-1,0], [[-3,-1]]",
+        "output": "[2]",
+        "explanation": "Biên âm vẫn bao gồm cả hai đầu."
+      }
+    ],
+    "starter": "public static int[] CountRanges(int[] sorted, int[][] ranges)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] CountRanges(int[] sorted, int[][] ranges)\n{\n    var output = new int[ranges.Length]; for (int q = 0; q < ranges.Length; q++) { int lo = 0, hi = sorted.Length; while (lo < hi) { int mid = lo+(hi-lo)/2; if (sorted[mid] < ranges[q][0]) lo = mid+1; else hi = mid; } int start = lo; lo = 0; hi = sorted.Length; while (lo < hi) { int mid = lo+(hi-lo)/2; if (sorted[mid] <= ranges[q][1]) lo = mid+1; else hi = mid; } output[q] = lo-start; } return output;\n}",
+    "hint": "Tìm vị trí đầu >=low và vị trí đầu >high bằng hai binary search. Hiệu hai vị trí là số lượng, không cần tính high+1 có thể tràn.",
+    "explanation": "Tìm vị trí đầu >=low và vị trí đầu >high bằng hai binary search. Hiệu hai vị trí là số lượng, không cần tính high+1 có thể tràn.",
+    "complexity": "O(q log n) thời gian, O(q) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "warehouse-nearest-manhattan",
+    "kind": "coding",
+    "title": "Kho gần nhất theo khoảng cách Manhattan",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "geometry",
+      "distance"
+    ],
+    "minutes": 25,
+    "description": "Mỗi site [id,x,y]. Chọn site tối thiểu |siteX−x|+|siteY−y|; bằng nhau chọn id nhỏ nhất. Không có site trả -1.",
+    "input": "sites: [id,x,y]; x,y: tọa độ yêu cầu.",
+    "output": "int id kho hoặc -1.",
+    "constraints": [
+      "0 ≤ n ≤ 10.000; id dương duy nhất; mọi tọa độ trong [-10^9,10^9].",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,3,0],[2,2,2]], 0, 0",
+        "output": "1",
+        "explanation": "Manhattan chọn id 1 dù Euclidean chọn id 2."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 0, 0",
+        "output": "-1",
+        "explanation": "Không có kho."
+      },
+      {
+        "input": "[[8,1,0],[3,-1,0]], 0, 0",
+        "output": "3",
+        "explanation": "Tie chọn id nhỏ."
+      },
+      {
+        "input": "[[1,-1000000000,-1000000000]], 1000000000, 1000000000",
+        "output": "1",
+        "explanation": "Tổng khoảng cách vượt int."
+      }
+    ],
+    "starter": "public static int NearestWarehouse(int[][] sites, int x, int y)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int NearestWarehouse(int[][] sites, int x, int y)\n{\n    if (sites.Length == 0) return -1; return sites.OrderBy(s => Math.Abs((long)s[1]-x) + Math.Abs((long)s[2]-y)).ThenBy(s => s[0]).First()[0];\n}",
+    "hint": "Dùng long trước phép trừ và cộng khoảng cách; sort theo khoảng cách rồi id cho kết quả xác định.",
+    "explanation": "Dùng long trước phép trừ và cộng khoảng cách; sort theo khoảng cách rồi id cho kết quả xác định.",
+    "complexity": "O(n log n) thời gian, O(n) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "log-warning-stable-partition",
+    "kind": "coding",
+    "title": "Đưa log cảnh báo lên trước nhưng giữ thứ tự",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "logging",
+      "stable-partition"
+    ],
+    "minutes": 25,
+    "description": "Mỗi dòng [id,severity]. Severity 2 hoặc 3 là cảnh báo, 0 hoặc 1 là thường. Trả các id cảnh báo trước, sau đó id thường, giữ thứ tự nhập trong mỗi nhóm.",
+    "input": "entries: [id,severity] theo thời gian đến.",
+    "output": "int[] id sau stable partition.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; id trong miền int; severity 0..3.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,2],[2,0],[3,3],[4,1]]",
+        "output": "[1,3,2,4]",
+        "explanation": "Warning giữ id 1 trước id 3."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[]",
+        "output": "[]",
+        "explanation": "Không có log."
+      },
+      {
+        "input": "[[2,3],[1,2]]",
+        "output": "[2,1]",
+        "explanation": "Mọi mục warning giữ thứ tự."
+      },
+      {
+        "input": "[[2,0],[1,1]]",
+        "output": "[2,1]",
+        "explanation": "Mọi mục thường giữ thứ tự."
+      }
+    ],
+    "starter": "public static int[] WarningFirst(int[][] entries)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] WarningFirst(int[][] entries)\n{\n    return entries.Where(e => e[1] >= 2).Concat(entries.Where(e => e[1] < 2)).Select(e => e[0]).ToArray();\n}",
+    "hint": "Hai lượt lọc giữ thứ tự mỗi nhóm rồi concat; không sort mức severity chi tiết vì hợp đồng chỉ có hai nhóm ưu tiên.",
+    "explanation": "Hai lượt lọc giữ thứ tự mỗi nhóm rồi concat; không sort mức severity chi tiết vì hợp đồng chỉ có hai nhóm ưu tiên.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "allocation-largest-remainder",
+    "kind": "coding",
+    "title": "Chia đơn vị theo tỷ lệ và phần dư lớn nhất",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "allocation",
+      "integer-rounding"
+    ],
+    "minutes": 25,
+    "description": "Chia units đơn vị nguyên theo weights. Lấy floor từng phần weights[i]×units/sum(weights); phần còn lại tặng từng đơn vị theo phần dư lớn nhất, tie index nhỏ. Nếu tổng weight=0 trả toàn 0.",
+    "input": "weights: tỷ trọng không âm; units: số đơn vị.",
+    "output": "int[] lượng phân bổ theo index.",
+    "constraints": [
+      "0 ≤ n ≤ 1.000; 0 ≤ weights[i] ≤ 10^6; 0 ≤ units ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[1,2], 2",
+        "output": "[1,1]",
+        "explanation": "Floor [0,1], phần dư [2,1], kết quả [1,1]."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 5",
+        "output": "[]",
+        "explanation": "Không có nơi nhận."
+      },
+      {
+        "input": "[0,0], 7",
+        "output": "[0,0]",
+        "explanation": "Không có tỷ trọng nên không phân phối."
+      },
+      {
+        "input": "[1,1,1], 2",
+        "output": "[1,1,0]",
+        "explanation": "Tie index: [1,1,0]."
+      },
+      {
+        "input": "[2,3], 0",
+        "output": "[0,0]",
+        "explanation": "Không có đơn vị."
+      }
+    ],
+    "starter": "public static int[] AllocateUnits(int[] weights, int units)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] AllocateUnits(int[] weights, int units)\n{\n    long total = weights.Sum(w => (long)w); var result = new int[weights.Length]; if (total == 0) return result; long assigned = 0; for (int i = 0; i < weights.Length; i++) { result[i] = (int)((long)weights[i]*units/total); assigned += result[i]; } var order = Enumerable.Range(0,weights.Length).OrderByDescending(i => (long)weights[i]*units%total).ThenBy(i => i).ToArray(); for (int i = 0; i < units-assigned; i++) result[order[i]]++; return result;\n}",
+    "hint": "Tính quotient và remainder chính xác bằng long, không dùng double. Số đơn vị còn lại nhỏ hơn số mục có tổng trọng số dương; sort remainder rồi index để phân phối xác định.",
+    "explanation": "Tính quotient và remainder chính xác bằng long, không dùng double. Số đơn vị còn lại nhỏ hơn số mục có tổng trọng số dương; sort remainder rồi index để phân phối xác định.",
+    "complexity": "O(n log n) thời gian, O(n) bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "invoice-payment-oldest-first",
+    "kind": "coding",
+    "title": "Thanh toán hóa đơn cũ trước",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "billing",
+      "fifo"
+    ],
+    "minutes": 25,
+    "description": "invoices theo thứ tự cũ đến mới, mỗi giá trị là tiền chưa trả. Dùng payment thanh toán lần lượt hóa đơn cũ trước, không âm số dư. Tiền thừa không thêm hóa đơn mới.",
+    "input": "invoices: int[] số dư không âm; payment: tiền nhận.",
+    "output": "long[] số dư từng hóa đơn còn lại.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; 0 ≤ invoices[i] ≤ 10^9; 0 ≤ payment ≤ 10^12.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[10,20,30], 15",
+        "output": "[0,15,30]",
+        "explanation": "Hóa đơn đầu hết, hóa đơn hai còn 15."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 99",
+        "output": "[]",
+        "explanation": "Không có hóa đơn."
+      },
+      {
+        "input": "[0,4], 0",
+        "output": "[0,4]",
+        "explanation": "Không có payment."
+      },
+      {
+        "input": "[3,4], 99",
+        "output": "[0,0]",
+        "explanation": "Dư tiền thì mọi hóa đơn còn 0."
+      }
+    ],
+    "starter": "public static long[] ApplyPayment(int[] invoices, long payment)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long[] ApplyPayment(int[] invoices, long payment)\n{\n    var remaining = invoices.Select(x => (long)x).ToArray(); for (int i = 0; i < remaining.Length && payment > 0; i++) { long used = Math.Min(remaining[i],payment); remaining[i] -= used; payment -= used; } return remaining;\n}",
+    "hint": "Mỗi bước lấy min số dư và tiền còn, trừ cả hai. Duyệt theo nguồn và dùng bản sao để giữ đầu vào.",
+    "explanation": "Mỗi bước lấy min số dư và tiền còn, trừ cả hai. Duyệt theo nguồn và dùng bản sao để giữ đầu vào.",
+    "complexity": "O(n) thời gian, O(n) bộ nhớ kết quả.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "idempotency-window-from-accepted",
+    "kind": "coding",
+    "title": "Cửa sổ chống trùng tính từ lần được nhận",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "idempotency",
+      "time-window"
+    ],
+    "minutes": 25,
+    "description": "Events [id,time] đã sort theo time không giảm. Nhận event nếu id chưa từng được nhận hoặc time−lastAccepted≥ttl. Event bị bỏ không gia hạn cửa sổ. Trả chỉ số các event được nhận.",
+    "input": "events: [id,time]; ttl: độ dài cửa sổ.",
+    "output": "int[] chỉ số event được nhận.",
+    "constraints": [
+      "0 ≤ n ≤ 100.000; id trong miền int; 0 ≤ time,ttl ≤ 10^9; time không giảm.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "[[1,0],[1,3],[1,5]], 5",
+        "output": "[0,2]",
+        "explanation": "Event giữa bị bỏ không dời mốc 0; index 2 được nhận."
+      }
+    ],
+    "tests": [
+      {
+        "input": "[], 5",
+        "output": "[]",
+        "explanation": "Không có event."
+      },
+      {
+        "input": "[[1,0],[1,0]], 0",
+        "output": "[0,1]",
+        "explanation": "TTL 0 nhận cả event cùng tick."
+      },
+      {
+        "input": "[[1,0],[2,1],[1,4]], 5",
+        "output": "[0,1]",
+        "explanation": "Hai id có cửa sổ độc lập."
+      }
+    ],
+    "starter": "public static int[] AcceptedEvents(int[][] events, int ttl)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int[] AcceptedEvents(int[][] events, int ttl)\n{\n    var last = new Dictionary<int,int>(); var accepted = new List<int>(); for (int i = 0; i < events.Length; i++) { int id = events[i][0], time = events[i][1]; if (!last.TryGetValue(id,out int previous) || (long)time-previous >= ttl) { accepted.Add(i); last[id] = time; } } return accepted.ToArray();\n}",
+    "hint": "Dictionary chỉ giữ mốc của event được nhận; điều kiện >= cho phép đúng thời điểm hết hạn. Việc prune bộ nhớ không bắt buộc trong một batch hữu hạn.",
+    "explanation": "Dictionary chỉ giữ mốc của event được nhận; điều kiện >= cho phép đúng thời điểm hết hạn. Việc prune bộ nhớ không bắt buộc trong một batch hữu hạn.",
+    "complexity": "O(n) thời gian kỳ vọng, O(u) bộ nhớ phụ cho u id và O(n) bộ nhớ kết quả; tổng O(u+n).",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "business-days-full-weeks",
+    "kind": "coding",
+    "title": "Đếm ngày làm việc không duyệt từng ngày",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "calendar",
+      "modulo"
+    ],
+    "minutes": 25,
+    "description": "Đếm các ngày thứ Hai tới thứ Sáu trong days ngày liên tiếp, tính cả ngày đầu. startWeekday dùng 0=thứ Hai tới 6=Chủ nhật. Không xét ngày lễ.",
+    "input": "startWeekday: 0..6 theo hợp đồng; days: số ngày.",
+    "output": "int số ngày làm việc.",
+    "constraints": [
+      "0 ≤ startWeekday ≤ 6; 0 ≤ days ≤ 10^9.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "4, 4",
+        "output": "2",
+        "explanation": "Thứ Sáu tới thứ Hai có hai ngày làm việc."
+      }
+    ],
+    "tests": [
+      {
+        "input": "0, 0",
+        "output": "0",
+        "explanation": "Khoảng rỗng."
+      },
+      {
+        "input": "6, 1",
+        "output": "0",
+        "explanation": "Chủ nhật không làm việc."
+      },
+      {
+        "input": "2, 14",
+        "output": "10",
+        "explanation": "Hai tuần đủ có mười ngày."
+      }
+    ],
+    "starter": "public static int BusinessDays(int startWeekday, int days)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static int BusinessDays(int startWeekday, int days)\n{\n    int result = days/7*5; for (int i = 0; i < days%7; i++) if ((startWeekday+i)%7 < 5) result++; return result;\n}",
+    "hint": "Mỗi tuần đầy đủ luôn có 5 ngày làm việc. Chỉ kiểm tra tối đa 6 ngày dư theo modulo 7; không cần giả định DayOfWeek của .NET có cùng origin.",
+    "explanation": "Mỗi tuần đầy đủ luôn có 5 ngày làm việc. Chỉ kiểm tra tối đa 6 ngày dư theo modulo 7; không cần giả định DayOfWeek của .NET có cùng origin.",
+    "complexity": "O(1) thời gian và bộ nhớ.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  },
+  {
+    "slug": "ipv4-strict-network-order",
+    "kind": "coding",
+    "title": "Đọc IPv4 dạng thập phân chuẩn",
+    "difficulty": "easy",
+    "topic": "csharp",
+    "tags": [
+      "networking",
+      "parsing"
+    ],
+    "minutes": 25,
+    "description": "Chỉ nhận bốn octet thập phân 0..255 cách nhau bằng dấu chấm. Không nhận khoảng trắng, dấu +, hoặc số có 0 đầu trừ chính \"0\". Trả giá trị 32-bit không dấu dưới dạng long theo network byte order; sai trả -1.",
+    "input": "address: chuỗi ASCII.",
+    "output": "long 0..4294967295, hoặc -1.",
+    "constraints": [
+      "0 ≤ Length ≤ 100; chỉ cú pháp nêu trong mô tả được nhận.",
+      "Giữ nguyên chữ ký public static. Mọi mảng và chuỗi đầu vào không null; không sửa dữ liệu đầu vào."
+    ],
+    "examples": [
+      {
+        "input": "\"1.2.3.4\"",
+        "output": "16909060",
+        "explanation": "Giá trị 16909060 theo network order."
+      }
+    ],
+    "tests": [
+      {
+        "input": "\"0.0.0.0\"",
+        "output": "0",
+        "explanation": "Địa chỉ số 0 hợp lệ."
+      },
+      {
+        "input": "\"255.255.255.255\"",
+        "output": "4294967295",
+        "explanation": "Giá trị 4294967295 cần long."
+      },
+      {
+        "input": "\"01.2.3.4\"",
+        "output": "-1",
+        "explanation": "Từ chối 0 đầu."
+      },
+      {
+        "input": "\"1.2.3.256\"",
+        "output": "-1",
+        "explanation": "Octet vượt 255."
+      },
+      {
+        "input": "\"1.2.3\"",
+        "output": "-1",
+        "explanation": "Thiếu octet."
+      }
+    ],
+    "starter": "public static long ParseIpv4(string address)\n{\n    throw new NotImplementedException();\n}",
+    "solution": "public static long ParseIpv4(string address)\n{\n    string[] parts = address.Split('.'); if (parts.Length != 4) return -1; long result = 0; for (int i = 0; i < 4; i++) { string p = parts[i]; if (p.Length == 0 || p.Length > 3 || p.Length > 1 && p[0] == '0' || p.Any(c => c < '0' || c > '9')) return -1; int octet = int.Parse(p, System.Globalization.CultureInfo.InvariantCulture); if (octet > 255) return -1; result = result*256 + octet; } return result;\n}",
+    "hint": "Validate từng segment trước Parse để không ném lỗi với input sai. Gom bằng result×256+octet cho đúng big-endian; không dùng parser tự nhận cú pháp legacy ngoài hợp đồng.",
+    "explanation": "Validate từng segment trước Parse để không ném lỗi với input sai. Gom bằng result×256+octet cho đúng big-endian; không dùng parser tự nhận cú pháp legacy ngoài hợp đồng.",
+    "complexity": "O(k) thời gian và bộ nhớ với k≤100.",
+    "version": 1,
+    "testVersion": 1,
+    "runtime": ".NET 10 · C# 14"
+  }
+]

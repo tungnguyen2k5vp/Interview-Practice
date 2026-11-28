@@ -1,5 +1,15 @@
 # Bàn giao nâng cấp Interview Practice
 
+## V4 · Checkpoint Phase 1–2 · 28/11/2026
+
+Đã xác minh lại baseline `30b34ea`, bổ sung **244 câu** trong sáu batch và đưa tổng lên **500 câu Việt–Anh**. Có 424 câu Intern–Junior, 370 key trực tiếp và 130 bài vận dụng cho câu viết. Tổng học liệu: 80 C# gồm 30 debugging, 60 SQL, 40 code review, 30 system design, 25 project interview và 25 mock preset. Không có migration hoặc dependency mới.
+
+Đạt **546 ca thực thi**, **140/140 reference Docker**, **95/95 mutant bị bắt**, **30/30 starter tái hiện lỗi**, **17 nhóm upgrade** và gateway Chrome/HTTPS C#/SQL. Sáu batch vượt import/retry/publication và đối chiếu tiến độ cũ. Kiểm nguồn đạt 488 URL đang dùng; manifest tách HTTP, mệnh đề, review và thực thi. Bản local trả ready/HTTP 200 với API 500 câu và 25 preset; số lượt làm, phiên phỏng vấn, ghi chú và nháp trước/sau khởi động không đổi.
+
+Bộ chọn mock dùng select thay danh sách 25 card; mức và thời lượng điền theo preset, tên hiển thị đúng trong phiên/báo cáo/lịch sử. Đã xem sáu kích thước ở cả hai theme, kiểm bàn phím, sửa một dòng chữ sidebar quá nhỏ và chụp lại sau transition. Đo tìm kiếm 500/1.000 hàng QA và xóa fixture sau đo; số liệu/giới hạn ở [báo cáo kiểm định](CONTENT_QUALITY_REPORT.md).
+
+**Điểm tiếp tục là Phase 3**, bắt đầu 30 interactive lessons trên taxonomy và scheduler hiện có. Phase 4–7 còn 10 mini project, chiều sâu AI/countdown, Technical English, journal, readiness, analytics và production verification. Các phần này chưa được tính là hoàn thành. [Kế hoạch V4](UPGRADE_PLAN_V4.md) · [Manifest](docs/content/v4-review-manifest.json) · [Roadmap 1.000 câu](CONTENT_ROADMAP.md).
+
 ## V3 · Ngân hàng cốt lõi và nội dung thực hành · 27/11/2026
 
 Mốc cốt lõi đạt **256 câu song ngữ** từ baseline 102. Đã xuất bản 14 batch mới (06–19), bổ sung 10 bài C#, 10 bài SQL, 8 code review, 12 system design và 10 phỏng vấn dự án. Bảy lab sửa lỗi là tập con của 24 bài C#. Mười concept liên kết câu hỏi, flashcard, bài áp dụng và code review với bằng chứng học hiện có. Có 11 mock preset và 9 lựa chọn roadmap.

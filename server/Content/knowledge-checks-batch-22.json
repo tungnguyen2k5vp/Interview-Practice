@@ -1,0 +1,192 @@
+[
+  {
+    "slug": "sql-running-peer-frame",
+    "version": 1,
+    "prompt": "Một ví có giao dịch 5 và 7 cùng giờ, Id khác nhau. Cần hiển thị số dư lần lượt 5 rồi 12. Cấu hình nào giữ hai bước?",
+    "englishPrompt": "A wallet has amounts 5 and 7 at the same time with distinct Ids. Balances must be 5 then 12. Which configuration keeps two steps?",
+    "choices": [
+      "ROWS theo thời điểm rồi Id",
+      "RANGE chỉ theo thời điểm",
+      "SUM không ORDER BY"
+    ],
+    "englishChoices": [
+      "ROWS ordered by timestamp then Id",
+      "RANGE ordered only by timestamp",
+      "SUM without ORDER BY"
+    ],
+    "correctIndex": 0,
+    "explanation": "Khóa phụ xác định thứ tự và ROWS tạo hai frame theo dòng.",
+    "englishExplanation": "A tiebreaker fixes the order and ROWS creates two row-based frames."
+  },
+  {
+    "slug": "sql-window-filter-stage",
+    "version": 1,
+    "prompt": "Query xếp sản phẩm theo doanh thu trong từng vùng. Muốn chỉ lấy ba hạng đầu, đặt điều kiện rn <= 3 ở đâu?",
+    "englishPrompt": "A query numbers products by revenue within each region. Where should rn <= 3 be applied to retain the first three?",
+    "choices": [
+      "Đổi tên rn thành biến C#",
+      "Truy vấn ngoài sau khi query trong đã tính rn",
+      "WHERE của cùng SELECT tạo rn"
+    ],
+    "englishChoices": [
+      "Rename rn as a C# variable",
+      "In an outer query after the inner query computes rn",
+      "The WHERE of the same SELECT that creates rn"
+    ],
+    "correctIndex": 1,
+    "explanation": "Điều kiện phải dùng kết quả cửa sổ đã được tạo ở lớp trong.",
+    "englishExplanation": "The predicate must consume a window result already produced by the inner query."
+  },
+  {
+    "slug": "sql-cross-outer-apply",
+    "version": 1,
+    "prompt": "Truy vấn đổi từ báo cáo đủ thiết bị sang chỉ thiết bị đã có phép đo. Với truy vấn tương quan trả phép đo, toán tử nào tự bỏ thiết bị có kết quả phải rỗng?",
+    "englishPrompt": "A report now needs only devices with measurements. With a correlated measurement query, which operator discards devices whose right-hand result is empty?",
+    "choices": [
+      "OUTER APPLY",
+      "FULL OUTER JOIN không điều kiện",
+      "CROSS APPLY"
+    ],
+    "englishChoices": [
+      "OUTER APPLY",
+      "An unconditional FULL OUTER JOIN",
+      "CROSS APPLY"
+    ],
+    "correctIndex": 2,
+    "explanation": "CROSS APPLY chỉ giữ dòng trái có kết quả phải, khác yêu cầu giữ đủ trước đó.",
+    "englishExplanation": "CROSS APPLY keeps a left row only when the right side produces rows, unlike the original preservation requirement."
+  },
+  {
+    "slug": "sql-cte-not-materialized",
+    "version": 1,
+    "prompt": "Sau đo plan, cùng tập trung gian nặng cần đọc ba lần và muốn tạo index riêng cho nó. Lựa chọn nào biểu diễn việc lưu trung gian rõ ràng?",
+    "englishPrompt": "After plan inspection, the same expensive intermediate set must be read three times and indexed separately. Which option explicitly stores it?",
+    "choices": [
+      "Bảng tạm với index được tạo có chủ đích",
+      "Đổi tên CTE dài hơn",
+      "Lồng thêm hai CTE không đo lại"
+    ],
+    "englishChoices": [
+      "A temporary table with a deliberately created index",
+      "Give the CTE a longer name",
+      "Nest two more CTEs without measuring"
+    ],
+    "correctIndex": 0,
+    "explanation": "Bảng tạm lưu tập dòng và hỗ trợ index riêng, với chi phí ghi và quản lý cần đo.",
+    "englishExplanation": "A temporary table stores rows and supports separate indexes, with measurable write and management costs."
+  },
+  {
+    "slug": "sql-stats-estimate-skew",
+    "version": 1,
+    "prompt": "Statistics vừa cập nhật nhưng query lọc theo hai cột tương quan vẫn ước lượng sai. Có nên kết luận mọi nguyên nhân đã bị loại trừ chỉ vì statistics mới?",
+    "englishPrompt": "Statistics were just updated, but a query filtering correlated columns is still misestimated. Does fresh statistics alone rule out all estimation issues?",
+    "choices": [
+      "Có, estimated rows luôn là số đếm thực",
+      "Không, còn cần xem tương quan và predicate trong plan",
+      "Có, statistics mới bảo đảm cardinality chính xác"
+    ],
+    "englishChoices": [
+      "Yes, estimated rows are actual counts",
+      "No, correlation and predicates in the plan still need inspection",
+      "Yes, fresh statistics guarantee exact cardinality"
+    ],
+    "correctIndex": 1,
+    "explanation": "Độ mới không bảo đảm mô hình ước lượng diễn tả được mọi phân phối hay tương quan.",
+    "englishExplanation": "Freshness does not guarantee that estimation models capture every distribution or correlation."
+  },
+  {
+    "slug": "sql-psp-skewed-tenants",
+    "version": 1,
+    "prompt": "Một query trên SQL Server 2022 không đủ điều kiện PSP. Kỹ sư bật PSP và hứa mọi tham số sẽ nhanh hơn. Đánh giá nào hợp lý?",
+    "englishPrompt": "A SQL Server 2022 query is not PSP-eligible. An engineer enables PSP and promises every parameter will become faster. Which assessment is justified?",
+    "choices": [
+      "PSP chắc chắn sinh variant cho mọi câu SQL",
+      "Chỉ cần tăng tên parameter là đủ điều kiện",
+      "Không có bảo đảm; cần xác minh eligibility và đo từng nhóm tham số"
+    ],
+    "englishChoices": [
+      "PSP certainly creates variants for every SQL statement",
+      "Lengthening a parameter name makes it eligible",
+      "No guarantee; verify eligibility and measure parameter groups"
+    ],
+    "correctIndex": 2,
+    "explanation": "PSP có điều kiện áp dụng và không thay thế bằng chứng hiệu năng.",
+    "englishExplanation": "PSP has eligibility conditions and does not replace performance evidence."
+  },
+  {
+    "slug": "sql-rcsi-statement-snapshot",
+    "version": 1,
+    "prompt": "Một báo cáo cần cùng ảnh chụp cho nhiều SELECT trong transaction. RCSI chỉ bảo đảm từng statement. Lựa chọn nào đáng xem xét khi database cho phép?",
+    "englishPrompt": "A report needs one consistent snapshot across several SELECTs in a transaction. RCSI only covers each statement. Which option merits consideration when enabled by the database?",
+    "choices": [
+      "SNAPSHOT isolation với đánh giá chi phí versioning và conflict",
+      "NOLOCK để có ảnh chụp transaction chắc chắn",
+      "Thêm BEGIN TRAN nhưng vẫn giả định RCSI cố định ảnh"
+    ],
+    "englishChoices": [
+      "SNAPSHOT isolation with evaluation of versioning costs and conflicts",
+      "NOLOCK for a guaranteed transaction snapshot",
+      "Add BEGIN TRAN and assume RCSI fixes the snapshot"
+    ],
+    "correctIndex": 0,
+    "explanation": "SNAPSHOT và RCSI có phạm vi nhất quán khác nhau; phải chọn theo hợp đồng đọc.",
+    "englishExplanation": "SNAPSHOT and RCSI provide different consistency scopes, so the read contract drives the choice."
+  },
+  {
+    "slug": "sql-lock-escalation-batch",
+    "version": 1,
+    "prompt": "Cleanup đã chia 100 DELETE nhỏ nhưng vẫn một transaction kéo dài. Vì sao nhiều khóa vẫn chưa được giải phóng giữa các lệnh?",
+    "englishPrompt": "Cleanup uses 100 small DELETE statements but retains one long transaction. Why can many locks remain between statements?",
+    "choices": [
+      "Số statement tự bảo đảm mỗi lệnh là một transaction",
+      "Ranh giới commit chưa thay đổi nên khóa có thể giữ tới cuối transaction",
+      "SQL Server luôn release mọi khóa sau mỗi DELETE"
+    ],
+    "englishChoices": [
+      "Statement count guarantees separate transactions",
+      "The commit boundary is unchanged, so locks can remain until transaction end",
+      "SQL Server always releases every lock after each DELETE"
+    ],
+    "correctIndex": 1,
+    "explanation": "Tách statement không tự tách transaction; điều kiện giữ khóa phụ thuộc phạm vi giao dịch.",
+    "englishExplanation": "Splitting statements does not split transactions; lock retention depends on transaction scope."
+  },
+  {
+    "slug": "ef-property-only-patch",
+    "version": 1,
+    "prompt": "PATCH chỉ gửi City, còn Postcode phải giữ nguyên. Mapping DTO thiếu Postcode sang entity mới rồi Update toàn bộ có rủi ro nào?",
+    "englishPrompt": "A PATCH sends only City and must preserve Postcode. What risk arises from mapping the incomplete DTO to a new entity and updating the whole entity?",
+    "choices": [
+      "Tự bổ sung Postcode chính xác từ lịch sử",
+      "EF tự hiểu mọi null đều nghĩa là bỏ qua",
+      "Ghi đè Postcode bằng giá trị mặc định không được yêu cầu"
+    ],
+    "englishChoices": [
+      "Automatically restoring the correct Postcode from history",
+      "EF automatically treats every null as omitted",
+      "Overwriting Postcode with an unrequested default value"
+    ],
+    "correctIndex": 2,
+    "explanation": "Update toàn entity không biết ngữ nghĩa absent của DTO; cần whitelist trường được thay đổi.",
+    "englishExplanation": "A whole-entity update does not know DTO omission semantics; explicitly allow the changed fields."
+  },
+  {
+    "slug": "ef-stored-procedure-compose",
+    "version": 1,
+    "prompt": "Procedure tìm khách nhận tham số Region nhưng trả quá nhiều dòng khi lọc client. Phương án nào giữ lọc trước khi truyền dữ liệu?",
+    "englishPrompt": "A customer procedure accepts Region but client filtering still returns too many rows. Which approach keeps filtering before data transfer?",
+    "choices": [
+      "Đưa predicate cần thiết vào procedure bằng tham số thích hợp",
+      "Gọi AsEnumerable sớm hơn để SQL tự lọc",
+      "Gọi AsNoTracking để giảm số dòng procedure trả"
+    ],
+    "englishChoices": [
+      "Put the required predicate inside the procedure using suitable parameters",
+      "Call AsEnumerable earlier so SQL filters automatically",
+      "Call AsNoTracking to reduce procedure result rows"
+    ],
+    "correctIndex": 0,
+    "explanation": "Predicate bên trong procedure giảm tập trả về; tracking mode không thay kết quả nghiệp vụ của EXEC.",
+    "englishExplanation": "A predicate inside the procedure reduces returned rows; tracking mode does not change EXEC's business result."
+  }
+]
